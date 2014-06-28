@@ -23,12 +23,13 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   $p['number'] = $vars['contributionID'];
   $p['length'] = $payment_processor['password'];
   $p['price'] = $vars['amount'];
-  $p['timestamp'] = strtotime('+7 days');
+  $p['timestamp'] = strtotime('+'.CIVICRM_ESUNBANK_EXPIRED_DAY.' days');
   $p['store'] = $payment_processor['subject'];
   $p['type'] = $payment_processor['signature'];
 
   // contact info
   $p['user'] = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $vars['contactID'], 'display_name');
+  $p['item'] = $vars['item_name'];
 
   // order info
   $p['order_number'] = '';
@@ -81,11 +82,20 @@ $(document).ready(function(){
     CRM_Core_OptionValue::getValues(array('name' => 'from_email_address'), &$from_emails);
     foreach($from_emails as $id => $v){
       if($v['is_default'] == 1){
-        $from_default = $v['name'];
+        $from_default = $v['label'];
         break;
       }
     }
     if($component == 'event'){
+      // after saved record, we should modify the status of participant / membership
+      $participant_id = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_ParticipantPayment', $vars['contributionID'], 'participant_id', 'contribution_id');
+      if($participant_id){
+        $pstatus = CRM_Event_PseudoConstant::participantStatus();
+        if($new_pstatus = array_search('Pending from pay later', $pstatus)){
+          CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $participant_id, 'status_id', $new_pstatus, 'id');
+        }
+      }
+
       if($values['event']['confirm_from_name'] && $values['event']['confirm_from_email']){
         $from = $values['event']['confirm_from_name']. '<'.$values['event']['confirm_from_email'];
       }

@@ -52,7 +52,7 @@ function civicrm_event_cck_access_check($perm, $node){
   return FALSE;
 }
 
-function civicrm_event_cck_goto(&$node){
+function civicrm_event_cck_goto($node){
   $event_id = civicrm_event_cck_check($node);
   if($event_id){
     switch(arg(2)){
@@ -207,6 +207,10 @@ function civicrm_event_cck_save(&$node, $op){
         $params['end_date'] = date('YmdHis',strtotime($field[0]['value2']) + $field[0]['offset2']);
       }
       elseif($f == 'registration_date'){
+        if(!strstr($field[0]['value'], ':')){
+          $field[0]['value'] .= ' 00:00:00';
+          $field[0]['value2'] .= ' 23:59:59';
+        }
         $params['registration_start_date'] = date('YmdHis',strtotime($field[0]['value']) + $field[0]['offset']);
         $params['registration_end_date'] = date('YmdHis',strtotime($field[0]['value2']) + $field[0]['offset2']);
       }
@@ -295,7 +299,7 @@ function civicrm_event_cck_uf_join($event_id, $uf_group_id, $type){
   civicrm_uf_join_edit($params2);
 }
 
-function civicrm_event_cck_form_alter(&$form, &$form_state, $form_id){
+function civicrm_event_cck_form_alter(&$form, $form_state, $form_id){
   if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id){
     $available_types = variable_get('civiec_enabled_type', array());
     if(in_array($form['#node']->type, $available_types) && variable_get('civiec_id', '')) {

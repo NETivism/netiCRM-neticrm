@@ -1,5 +1,6 @@
 $.validator.addMethod("ckbox", function(value, element, param) {
-  var s = $(element).parent().find("input:checkbox:checked").length;
+  var p = $(element).parents('div.ckbox');
+  var s = p.find("input:checkbox:checked").length;
   if(s > 0){
     return true;
   }
@@ -9,6 +10,7 @@ $.validator.addMethod("ckbox", function(value, element, param) {
 },$.validator.messages.required);
 
 $.validator.addMethod("twid", function(value, element, param){
+  if(!value) return true;
   var tab = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
   var A1 = new Array (1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3 );
   var A2 = new Array (0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5 );

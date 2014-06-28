@@ -111,8 +111,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 
     foreach($response as $k => $r){
       // find out recur
-      $rid = $r['REFNUMBER'] ? $r['REFNUMBER'] : 0;
-      $sql = "SELECT * FROM civicrm_contribution_recur c INNER JOIN civicrm_contribution_neweb_recur cnr ON c.id = cnr.recur_id WHERE c.id = {$rid}";
+      $rid = (is_numeric($r['REFNUMBER']) && !empty($r['REFNUMBER'])) ? $r['REFNUMBER'] : 0;
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $rid;
 
@@ -132,10 +131,12 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
         switch($action){
           case 'new':
             if($r['RESPONSE'] == '0' || $r['RESPONSE'] == '-11'){
+            /*
               if ( $contrib->find( true ) ) { 
                 // send notification email of recurring contribution
                 CRM_Contribute_BAO_ContributionPage::recurringNotify( 'START', $recur->contact_id, $contrib->contribution_page_id, $recur);
               }
+            */
               $params['contribution_status_id'] = 1;
             }
             else{
@@ -183,6 +184,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   require_once 'CRM/Contribute/BAO/ContributionRecur.php';
   require_once 'CRM/Utils/Array.php';
 
+  module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
+
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $payment = $p->getPayment($pid,'test');
@@ -223,7 +226,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         _civicrm_neweb_error($error, $is_test);
         unset($recur->id);
       }
-      $contribution_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution c WHERE c.contribution_recur_id = {$t['REFNUMBER']} ORDER BY c.id ASC");
+      $qvar = array(1 => array($t['REFNUMBER'], 'Integer'));
+      $contribution_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution c WHERE c.contribution_recur_id = %1 ORDER BY c.id ASC", $qvar);
       $contrib =& new CRM_Contribute_DAO_Contribution();
       $contrib->id = $contribution_id;
       if ( !$contrib->find( true ) ) { 
@@ -239,6 +243,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         $contribution->trxn_id = $t['ORGORDERNUMBER'];
         if($contribution->find( true )){
           $contribution->receive_date = date('YmdHis', $now);
+          continue; // skip recurring transaction when specifix transaction id exists.
         }
         else{
           // clone exists
@@ -248,6 +253,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           unset($contribution->receive_date);
           unset($contribution->trxn_id);
           unset($contribution->invoice_id);
+          unset($contribution->receipt_id);
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', $now);
           $contribution->trxn_id = $t['ORGORDERNUMBER'];
@@ -301,7 +307,6 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         }
         // Status: failed, cancel. We don't have retry mechnism.
         else{
-          require_once "CRM/Core/Payment/NewebResponse.php";
           $err= civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
           $IPN->failed($objects, $transaction);
           // don't use cancel date , don't combine single failure to whole recurring process
@@ -342,7 +347,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
 
   while( $recur->fetch() ){
     // only effect when submit first recurring contribution
-    $contrib = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_recur_id = $recur->id ORDER BY id ASC");
+    $contrib = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
     $contrib->fetch();
 
     // skip in-complete transaction if first contribution still have problem
@@ -368,7 +373,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now) && cr.is_test = $is_test ORDER BY cr.id ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
-    $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = $recur->id ORDER BY id ASC");
+    $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
     // start to collect output file string
     $upload = array(
       'MERCHANTNUMBER' => $payment['user_name'],
@@ -432,7 +437,8 @@ function civicrm_neweb_end_date_calculate($is_test){
   }
 
   // cancel recurring calculate
-  $end = $now + 86400;
+  // 2 day after end day
+  $end = $now - 86400*2;
   $sql = "SELECT * FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL && cr.is_test = $is_test && cr.contribution_status_id = 1 ORDER BY cr.end_date ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
@@ -582,7 +588,7 @@ function _civicrm_neweb_path($is_test){
 }
 
 
-function civicrm_neweb_process_ezpay($is_test, $now){
+function civicrm_neweb_process_ezpay($is_test, $now, $pid){
   $time = date('YmdHis');
   civicrm_initialize();
   require_once 'CRM/Contribute/DAO/Contribution.php';
@@ -590,12 +596,24 @@ function civicrm_neweb_process_ezpay($is_test, $now){
   require_once 'CRM/Core/Payment/BaseIPN.php';
   require_once 'CRM/Core/Transaction.php';
   require_once "CRM/Core/DAO.php";
+  $p = new CRM_Core_BAO_PaymentProcessor();
+  if($is_test){
+    $payment_processor = $p->getPayment($pid,'test');
+  }
+  else{
+    $payment_processor = $p->getPayment($pid,'live');
+  }
+
+  if(empty($payment_processor)){
+    return;
+  }
 
   $instrument = _civicrm_neweb_instrument();
+  unset($instrument['Credit Card']);
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
 
   foreach($instrument as $name => $obj){
-    $vid = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE name = '{$name}' AND option_group_id = {$gid} AND is_active = 1");
+    $vid = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE name = %1 AND option_group_id = %2 AND is_active = 1", array(1 => array($name, 'String'), 2 => array($gid, 'Integer') ));
     if($vid){
       $instrument_id[$vid] = $vid;
     }
@@ -603,27 +621,18 @@ function civicrm_neweb_process_ezpay($is_test, $now){
   $instrument_str = implode(',', $instrument_id);
   $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_status_id = 2 AND payment_instrument_id IN ($instrument_str) AND is_test = $is_test ORDER BY id DESC");
   while($dao->fetch()){
-    $post = $input = $object = $ids = $result = array();
+    $post = $input = $objects = $ids = $result = array();
 
     if(!$dao->contribution_page_id){
       // this is event payment
-      $pp = CRM_Core_DAO::executeQuery("SELECT cpp.participant_id, e.id, e.payment_processor_id FROM civicrm_participant_payment cpp INNER JOIN civicrm_participant cp ON cpp.participant_id = cp.id INNER JOIN civicrm_event e ON e.id = cp.event_id WHERE cpp.contribution_id = {$dao->id}");
+      $pp = CRM_Core_DAO::executeQuery("SELECT cpp.participant_id, e.id FROM civicrm_participant_payment cpp INNER JOIN civicrm_participant cp ON cpp.participant_id = cp.id INNER JOIN civicrm_event e ON e.id = cp.event_id WHERE cpp.contribution_id = {$dao->id}");
       $pp->fetch();
-      $pid = $pp->payment_processor_id;
       $input['component'] = 'event';
       $ids['event'] = $pp->id;
       $ids['participant'] = $pp->participant_id;
     }
     else{
-      $pid = CRM_Core_DAO::getFieldValue( 'CRM_Contribute_DAO_ContributionPage',$dao->contribution_page_id, 'payment_processor_id');
       $input['component'] = 'contribute';
-    }
-
-    if($pid){
-      $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment( $pid, $is_test ? 'test' : 'live' );
-    }
-    else{
-      continue;
     }
 
     $post['merchantnumber'] = $payment_processor['password'];
@@ -652,9 +661,9 @@ function civicrm_neweb_process_ezpay($is_test, $now){
     }
 
     $transaction = new CRM_Core_Transaction();
-    $ipn = & new CRM_Core_Payment_BaseIPN();
+    $ipn =& new CRM_Core_Payment_BaseIPN();
 
-    if($ipn->validateData($input, $ids, $objects) && $result){
+    if($ipn->validateData($input, $ids, $objects, TRUE, $pid) && $result){
       // check result
       if($result['rc'] == 0 && $result['status'] == 1){
         // after validate, start to complete some transaction
@@ -688,6 +697,16 @@ function civicrm_neweb_process_ezpay($is_test, $now){
         $ipn->cancelled($objects, $transaction);
         $note .= ts("Canceled").": ".ts('Overdue')."\n";
         $note .= "Over 14 days doesn't have payment from {$result['timecreated']}\n";
+        _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
+      }
+      elseif($result['rc'] == 0 && count($result) == 2 && is_numeric($c->trxn_id)){
+        // not found on neweb, cancel
+        $input['reasonCode'] = ts('Overdue');
+        $input['trxn_id'] = $c->trxn_id;
+        $input['payment_instrument_id'] = $c->payment_instrument_id;
+        $ipn->cancelled($objects, $transaction);
+        $note .= ts("Canceled").": ".ts('Overdue')."\n";
+        $note .= "Can't found this order in neweb, but have transaction number. Expire dummy contribution record\n";
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
       elseif($result['rc']){
@@ -805,7 +824,7 @@ function _civicrm_neweb_recurring_contact_sync($rid){
   static $counting;
 //  if($counting > 1) return; // only for test
 
-  $query = CRM_Core_DAO::executeQuery("SELECT id, trxn_id FROM civicrm_contribution WHERE contribution_recur_id = $rid ORDER BY id ASC");
+  $query = CRM_Core_DAO::executeQuery("SELECT id, trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($rid, 'Integer')));
   while($query->fetch()){
     if(strlen($query->trxn_id) > 8 && strpos($query->trxn_id, '99') === 0){
      // load custom field values

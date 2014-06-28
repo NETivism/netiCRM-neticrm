@@ -7,4 +7,3 @@ function civicrm_statistics_cron(){
     civicrm_statistics_fetch();
   }
 }
-

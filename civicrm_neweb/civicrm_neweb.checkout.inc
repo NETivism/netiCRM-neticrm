@@ -36,6 +36,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   if($contrib_values['is_pay_later'] != $is_pay_later){
     $contrib_values['is_pay_later'] = $is_pay_later;
   }
+  $contrib_values['payment_processor_id'] = $payment_processor['id'];
   $contrib_values['trxn_id'] = $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'];
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 
@@ -112,7 +113,12 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   $post['returnvalue'] = 0;
   $post['hash'] = md5($post['merchantnumber'].$payment_processor['subject'].$amount.$post['ordernumber']);
   $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-  $post['nexturl'] = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}&instrument={$neweb_instrument}",true, null, false );
+  if($neweb_instrument == 'WEBATM'){
+    $post['nexturl'] = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
+  }
+  else{
+    $post['nexturl'] = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}&instrument={$neweb_instrument}",true, null, false );
+  }
   $post["#action"] = rtrim($payment_processor['url_api'],'/')."/Payment";
 
   return $post;
@@ -181,13 +187,13 @@ function _civicrm_neweb_form_redirect($redirect_params, $instrument){
       $js = '
 function print_redirect(){
   // creating the "newebresult" window with custom features prior to submitting the form
-  window.open("", "newebresult", "scrollbars=yes,menubar=no,height=600,width=800,resizable=yes,toolbar=no,status=no,left=150,top=150");
+  // window.open("", "newebresult", "scrollbars=yes,menubar=no,height=600,width=800,resizable=yes,toolbar=no,status=no,left=150,top=150");
   document.forms.print.submit();
-  window.location = "'.$redirect_params['nexturl'].'";
+  // window.location = "'.$redirect_params['nexturl'].'";
 }
       ';
 
-      $o .= '<form action="'.$redirect_params['#action'].'" name="print" method="post" id="redirect-form" target="newebresult">';
+      $o .= '<form action="'.$redirect_params['#action'].'" name="print" method="post" id="redirect-form">';
       foreach($redirect_params as $k=>$p){
         if($k[0] != '#'){
           $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';

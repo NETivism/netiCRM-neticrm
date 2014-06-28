@@ -4,7 +4,7 @@
  *
  * Support webform_civicrm address
  */
-function civicrm_twaddress_form_alter(&$form, &$form_state, $form_id){
+function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
   static $add;
   if (substr($form['#id'], 0, 20) == 'webform-client-form-') {
     // for now we only support field below 2 fieldset
@@ -140,7 +140,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
         }
       }
       $default = $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : $_POST[$name];
+      $default = $default ? $default : $form->_submitValues[$name];
       $override['countyName'][$key]['default'] = $county_options[$default];
     }
     if(strstr($name, 'city')){
@@ -148,7 +148,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       // hide field
 
       $default = $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : $_POST[$name];
+      $default = $default ? $default : $form->_submitValues[$name];
       $override['areaName'][$key]['key'] = '_'.$name;
       $override['areaName'][$key]['name'] = $name;
       $override['areaName'][$key]['default'] = $default;

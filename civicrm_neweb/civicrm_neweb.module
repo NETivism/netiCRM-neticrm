@@ -49,7 +49,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
         }
         else{
           // error here
-          require_once('civicrm_neweb.extern.inc');
+          module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
           $prc = $_POST['final_return_PRC'];
           $src = $_POST['final_return_SRC'];
           $brc = $_POST['final_return_BankRC'];
@@ -59,7 +59,11 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       }
       break;
     case 'CRM_Contribute_Form_ContributionPage_Amount':
-      _civicrm_neweb_js_contritweak();
+      $query = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb'");
+      while($query->fetch()){
+        $processor[$query->id] = $query->id;
+      }
+      _civicrm_neweb_js_contritweak($processor);
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
       if($form->_defaultValues['payment_processor_type'] == 'Neweb'){
@@ -150,7 +154,7 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
 
   // ezpay contributions
   if($now - variable_get('civicrm_neweb_ezpay', 0) > 7200){
-    civicrm_neweb_process_ezpay($is_test, $now);
+    civicrm_neweb_process_ezpay($is_test, $now, $pid);
     variable_set('civicrm_neweb_ezpay'.$test, $now);
   }
 }
@@ -174,20 +178,36 @@ $(document).ready(function(){
 });  
   ';
 }
-function _civicrm_neweb_js_contritweak(){
+function _civicrm_neweb_js_contritweak($processor){
+  $str = '\['.implode('\]|\[', $processor).'\]';
   $js = '
 $(document).ready(function(){
-  $("input[name=\'recur_frequency_unit[week]\']").hide();
-  $("label[for=\'recur_frequency_unit[week]\']").hide();
-  $("input[name=\'recur_frequency_unit[day]\']").hide();
-  $("label[for=\'recur_frequency_unit[day]\']").hide();
-  $("input[name=\'recur_frequency_unit[year]\']").hide();
-  $("label[for=\'recur_frequency_unit[year]\']").hide();
-  $("#is_recur").click(function(){
-    $("#is_recur_interval").attr( "checked", false );
+  $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(function(){
+    if($(this).attr("name").match(/'.$str.'/) && $(this).attr("checked")){
+      $("input[name=\'recur_frequency_unit[week]\']").hide();
+      $("label[for=\'recur_frequency_unit[week]\']").hide();
+      $("input[name=\'recur_frequency_unit[day]\']").hide();
+      $("label[for=\'recur_frequency_unit[day]\']").hide();
+      $("input[name=\'recur_frequency_unit[year]\']").hide();
+      $("label[for=\'recur_frequency_unit[year]\']").hide();
+      $("#is_recur_interval").parents("tr").hide();
+    }
+    else
+    if($(this).attr("name").match(/'.$str.'/) && !$(this).attr("checked")) {
+      $("input[name=\'recur_frequency_unit[week]\']").show();
+      $("label[for=\'recur_frequency_unit[week]\']").show();
+      $("input[name=\'recur_frequency_unit[day]\']").show();
+      $("label[for=\'recur_frequency_unit[day]\']").show();
+      $("input[name=\'recur_frequency_unit[year]\']").show();
+      $("label[for=\'recur_frequency_unit[year]\']").show();
+      $("#is_recur_interval").parents("tr").show();
+    }
   });
-  $("#is_recur_interval").parents("tr").hide();
-
+  $("#is_recur").click(function(){
+    if($(this).val()){
+      $("#is_recur_interval").attr( "checked", false );
+    }
+  });
 });  
 ';
   drupal_add_js($js, 'inline', 'footer');
@@ -339,7 +359,8 @@ function _civicrm_neweb_connect($id, $local, $mode, $is_test){
  */
 function _civicrm_neweb_is_active($is_test){
   civicrm_initialize();
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE name = 'Neweb' AND is_active = 1 AND is_test = $is_test");
+  $is_test = $is_test ? 1 : 0;
+  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
   return $id;
 }
 
@@ -372,7 +393,7 @@ function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
     if(count($week)){
       foreach($week as $ymd){
         $date = strtotime($ymd);
-        civicrm_neweb_process_transaction(0, $date);
+        civicrm_neweb_process_transaction(0, $date, $pid);
       }
     }
     variable_set('civicrm_neweb_scan', $now);
