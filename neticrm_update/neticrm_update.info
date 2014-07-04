@@ -1,0 +1,6 @@
+name = netiCRM update
+description = Update database migration for neticrm branch.
+version = 2.0
+package = netiCRM
+core = 7.x
+php = 5.3
