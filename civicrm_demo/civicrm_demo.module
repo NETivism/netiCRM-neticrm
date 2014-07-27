@@ -1,17 +1,11 @@
 <?php
-
-define('DEMO_CONTACT_NUM', 200);
-define('DEMO_CONTRIBUTE_NUM', 5000);
-define('DEMO_EVENT_NUM', 5);
-define('DEMO_PARTICIPANT_NUM', 20);
-
 /**
  * Implementation of hook_menu().
  */
 
 function civicrm_demo_menu(){
   return array(
-    'admin/settings/civicrm_demo' => array(
+    'admin/config/civicrm_demo' => array(
       'title'            => 'Generate demo data of CiviCRM',
       'access arguments' => array('administer site configuration'),
       'page callback'    => 'drupal_get_form',
@@ -21,8 +15,8 @@ function civicrm_demo_menu(){
 }
 
 function civicrm_demo_settings(){
-  $form['options'] = array(
-    '#type' => 'checkboxes',
+  $form['operation'] = array(
+    '#type' => 'radios',
     '#required' => true,
     '#title' => t('Data'),
     '#options' => array(
@@ -32,10 +26,25 @@ function civicrm_demo_settings(){
       'member' => t('Member'),
     ),
   );
+  $form['limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number'),
+    '#default_value' => 10,
+  );
   $form['start_year'] = array(
     '#type' => 'textfield',
     '#title' => t('Start year'),
     '#default_value' => date('Y', (time() - 86400*5*365) ),
+    '#states' => array(
+      'visible' => array(   // action to take.
+        ':input[name="operation"]' => array('value' => 'contribution'),
+      ),
+    ),
+  );
+  $form['batch'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Batch'),
+    '#default_value' => 0,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -43,27 +52,76 @@ function civicrm_demo_settings(){
   );
   return $form;
 }
+
 function civicrm_demo_settings_submit($form, &$form_state){
   set_time_limit(1200);
-  $options = $form_state['values']['options'];
-  foreach($options as $function){
-    $function = 'civicrm_demo_process_'.$function;
-    if(function_exists($function)){
+  $op = $form_state['values']['operation'];
+  $function = 'civicrm_demo_process_'.$op;
+  $form_state['values']['function'] = $function;
+  if(function_exists($function)){
+    if($form_state['values']['batch']){
+      civicrm_demo_batch($form_state['values']);
+    }
+    else{
       $function($form_state['values']);
+      drupal_set_message(t("Successful generate data of !type", array('!type' => $op )));
     }
   }
 }
 
+function civicrm_demo_batch($vars) {
+  $batch = array(
+    'operations' => array(
+      array('civicrm_demo_batch_process', array($vars)),
+    ),
+    'finished' => 'civicrm_demo_batch_finished',
+    'title' => t('Processing').' '.$vars['operation'],
+  );
+  batch_set($batch);
+}
+function civicrm_demo_batch_process($vars, &$context){
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['max'] = $vars['limit'];
+    $context['message'] = 'Starting ...';
+  }
+  $num_per_batch = 50;
+  $arg = array('limit' => $num_per_batch);
+  $func = $vars['function'];
+  $func($arg);
+  $context['sandbox']['progress'] += $num_per_batch;
+  $context['message'] = $context['sandbox']['progress'] .' of '.$context['sandbox']['max'];
+
+  if ($context['sandbox']['progress'] < $context['sandbox']['max']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
+  }
+  else{
+    $context['finished'] = 1;
+  }
+}
+function civicrm_demo_batch_finished($success, $results, $operations){
+  if ($success) {
+    drupal_set_message('Processed complete');
+  }
+  else {
+    // An error occurred.
+    // $operations contains the operations that remained unprocessed.
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array('%error_operation' => $error_operation[0], '@arguments' => print_r($error_operation[1], TRUE)));
+    drupal_set_message($message, 'error');
+  }
+}
+
+
 function civicrm_demo_process_contact($vars){
   civicrm_initialize();
-  require_once("api/v2/Contact.php");
-  require_once 'api/v2/Location.php';
 
-  $limit = DEMO_CONTACT_NUM;
+  $limit = $vars['limit'];
   while($limit) {
     // 10% to generate eng name
     $language = mt_rand(1,10) == 1 ? 'english' : 'chinese';
     $params = array(
+      'version' => 3,
       'first_name'    => _civicrm_demo_rand_firstname($language),
       'last_name'     => _civicrm_demo_rand_lastname($language),
       'email'         => _civicrm_demo_rand_email(),
@@ -72,32 +130,24 @@ function civicrm_demo_process_contact($vars){
       'gender_id' => mt_rand(1,2),
       'birth_date' => _civicrm_demo_rand_birth(),
     );
-    $contact =& civicrm_contact_create( $params );
 
-    $home_phone = array(
+    $api_phone_create_home = array(
       'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
       'phone_type_id' => 1,
       'location_type' => 'Home'
     );
-    $fax_phone = array(
+    $api_phone_create_fax = array(
       'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
       'phone_type_id' =>  2,
-      'is_primary' => TRUE,
+      'is_primary' => 1,
       'location_type_id' => 2
     );
-    $address = _civicrm_demo_rand_addr($language);
-    $phones = array( $homePhone, $faxPhone);
-    $params = array(
-      'version'    => '3.0',
-      'contact_id' => $contact['contact_id'],
-      'phone'      => $phones,
-      'address'    => $address
-    );
-    $newLocation =& civicrm_location_add($params);
+    $params['api.address.create'] = _civicrm_demo_rand_addr($language);
+    $params['api.phone.create'] = array($api_phone_create_home, $api_phone_create_fax);
+    $contact = civicrm_api('Contact', 'create', $params );
 
     $limit--;
   }
-  drupal_set_message(t("Successful generate data of !type", array('!type' => t('Contact') )));
 }
 
 function civicrm_demo_process_event($vars){
@@ -108,7 +158,7 @@ function civicrm_demo_process_event($vars){
   $now = time();
 
   // create 5 events
-  for($i=0;  $i<DEMO_EVENT_NUM; $i++){
+  for($i=0;  $i < $vars['limit']; $i++){
     $seed = mt_rand(0,4);
     $title = array(
       '實務訓練課程，開放報名',
@@ -138,7 +188,7 @@ function civicrm_demo_process_event($vars){
     $contacts = civicrm_contact_search($params2);
 
     // add participants
-    $max = mt_rand(5, DEMO_PARTICIPANT_NUM);
+    $max = mt_rand(5, $vars['limit']);
     foreach($contacts as $contact){
       $j++;
       if($j > $max) break;
@@ -153,31 +203,29 @@ function civicrm_demo_process_event($vars){
     }
   }
 
-  drupal_set_message(t("Successful generate data of !type", array('!type' => t('Event') )));
 }
 
 function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
-  require_once("api/v2/Contact.php");
-  require_once("api/v2/Contribute.php");
 
   // query exists contact
-  $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0";
+  $contrib_per_contact = 5; // limit every contact only have num of contribution.
+  $contrib_limit = $vars['limit']; // total limit this batch
+  $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
   $dao = CRM_Core_DAO::executeQuery($sql);
 
   // prepare variable
   $contribution_page_id = 1;
   $contribution_type_id = 1;
   $payment_instrument_id = 1;
-  $start_year = $vars['start_year'];
-  $limit = 50; // limit every contact only have 50 record of contribution.
+  $start_year = $vars['start_year'] ? $vars['start_year'] : ((int)date('Y'))-5;
 
   // start
   while($dao->fetch()){
     $contact_id = $dao->id;
-    for($i = 0; $i < $limit; $i++){
+    for($i = 0; $i < $contrib_per_contact; $i++){
       $counter++;
-      if($counter > DEMO_CONTRIBUTE_NUM) break; 
+      if($counter > $contrib_limit) break; 
       $amount = mt_rand(300, 12000);
       $a = number_format($amount, 2, '.', '');
       $fee = number_format($amount*0.025, 2, '.', '');
@@ -193,6 +241,7 @@ function civicrm_demo_process_contribution($vars){
 
       $params = array(
         'contact_id'             => $contact_id,
+        'created_date'           => $year.$month.$day,
         'receive_date'           => $year.$month.$day,
         'total_amount'           => $a,
         'payment_instrument_id'  => $payment_instrument_id,
@@ -200,13 +249,13 @@ function civicrm_demo_process_contribution($vars){
         'contribution_status_id' => 1,
         'contribution_type_id' => $contribution_type_id,
         'contribution_page_id' => $contribution_page_id,
+        'version' => 3,
       );
 
-      $contrib = civicrm_contribution_add($params);
+      civicrm_api('Contribution', 'create', $params);
     }
   }
 
-  drupal_set_message(t("Successful generate data of !type", array('!type' => t('Contribution') )));
 }
 
 function _civicrm_demo_rand_lastname($type = 'chinese'){
@@ -289,17 +338,14 @@ function _civicrm_demo_rand_addr($type = 'chinese'){
     $country = 1228;
   }
 
-  $address = array(
-    1 => array(
-      'location_type_id'       => 1,
-      'is_primary'             => 1,
-      'city'                   => $city,
-      'state_province'         => $state_province,
-      'street_address'         => $street,
-      'country_id'             => $country,
-    )
+  return array(
+    'location_type_id'       => 1,
+    'is_primary'             => 1,
+    'city'                   => $city,
+    'state_province'         => $state_province,
+    'street_address'         => $street,
+    'country_id'             => $country,
   );
-  return $address;
 }
 
 function _civicrm_demo_rand_city_postcode($city){
