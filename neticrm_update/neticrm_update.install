@@ -1,0 +1,47 @@
+<?php
+/**
+ * Implement hook_install()
+ */
+function neticrm_update_install(){
+  // we won't write db update in neticrm_preset
+  // from netiCRM 1.3.x, we migrate db update code to here.
+  // when new install, we need trigger 6000 update  manually.
+  neticrm_update_update_6000();
+}
+/**
+ * Implement hook_uninstall()
+ */
+function neticrm_update_uninstall(){
+  // for interface uninstall
+}
+
+/**
+ * Include correct file for update
+ */
+function neticrm_update_load_include($func){
+  $n = substr($func, strrpos($func, '_')+1);
+  if($n){
+    civicrm_initialize();
+    $path = dirname(__FILE__).'/update/';
+    $filename = $path . $n. '.inc';
+    if(file_exists($filename)){
+      include $filename;
+      $func = '_'.$func;
+      $ret = $func();
+      if($ret){
+        return array('success' => TRUE, 'query' => $ret);
+      }
+      else{
+        return array('success' => FALSE, 'query' => "Error when udpate to version $n");
+      }
+    }
+  }
+  return array('success' => FALSE, 'query' => 'Could not find update file.');
+}
+
+/**
+ * Implement hook_update_N()
+ */
+function neticrm_update_update_6000() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
