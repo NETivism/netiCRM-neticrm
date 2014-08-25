@@ -6,9 +6,9 @@
  */
 function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
   static $add;
+  $override = array();
   if (substr($form['#id'], 0, 20) == 'webform-client-form-') {
     // for now we only support field below 2 fieldset
-    $override = array();
     foreach($form['submitted'] as $k => $c){
       if(!is_array($c)) continue;
       $children = element_children($c);
