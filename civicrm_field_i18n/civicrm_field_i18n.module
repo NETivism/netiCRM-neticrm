@@ -93,5 +93,5 @@ function civicrm_field_i18n_t($text){
 }
 
 function civicrm_field_i18n_test($text){
-  return preg_replace('/[^ 0-9a-zA-Z_-]+/i', '', $text);
+  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!]+/', '', $text);
 }
