@@ -120,8 +120,10 @@
       sel.area.change(function(){
         if(sel.area.val() !== ''){
           var county = sel.county.children("option:selected").text();
-          if( zipcode[county][$(this).val()] ){
-            sel.zip.val( zipcode[ sel.county.children("option:selected").text() ][ $(this).val() ] );
+          if($(this).val()){
+            if( zipcode[county][$(this).val()] ){
+              sel.zip.val( zipcode[ sel.county.children("option:selected").text() ][ $(this).val() ] );
+            }
           }
         }
       });
