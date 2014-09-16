@@ -71,7 +71,9 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
         if(empty($contribution->receive_date)){
           $contribution->receive_date = $input['PaymentDate'] ? date('YmdHis', strtotime($input['PaymentDate'])) : date('YmdHis');
         }
-        $input['trxn_id'] = $contribution->id;
+
+        // assign trxn_id before complete transaction
+        $input['trxn_id'] = $objects['contribution']->trxn_id;
         $this->completeTransaction( $input, $ids, $objects, $transaction, $recur );
         $note .= ts('Completed')."\n";
         $this->addNote($note, $contribution);
@@ -109,9 +111,9 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     $pass = TRUE;
     
     // check contribution id matches
-    if ( $contribution->id != $input['MerchantTradeNo'] ) {
-      watchdog("civicrm_allpay", "OrderNumber values doesn't match between database and IPN request" );
-      $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request")."\n";
+    if ( $contribution->trxn_id != $input['MerchantTradeNo'] ) {
+      watchdog("civicrm_allpay", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$input['MerchantTradeNo']} " );
+      $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->  trxn_id} : {$input['MerchantTradeNo']}")."\n";
       $pass = FALSE;
     } 
 
@@ -124,8 +126,9 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     // allpay validation
+    // only validate this when not test.
     $mac = _civicrm_allpay_checkmacvalue($_POST, self::$_payment_processor);
-    if(!$input['CheckMacValue'] != $mac) {
+    if(!$input['CheckMacValue'] != $mac && !$contribution->is_test) {
       $note .= ts("Failuare: CheckMacValue not match. Contact system admin.")."\n";
       watchdog("civicrm_allpay", "Failuare: CheckMacValue not match. Contact system admin.");
       $pass = FALSE;
@@ -145,14 +148,15 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
       // not the first time (PeriodReturnURL)
       if($_GET['is_recur']){
+        $trxn_id = _civicrm_allpay_recur_trxn($input['MerchantTradeNo'], $input['gwsr']);
         $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
         if($input['RtnCode'] == 1 && $local_succ_times < $input['TotalSuccessTimes']){
           $contribution->contribution_status_id = 1; // Completed
-          $c = $this->copyContribution($contribution, $ids['contributionRecur']);
+          $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }
         elseif($input['RtnCode'] != 1){
           $contribution->contribution_status_id = 4; // Failed
-          $c = $this->copyContribution($contribution, $ids['contributionRecur']);
+          $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }
         else{
           // possible duplicate notify
@@ -203,14 +207,14 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     return $pass;
   }
 
-  function copyContribution(&$contrib, $rid){
+  function copyContribution(&$contrib, $rid, $trxn_id){
     if(is_object($contrib)){
       $c = clone $contrib;
       unset($c->id);
       unset($c->receive_date);
-      unset($c->trxn_id);
       unset($c->invoice_id);
       unset($c->receipt_id);
+      $c->trxn_id = $trxn_id;
       $time = strtotime(self::$_input['ProcessDate']);
       $c->receive_date = date('YmdHis', $time);
       $c->created_date = date('YmdHis');

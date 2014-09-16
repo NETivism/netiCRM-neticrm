@@ -365,3 +365,12 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   $checkmacvalue = md5($keystr);
   $args['CheckMacValue'] = $checkmacvalue;
 }
+
+function _civicrm_allpay_recur_trxn($parent, $gwsr){
+  if(empty($gwsr)){
+    return $parent;
+  }
+  else{
+    return $parent . '-' . $gwsr;
+  }
+}
