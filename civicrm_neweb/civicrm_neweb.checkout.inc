@@ -8,7 +8,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $instrument_code = $neweb_instruments[$instrument_name]['code'];
 
   // The first, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array('cid' => $params['contributionID'], 'created' => time());
+  $record = array('cid' => $params['contributionID'], 'created' => REQUEST_TIME);
   drupal_write_record("civicrm_contribution_neweb", $record);
 
   $is_pay_later = TRUE;
@@ -103,7 +103,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   $post['paymenttype'] = $neweb_instrument;
   $post['paytitle'] = truncate_utf8($params['item_name'], 12);
   $post['bankid'] = '007';
-  $post['duedate'] = date('Ymd', time()+86400*7);
+  $post['duedate'] = date('Ymd', REQUEST_TIME+86400*7);
   if($neweb_instrument == 'CS'){
     $post['payname'] = $params['last_name']." ".$params['first_name'];
     if($params['phone']){

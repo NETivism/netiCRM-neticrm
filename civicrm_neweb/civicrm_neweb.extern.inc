@@ -131,7 +131,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         CRM_Core_Error::debug_log_message( "Start building recurring object." );
 
         // caculate date of recurring contrib
-        $time = time();
+        $time = REQUEST_TIME;
         $now = date( 'YmdHis', $time);
         // fix dates that already exist
         $dates = array('create', 'start', 'end', 'cancel', 'modified');

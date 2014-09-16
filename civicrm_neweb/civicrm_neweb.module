@@ -107,7 +107,7 @@ function civicrm_neweb_cron(){
   require_once("civicrm_neweb.cron.inc");
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.cron');
   $hour = date('G');
-  $now = time();
+  $now = REQUEST_TIME;
   $yesterday = $now - 86400;
   $is_test = 0;
   $pid = _civicrm_neweb_is_active($is_test);
