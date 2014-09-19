@@ -578,12 +578,14 @@ function _civicrm_neweb_decodeline($in, $type){
 }
 function _civicrm_neweb_path($is_test){
   if($is_test){
-    $newebpath = file_create_path('neweb_test');
+    $newebfolder = 'neweb_test';
   }
   else{
-    $newebpath = file_create_path('neweb');
+    $newebfolder = 'neweb';
   }
-  file_check_directory($newebpath, FILE_CREATE_DIRECTORY);
+  file_prepare_directory('public://' . $newebfolder, FILE_CREATE_DIRECTORY);
+  $newebpath = variable_get('file_public_path', conf_path() . '/files') . '/' . $newebfolder;
+  file_prepare_directory($newebpath, FILE_MODIFY_PERMISSIONS);
   return $newebpath;
 }
 

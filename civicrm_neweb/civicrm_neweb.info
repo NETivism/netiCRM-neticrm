@@ -5,3 +5,8 @@ dependencies[] = civicrm
 dependencies[] = civicrm_instrument
 core = 7.x
 version = 7.x-1.9
+
+files[] = civicrm_neweb.checkout.inc
+files[] = civicrm_neweb.cron.inc
+files[] = civicrm_neweb.extern.inc
+files[] = civicrm_neweb.pages.inc

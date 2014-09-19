@@ -10,7 +10,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       $entity_id = $_GET['id'] ? $_GET['id'] : ($form->_defaultValues['id'] ? $form->_defaultValues['id'] : NULL);
       if($entity_id){
         $entity_table = $form_name == 'CRM_Contribute_Form_ContributionPage_Amount' ? 'civicrm_contribution_page' : 'civicrm_event';
-
+//civicrm_contribution_page
         $payment_instruments = CRM_Core_DAO::singleValueQuery("SELECT payment_instruments FROM civicrm_instrument WHERE entity_id = {$entity_id} AND entity_table = '{$entity_table}'");
         $payment_instruments = unserialize($payment_instruments);
 
@@ -190,8 +190,8 @@ function _civicrm_instrument_js_admin($options, $entity_table){
   $o .= '</div></td>';
   $o .= '</tr></tbody></table>';
   return '
-  $(document).ready(function(){
-    $("#crm-container #'.$css_id.'").before("'.$o.'");
+  jQuery(document).ready(function(){
+    jQuery("#crm-container #'.$css_id.'").before("'.$o.'");
   });';
 }
 /**
@@ -227,12 +227,12 @@ function _civicrm_instrument_js_page($radios, &$form){
   $output .= "<div class='clear'></div>";
   $output .= '</div>';
   return '
-$(document).ready(function(){
-  $("#crm-container form[name=Main] #intro_text").after("'.$output.'");
-  $("#crm-container form[name=Register] #priceset").after("'.$output.'");
+jQuery(document).ready(function(){
+  jQuery("#crm-container form[name=Main] #intro_text").after("'.$output.'");
+  jQuery("#crm-container form[name=Register] #priceset").after("'.$output.'");
 
-  $("input[name=civicrm_instrument_id_dummy]").click(function(){
-    $("input[name=civicrm_instrument_id]").val($(this).val());
+  jQuery("input[name=civicrm_instrument_id_dummy]").click(function(){
+    jQuery("input[name=civicrm_instrument_id]").val($(this).val());
   });
 });  
   ';

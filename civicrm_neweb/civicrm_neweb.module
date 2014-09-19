@@ -218,7 +218,7 @@ function _civicrm_neweb_js_payment($default, $is_test){
   $js = '
 cj(document).ready(function(){
   var def= new Object();
-  def = '.drupal_to_js($default).';
+  def = '.drupal_json_encode($default).';
   var e = "'.$element.'";
   var test = "'.$test.'";
   var main = "tr."+e;
