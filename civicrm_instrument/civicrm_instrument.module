@@ -227,12 +227,12 @@ function _civicrm_instrument_js_page($radios, &$form){
   $output .= "<div class='clear'></div>";
   $output .= '</div>';
   return '
-jQuery(document).ready(function(){
-  jQuery("#crm-container form[name=Main] #intro_text").after("'.$output.'");
-  jQuery("#crm-container form[name=Register] #priceset").after("'.$output.'");
+jQuery(document).ready(function($){
+  $("#crm-container form[name=Main] #intro_text").after("'.$output.'");
+  $("#crm-container form[name=Register] #priceset").after("'.$output.'");
 
-  jQuery("input[name=civicrm_instrument_id_dummy]").click(function(){
-    jQuery("input[name=civicrm_instrument_id]").val($(this).val());
+  $("input[name=civicrm_instrument_id_dummy]").click(function(){
+    $("input[name=civicrm_instrument_id]").val($(this).val());
   });
 });  
   ';
