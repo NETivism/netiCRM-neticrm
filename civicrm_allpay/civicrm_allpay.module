@@ -342,11 +342,13 @@ function civicrm_allpay_record($cid, $data = null){
 function civicrm_allpay_recur_sync(){
   civicrm_initialize();
   module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.ipn');
-  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 1 AND r.end_date IS NULL ORDER BY r.id DESC";
+  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 1 AND r.end_date IS NULL AND r.frequency_unit = 'month' ORDER BY r.id DESC";
   $result = CRM_Core_DAO::executeQuery($query);
   while($result->fetch()){
-    // TODO check if yesterday is next day of expect recurring
-    civicrm_allpay_recur_check($result->id);
+    // check if yesterday is next day of expect recurring
+    if(date('d', strtotime($result->start_date) + 86400) === date('d')){
+      civicrm_allpay_recur_check($result->id);
+    }
   }
 }
 
