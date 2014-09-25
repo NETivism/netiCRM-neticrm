@@ -127,7 +127,7 @@ function civicrm_allpay_update_6101(){
       $data = json_decode($query->data);
       if($data->Gwsr && $data->MerchantTradeNo != $query->cid){
         $trxn_id = array(1 => array(_civicrm_allpay_recur_trxn($data->MerchantTradeNo, $data->Gwsr), 'String'));
-        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET trxn_id = '%1' WHERE id = $query->cid", $trxn_id);
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET trxn_id = %1 WHERE id = $query->cid", $trxn_id);
       }
     }
   }
