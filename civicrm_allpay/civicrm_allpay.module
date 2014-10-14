@@ -379,8 +379,7 @@ function civicrm_allpay_recur_check($rid){
         'TimeStamp' => $now,
       );
       _civicrm_allpay_checkmacvalue($post_data, $processor);
-      // $order = _civicrm_allpay_postdata($result->url_recur, $post_data);
-      $order = json_decode('{ "MerchantID":"1050123", "MerchantTradeNo":"testd6n39", "TradeNo":"20140721173014442498", "RtnCode":1, "PeriodType":"D", "Frequency":1, "ExecTimes":12, "PeriodAmount":104, "amount":104, "gwsr":24548751, "process_date":"2014/07/21 17:35:45", "auth_code":"237523", "card4no":"2369", "card6no":"523782", "TotalSuccessTimes":3, "TotalSuccessAmount":3000, "ExecLog": [ {"RtnCode":1,"amount":104,"gwsr":24548751,"process_date":"2014/07/21 17:35:45","auth_code":"237523"}, {"RtnCode":1,"amount":104,"gwsr":24549277,"process_date":"2014/07/22 01:12:30","auth_code":"185279"}, {"RtnCode":1,"amount":104,"gwsr":24552639,"process_date":"2014/07/23 01:12:25","auth_code":"693851"} ] }');
+      $order = _civicrm_allpay_postdata($payment_processor['url_recur'], $post_data);
       if(!empty($order) && $order->MerchantTradeNo == $result->trxn_id && count($order->ExecLog > 1)){
         $orders = array();
         foreach($order->ExecLog as $o){
@@ -477,7 +476,7 @@ function _civicrm_allpay_postdata($url, $post_data){
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
   curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
   $receive = curl_exec($ch);
