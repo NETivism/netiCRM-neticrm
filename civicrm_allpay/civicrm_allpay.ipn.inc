@@ -128,8 +128,8 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     // check amount
     $amount = $input['TradeAmt'] ? $input['TradeAmt'] : $input['Amount'];
     if ( round($contribution->total_amount) != $amount ) {
-      watchdog("civicrm_allpay", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['gwsr']} : {$input['amount']}" );
-      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['gwsr']} : {$input['amount']}")."\n";
+      watchdog("civicrm_allpay", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['amount']}" );
+      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['amount']}")."\n";
       $pass = FALSE;
     }
 
@@ -158,7 +158,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
       // not the first time (PeriodReturnURL)
       if($this->_get['is_recur']){
-        $trxn_id = _civicrm_allpay_recur_trxn($input['MerchantTradeNo'], $input['gwsr']);
+        $trxn_id = _civicrm_allpay_recur_trxn($input['MerchantTradeNo'], $input['Gwsr']);
         $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
         if($input['RtnCode'] != 1 || !$pass){
           $contribution->contribution_status_id = 4; // Failed
