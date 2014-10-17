@@ -411,7 +411,7 @@ function civicrm_allpay_recur_check($rid){
               'Frequency' => $order->Frequency,
               'ExecTimes' => $order->ExecTimes,
               'Amount' => $o->amount,
-              'gwsr' => $o->gwsr,
+              'Gwsr' => $o->gwsr,
               'ProcessDate' => $o->process_date,
               'AuthCode' => $o->auth_code,
               'FirstAuthAmount' => $o->PeriodAmount,
@@ -476,7 +476,8 @@ function _civicrm_allpay_postdata($url, $post_data){
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($post_data));
+  $field_string = http_build_query($post_data, '', '&');
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
   curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
   $receive = curl_exec($ch);
