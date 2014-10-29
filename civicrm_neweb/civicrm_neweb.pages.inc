@@ -72,7 +72,7 @@ function civicrm_neweb_recurring_fieldset($form_state, $contrib){
     '來源',
   );
   $form['contributions']['contrib'] = array(
-    '#value' => theme('table', $header, $contrib, array('class'=>'recurring-table')),
+    '#markup' => theme('table', $header, $contrib, array('class'=>'recurring-table')),
   );
   return $form;
 }

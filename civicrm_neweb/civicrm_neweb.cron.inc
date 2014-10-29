@@ -16,7 +16,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   require_once 'CRM/Contribute/DAO/Contribution.php';
   require_once 'CRM/Utils/Array.php';
   $last_month = strtotime($start);
-  $now = time();
+  $now = REQUEST_TIME;
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $ftp = variable_get("civicrm_neweb_ftp_test", array());
@@ -66,7 +66,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
 }
 
 function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
-  $now = $now ? $now : time();
+  $now = $now ? $now : REQUEST_TIME;
 
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
@@ -173,7 +173,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 }
 
 function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
-  $now = $now ? $now : time();
+  $now = $now ? $now : REQUEST_TIME;
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once 'CRM/Core/Payment.php'; 
@@ -323,7 +323,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 }
 
 function civicrm_neweb_process_upload($is_test, $pid){
-  $now = time();
+  $now = REQUEST_TIME;
   $nextday = mktime(6,0,0,date('n'),date('j'),date('Y'))+86400;
   $create_check = $now - 86400; // yesterday
   civicrm_initialize();
@@ -407,7 +407,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
 }
 
 function civicrm_neweb_end_date_calculate($is_test){
-  $now = time();
+  $now = REQUEST_TIME;
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
 
@@ -578,12 +578,14 @@ function _civicrm_neweb_decodeline($in, $type){
 }
 function _civicrm_neweb_path($is_test){
   if($is_test){
-    $newebpath = file_create_path('neweb_test');
+    $newebfolder = 'neweb_test';
   }
   else{
-    $newebpath = file_create_path('neweb');
+    $newebfolder = 'neweb';
   }
-  file_check_directory($newebpath, FILE_CREATE_DIRECTORY);
+  file_prepare_directory('public://' . $newebfolder, FILE_CREATE_DIRECTORY);
+  $newebpath = variable_get('file_public_path', conf_path() . '/files') . '/' . $newebfolder;
+  file_prepare_directory($newebpath, FILE_MODIFY_PERMISSIONS);
   return $newebpath;
 }
 

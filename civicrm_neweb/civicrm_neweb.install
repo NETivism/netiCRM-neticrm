@@ -106,7 +106,7 @@ function civicrm_neweb_schema(){
  * Implementation of hook_install()
  */
 function civicrm_neweb_install() {
-  drupal_install_schema('civicrm_neweb');
+  // drupal_install_schema('civicrm_neweb');
   civicrm_initialize( );
   require_once "CRM/Core/DAO.php";
   require_once('CRM/Core/OptionValue.php');
@@ -177,9 +177,10 @@ function civicrm_neweb_enable() {
 }
 
 function civicrm_neweb_create_dir($directory){
+  $directory_file_path = 'public://' . $directory;
   $htaccess_lines = "order allow,deny\ndeny from all\n";
-  $newebpath = file_create_path($directory);
-  file_check_directory($newebpath, FILE_CREATE_DIRECTORY);
+  file_prepare_directory($directory_file_path, FILE_CREATE_DIRECTORY);
+  $newebpath = variable_get('file_public_path', conf_path() . '/files') . '/' . $directory;
   
   if (($fp = @fopen($newebpath . '/.htaccess', 'w')) && @fputs($fp, $htaccess_lines)) {
     fclose($fp);

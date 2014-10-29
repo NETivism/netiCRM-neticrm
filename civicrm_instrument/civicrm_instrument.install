@@ -41,7 +41,7 @@ function civicrm_instrument_schema() {
  */
 function civicrm_instrument_install() {
   // Create tables.
-  drupal_install_schema('civicrm_instrument');
+  // drupal_install_schema('civicrm_instrument');
 
   // Save variables
   civicrm_initialize( );
@@ -80,6 +80,7 @@ function civicrm_instrument_install() {
     $params['label'] = $label;
     $params['name'] = $name;
     $params['is_active'] = 1;
+    
     if($values[$label]){
       // skipped, won't update.
     }
@@ -98,7 +99,7 @@ function civicrm_instrument_install() {
  */
 function civicrm_instrument_uninstall() {
   // Remove tables.
-  drupal_uninstall_schema('civicrm_instrument');
+  // drupal_uninstall_schema('civicrm_instrument');
 
   // Remove variable;
   variable_del('civicrm_instrument_gid');

@@ -6,11 +6,12 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $instrument_name  = civicrm_instrument_by_id($neweb_instrument_id, 'name');
   $neweb_instruments = _civicrm_neweb_instrument();
   $instrument_code = $neweb_instruments[$instrument_name]['code'];
-
   // The first, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array('cid' => $params['contributionID'], 'created' => time());
+  $record = array(
+    'cid' => $params['contributionID'], 
+    'created' => REQUEST_TIME
+  );
   drupal_write_record("civicrm_contribution_neweb", $record);
-
   $is_pay_later = TRUE;
   switch($instrument_code){
     case 'Credit Card':
@@ -25,7 +26,6 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
       $params_form = _civicrm_neweb_ezpay($params, $component, $payment_processor, $instrument_code);
       break;
   }
-
   // now process contribution to save some default value
   $contrib_params = array( 'id' => $params['contributionID'] );
   $contrib_values = $contrib_ids = array();
@@ -39,11 +39,9 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $contrib_values['payment_processor_id'] = $payment_processor['id'];
   $contrib_values['trxn_id'] = $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'];
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
-
   // Inject in quickform sessions
   // Special hacking for display trxn_id after thank you page.
   $_SESSION['CiviCRM']['CRM_Contribute_Controller_Contribution_'.$params['qfKey']]['params']['trxn_id'] = $contribution->trxn_id;
-
   // making redirect form
   print _civicrm_neweb_form_redirect($params_form, $instrument_code);
   // move things to CiviCRM cache as needed
@@ -56,14 +54,11 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
   $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
   $cancel_url = CRM_Utils_System::url($civi_base_url,"_qf_Confirm_display=true&qfKey={$params['qfKey']}",false, null, false );
   $return_url = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
-
   // notify url for receive payment result
   $notify_url = _civicrm_neweb_notify_url($params, 'neweb/ipn', $component);
-
   // building params
   $amount = $params['currencyID'] == 'TWD' && strstr($params['amount'], '.') ? substr($params['amount'], 0, strpos($params['amount'],'.')) .'.00' : $params['amount'];
   $name = function_exists('truncate_utf8') ? truncate_utf8($params['item_name'], 10) : $params['item_name'];
-
   $neweb_params = array(
     "MerchantNumber" => $payment_processor['user_name'],
     "OrderNumber"    => $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'],
@@ -79,7 +74,6 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
     "#paymentProcessor" => $payment_processor,
   );
   $neweb_params["checksum"] = md5($payment_processor['user_name'].$neweb_params['OrderNumber'].$payment_processor['signature'].$amount);
-
   return $neweb_params;
 }
 
@@ -103,7 +97,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   $post['paymenttype'] = $neweb_instrument;
   $post['paytitle'] = truncate_utf8($params['item_name'], 12);
   $post['bankid'] = '007';
-  $post['duedate'] = date('Ymd', time()+86400*7);
+  $post['duedate'] = date('Ymd', REQUEST_TIME+86400*7);
   if($neweb_instrument == 'CS'){
     $post['payname'] = $params['last_name']." ".$params['first_name'];
     if($params['phone']){
@@ -126,13 +120,13 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
 
 function _civicrm_neweb_notify_url(&$vars, $path, $component){
   $query = array();
-  $query[] = "contact_id={$vars['contactID']}";
-  $query[] = "cid={$vars['contributionID']}";
-  $query[] = "module={$component}";
+  $query['contact_id'] = $vars['contactID'];
+  $query['cid'] = $vars['contributionID'];
+  $query['module'] = $component;
 
   if ( $component == 'event' ) {
-    $query[] = "eid={$vars['eventID']}";
-    $query[] = "pid={$vars['participantID']}";
+    $query['eid'] = $vars['eventID'];
+    $query['pid'] = $vars['participantID'];
   }
   else {
     if ( $vars['membershipID'] ) {
@@ -149,15 +143,15 @@ function _civicrm_neweb_notify_url(&$vars, $path, $component){
   // if recurring donations, add a few more items
   if ( !empty( $vars['is_recur']) ) {
      if ($vars['contributionRecurID']) {
-       $query[] = "crid={$vars['contributionRecurID']}";
-       $query[] = "cpid={$vars['contributionPageID']}";
+       $query['crid'] = $vars['contributionRecurID'];
+       $query['cpid'] = $vars['contributionPageID'];
      }
   }
 
   return url(
     $path,
     array(
-      'query'=> implode('&', $query),
+      'query'=> $query,
       'absolute' => true,
     )
   );
