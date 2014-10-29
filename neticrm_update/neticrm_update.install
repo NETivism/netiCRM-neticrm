@@ -16,23 +16,32 @@ function neticrm_update_uninstall(){
  * Include correct file for update
  */
 function neticrm_update_load_include($func){
-  $n = substr($func, strrpos($func, '_')+1);
-  if($n){
-    civicrm_initialize();
-    $path = dirname(__FILE__).'/update/';
-    $filename = $path . $n. '.inc';
-    if(file_exists($filename)){
-      include $filename;
-      $func = '_'.$func;
-      return $func();
+  if(function_exists('civicrm_initialize')){
+    $n = substr($func, strrpos($func, '_')+1);
+    if($n){
+      civicrm_initialize();
+      $path = dirname(__FILE__).'/update/';
+      $filename = $path . $n. '.inc';
+      if(file_exists($filename)){
+        include $filename;
+        $func = '_'.$func;
+        return $func();
+      }
     }
+    return 'Could not find update file.';
   }
-  return 'Could not find update file.';
+  else{
+    return 0;
+    throw new DrupalUpdateException('Update for netiCRM Fail');
+  }
 }
 
 /**
  * Implement hook_update_N()
  */
 function neticrm_update_update_6000() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
