@@ -392,7 +392,7 @@ function civicrm_allpay_recur_check($rid){
         }
         // remove exists records
         while($result->fetch()){
-          unset($records[$check_result->trxn_id]);
+          unset($orders[$result->trxn_id]);
         }
         // real record to add
         if(!empty($orders)){
