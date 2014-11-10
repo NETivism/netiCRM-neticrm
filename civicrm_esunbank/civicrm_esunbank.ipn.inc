@@ -153,6 +153,8 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
       $contribution->receive_date = date('YmdHis', strtotime($input['payment_datetime']));
       list($source) = explode('-玉山', $contribution->source);
       $contribution->source = $source.'-玉山('.$input['instrument'].')';
+      $instrument_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', 'Esunbank', 'value', 'name');
+      $input['payment_instrument_id'] = $instrument_id;
       $input['trxn_id'] = $input['serial'];
       $this->completeTransaction( $input, $ids, $objects, $transaction, $recur );
       $note .= ts('Completed')."\n";
