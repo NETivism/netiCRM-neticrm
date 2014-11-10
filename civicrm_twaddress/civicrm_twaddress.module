@@ -122,6 +122,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     return;
   }
   //
+  $override = array();
   $enable = TRUE;
   $form_name = $form->_attributes['name'];
   foreach ($form->_elements as $k => $e) {
