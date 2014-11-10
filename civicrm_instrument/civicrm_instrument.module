@@ -179,7 +179,7 @@ function _civicrm_instrument_js_admin($options, $entity_table){
       $css_id = 'map-field';
       break;
   }
-  $o = "<table class='form-layout-compressed'><tbody><tr>";
+  $o = "<table class='form-layout-compressed payment-instrument-block'><tbody><tr>";
   $o .= "<th scope='row' class='label' width='20%'><label for='payment_instrument'>".ts('Payment Instrument').'</label></th>';
   $o .= "<td><div class='content'>";
   foreach($options as $k => $v){
