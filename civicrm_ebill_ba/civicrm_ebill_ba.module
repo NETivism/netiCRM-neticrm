@@ -1,0 +1,14 @@
+<?php
+
+function _civicrm_ebill_ba_trxn_id($is_test, $id){
+  $prefix = date('Ymd');
+  if($is_test){
+    $prefix = '9'.$prefix;
+    $suffix = sprintf("%07d", $id);
+  }
+  else{
+    $suffix = sprintf("%08d", $id);
+  }
+  return $prefix.$suffix; 
+}
+
