@@ -1,13 +1,7 @@
 <?php
 
-function civicrm_ebill_ba_do_transfer_checkout($vars, $component, &$payment_processor, $is_test){
+function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_processor, $is_test){
   $instrument_id = $vars['civicrm_instrument_id'] ? $vars['civicrm_instrument_id'] : variable_get('civicrm_ebill_ba_instrument', 0);
-
-  $record = array(
-    'cid' => $vars['contributionID'], 
-  );
-  $record = array('cid' => $vars['contributionID']);
-  drupal_write_record("civicrm_contribution_ebillba", $record);
 
   // now process contribution to save some default value
   $contrib_params = array( 'id' => $vars['contributionID'] );
@@ -19,6 +13,11 @@ function civicrm_ebill_ba_do_transfer_checkout($vars, $component, &$payment_proc
   $contrib_values['is_pay_later'] = $is_pay_later;
   $contrib_values['trxn_id'] = _civicrm_ebill_ba_trxn_id($is_test, $vars['contributionID']);
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
+  if($contribution->id){
+    $record = array('cid' => $contribution->id);
+    drupal_write_record("civicrm_contribution_ebillba", $record);
+  }
+
 
   // Inject in quickform sessions
   // Special hacking for display trxn_id after thank you page.
