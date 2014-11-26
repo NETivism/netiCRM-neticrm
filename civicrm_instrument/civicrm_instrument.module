@@ -83,7 +83,12 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
             $default = 'cj("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
           }
           else{
-            $default = '';
+            $default = '
+              setTimeout(function(){
+              if(cj("input[name=civicrm_instrument_id_dummy]").length == 1){
+                cj("input[name=civicrm_instrument_id_dummy]").click();
+              }}, 300);
+            ';
           }
           $js = '
           cj(document).ready(function(){
