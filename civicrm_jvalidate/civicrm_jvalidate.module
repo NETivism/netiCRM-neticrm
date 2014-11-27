@@ -22,12 +22,16 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
       'notw' => t('other format?'),
       'notwprompt' => t('Enter id below.'),
     ));
+    $options = array(
+      'type' => 'file', 
+      'scope' => 'footer',
+    );
     drupal_add_js($t, 'setting');
-    drupal_add_js($path.'/js/jquery.validate.min.js', 'module', 'footer');
-    drupal_add_js($path.'/js/localization/messages_tw.js', 'module', 'footer');
-    drupal_add_js($path.'/js/custom-methods.js', 'module', 'footer');
-    drupal_add_js($path.'/js/jquery.maskedinput.js', 'module', 'footer');
-    drupal_add_js($path.'/civicrm_jvalidate.js', 'module', 'footer');
+    drupal_add_js($path.'/js/jquery.validate.min.js', $options);
+    drupal_add_js($path.'/js/localization/messages_tw.js', $options);
+    drupal_add_js($path.'/js/custom-methods.js', $options);
+    drupal_add_js($path.'/js/jquery.maskedinput.js', $options);
+    drupal_add_js($path.'/civicrm_jvalidate.js', $options);
     $add = TRUE;
   }
 }

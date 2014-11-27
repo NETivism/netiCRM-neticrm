@@ -1,3 +1,5 @@
+(function($){
+
 $.amask.definitions['~']='[1-9]';
 $.amask.definitions['o']='[0]';
 $.amask.definitions['z']='[9]';
@@ -229,3 +231,4 @@ $(document).ready(function(){
     }
   });
 });
+})(jQuery);
