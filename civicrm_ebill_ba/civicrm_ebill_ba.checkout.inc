@@ -35,19 +35,21 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
     'levying_office' => '',
     'amount' => $amount,
   );
+  $payment_url = CRM_Contribute_BAO_Contribution::makeNotifyUrl($vars, NULL, $return_query = TRUE);
+  $payment_url = $payment_processor['url_site'].'?'.$payment_url.'&qfkey='.$vars['qfKey'];
 
   $_SESSION['ebill_ba']['submitted'] = TRUE;
-  print _civicrm_ebill_ba_form_redirect($arguments, $payment_processor);
+  print _civicrm_ebill_ba_form_redirect($arguments, $payment_url);
   CRM_Utils_System::civiExit();
 }
 
-function _civicrm_ebill_ba_form_redirect($redirect_vars, $payment_processor){
+function _civicrm_ebill_ba_form_redirect($redirect_vars, $payment_url){
   header('Pragma: no-cache');
   header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
   header('Expires: 0');
 
   $js = 'document.forms.redirect.submit();';
-  $o .= '<form action="'.$payment_processor['url_site'].'" name="redirect" method="post" id="redirect-form">';
+  $o .= '<form action="'.$payment_url.'" name="redirect" method="post" id="redirect-form">';
   foreach($redirect_vars as $k=>$p){
     if($k[0] != '#'){
       $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
