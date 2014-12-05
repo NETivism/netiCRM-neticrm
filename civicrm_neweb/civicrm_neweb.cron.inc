@@ -184,7 +184,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   require_once 'CRM/Contribute/BAO/ContributionRecur.php';
   require_once 'CRM/Utils/Array.php';
 
-  module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
+  module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.ipn');
 
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
@@ -217,6 +217,14 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   elseif($transaction_str){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
     foreach($trans as $k => $t){
+      $record = array(
+        'prc' => $t['PRC'],
+        'src' => $t['SRC'],
+        'bankrc' => $t['BankResponseCode'],
+        'approvalcode' => $t['APPROVECODE'],
+        'data' => json_encode($t),
+      );
+
       if(empty($t)) continue;
       $params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );

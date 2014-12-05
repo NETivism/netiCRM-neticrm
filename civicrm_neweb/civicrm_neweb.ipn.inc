@@ -294,6 +294,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         'src' => $input['SRC'],
         'bankrc' => $input['BankResponseCode'],
         'approvalcode' => $input['ApprovalCode'],
+        'data' => json_encode($input),
       );
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
 

@@ -48,6 +48,11 @@ function civicrm_neweb_schema(){
         'length' => '6',
         'not null' => FALSE,
       ),
+      'data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('cid'),
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
@@ -299,4 +304,16 @@ function civicrm_neweb_update_6109(){
 
   $ret['#abort'] = array('success' => TRUE, 'query' => implode(',', $updated));
   return $ret;
+}
+
+/**
+ * Add db field to swallow whole response
+ */
+function civicrm_neweb_update_7200() {
+  $new_field = array(
+    'type' => 'blob',
+    'not null' => TRUE,
+    'description' => 'Whole response object from neweb.',
+  );
+  db_add_field('civicrm_contribution_neweb', 'data', $new_field);
 }

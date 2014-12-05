@@ -20,7 +20,7 @@ function civicrm_neweb_menu(){
       'access callback' => true,
       'page callback' => 'civicrm_neweb_ipn',
       'type' => MENU_CALLBACK,
-      'file' => 'civicrm_neweb.extern.inc',
+      'file' => 'civicrm_neweb.ipn.inc',
     ),
     'civicrm/contribute/recurring_nw' => array(
       'title' => 'Neweb Recurring contribution management',
@@ -49,7 +49,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
         }
         else{
           // error here
-          module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
+          module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.ipn');
           $prc = $_POST['final_return_PRC'];
           $src = $_POST['final_return_SRC'];
           $brc = $_POST['final_return_BankRC'];

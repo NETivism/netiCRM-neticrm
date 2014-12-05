@@ -4,9 +4,9 @@ package = NetiCRM Payment Method
 dependencies[] = civicrm
 dependencies[] = civicrm_instrument
 core = 7.x
-version = 7.x-1.9
+version = 7.x-2.0
 
 files[] = civicrm_neweb.checkout.inc
 files[] = civicrm_neweb.cron.inc
-files[] = civicrm_neweb.extern.inc
-files[] = civicrm_neweb.pages.inc
+files[] = civicrm_neweb.ipn.inc
+;files[] = civicrm_neweb.pages.inc
