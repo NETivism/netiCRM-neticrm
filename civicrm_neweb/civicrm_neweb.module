@@ -182,17 +182,26 @@ function _civicrm_neweb_js_contritweak($processor){
   $str = '\['.implode('\]|\[', $processor).'\]';
   $js = '
 jQuery(document).ready(function($){
-  $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(function(){
-    if($(this).attr("name").match(/'.$str.'/) && $(this).attr("checked")){
+  set_recur_freq();
+  $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(set_recur_freq);
+  $("#is_recur").click(function(){
+    if($(this).val()){
+      $("#is_recur_interval").attr( "checked", false );
+    }
+  });
+
+  function set_recur_freq(){
+    var flag = true;
+    $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox:checked").each(function(){
       $("input[name=\'recur_frequency_unit[week]\']").hide();
       $("label[for=\'recur_frequency_unit[week]\']").hide();
       $("input[name=\'recur_frequency_unit[day]\']").hide();
       $("label[for=\'recur_frequency_unit[day]\']").hide();
       $("input[name=\'recur_frequency_unit[year]\']").hide();
       $("label[for=\'recur_frequency_unit[year]\']").hide();
-    }
-    else
-    if($(this).attr("name").match(/'.$str.'/) && !$(this).attr("checked")) {
+      flag = false;
+    });
+    if(flag){
       $("input[name=\'recur_frequency_unit[week]\']").show();
       $("label[for=\'recur_frequency_unit[week]\']").show();
       $("input[name=\'recur_frequency_unit[day]\']").show();
@@ -200,12 +209,7 @@ jQuery(document).ready(function($){
       $("input[name=\'recur_frequency_unit[year]\']").show();
       $("label[for=\'recur_frequency_unit[year]\']").show();
     }
-  });
-  $("#is_recur").click(function(){
-    if($(this).val()){
-      $("#is_recur_interval").attr( "checked", false );
-    }
-  });
+  }
 });  
 ';
   drupal_add_js($js, 'inline', 'footer');
