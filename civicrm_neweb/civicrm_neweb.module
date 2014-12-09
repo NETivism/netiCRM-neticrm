@@ -190,7 +190,6 @@ jQuery(document).ready(function($){
       $("label[for=\'recur_frequency_unit[day]\']").hide();
       $("input[name=\'recur_frequency_unit[year]\']").hide();
       $("label[for=\'recur_frequency_unit[year]\']").hide();
-      $("#is_recur_interval").parents("tr").hide();
     }
     else
     if($(this).attr("name").match(/'.$str.'/) && !$(this).attr("checked")) {
@@ -200,7 +199,6 @@ jQuery(document).ready(function($){
       $("label[for=\'recur_frequency_unit[day]\']").show();
       $("input[name=\'recur_frequency_unit[year]\']").show();
       $("label[for=\'recur_frequency_unit[year]\']").show();
-      $("#is_recur_interval").parents("tr").show();
     }
   });
   $("#is_recur").click(function(){

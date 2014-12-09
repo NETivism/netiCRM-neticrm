@@ -13,7 +13,6 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 //civicrm_contribution_page
         $payment_instruments = CRM_Core_DAO::singleValueQuery("SELECT payment_instruments FROM civicrm_instrument WHERE entity_id = {$entity_id} AND entity_table = '{$entity_table}'");
         $payment_instruments = unserialize($payment_instruments);
-
         $gid = variable_get('civicrm_instrument_gid', 0);
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 ORDER BY weight ASC");
         while($option->fetch()){
@@ -26,6 +25,14 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
           );
         }
         drupal_add_js(_civicrm_instrument_js_admin($options, $entity_table), 'inline');
+
+        // Make payment proccessor relative to recur form display.
+        $query = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE is_recur = 1");
+        while($query->fetch()){
+          $processor[$query->id] = $query->id;
+        }
+        _civicrm_instrument_js_contritweak($processor);
+
       }
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
@@ -237,6 +244,43 @@ jQuery(document).ready(function($){
 });  
   ';
 }
+
+function _civicrm_instrument_js_contritweak($processor){
+  $str = '\['.implode('\]|\[', $processor).'\]';
+  dpm($str);
+
+  $js = '
+jQuery(document).ready(function($){
+  function show_recur_option(){
+    var flag = true;
+    $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox:checked").each(function(){
+      if($(this).attr("name").match(/'.$str.'/) && $(this).attr("checked")){
+        $(".crm-contribution-form-block-is_recur").show();
+        if($(".crm-contribution-form-block-is_recur input:checkbox:checked").length>0){
+          $(".crm-contribution-form-block-recurFields").show();
+        }else{
+          $(".crm-contribution-form-block-recurFields").hide();
+        }
+        flag = false;
+      }
+    })
+    if(flag){
+      $(".crm-contribution-form-block-is_recur").hide();
+      $(".crm-contribution-form-block-recurFields").hide();
+      // console.log("checked");
+    }
+  }
+
+  show_recur_option();
+
+  $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(function(){
+    show_recur_option();
+  });
+});  
+';
+  drupal_add_js($js, 'inline', 'footer');
+}
+
 /**
  * Helper function to generate correct instrument form name
  */
