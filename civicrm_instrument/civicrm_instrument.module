@@ -247,7 +247,6 @@ jQuery(document).ready(function($){
 
 function _civicrm_instrument_js_contritweak($processor){
   $str = '\['.implode('\]|\[', $processor).'\]';
-  dpm($str);
 
   $js = '
 jQuery(document).ready(function($){
