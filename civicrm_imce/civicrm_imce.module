@@ -16,10 +16,6 @@ function civicrm_imce_civicrm_buildForm($formName, &$form) {
     if($element->_type == 'CKeditor') {
       $editor = 'ckeditor';
     }
-    elseif($element->_type == 'TinyMCE') {
-      $editor = 'tinymce';
-      $element->SetConfig('file_browser_callback', '"civicrmImceImageBrowser"');
-    }
   }
   
   if ($editor != 'none') {
@@ -32,23 +28,16 @@ function civicrm_imce_civicrm_buildForm($formName, &$form) {
   
   if ($editor == 'ckeditor') {
     // clean url ?
-    $clean_url = variable_get('clean_url', 0) ? '' : 'index.php?q=';
+    $clean_url = variable_get('clean_url', 0) ? 'imce?' : 'index.php?q=imce&';
     
     $ckeditor_inline_js = "
-      $( document ).ready( function( ) {
-        CKEDITOR.config.filebrowserBrowseUrl = '/{$clean_url}imce&app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
-        CKEDITOR.config.filebrowserImageBrowseUrl = '/{$clean_url}imce&app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
-        CKEDITOR.config.filebrowserFlashBrowseUrl = '/{$clean_url}imce&app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
+      jQuery(document).ready(function($){
+        CKEDITOR.config.filebrowserBrowseUrl = '/{$clean_url}app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
+        CKEDITOR.config.filebrowserImageBrowseUrl = '/{$clean_url}app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
+        CKEDITOR.config.filebrowserFlashBrowseUrl = '/{$clean_url}app=ckeditor|sendto@civicrmImceCkeditSendTo|params@';
       });
-      ";
+    ";
     drupal_add_js($ckeditor_inline_js, 'inline');
-  }
-  elseif ($editor == 'tinymce') {
-    $settings = array(
-      'imce' => array('url' => url('imce', array('query' => array('app' => $editor . '|url@')))),
-    );
-    drupal_add_js($settings, 'setting');
   }
 }
 
-?>
