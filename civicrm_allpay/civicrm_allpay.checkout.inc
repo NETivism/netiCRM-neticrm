@@ -82,7 +82,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
   }
 
   // building vars
-  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
+  $amount = strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
