@@ -30,15 +30,21 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Payment':
       // check the payment limitation.
-      $entity_id = $form->getVar('_id') ? $form->getVar('_id') : $form->getVar('_eventId');
       if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
+        $entity_id = $form->getVar('_id');
         $entity_table = 'civicrm_contribution_page';
         $info =& $form->_values;
       }
-      else{
+      elseif($form_name == 'CRM_Event_Form_Registration_Register'){
+        $entity_id = $form->getVar('_eventId');
         $entity_table = 'civicrm_event';
         $info =& $form->_values['event'];
+      }
+      else{
+        $entity_id = $form->getVar('_entityId');
+        $entity_table = $form->getVar('_entityTable');
       }
       $query_params = array(
         1 => array($entity_id, 'Integer'),
