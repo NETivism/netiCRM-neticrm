@@ -16,7 +16,7 @@ function _neticrm_update_update_6000(){
   );
   $q = CRM_Core_DAO::executeQuery("SHOW columns from `civicrm_location_type` where field='label'");
   if($q->N === 0){
-    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_location_type` ADD `label` VARCHAR(255) NOT NULL AFTER `id`, ADD INDEX (`label`) COMMENT 'Location type display label'");
+    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_location_type` ADD `label` VARCHAR(255) NOT NULL COMMENT 'Location type display label' AFTER `id`, ADD INDEX (`label`)");
     $q = CRM_Core_DAO::executeQuery("SELECT * FROM `civicrm_location_type` WHERE label = ''");
     while($q->fetch()){
       $new_name = !empty($vard_names[$q->vcard_name]) ? $vard_names[$q->vcard_name] : (!empty($descriptions[$q->description]) ? $descriptions[$q->description] : '');
