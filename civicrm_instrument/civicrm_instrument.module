@@ -30,7 +30,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
-    case 'CRM_Contribute_Form_Payment':
+    case 'CRM_Contribute_Form_Payment_Main':
       // check the payment limitation.
       if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
         $entity_id = $form->getVar('_id');
