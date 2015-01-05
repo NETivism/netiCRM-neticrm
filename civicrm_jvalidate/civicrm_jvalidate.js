@@ -72,6 +72,7 @@
     });
   }
 
+  // If you want this enable. You need a newer version of jQuery. v1.4 can't use.
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
     if($(obj).val()){
@@ -117,7 +118,7 @@
   };
 
   $(document).ready(function(){
-    var lang = $('html').attr('lang');
+    var lang = Drupal.settings.jvalidate.lang;
     var skiptwcheck = typeof(Drupal.settings.skiptwcheck) == 'undefined' ? 0 : 1;
     var path = parse_url('path', document.URL);
     var action = parse_url('action', document.URL) == 'update' ? 'update' : 'add';
