@@ -47,7 +47,7 @@ function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
   $notify_url = _civicrm_nccc_notify_url($vars, 'payment-nccc/ipn', $component);
 
   // for union card
-  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+  $civi_base_url = CRM_Utils_System::currentPath();
   $mallurl = url($civi_base_url, array( 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute'=>true));
 
   // building vars

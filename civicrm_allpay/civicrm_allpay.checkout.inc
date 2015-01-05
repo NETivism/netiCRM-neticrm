@@ -70,7 +70,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
 
   // url 
   $notify_url = _civicrm_allpay_notify_url($vars, 'allpay/ipn/'.$instrument_code, $component);
-  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+  $civi_base_url = CRM_Utils_System::currentPath();
   $thankyou_url = url($civi_base_url, array( 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute' => true));
 
   // parameter

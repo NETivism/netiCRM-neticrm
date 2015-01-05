@@ -15,7 +15,8 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   $record = array('cid' => $vars['contributionID'], 'created' => time());
   drupal_write_record("civicrm_contribution_esunbank", $record);
   $form_key = $component == 'event' ? 'CRM_Event_Controller_Registration_'.$vars['qfKey'] : 'CRM_Contribute_Controller_Contribution_'.$vars['qfKey'];
-  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+  $civi_base_url = CRM_Utils_System::currentPath();
+
 
   // Generate esunbank payment serial
   // the order is matter, see function esunbank_api
@@ -79,7 +80,7 @@ $(document).ready(function(){
 
     // default from_email
     $from_emails = array();
-    CRM_Core_OptionValue::getValues(array('name' => 'from_email_address'), &$from_emails);
+    CRM_Core_OptionValue::getValues(array('name' => 'from_email_address'), $from_emails);
     foreach($from_emails as $id => $v){
       if($v['is_default'] == 1){
         $from_default = $v['label'];
