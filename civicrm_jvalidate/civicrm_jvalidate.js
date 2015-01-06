@@ -72,10 +72,9 @@
     });
   }
 
-  // If you want this enable. You need a newer version of jQuery. v1.4 can't use.
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
-    if($(obj).val()){
+    if(!$(obj).val()){
       if($(obj).valid()){
         $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
       }
