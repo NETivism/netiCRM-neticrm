@@ -25,7 +25,7 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   }
   // Translate with locale module if enabled.
   elseif ($function && $langcode != 'en') {
-    $string = $function($string, $langcode);
+    $string = $function($string, '', $langcode);
   }
   if (empty($args)) {
     return $string;

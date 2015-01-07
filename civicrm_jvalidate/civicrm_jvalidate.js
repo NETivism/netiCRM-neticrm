@@ -74,7 +74,7 @@
 
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
-    if($(obj).val()){
+    if(!$(obj).val()){
       if($(obj).valid()){
         $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
       }
@@ -117,7 +117,7 @@
   };
 
   $(document).ready(function(){
-    var lang = $('html').attr('lang');
+    var lang = Drupal.settings.jvalidate.lang;
     var skiptwcheck = typeof(Drupal.settings.skiptwcheck) == 'undefined' ? 0 : 1;
     var path = parse_url('path', document.URL);
     var action = parse_url('action', document.URL) == 'update' ? 'update' : 'add';

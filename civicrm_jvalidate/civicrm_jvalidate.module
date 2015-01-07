@@ -14,6 +14,7 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
   }
 
   if(!$add){
+    global $language;
     $js = '';
     $path = drupal_get_path('module', 'civicrm_jvalidate');
     $t = array('jvalidate' => array(
@@ -21,10 +22,10 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
       'extprompt' => t('Enter phone number Ext.'),
       'notw' => t('other format?'),
       'notwprompt' => t('Enter id below.'),
+      'lang' => $language->language,
     ));
     $options = array(
-      'type' => 'file', 
-      'scope' => 'footer',
+      'type' => 'file',
     );
     drupal_add_js($t, 'setting');
     drupal_add_js($path.'/js/jquery.validate.min.js', $options);
