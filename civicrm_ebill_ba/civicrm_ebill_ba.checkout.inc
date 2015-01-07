@@ -6,7 +6,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
     unset($_SESSION['ebill_ba']);
     CRM_Utils_System::civiExit();
   }
-  $instrument_id = $vars['civicrm_instrument_id'] ? $vars['civicrm_instrument_id'] : variable_get('civicrm_ebill_ba_instrument', 0);
+  $instrument_id = variable_get('civicrm_ebill_ba_instrument', 0);
 
   // use db_merge to prevent duplicate error.
   db_merge("civicrm_contribution_ebillba")->key(array('cid' => $vars['contributionID']))->execute();
@@ -18,6 +18,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   $contrib_values['payment_instrument_id'] = $instrument_id;
   $contrib_values['is_pay_later'] = $is_pay_later;
   $contrib_values['trxn_id'] = _civicrm_ebill_ba_trxn_id($is_test, $vars['contributionID']);
+
   $contribution = CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 
   // Inject in quickform sessions
@@ -26,11 +27,13 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   $vars['trxn_id'] = $contribution->trxn_id;
 
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
+
+  $notice_no = sprintf("%16d", $vars['trxn_id']);
   $arguments = array(
     'billerid' => $payment_processor['user_name'],
     'feetype' => $payment_processor['password'],
     'payment_type' => $payment_processor['signature'],
-    'notice_no' => $vars['trxn_id'],
+    'notice_no' => $notice_no,
     'payment_deadline' => date('Ymd'),
     'levying_office' => '',
     'amount' => $amount,

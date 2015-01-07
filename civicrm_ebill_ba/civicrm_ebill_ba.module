@@ -48,14 +48,21 @@ function civicrm_ebill_ba_civicrm_buildForm($form_name, &$form){
 }
 
 function _civicrm_ebill_ba_trxn_id($is_test, $id){
-  $prefix = date('Ymd');
-  if($is_test){
-    $prefix = '9'.$prefix;
-    $suffix = sprintf("%07d", $id);
+  $trxn_id = $id;
+
+  // prepare for hook
+  $data = array(
+    'module' => 'civicrm_ebill_ba',
+    'is_test' => $is_test,
+    'trxn_id' => $trxn_id,
+    'id' => $id,
+  );
+  drupal_alter('civicrm_trxn_id', $data);
+
+  if(strlen($data['trxn_id']) > 16){
+    watchdog('civcirm_ebill_ba', 'Error when generate trxn_id');
+    return FALSE;
   }
-  else{
-    $suffix = sprintf("%08d", $id);
-  }
-  return $prefix.$suffix; 
+  return $data['trxn_id'];
 }
 

@@ -8,8 +8,16 @@ date_default_timezone_set("Asia/Taipei");
  */
 function civicrm_ebill_ba_ipn($post = NULL, $get = NULL){
   $post = !empty($post) ? $post : $_POST;
+  $post_raw = file_get_contents('php://input');
   $get = !empty($get) ? $get : $_GET;
-  if($component = $get['module']){
+
+  // 8010 / 8020 request response
+  if(empty($post) && !empty($post_raw)){
+    $output = _civicrm_ebill_ba_response( base64_decode($post_raw));
+    echo base64_encode($output);
+    drupal_exit();
+  }
+  elseif($component = $get['module']){
     $ipn = new CRM_Core_Payment_EbillBaIPN($post, $get);
     $ipn->main($component);
   }
@@ -17,6 +25,126 @@ function civicrm_ebill_ba_ipn($post = NULL, $get = NULL){
     watchdog('civicrm_ebill_ba', "Could not get module name from request url");
     drupal_not_found();
   }
+}
+
+function _civicrm_ebill_ba_response($raw){
+  $request = array(
+    'Message Type' => 4,
+    'Processing Code' => 4,
+    'System trace audit NO' => 10,
+    'TXN destination institute ID' => 7,
+    'TXN source institute ID' => 7,
+    'TXN NO.' => 7,
+    'TXN initiate date and time' => 14,
+    'Response' => 4,
+    'Sync Check Item' => 4,
+  );
+  $start = 0;
+  foreach($request as $k => $length){
+    $request[$k] = substr($raw, $start, $length);
+    $start += $length;
+  }
+
+  // check 8010
+  if($request['Message Type'] == '0900' && $request['Processing Code'] == '8010'){
+    civicrm_initialize();
+    $request2 = array(
+      'Amount' => 14,
+      'Payment Type' => 5,
+      'NoticeNO' => 16,
+      'Levying Office' => 3,
+      'Biller ID' => 8,
+      'FeeType' => 4,
+    );
+    foreach($request2 as $k => $length){
+      $request2[$k] = substr($raw, $start, $length);
+      $start += $length;
+    }
+    $trxn_id = ltrim($request2['NoticeNO'], '0');
+    $contrib = _civicrm_ebill_ba_load_contrib($trxn_id, $request);
+    if($contrib === FALSE){
+      $request['Response'] = '9101';
+    }
+    else{
+      $request['Response'] = '0001';
+      $response = array(
+        'IDN/BAN' => str_repeat(' ', 11),
+        'Amount' => $request2['Amount'],
+        'NoticeNO' => $request2['NoticeNO'],
+        'Payment Type' => $contrib->payment_processor['signature'],
+      );
+    }
+  }
+  // check 8020
+  elseif($request['Message Type'] == '0900' && $request['Processing Code'] == '8020'){
+    civicrm_initialize();
+    $request2 = array(
+      'Amount' => 14,
+      'Payment Type' => 5,
+      'NoticeNO' => 16,
+      'Payment Deadline' => 8,
+      'IDN/BAN' => 11,
+      'Handling Charge' => 4,
+      'Handling Charge Unit' => 4,
+      'Business Date' => 6,
+      'Transferee Account No.' => 16,
+      'Rcode' => 4,
+    );
+    foreach($request2 as $k => $length){
+      $request2[$k] = substr($raw, $start, $length);
+      $start += $length;
+    }
+    $trxn_id = ltrim($request2['NoticeNO'], '0');
+    $contrib = _civicrm_ebill_ba_load_contrib($trxn_id, $request);
+    if($contrib === FALSE){
+      $request['Response'] = '9101';
+    }
+    else{
+      $request['Response'] = '0001';
+      $response = array(
+        'Amount' => $request2['Amount'],
+        'NoticeNO' => $request2['NoticeNO'],
+      );
+    }
+  }
+
+  // success output 
+  if(!empty($response)){
+    return implode('', $request).implode('', $response);
+  }
+  else{
+    watchdog('civicrm_ebill_ba', '8010/8020 have fail query');
+    return implode('', $request);
+  }
+}
+
+function _civicrm_ebill_ba_load_contrib($trxn_id, $request){
+  $contrib = new CRM_Contribute_DAO_Contribution();
+  $contrib->trxn_id = (string) $trxn_id;
+
+  if($contrib->find(TRUE)){
+    if(!empty($contrib->payment_processor_id)){
+      $mode = $contrib->is_test ? 'test' : 'live';
+      $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($contrib->payment_processor_id, $mode);
+      if(!empty($payment_processor)){
+        $contrib->payment_processor = $payment_processor;
+
+        // basic validate
+        if(!empty($request['Biller ID'])){
+          if($contrib->payment_processor['user_name'] != $request['Biller ID']){
+            return FALSE;
+          }
+        }
+        if(!empty($request['Amount'])){
+          if($contrib->total_amount != $request['Amount']){
+            return FALSE;
+          }
+        }
+        return $contrib;
+      }
+    }
+  }
+  return FALSE;
 }
 
 class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
