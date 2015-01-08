@@ -30,6 +30,7 @@ function civicrm_ebill_ba_ipn($post = NULL, $get = NULL){
 }
 
 function _civicrm_ebill_ba_response($raw){
+  $debug = $raw;
   if(_civicrm_ebill_ba_byte2length($raw)){
     $request = array(
       'Message Type' => 4,
@@ -63,7 +64,7 @@ function _civicrm_ebill_ba_response($raw){
         $request2[$k] = substr($raw, $start, $length);
         $start += $length;
       }
-      $debug = var_export($request, TRUE);
+      $debug .= "\n".var_export($request, TRUE);
       $debug .= "\n".var_export($request2, TRUE);
       $trxn_id = ltrim($request2['NoticeNO'], '0');
       $contrib = _civicrm_ebill_ba_load_contrib($trxn_id, $request);
@@ -112,18 +113,24 @@ function _civicrm_ebill_ba_response($raw){
         );
       }
     }
+    else{
+      $request['Response'] = '1001';
+    }
 
     // success output 
-    $debug .= "\n".var_export($response, TRUE);
-    // watchdog('civicrm_ebill_ba', $debug);
+    $debug .= "\n".var_export($request, TRUE);
     if(!empty($response)){
+      $debug .= "\n".var_export($response, TRUE);
       $output = implode('', $request).implode('', $response);
     }
     else{
       watchdog('civicrm_ebill_ba', '8010/8020 have fail query');
       $output = implode('', $request);
     }
-    return _civicrm_ebill_ba_length2byte($output);
+    _civicrm_ebill_ba_length2byte($output);
+    $debug .= "\n".$output;
+    //watchdog('civicrm_ebill_ba', $debug);
+    return $output;
   }
   return FALSE;
 }
@@ -145,6 +152,7 @@ function _civicrm_ebill_ba_length2byte(&$raw){
   $length = sprintf('%04s', dechex($length));
   $byte2 = pack('H*', $length);
   $raw = $byte2.$raw;
+  watchdog('civicrm_ebill_ba', base64_encode($raw));
   return $byte2.$raw;
 }
 
@@ -162,11 +170,15 @@ function _civicrm_ebill_ba_load_contrib($trxn_id, $request){
         // basic validate
         if(!empty($request['Biller ID'])){
           if($contrib->payment_processor['user_name'] != $request['Biller ID']){
+            watchdog('civicrm_ebill_ba', 'Biller ID error (payment processor user_name)');
             return FALSE;
           }
         }
         if(!empty($request['Amount'])){
-          if($contrib->total_amount != $request['Amount']){
+          $remote_amount = ltrim($request['Amount'], '+0');
+          $local_amount = (int) $contrib->total_amount;
+          if($remote_amount != $local_amount){
+            watchdog('civicrm_ebill_ba', 'Amount error.');
             return FALSE;
           }
         }
@@ -312,6 +324,11 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
       '2999' => '其他類檢核錯誤',
       '0302' => '訊息押碼錯誤',
       '0401' => '訊息之 MAPPING 欄位資料與原交易相關訊息之欄位 資料不相符。',
+      '0601' => '逾時交易取消',
+      '0701' => '財金公司本項業務暫停或停止營業',
+      '0702' => '財金主機未在跨行作業運作狀態',
+      '0703' => '財金跨行業務系統錯誤',
+      '0801' => '檔案故障',
       '1001' => '無效之訊息類別代碼或交易類別代碼',
       '1002' => '跨行交易序號重覆或繳費單位交易序號重覆',
       '1004' => '訊息內之跨行交易序號或繳費單位交易序號錯誤',
