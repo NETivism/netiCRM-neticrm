@@ -75,12 +75,7 @@
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
     if(!$(obj).val()){
-      if($(obj).valid()){
-        $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
-      }
-      else{
-        $(obj).rules("remove", "twid");
-      }
+      $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
     }
 
     // add id validate remove rule.
@@ -94,6 +89,12 @@
         $(obj).rules("remove", "twid");
         $(obj).unmask();
         $(obj).val(notw);
+        $(obj).removeClass('error');
+        $(obj).parent().find('.error').hide();
+        $(obj).click(function(){
+          $(obj).rules("add", "twid");
+          $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
+        })
       }
     });
   }
