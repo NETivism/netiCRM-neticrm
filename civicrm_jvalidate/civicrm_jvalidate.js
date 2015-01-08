@@ -33,11 +33,15 @@
     $(obj).css("max-width", "280px")
 
     var mobile = false;
+    var notphone = false;
     if(admin){
       var $p = $(obj).parents("tr:first");
       var $type = $p.find("select[name*='phone_type_id']");
       if($type.val() == 2){
         mobile = true;
+      }
+      if($type.val() == 6){
+        notphone = true;
       }
     }
     else{
@@ -49,12 +53,15 @@
         if(match[idx] == '2'){
           mobile = true;
         }
+        if(match[idx] == '6'){
+          notphone = true;
+        }
       }
     }
-    if(mobile){
+    if(mobile && !notphone){
       mobile_mask(obj);
     }
-    else{
+    else if(!notphone){
       phone_mask(obj);
     }
 
@@ -65,7 +72,7 @@
         if(type_id==2){
           mobile_mask(this);
         }
-        else{
+        else if(type_id!=6){
           phone_mask(this);
         }
       });
