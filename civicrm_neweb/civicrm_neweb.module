@@ -401,3 +401,17 @@ function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
     variable_set('civicrm_neweb_scan', $now);
   }
 }
+
+function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
+  $trxn_id = $is_recur ? $id + 990000000  : $id;
+
+  // prepare for hook
+  $data = array(
+    'module' => 'civicrm_neweb',
+    'is_test' => $is_test,
+    'trxn_id' => $trxn_id,
+    'id' => $id,
+  );
+  drupal_alter('civicrm_trxn_id', $data);
+  return $data['trxn_id'];
+}

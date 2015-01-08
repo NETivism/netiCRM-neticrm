@@ -17,7 +17,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   $contrib_values['payment_instrument_id'] = $instrument_id;
   $contrib_values['is_pay_later'] = $is_pay_later;
-  $contrib_values['trxn_id'] = _civicrm_ebill_ba_trxn_id($is_test, $vars['contributionID']);
+  $contrib_values['trxn_id'] = _civicrm_ebill_ba_trxn_id($vars['contributionID'], $is_test);
 
   $contribution = CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 

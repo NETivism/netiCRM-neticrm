@@ -1,6 +1,6 @@
 <?php
 
-function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_processor){
+function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_processor, $is_test){
   // to see what instrument for neweb
   $neweb_instrument_id = $params['civicrm_instrument_id'];
   $instrument_name  = civicrm_instrument_by_id($neweb_instrument_id, 'name');
@@ -12,6 +12,8 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     'created' => REQUEST_TIME
   );
   drupal_write_record("civicrm_contribution_neweb", $record);
+  $trxn_id = _civicrm_neweb_trxn_id($params['contributionID'], $is_test, $params['is_recur']); 
+  $params['trxn_id'] = $trxn_id;
   $is_pay_later = TRUE;
   switch($instrument_code){
     case 'Credit Card':
@@ -37,13 +39,20 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     $contrib_values['is_pay_later'] = $is_pay_later;
   }
   $contrib_values['payment_processor_id'] = $payment_processor['id'];
-  $contrib_values['trxn_id'] = $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'];
+  $contrib_values['trxn_id'] = $trxn_id; 
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
   // Inject in quickform sessions
   // Special hacking for display trxn_id after thank you page.
-  $_SESSION['CiviCRM']['CRM_Contribute_Controller_Contribution_'.$params['qfKey']]['params']['trxn_id'] = $contribution->trxn_id;
+  $_SESSION['CiviCRM']['CRM_Contribute_Controller_Contribution_'.$params['qfKey']]['params']['trxn_id'] = $trxn_id;
+
   // making redirect form
-  print _civicrm_neweb_form_redirect($params_form, $instrument_code);
+  $alter = array(
+    'module' => 'civicrm_neweb',
+    'billing_mode' => $payment_processor['billing_mode'],
+    'params' => $params_form,
+  );
+  drupal_alter('civicrm_checkout_params', $alter);
+  print _civicrm_neweb_form_redirect($alter['params'], $instrument_code);
   // move things to CiviCRM cache as needed
   require_once 'CRM/Core/Session.php';
   CRM_Core_Session::storeSessionObjects( );
@@ -61,7 +70,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
   $name = function_exists('truncate_utf8') ? truncate_utf8($params['item_name'], 10) : $params['item_name'];
   $neweb_params = array(
     "MerchantNumber" => $payment_processor['user_name'],
-    "OrderNumber"    => $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'],
+    "OrderNumber"    => $params['trxn_id'],
     "Amount"         => $amount,
     "OrgOrderNumber" => $params['contributionID'],
     "ApproveFlag"    => 1,
@@ -92,7 +101,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   
   $post = array();
   $post['merchantnumber'] = $payment_processor['password'];
-  $post['ordernumber'] = $params['contributionID'];
+  $post['ordernumber'] = $params['trxn_id'];
   $post['amount'] = $amount;
   $post['paymenttype'] = $neweb_instrument;
   $post['paytitle'] = truncate_utf8($params['item_name'], 12);

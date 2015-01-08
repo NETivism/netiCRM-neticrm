@@ -47,7 +47,7 @@ function civicrm_ebill_ba_civicrm_buildForm($form_name, &$form){
   }
 }
 
-function _civicrm_ebill_ba_trxn_id($is_test, $id){
+function _civicrm_ebill_ba_trxn_id($id, $is_test){
   $trxn_id = $id;
 
   // prepare for hook
