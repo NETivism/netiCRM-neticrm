@@ -4,7 +4,7 @@
  * Implementation of hook_init()
  */
 function civicrm_ebill_ba_init(){
-  if(strstr($_GET['q'], 'ebill')){
+  if(strstr($_GET['q'], 'ebill/')){
     $GLOBALS['conf']['cache'] = FALSE;
   }
 }
