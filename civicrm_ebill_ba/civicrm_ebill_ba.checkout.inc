@@ -28,7 +28,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
 
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
-  $notice_no = sprintf("%16d", $vars['trxn_id']);
+  $notice_no = sprintf("%016s", $vars['trxn_id']);
   $arguments = array(
     'billerid' => $payment_processor['user_name'],
     'feetype' => $payment_processor['password'],
@@ -38,6 +38,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
     'levying_office' => '',
     'amount' => $amount,
   );
+  watchdog('civicrm_ebill_ba', 'notify:' . var_export($arguments, TRUE));
   $payment_url = CRM_Contribute_BAO_Contribution::makeNotifyUrl($vars, NULL, $return_query = TRUE);
   $payment_url = $payment_processor['url_site'].'?'.$payment_url.'&qfkey='.$vars['qfKey'];
 

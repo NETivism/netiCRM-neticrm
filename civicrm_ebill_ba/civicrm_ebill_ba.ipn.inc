@@ -13,9 +13,10 @@ function civicrm_ebill_ba_ipn($post = NULL, $get = NULL){
 
   // 8010 / 8020 request response
   if(count($post) <= 1 && !empty($post_raw)){
+    watchdog('civicrm_ebill_ba', 'input: '.$post_raw);
     $output = _civicrm_ebill_ba_response( base64_decode($post_raw));
-    // watchdog('civicrm_ebill_ba', 'output: '.$output);
     echo base64_encode($output);
+    watchdog('civicrm_ebill_ba', 'output: '.base64_encode($output));
     drupal_exit();
   }
   elseif($get['module']){
@@ -118,6 +119,7 @@ function _civicrm_ebill_ba_response($raw){
     }
 
     // success output 
+    $request['Message Type'] = '0910';
     $debug .= "\n".var_export($request, TRUE);
     if(!empty($response)){
       $debug .= "\n".var_export($response, TRUE);
@@ -129,7 +131,7 @@ function _civicrm_ebill_ba_response($raw){
     }
     _civicrm_ebill_ba_length2byte($output);
     $debug .= "\n".$output;
-    //watchdog('civicrm_ebill_ba', $debug);
+    watchdog('civicrm_ebill_ba', $debug);
     return $output;
   }
   return FALSE;
@@ -333,6 +335,7 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
       '1002' => '跨行交易序號重覆或繳費單位交易序號重覆',
       '1004' => '訊息內之跨行交易序號或繳費單位交易序號錯誤',
       '4202' => '轉帳累計金額超過限額',
+      '4401' => '帳號失效',
       '4405' => '帳號尚未生效',
       '4406' => '帳號已掛失',
       '4414' => '卡號冇誤(IC交易用)',
