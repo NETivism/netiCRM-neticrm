@@ -288,13 +288,14 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
        
       // save record
+      $post = !empty($_POST) ? $_POST : $input;
       $record = array(
         'cid' => $ids['contribution'],
         'prc' => $input['PRC'],
         'src' => $input['SRC'],
         'bankrc' => $input['BankResponseCode'],
         'approvalcode' => $input['ApprovalCode'],
-        'data' => json_encode($input),
+        'data' => json_encode($post),
       );
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
 
