@@ -73,7 +73,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $is_multiple = TRUE;
       }
       else{
-        $is_multiple = FALSE; 
+        $is_multiple = FALSE;
       }
 
       $type = CRM_Utils_Array::value('type', $_GET);
@@ -179,9 +179,9 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
 /**
  * Payment instrument admin javascript
  *
- * Provide payment instrument optoins for contribution and 
+ * Provide payment instrument optoins for contribution and
  * event page administration.
- */ 
+ */
 function _civicrm_instrument_js_admin($options, $entity_table){
   switch($entity_table){
     case 'civicrm_contribution_page':
@@ -246,7 +246,7 @@ jQuery(document).ready(function($){
   $("input[name=civicrm_instrument_id_dummy]").click(function(){
     $("input[name=civicrm_instrument_id]").val($(this).val());
   });
-});  
+});
   ';
 }
 
@@ -269,8 +269,9 @@ jQuery(document).ready(function($){
       }
     })
     if(flag){
-      $(".crm-contribution-form-block-is_recur").hide();
-      $(".crm-contribution-form-block-recurFields").hide();
+      // Todo : Figure out why it still twigger when checkbox is checked correctly .
+      // $(".crm-contribution-form-block-is_recur").hide();
+      // $(".crm-contribution-form-block-recurFields").hide();
       // console.log("checked");
     }
   }
@@ -280,7 +281,7 @@ jQuery(document).ready(function($){
   $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(function(){
     show_recur_option();
   });
-});  
+});
 ';
   drupal_add_js($js, 'inline', 'footer');
 }
@@ -318,13 +319,13 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
   if(module_exists('civicrm_gw') && $form->_paymentProcessor['payment_processor_type'] == 'GW'){
     $enabled_instruments = _civicrm_gw_instrument();
     $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
-  
+
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
       if($active_instruments[$radio_name]){
         $radios[$i['value']] = array(
           'form_name'=> $radio_name,
-          'name'=> $name, 
+          'name'=> $name,
           'label' => $i['label'],
           'description' => $i['description'],
         );
@@ -340,7 +341,7 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
       if($active_instruments[$radio_name]){
         $radios[$i['value']] = array(
           'form_name'=> $radio_name,
-          'name'=> $name, 
+          'name'=> $name,
           'label' => $i['label'],
           'description' => $i['description'],
         );
@@ -367,7 +368,7 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
       if($active_instruments[$radio_name]){
         $radios[$i['value']] = array(
           'form_name'=> $radio_name,
-          'name'=> $name, 
+          'name'=> $name,
           'label' => $i['label'],
           'description' => $i['description'],
         );
