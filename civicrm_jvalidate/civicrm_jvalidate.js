@@ -10,9 +10,13 @@
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
+      $(obj).rules("add", "twphone");
+      $(obj).css("max-width", "280px")
       $(obj).amask("0z99-999999");
     }
     var phone_mask = function(obj){
+      $(obj).rules("add", "twphone");
+      $(obj).css("max-width", "280px")
       $(obj).amask("0~-9999999?##########");
       // add phone ext box.
       var fid = $(obj).attr("id");
@@ -29,19 +33,16 @@
       });
     }
 
-    $(obj).rules("add", "twphone");
-    $(obj).css("max-width", "280px")
-
     var mobile = false;
-    var notphone = false;
+    var phone = false;
     if(admin){
       var $p = $(obj).parents("tr:first");
       var $type = $p.find("select[name*='phone_type_id']");
       if($type.val() == 2){
         mobile = true;
       }
-      if($type.val() == 6){
-        notphone = true;
+      if($type.val() == 1 || $type.val() == 3){
+        phone = true;
       }
     }
     else{
@@ -53,15 +54,15 @@
         if(match[idx] == '2'){
           mobile = true;
         }
-        if(match[idx] == '6'){
-          notphone = true;
+        if(match[idx] == '1' || match[idx] == '3'){
+          phone = true;
         }
       }
     }
-    if(mobile && !notphone){
+    if(mobile){
       mobile_mask(obj);
     }
-    else if(!notphone){
+    else if(phone){
       phone_mask(obj);
     }
 
@@ -72,7 +73,7 @@
         if(type_id==2){
           mobile_mask(this);
         }
-        else if(type_id!=6){
+        else if(type_id==1 || type_id==3){
           phone_mask(this);
         }
       });
