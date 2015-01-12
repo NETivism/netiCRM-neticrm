@@ -11,7 +11,9 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     'cid' => $params['contributionID'], 
     'created' => REQUEST_TIME
   );
-  drupal_write_record("civicrm_contribution_neweb", $record);
+  db_merge("civicrm_contribution_neweb")->key($record)->execute();
+
+
   $trxn_id = _civicrm_neweb_trxn_id($params['contributionID'], $is_test, $params['is_recur']); 
   $params['trxn_id'] = $trxn_id;
   $is_pay_later = TRUE;
