@@ -67,7 +67,7 @@ function _civicrm_ebill_ba_response($raw){
       }
       $debug .= "\n".var_export($request, TRUE);
       $debug .= "\n".var_export($request2, TRUE);
-      $trxn_id = ltrim($request2['NoticeNO'], '0');
+      $trxn_id = $request2['NoticeNO'];
       $contrib = _civicrm_ebill_ba_load_contrib($trxn_id, $request);
       if($contrib === FALSE){
         $request['Response'] = '9101';
