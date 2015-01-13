@@ -48,6 +48,11 @@ function esunbank_serial_price_date($code, $number, $length, $price, $timestamp)
   $number = (string)$number;
 
   $len = strlen($code.$number) + 4;
+  if($len > $length - 1){
+    $cut = $len - ($length - 1);
+    $number = substr($number, $cut);
+    $len = strlen($code.$number) + 4;
+  }
   if($len <= $length -1){
     // zero padding
     $zero_count = $length - 1 - $len;
@@ -70,6 +75,12 @@ function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp)
   $number = (string)$number;
 
   $len = strlen($code.$number) + 5;
+
+  if($len > $length - 1){
+    $cut = $len - ($length - 1);
+    $number = substr($number, $cut);
+    $len = strlen($code.$number) + 5;
+  }
   if($len <= $length -1){
     // zero padding
     $zero_count = $length - 1 - $len;
