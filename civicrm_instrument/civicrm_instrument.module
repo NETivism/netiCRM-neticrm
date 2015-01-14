@@ -184,14 +184,14 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
 function _civicrm_instrument_js_admin($options, $entity_table){
   switch($entity_table){
     case 'civicrm_contribution_page':
-      $css_id = 'amountFields';
+      $css_id = 'crm-contribution-contributionpage-amount-form-block-payment_processor';
       break;
     case 'civicrm_event':
-      $css_id = 'map-field';
+      $css_id = 'crm-event-manage-fee-form-block-payment_processor';
       break;
   }
-  $o = "<table class='form-layout-compressed payment-instrument-block'><tbody><tr>";
-  $o .= "<th scope='row' class='label' width='20%'><label for='payment_instrument'>".ts('Payment Instrument').'</label></th>';
+  $o = "<tr><td></td><td><table><tr>";
+  $o .= "<th scope='row' class='label'><label for='payment_instrument'>".ts('Payment Instrument').'</label></th>';
   $o .= "<td><div class='content'>";
   foreach($options as $k => $v){
     $checked = $v['default'] ? 'checked=checked' : '';
@@ -199,10 +199,10 @@ function _civicrm_instrument_js_admin($options, $entity_table){
     $o .= "<div class='instrument-wrapper{$reserved}'><label><input type='checkbox' name='payment_instrument[{$k}]' value='1' class='form-checkbox' $checked />".$v['label']."</label></div>";
   }
   $o .= '</div></td>';
-  $o .= '</tr></tbody></table>';
+  $o .= '</tr></table></td></tr>';
   return '
   $(document).ready(function(){
-    $("#crm-container #'.$css_id.'").before("'.$o.'");
+    $("#crm-container .'.$css_id.'").after("'.$o.'");
   });';
 }
 /**

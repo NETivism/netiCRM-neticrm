@@ -58,13 +58,6 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
         }
       }
       break;
-    case 'CRM_Contribute_Form_ContributionPage_Amount':
-      $query = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb'");
-      while($query->fetch()){
-        $processor[$query->id] = $query->id;
-      }
-      _civicrm_neweb_js_contritweak($processor);
-      break;
     case 'CRM_Admin_Form_PaymentProcessor':
       if($form->_defaultValues['payment_processor_type'] == 'Neweb'){
         $default = array(
@@ -177,40 +170,6 @@ $(document).ready(function(){
   });
 });  
   ';
-}
-function _civicrm_neweb_js_contritweak($processor){
-  $str = '\['.implode('\]|\[', $processor).'\]';
-  $js = '
-$(document).ready(function(){
-  $("tr.crm-contribution-contributionpage-amount-form-block-payment_processor input:checkbox").click(function(){
-    if($(this).attr("name").match(/'.$str.'/) && $(this).attr("checked")){
-      $("input[name=\'recur_frequency_unit[week]\']").hide();
-      $("label[for=\'recur_frequency_unit[week]\']").hide();
-      $("input[name=\'recur_frequency_unit[day]\']").hide();
-      $("label[for=\'recur_frequency_unit[day]\']").hide();
-      $("input[name=\'recur_frequency_unit[year]\']").hide();
-      $("label[for=\'recur_frequency_unit[year]\']").hide();
-      $("#is_recur_interval").parents("tr").hide();
-    }
-    else
-    if($(this).attr("name").match(/'.$str.'/) && !$(this).attr("checked")) {
-      $("input[name=\'recur_frequency_unit[week]\']").show();
-      $("label[for=\'recur_frequency_unit[week]\']").show();
-      $("input[name=\'recur_frequency_unit[day]\']").show();
-      $("label[for=\'recur_frequency_unit[day]\']").show();
-      $("input[name=\'recur_frequency_unit[year]\']").show();
-      $("label[for=\'recur_frequency_unit[year]\']").show();
-      $("#is_recur_interval").parents("tr").show();
-    }
-  });
-  $("#is_recur").click(function(){
-    if($(this).val()){
-      $("#is_recur_interval").attr( "checked", false );
-    }
-  });
-});  
-';
-  drupal_add_js($js, 'inline', 'footer');
 }
 function _civicrm_neweb_js_payment($default, $is_test){
   $element = $is_test ? 'crm-paymentProcessor-form-block-test_url_recur' : 'crm-paymentProcessor-form-block-url_recur';
