@@ -200,8 +200,16 @@
             $(this).rules("add", {required:true });
           });
           $("#"+formid+" input.required:visible:not([type=checkbox])").blur(function(){
-            $(this).valid();
+            $this = $(this);
+            if($this.attr("name") == "birth_date"){
+              setTimeout(function(){
+                $this.valid();
+              },300);
+            }else{
+              $this.valid();
+            }
           });
+
           var $ckbox = $("#"+formid+" div.ckbox");
           $ckbox.each(function(){
             $(this).find("input").each(function(){
