@@ -101,7 +101,7 @@ function _civicrm_ebill_ba_response($raw){
         $request2[$k] = substr($raw, $start, $length);
         $start += $length;
       }
-      $trxn_id = ltrim($request2['NoticeNO'], '0');
+      $trxn_id = $request2['NoticeNO'];
       $contrib = _civicrm_ebill_ba_load_contrib($trxn_id, $request);
       if($contrib === FALSE){
         $request['Response'] = '9101';
@@ -131,7 +131,7 @@ function _civicrm_ebill_ba_response($raw){
     }
     _civicrm_ebill_ba_length2byte($output);
     $debug .= "\n".$output;
-    watchdog('civicrm_ebill_ba', $debug);
+    // watchdog('civicrm_ebill_ba', $debug);
     return $output;
   }
   return FALSE;
