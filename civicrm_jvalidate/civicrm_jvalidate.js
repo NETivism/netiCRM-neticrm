@@ -201,7 +201,7 @@
           });
           $("#"+formid+" input.required:visible:not([type=checkbox])").blur(function(){
             $this = $(this);
-            if($this.attr("name") == "birth_date"){
+            if($this.hasClass("hasDatepicker")){
               setTimeout(function(){
                 $this.valid();
               },300);
