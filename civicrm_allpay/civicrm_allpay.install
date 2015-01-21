@@ -33,7 +33,6 @@ function civicrm_allpay_schema(){
  * Implementation of hook_install()
  */
 function civicrm_allpay_install() {
-  drupal_install_schema('civicrm_allpay');
   civicrm_initialize( );
 
   // new payment processor - credit card (allowed recurring)
@@ -85,8 +84,6 @@ function civicrm_allpay_uninstall() {
   CRM_Core_DAO::executeQuery("OPTIMIZE TABLE civicrm_payment_processor_type");
 
   // we won't delete instrument for preserve contribution record
-  // delete schema from drupal
-  drupal_uninstall_schema('civicrm_allpay');
 
 }
 

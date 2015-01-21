@@ -71,7 +71,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
   // url 
   $notify_url = _civicrm_allpay_notify_url($vars, 'allpay/ipn/'.$instrument_code, $component);
   $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-  $thankyou_url = url($civi_base_url, array( 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute' => true));
+  $thankyou_url = url($civi_base_url, array( 'query' => array( "_qf_ThankYou_display" => "1" , "qfKey" => $vars['qfKey'], ), 'absolute' => true));
 
   // parameter
   if($component == 'event' && !empty($_SESSION['CiviCRM'][$form_key])){
@@ -196,16 +196,16 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
 
   if ( $component == 'event' ) {
     $query[] = "eid={$vars['eventID']}";
-    $query[] = "pid={$vars['participantID']}";
+    $query["pid"] = $vars['participantID'];
   }
   else {
     if ( $vars['membershipID'] ) {
-      $query[] = "mid=".$vars['membershipID'];
+      $query["mid"] = $vars['membershipID'];
     }
     if ($vars['related_contact']) {
-      $query[] = "rid=".$vars['related_contact'];
+      $query["rid"] = $vars['related_contact'];
       if ($vars['onbehalf_dupe_alert']) {
-        $query[] = "onbehalf_dupe_alert=".$vars['onbehalf_dupe_alert'];
+        $query["onbehalf_dupe_alert"] = $vars['onbehalf_dupe_alert'];
       }
     }
   }
@@ -213,15 +213,15 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
   // if recurring donations, add a few more items
   if ( !empty( $vars['is_recur']) ) {
      if ($vars['contributionRecurID']) {
-       $query[] = "crid={$vars['contributionRecurID']}";
-       $query[] = "cpid={$vars['contributionPageID']}";
+       $query["crid"] = $vars['contributionRecurID'];
+       $query["cpid"] = $vars['contributionPageID'];
      }
   }
 
   $url = url(
     $path,
     array(
-      'query'=> implode('&', $query),
+      'query'=> $query,
       'absolute' => true,
     )
   );

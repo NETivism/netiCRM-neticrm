@@ -168,7 +168,7 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
       });
     });  
     ';
-      drupal_add_js($js, 'inline', 'footer');
+      drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
       break;
   }
 }
