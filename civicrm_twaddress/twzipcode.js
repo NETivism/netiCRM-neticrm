@@ -61,10 +61,6 @@
        * Wed, 25 August 2010 10:22:12 GMT
        */
       var countyAndarea = $.fn.twzipcode.fromzip(o.zipSel);
-      if(2 === countyAndarea.length){
-        o.countySel = countyAndarea[0];
-        o.areaSel = countyAndarea[1];
-      }
       
       try {
         sel.county = ( o.countyName ) ? ( $('select[name="' + o.countyName + '"]').length > 0 ? $('select[name="' + o.countyName + '"]') : _.append('<select name="' + o.countyName + '[]" />').children('select:eq(0)') ) : _.append('<select name="zip_county[]" />').children('select:eq(0)');
