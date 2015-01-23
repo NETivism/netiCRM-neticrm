@@ -56,12 +56,6 @@
         var ie = true;
       }
       
-      /*
-       * enter the zipcode to find the county and area
-       * Wed, 25 August 2010 10:22:12 GMT
-       */
-      var countyAndarea = $.fn.twzipcode.fromzip(o.zipSel);
-      
       try {
         sel.county = ( o.countyName ) ? ( $('select[name="' + o.countyName + '"]').length > 0 ? $('select[name="' + o.countyName + '"]') : _.append('<select name="' + o.countyName + '[]" />').children('select:eq(0)') ) : _.append('<select name="zip_county[]" />').children('select:eq(0)');
         sel.area = ( o.areaName ) ? ( $('select[name="' + o.areaName + '"]').length > 0 ? $('select[name="' + o.areaName + '"]') : _.append('<select name="' + o.areaName + '[]" />').children('select:eq(1)') ) : _.append('<select name="zip_area[]" />').children('select:eq(1)');
