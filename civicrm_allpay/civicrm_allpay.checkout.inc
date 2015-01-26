@@ -163,6 +163,8 @@ function _civicrm_allpay_form_redirect($redirect_vars, $payment_processor){
   header('Cache-Control: no-store, no-cache, must-revalidate');
   header('Expires: 0');
 
+  $o = "";
+
   $js = 'document.forms.redirect.submit();';
   $o .= '<form action="'.$payment_processor['url_site'].'" name="redirect" method="post" id="redirect-form">';
   foreach($redirect_vars as $k=>$p){
@@ -190,21 +192,21 @@ function _civicrm_allpay_form_redirect($redirect_vars, $payment_processor){
 
 function _civicrm_allpay_notify_url(&$vars, $path, $component){
   $query = array();
-  $query[] = "contact_id={$vars['contactID']}";
-  $query[] = "cid={$vars['contributionID']}";
-  $query[] = "module={$component}";
+  $query["contact_id"] = $vars['contactID'];
+  $query["cid"] = $vars['contributionID'];
+  $query["module"] = $component;
 
   if ( $component == 'event' ) {
-    $query[] = "eid={$vars['eventID']}";
+    $query["eid"] = $vars['eventID'];
     $query["pid"] = $vars['participantID'];
   }
   else {
-    if ( $vars['membershipID'] ) {
+    if ( isset($vars['membershipID']) && $vars['membershipID'] !== NULL ) {
       $query["mid"] = $vars['membershipID'];
     }
-    if ($vars['related_contact']) {
+    if ( isset($vars['related_contact']) && $vars['related_contact'] !== NULL ){
       $query["rid"] = $vars['related_contact'];
-      if ($vars['onbehalf_dupe_alert']) {
+      if ( isset($vars['onbehalf_dupe_alert']) && $vars['onbehalf_dupe_alert'] !== NULL){
         $query["onbehalf_dupe_alert"] = $vars['onbehalf_dupe_alert'];
       }
     }
@@ -225,7 +227,7 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
       'absolute' => true,
     )
   );
-  if($_SERVER['HTTP_HTTPS'] == 'on' || $_SERVER['HTTPS'] == 'on'){
+  if( ( isset($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
     return str_replace('http://', 'https://', $url);
   }
   else{
