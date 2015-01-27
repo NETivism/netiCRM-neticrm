@@ -225,9 +225,9 @@ cj(document).ready(function(){
   var test = "'.$test.'";
   var main = "tr."+e;
   var $new = new Object();
-  $new.ftp_password = $(main).clone();
-  $new.ftp_user = $(main).clone();
-  $new.ftp_host = $(main).clone();
+  $new.ftp_password = cj(main).clone();
+  $new.ftp_user = cj(main).clone();
+  $new.ftp_host = cj(main).clone();
 
   for(var i in $new){
     var $o = $new[i];
