@@ -10,11 +10,17 @@
  * @param $component 
  * @param $payment_processor 
  */
-function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor){
+function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor, &$form){
   // First, we insert every contribution into record. After this, we'll use update for the record.
   $record = array('cid' => $vars['contributionID'], 'created' => time());
   drupal_write_record("civicrm_contribution_esunbank", $record);
-  $form_key = $component == 'event' ? 'CRM_Event_Controller_Registration_'.$vars['qfKey'] : 'CRM_Contribute_Controller_Contribution_'.$vars['qfKey'];
+  $controller_name = get_class($form->controller);
+  if($controller_name){
+    $form_key = $controller_name.'_'.$vars['qfKey'];
+  }
+  else{
+    $form_key = $vars['qfKey'];
+  }
   $civi_base_url = CRM_Utils_System::currentPath();
 
 
@@ -74,7 +80,13 @@ $(document).ready(function(){
 });
 </script>';
     $values['thankyou_text'] .= '<div>如果您沒有看到繳費單視窗，點此<strong>開啟'.l('付款單', $tpl['invoice_link'].'?width=900&height=600&iframe=true', array('attributes' => array('class' => 'colorbox-load', 'target' => '_blank'))).'</strong></div>'.$js;
-    $email = $vars['email-5'];
+
+    if(!empty($vars['email-5'])){
+      $email = $vars['email-5'];
+    }
+    else{
+      $email = CRM_Contact_BAO_Contact::getPrimaryEmail($vars['contactID']);
+    }
 
     // prepare template parameter
 
