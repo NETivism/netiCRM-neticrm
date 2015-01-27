@@ -201,12 +201,12 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
     $query["pid"] = $vars['participantID'];
   }
   else {
-    if ( isset($vars['membershipID']) && $vars['membershipID'] !== NULL ) {
+    if ( !empty($vars['membershipID']) ) {
       $query["mid"] = $vars['membershipID'];
     }
-    if ( isset($vars['related_contact']) && $vars['related_contact'] !== NULL ){
+    if ( !empty($vars['related_contact']) ){
       $query["rid"] = $vars['related_contact'];
-      if ( isset($vars['onbehalf_dupe_alert']) && $vars['onbehalf_dupe_alert'] !== NULL){
+      if ( !empty($vars['onbehalf_dupe_alert']) ){
         $query["onbehalf_dupe_alert"] = $vars['onbehalf_dupe_alert'];
       }
     }
@@ -227,7 +227,7 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
       'absolute' => true,
     )
   );
-  if( ( isset($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
+  if( ( !empty($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
     return str_replace('http://', 'https://', $url);
   }
   else{
