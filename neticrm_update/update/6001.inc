@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Update for 6000
+ * Update for 6001
  *
  * This file should be civicrm compliant.
  */

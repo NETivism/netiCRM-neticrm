@@ -45,3 +45,6 @@ function neticrm_update_update_6000() {
 function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+function neticrm_update_update_6002() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
