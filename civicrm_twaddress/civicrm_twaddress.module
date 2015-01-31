@@ -6,9 +6,9 @@
  */
 function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
   static $add;
+  $override = array();
   if (substr($form['#id'], 0, 20) == 'webform-client-form-') {
     // for now we only support field below 2 fieldset
-    $override = array();
     foreach($form['submitted'] as $k => $c){
       if(!is_array($c)) continue;
       $children = element_children($c);
@@ -122,15 +122,15 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     return;
   }
   //
-  $override = array();
   $enable = TRUE;
   $form_name = $form->_attributes['name'];
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
       $key = _civicrm_twaddress_key($name);
+      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $override['zipName'][$key]['key'] = $name;
-      $override['zipName'][$key]['default'] = $form->getElement($name)->_findValue($form->_defaultValues);
+      $override['zipName'][$key]['default'] = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
     }
     if(strstr($name, 'state_province')){
       $key = _civicrm_twaddress_key($name);
@@ -140,16 +140,20 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
           $county_options[$v['attr']['value']] = $v['text'];
         }
       }
-      $default = $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : $form->_submitValues[$name];
-      $override['countyName'][$key]['default'] = $county_options[$default];
+      $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL; 
+      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      // Find that default value is depands on zip code. The code here is no use.
+      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : $default;
     }
     if(strstr($name, 'city')){
       $key = _civicrm_twaddress_key($name);
       // hide field
 
-      $default = $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : $form->_submitValues[$name];
+      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
+      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      // Find that default value is depands on zip code. The code here is no use.
       $override['areaName'][$key]['key'] = '_'.$name;
       $override['areaName'][$key]['name'] = $name;
       $override['areaName'][$key]['default'] = $default;
@@ -170,7 +174,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       _civicrm_twaddress_grouping_js();
     }
 
-    if($_GET['snippet']){
+    if(!empty($_GET['snippet']) && !empty($form->_fields)){
       reset($form->_fields);
       $first = key($form->_fields);
       $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
@@ -198,9 +202,9 @@ function civicrm_twaddress_order(){
     '基隆市',
     '台北市',
     '新北市',
+    '桃園市',
     '新竹市',
     '新竹縣',
-    '桃園縣',
     '苗栗縣',
     '台中市',
     '彰化縣',
@@ -276,21 +280,24 @@ function _civicrm_twaddress_grouping_js(){
 
 function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   $return = array();
+  $count = 0;
   foreach($field['areaName'] as $k => $v){
     $count++;
-    $insert = "<select name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
+    $insert = "<select id='twaddr-area-{$k}' name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
 
     $js = '
     jQuery(function($){
       if( $("input[name=\''.$field['areaName'][$k]['name'].'\']").length ){
         var $form = $("input[name=\''.$field['areaName'][$k]['name'].'\']").parents("form");
-        $("'.$insert.'").insertAfter("input[name=\''.$field['areaName'][$k]['name'].'\']");
+        if(!$("#twaddr-area-'.$k.'").length){
+          $("'.$insert.'").insertAfter("input[name=\''.$field['areaName'][$k]['name'].'\']");
+        }
         $("input[name=\''.$field['areaName'][$k]['name'].'\']").hide();
         $("select[name=\''.$field['areaName'][$k]['key'].'\']").change(function(){
           var v = $(this).val();
           $("input[name=\''.$field['areaName'][$k]['name'].'\']").val(v);
         });
-        $("input[name='.$field['zipName'][$k]['key'].']").addClass("readonly post-code");
+        $("input[name=\''.$field['zipName'][$k]['key'].'\']").addClass("readonly post-code");
 
         $form.twzipcode({
           zipName:"'.$field['zipName'][$k]['key'].'",
