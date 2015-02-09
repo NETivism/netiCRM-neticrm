@@ -1,0 +1,24 @@
+<?php
+/**
+ * Implements hook_enable().
+ */
+function civicrm_alter_translation_enable() {
+  civicrm_initialize();
+  require_once("CRM/Core/BAO/ConfigSetting.php");
+  $params = array(
+    'customTranslateFunction' => 'civicrm_alter_translation',
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
+}
+
+/**
+ * Implements hook_disable().
+ */
+function civicrm_alter_translation_disable() {
+  civicrm_initialize();
+  require_once("CRM/Core/BAO/ConfigSetting.php");
+  $params = array(
+    'customTranslateFunction' => '',
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
+}
