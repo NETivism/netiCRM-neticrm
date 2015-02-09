@@ -7,10 +7,9 @@ date_default_timezone_set("Asia/Taipei");
  * Helper function for receive pingback from payment server
  */
 function civicrm_allpay_ipn($instrument){
-  var_dump($instrument);
-  var_dump($_POST);
-  var_dump($_GET);
-
+  watchdog('civicrm_allpay', var_export($instrument,TRUE));
+  watchdog('civicrm_allpay', var_export($_POST,TRUE));
+  watchdog('civicrm_allpay', var_export($_GET,TRUE));
 
   // detect variables
   if(empty($_POST)){
@@ -25,7 +24,6 @@ function civicrm_allpay_ipn($instrument){
       watchdog('civicrm_allpay', "Could not get module name from request url");
     }
   }
-  exit;
 }
 
 class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
@@ -36,9 +34,6 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
   }
 
   function main(  $component = 'contribute', $instrument){
-    var_dump($instrument);
-    exit;
-
     // get the contribution and contact ids from the GET params
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
