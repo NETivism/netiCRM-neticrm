@@ -7,6 +7,10 @@ date_default_timezone_set("Asia/Taipei");
  * Helper function for receive pingback from payment server
  */
 function civicrm_allpay_ipn($instrument){
+  watchdog('civicrm_allpay', var_export($instrument,TRUE));
+  watchdog('civicrm_allpay', var_export($_POST,TRUE));
+  watchdog('civicrm_allpay', var_export($_GET,TRUE));
+
   // detect variables
   if(empty($_POST)){
     watchdog("civicrm_allpay", "Could not find POST data from payment server");
