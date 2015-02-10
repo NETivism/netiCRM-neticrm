@@ -79,42 +79,34 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       $snippet = CRM_Utils_Array::value('snippet', $_GET);
 
       // check if this page is multiple payment processor
-      if(!empty($type) && $snippet == 4 && $is_multiple){
+      if(!empty($type) && $snippet == 4){
         print civicrm_instrument_attach_processor($form, $all_instruments, $active_instruments, FALSE);
         return;
       }
       else{
-        if($is_multiple) {
-          if(!empty($form->_submitValues['civicrm_instrument_id'])){
-            $default = 'cj("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
-          }
-          else{
-            $default = '
-              setTimeout(function(){
-              if(cj("input[name=civicrm_instrument_id_dummy]").length == 1){
-                cj("input[name=civicrm_instrument_id_dummy]").click();
-              }}, 300);
-            ';
-          }
-          $js = '
-          cj(document).ready(function(){
-            cj("input[name=payment_processor]").live("click", function(){
-              cj("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
-            });
-            cj("input[name=civicrm_instrument_id_dummy]").live("click", function(){
-              cj("input[name=civicrm_instrument_id]").val(cj(this).val());
-            });
-            '.$default.'
+        if(!empty($form->_submitValues['civicrm_instrument_id'])){
+          $default = 'cj("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
+        }
+        else{
+          $default = '
+            setTimeout(function(){
+            if(cj("input[name=civicrm_instrument_id_dummy]").length == 1){
+              cj("input[name=civicrm_instrument_id_dummy]").click();
+            }}, 300);
+          ';
+        }
+        $js = '
+        cj(document).ready(function(){
+          cj("input[name=payment_processor]").live("click", function(){
+            cj("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
           });
+          cj("input[name=civicrm_instrument_id_dummy]").live("click", function(){
+            cj("input[name=civicrm_instrument_id]").val(cj(this).val());
+          });
+          '.$default.'
+        });
 ';
-          drupal_add_js($js, 'inline');
-        }
-        elseif(!empty($form->_paymentProcessor)){
-          // single processor
-          if(count($active_instruments) > 1){
-            civicrm_instrument_attach_processor($form, $all_instruments, $active_instruments);
-          }
-        }
+        drupal_add_js($js, 'inline');
         $form->addElement('hidden', 'civicrm_instrument_id', reset($active_instruments));
       }
       break;
