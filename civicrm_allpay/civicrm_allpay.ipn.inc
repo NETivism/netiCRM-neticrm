@@ -17,6 +17,7 @@ function civicrm_allpay_ipn($instrument){
   }
   else{
     if($component = $_GET['module']){
+      watchdog('civicrm_allpay', 'Run ALLPAYIPN()!!');
       $ipn = new CRM_Core_Payment_ALLPAYIPN();
       $ipn->main($component, $instrument);
     }
@@ -31,6 +32,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
   static $_input = null;
   function __construct( ) {
     parent::__construct( );
+    watchdog('civicrm_allpay', 'this CRM_Core_Payment_ALLPAYIPN = '.var_export($this,TRUE));
   }
 
   function main(  $component = 'contribute', $instrument){
@@ -57,15 +59,22 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       return false;
     }
 
+    watchdog('civicrm_allpay', 'objects = '.var_export($objects,TRUE));
+    watchdog('civicrm_allpay', '_input = '.var_export($_input,TRUE));
+
     // set global variable for paymentProcessor
     self::$_payment_processor =& $objects['paymentProcessor'];
     self::$_input = $input;
 
     if($objects['contribution']->contribution_status_id == 1 && empty($_GET['is_recur'])){
+      watchdog('civicrm_allpay', 'Not Recur.');
       // already completed, skip
       echo '1|OK';
+
+      
     }
     else{
+      watchdog('civicrm_allpay', 'Is Recur.');
       // start validation
       require_once 'CRM/Core/Transaction.php';
       $transaction = new CRM_Core_Transaction();
