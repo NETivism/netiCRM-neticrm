@@ -242,7 +242,7 @@ function _civicrm_allpay_vars2str($post){
  */
 function _civicrm_allpay_payment_info($cid, $instrument){
   civicrm_initialize();
-  $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid)->fetchObject();
+  $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
   $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = {$cid}");
   $data = array();
   switch($instrument){
@@ -268,7 +268,7 @@ function civicrm_allpay_popup($instrument){
     drupal_goto();
   }
   else{
-    $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid)->fetchObject();
+    $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
     civicrm_initialize();
     $params = array( 1 => array( $cid, 'Integer' ) );
     $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = %1", $params);
@@ -313,7 +313,7 @@ function civicrm_allpay_record($cid, $data = null){
       }
     }
     if(!empty($data['MerchantID']) || !empty($data['info']['MerchantID'])){
-      $result = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = %d", array("%d" => $cid))->fetchObject();
+      $result = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
       $exists = json_decode($result, TRUE);
       if(is_array($exists)){
         $data = array_merge($exists, $data);
@@ -323,7 +323,7 @@ function civicrm_allpay_record($cid, $data = null){
         'data' => json_encode($data),
       );
       // update
-      if(db_query("SELECT cid FROM {civicrm_contribution_allpay} WHERE cid = %d", array("%d" => $cid))->fetchObject()){
+      if(db_query("SELECT cid FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
         drupal_write_record('civicrm_contribution_allpay', $record, 'cid');
       }
       else{
