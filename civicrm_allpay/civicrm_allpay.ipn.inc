@@ -7,21 +7,14 @@ date_default_timezone_set("Asia/Taipei");
  * Helper function for receive pingback from payment server
  */
 function civicrm_allpay_ipn($instrument){
-  watchdog('civicrm_allpay', var_export($instrument,TRUE));
-  watchdog('civicrm_allpay', var_export($_POST,TRUE));
-  watchdog('civicrm_allpay', var_export($_GET,TRUE));
-
   // detect variables
   if(empty($_POST)){
     watchdog("civicrm_allpay", "Could not find POST data from payment server");
   }
   else{
     if($component = $_GET['module']){
-      watchdog('civicrm_allpay', 'Ready to Create ALLPAYIPN()!!');
       $ipn = new CRM_Core_Payment_ALLPAYIPN();
-      watchdog('civicrm_allpay', 'Got ALLPAYIPN()!! Ready to run main()');
       $ipn->main($component, $instrument);
-      watchdog('civicrm_allpay', 'Finish running main()');
     }
     else{
       watchdog('civicrm_allpay', "Could not get module name from request url");
@@ -34,23 +27,16 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
   static $_input = null;
   function __construct( ) {
     parent::__construct( );
-    watchdog('civicrm_allpay', 'this CRM_Core_Payment_ALLPAYIPN = '.var_export($this,TRUE));
   }
 
   function main(  $component = 'contribute', $instrument){
-    watchdog('civicrm_allpay', 'Start main()');
-
     // get the contribution and contact ids from the GET params
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $input = $_POST;
-    watchdog('civicrm_allpay', '$input = '.var_export($input,TRUE) );
     $this->getIds($ids, $component);
-    watchdog('civicrm_allpay', '$ids = '.var_export($ids,TRUE) );
     $input['component'] = $component;
-    watchdog('civicrm_allpay', '$input = '.var_export($input,TRUE) );
     $qfKey = $_GET['qfKey'];
-    watchdog('civicrm_allpay', '$qfKey = '.$qfKey );
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
 
     if(empty($ids['contributionRecur'])){
@@ -67,22 +53,15 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       return false;
     }
 
-    watchdog('civicrm_allpay', 'objects = '.var_export($objects,TRUE));
-    watchdog('civicrm_allpay', 'input = '.var_export($_input,TRUE));
-
     // set global variable for paymentProcessor
     self::$_payment_processor =& $objects['paymentProcessor'];
     self::$_input = $input;
 
     if($objects['contribution']->contribution_status_id == 1 && empty($_GET['is_recur'])){
-      watchdog('civicrm_allpay', 'Not Recur.');
       // already completed, skip
       echo '1|OK';
-
-      
     }
     else{
-      watchdog('civicrm_allpay', 'Is Recur.');
       // start validation
       require_once 'CRM/Core/Transaction.php';
       $transaction = new CRM_Core_Transaction();
