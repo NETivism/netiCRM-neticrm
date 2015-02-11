@@ -17,9 +17,11 @@ function civicrm_allpay_ipn($instrument){
   }
   else{
     if($component = $_GET['module']){
-      watchdog('civicrm_allpay', 'Run ALLPAYIPN()!!');
+      watchdog('civicrm_allpay', 'Ready to Create ALLPAYIPN()!!');
       $ipn = new CRM_Core_Payment_ALLPAYIPN();
+      watchdog('civicrm_allpay', 'Got ALLPAYIPN()!! Ready to run main()');
       $ipn->main($component, $instrument);
+      watchdog('civicrm_allpay', 'Finish running main()');
     }
     else{
       watchdog('civicrm_allpay', "Could not get module name from request url");
@@ -36,13 +38,19 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
   }
 
   function main(  $component = 'contribute', $instrument){
+    watchdog('civicrm_allpay', 'Start main()');
+
     // get the contribution and contact ids from the GET params
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $input = $_POST;
+    watchdog('civicrm_allpay', '$input = '.$input );
     $this->getIds($ids, $component);
+    watchdog('civicrm_allpay', '$ids = '.$ids );
     $input['component'] = $component;
+    watchdog('civicrm_allpay', '$input = '.$input );
     $qfKey = $_GET['qfKey'];
+    watchdog('civicrm_allpay', '$qfKey = '.$qfKey );
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
 
     if(empty($ids['contributionRecur'])){
@@ -60,7 +68,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     watchdog('civicrm_allpay', 'objects = '.var_export($objects,TRUE));
-    watchdog('civicrm_allpay', '_input = '.var_export($_input,TRUE));
+    watchdog('civicrm_allpay', 'input = '.var_export($_input,TRUE));
 
     // set global variable for paymentProcessor
     self::$_payment_processor =& $objects['paymentProcessor'];
