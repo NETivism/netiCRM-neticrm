@@ -44,11 +44,11 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $input = $_POST;
-    watchdog('civicrm_allpay', '$input = '.$input );
+    watchdog('civicrm_allpay', '$input = '.var_export($input,TRUE) );
     $this->getIds($ids, $component);
-    watchdog('civicrm_allpay', '$ids = '.$ids );
+    watchdog('civicrm_allpay', '$ids = '.var_export($ids,TRUE) );
     $input['component'] = $component;
-    watchdog('civicrm_allpay', '$input = '.$input );
+    watchdog('civicrm_allpay', '$input = '.var_export($input,TRUE) );
     $qfKey = $_GET['qfKey'];
     watchdog('civicrm_allpay', '$qfKey = '.$qfKey );
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
