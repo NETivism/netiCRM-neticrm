@@ -160,7 +160,7 @@ function _civicrm_neweb_notify_url(&$vars, $path, $component){
   }
 
   global $language;
-  if ($language == 'en') {
+  if ($language->language == 'en') {
     $query['language'] = 'en';
   }
 
