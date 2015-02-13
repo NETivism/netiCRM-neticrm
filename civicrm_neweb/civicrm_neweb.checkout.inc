@@ -85,6 +85,11 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
     "#paymentProcessor" => $payment_processor,
   );
   $neweb_params["checksum"] = md5($payment_processor['user_name'].$neweb_params['OrderNumber'].$payment_processor['signature'].$amount);
+  global $language;
+  if ($language->language == 'en') {
+    $neweb_params["Englishmode"] = 1;
+  }
+
   return $neweb_params;
 }
 
