@@ -9,6 +9,7 @@ function civicrm_alter_translation_enable() {
     'customTranslateFunction' => 'civicrm_alter_translation',
   );
   CRM_Core_BAO_ConfigSetting::add($params);
+  drupal_set_message(t('Set <i>civicrm_alter_translation</i> to Custom Translate Function in Civicrm locale settings. '), 'status', FALSE);
 }
 
 /**
@@ -21,4 +22,5 @@ function civicrm_alter_translation_disable() {
     'customTranslateFunction' => '',
   );
   CRM_Core_BAO_ConfigSetting::add($params);
+  drupal_set_message(t('Clear value of Custom Translate Function in Civicrm locale settings.'), 'status', FALSE);
 }
