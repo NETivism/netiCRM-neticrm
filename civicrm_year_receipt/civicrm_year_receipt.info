@@ -1,0 +1,6 @@
+name = Yearly receipt token
+description = "Generate yearly receipt token"
+dependencies[] = civicrm
+package = NetiCRM
+core = 6.x
+version = 6.x-1.0
