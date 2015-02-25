@@ -19,10 +19,10 @@ function civicrm_year_receipt_civicrm_tokenValues(&$values, $cids, $job = null){
   $header = NULL;
   if(function_exists('ts')){
     $header = array(
-      ts('Transaction ID'),
       ts('Receipt ID'),
+      ts('Contribution Types'),
+      ts('Payment Instrument'),
       ts('Receipt Date'),
-      ts('Receive Date'),
       ts('Total Amount'),
     );
   }
@@ -57,15 +57,17 @@ function civicrm_year_receipt_record($contact_id, $year = 'all'){
   $args = array(
     1 => array($contact_id, 'Integer'),
   );
-  $query = CRM_Core_DAO::executeQuery("SELECT c.id, c.trxn_id, c.receipt_id, DATE(c.receipt_date) as receipt_date, DATE(c.receive_date) as receive_date, c.total_amount FROM civicrm_contribution c WHERE c.contact_id = %1 AND c.is_test = 0 AND c.contribution_status_id = 1 $where ORDER BY c.receipt_date ASC", $args);
-
+  $query = CRM_Core_DAO::executeQuery("SELECT c.id, c.contribution_type_id, c.payment_instrument_id, c.receipt_id, DATE(c.receipt_date) as receipt_date, c.total_amount FROM civicrm_contribution c WHERE c.contact_id = %1 AND c.is_test = 0 AND c.contribution_status_id = 1 $where ORDER BY c.receipt_date ASC", $args);
+ 
+  $contribution_type = CRM_Contribute_PseudoConstant::contributionType();
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
   $record = array();
   while($query->fetch()){
     $record[] = array(
-      $query->trxn_id,
       $query->receipt_id,
+      $contribution_type[$query->contribution_type_id],
+      $instruments[$query->payment_instrument_id],
       $query->receipt_date,
-      $query->receive_date,
       $query->total_amount,
     );
   }
