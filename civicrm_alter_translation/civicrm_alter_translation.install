@@ -23,13 +23,6 @@ function civicrm_alter_translation_disable() {
 
 function _civicrm_update_settings($params) {
   civicrm_initialize();
-  // Use CRM/Core/BAO/ConfigSetting.php in 2.0-dev.
-  if(file_exists(drupal_get_path('module', 'civicrm') . 'CRM/Core/BAO/ConfigSetting.php')){
-    CRM_Core_BAO_ConfigSetting::add($params);
-  }
-  else{
-    // Use CRM/Core/BAO/Setting.php before 2.0-dev.
-    CRM_Core_BAO_Setting::add($params);
-  }
+  CRM_Core_BAO_ConfigSetting::add($params);
 }
 
