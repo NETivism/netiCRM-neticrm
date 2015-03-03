@@ -342,7 +342,7 @@ function _civicrm_neweb_connect($id, $local, $mode, $is_test){
   $ret = false;
 
   if($is_test){
-    $function = '_civicrm_neweb_ftp';
+    $function = '_civicrm_neweb_sftp';
     $ftp = variable_get("civicrm_neweb_ftp_test", array());
   }
   else{
