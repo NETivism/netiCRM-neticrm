@@ -26,8 +26,8 @@ function civicrm_dmenu_init(){
 
 function civicrm_dmenu_menu_items($menu_name, $items, $plid = 0) {
   global $menu_links;
-  $menu_title = $menu_links[$menu_name]['#title'] ? $menu_links[$menu_name]['#title'] : $menu_name;
-  $menu_desc = $menu_links[$menu_name]['#description'] ? $menu_links[$menu_name]['#description'] : '';
+  $menu_title = empty($menu_links[$menu_name]['#title']) ? $menu_name : $menu_links[$menu_name]['#title'];
+  $menu_desc = empty($menu_links[$menu_name]['#description']) ? '' : $menu_links[$menu_name]['#description'];
   civicrm_dmenu_create_menu($menu_title, $menu_name, $menu_desc);
   foreach ($items as $k => $item) {
     if(!is_numeric($k)){
@@ -37,16 +37,16 @@ function civicrm_dmenu_menu_items($menu_name, $items, $plid = 0) {
     // Format the data to send.
     $path = ($item['path']) ? $item['path'] : FALSE;
     $title = ($item['title']) ? $item['title'] : FALSE;
-    $desc  = ($item['description']) ? $item['description'] : '';
+    $desc  = empty($item['description']) ? '' : $item['description'];
     $menu  = ($item['menu']) ? $item['menu'] : 'navigation';
     $plid  = ($plid) ? $plid : 0;
     $weight = ($item['weight']) ? $item['weight'] : 0;
     $module = ($item['module']) ? $item['module'] : 'menu';
     $children = (isset($item['children'])) ? $item['children'] : FALSE;
     $has_children = $children ? 1 : 0;
-    $query = ($item['query']) ? $item['query'] : NULL;
+    $query = empty($item['query']) ? NULL : $item['query'];
     $hidden = $item['hidden'];
-    $expanded = $item['expanded'] ? $item['expanded'] : 0;
+    $expanded = empty($item['expanded']) ? 0 : $item['expanded'];
 
     // Create the menu link.
     $mlid = civicrm_dmenu_menu_item($path, $title, $desc, $menu, $plid, $weight, $module, $query, $hidden, $has_children, $expanded);
@@ -68,13 +68,14 @@ function civicrm_dmenu_menu_item($path, $title, $description = '', $menu = 'navi
   }
   if($query){
     $option_arr['query'] = $query;
-    $sql .= " AND options LIKE '%%$query%%'";
+    $query_sql = serialize($query);
+    $sql .= " AND options LIKE '%%$query_sql%%'";
   }
 
   $exists = db_query($sql, array(
     ':menu' => $menu, 
     ':path' => $path
-    ));
+    ))->fetchAssoc();
   if(empty($exists)){
     $link = array(
       'menu_name'     => $menu,
@@ -92,7 +93,6 @@ function civicrm_dmenu_menu_item($path, $title, $description = '', $menu = 'navi
     );
   }
   else{
-    $exists = get_object_vars($exists);
     $exists['options'] = unserialize($exists['options']);
     if(is_array($option_arr)){
       $exists['options'] = array_merge($exists['options'], $option_arr);
@@ -152,7 +152,7 @@ function civicrm_dmenu_create_menu($title, $menu_name = '', $desc = '') {
       menu_link_save($link);
       
       // Save menu to menu_custom table.
-      db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('$menu_name_custom', '$title', '$description')")->execute();
+      db_query("INSERT INTO {menu_custom} (menu_name, title, description) VALUES ('$menu_name_custom', '$title', '$description') ON DUPLICATE KEY UPDATE `menu_name`='$menu_name_custom', title='$title', description='$description'")->execute();
     }
     
     $return = $menu;

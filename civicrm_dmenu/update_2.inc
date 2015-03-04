@@ -30,7 +30,7 @@ $menu_links['navigation'] = array (
   ),
   array (
     'path' => 'civicrm/admin',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '設定',
     'description' => '進階設定、管理支持者系統的欄位選項等',
     'menu' => 'navigation',
@@ -90,7 +90,7 @@ $menu_links['navigation'] = array (
          
           array (
             'path' => 'civicrm/admin/custom/group',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '自訂欄位',
             'description' => '自行定義聯絡人、活動、捐款的記錄欄位',
             'menu' => 'navigation',
@@ -101,7 +101,7 @@ $menu_links['navigation'] = array (
          
           array (
             'path' => 'civicrm/admin/uf/group',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '資料表單',
             'description' => '產生線上填寫表單，建立後以嵌入活動報名、捐款、或會員，甚至插入外站',
             'menu' => 'navigation',
@@ -112,7 +112,7 @@ $menu_links['navigation'] = array (
          
           array (
             'path' => 'civicrm/admin/configtask',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '支持者系統設定精靈',
             'description' => '讓你快速檢查系統設定，完成初始設置',
             'menu' => 'navigation',
@@ -135,7 +135,7 @@ $menu_links['navigation'] = array (
         array (
           array (
             'path' => 'civicrm/admin/synchUser',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '同步使用者到聯絡人',
             'description' => '將現有已註冊的使用者，同步成為聯絡人，重複的聯絡人將合併（以Email判斷）',
             'menu' => 'navigation',
@@ -154,7 +154,7 @@ $menu_links['neticrm'] =array (
   '#description' => '系統主要的導覽，僅有登入使用者可看見。',
   array (
     'path' => 'civicrm/contact/search',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '聯絡人',
     'menu' => 'menu-neticrm',
     'weight' => '-49',
@@ -181,7 +181,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Individual',
+        'query' => array('reset' => '1','ct' => 'Individual'),
         'title' => '新增個人',
         'menu' => 'menu-neticrm',
         'weight' => '-50',
@@ -190,7 +190,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Organization',
+        'query' => array('reset' => '1','ct' => 'Organization'),
         'title' => '新增組織',
         'menu' => 'menu-neticrm',
         'weight' => '-48',
@@ -199,7 +199,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Household',
+        'query' => array('reset' => '1','ct' => 'Household'),
         'title' => '新增家庭',
         'menu' => 'menu-neticrm',
         'weight' => '-47',
@@ -208,7 +208,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/activity/add',
-        'query' => 'atype=3&action=add&reset=1&context=standalone',
+        'query' => array('atype' => '3','action' => 'add','reset' => '1','context' => 'standalone'),
         'title' => '寄送 Email',
         'menu' => 'menu-neticrm',
         'weight' => '-45',
@@ -217,7 +217,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/import/contact',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入聯絡人資料',
         'menu' => 'menu-neticrm',
         'weight' => '-44',
@@ -226,7 +226,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理群組',
         'menu' => 'menu-neticrm',
         'weight' => '-42',
@@ -235,7 +235,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/admin/tag',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理標籤',
         'menu' => 'menu-neticrm',
         'weight' => '-40',
@@ -244,7 +244,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/activity',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增任務',
         'menu' => 'menu-neticrm',
         'weight' => '-39',
@@ -253,7 +253,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/activity/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋任務',
         'menu' => 'menu-neticrm',
         'weight' => '-38',
@@ -262,7 +262,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/import/activity',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入任務記錄',
         'menu' => 'menu-neticrm',
         'weight' => '-37',
@@ -271,7 +271,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contact/deduperules',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '合併重複聯絡人',
         'menu' => 'menu-neticrm',
         'weight' => '-35',
@@ -280,7 +280,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/admin/reltype',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理關係類型',
         'menu' => 'menu-neticrm',
         'weight' => '-34',
@@ -289,7 +289,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/admin/uf/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理資料表單',
         'menu' => 'menu-neticrm',
         'weight' => '20',
@@ -298,7 +298,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/admin/custom/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理自訂欄位',
         'menu' => 'menu-neticrm',
         'weight' => '20',
@@ -309,7 +309,7 @@ $menu_links['neticrm'] =array (
   ),
   array (
     'path' => 'civicrm/contribute',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '捐款',
     'menu' => 'menu-neticrm',
     'weight' => '-48',
@@ -320,7 +320,7 @@ $menu_links['neticrm'] =array (
     array (
       array (
         'path' => 'civicrm/admin/options/payment_instrument',
-        'query' => 'group=payment_instrument&reset=1',
+        'query' => array('group' => 'payment_instrument','reset' => '1'),
         'title' => '新增/管理付款工具',
         'menu' => 'menu-neticrm',
         'weight' => '-36',
@@ -329,7 +329,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contribute/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增捐款',
         'menu' => 'menu-neticrm',
         'weight' => '-50',
@@ -338,7 +338,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/contribute/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋捐款',
         'menu' => 'menu-neticrm',
         'weight' => '-49',
@@ -348,7 +348,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/contribute/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入捐款資料',
         'menu' => 'menu-neticrm',
         'weight' => '-48',
@@ -358,7 +358,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/pledge',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '認捐總覽',
         'menu' => 'menu-neticrm',
         'weight' => '-47',
@@ -368,7 +368,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/pledge/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增認捐',
         'menu' => 'menu-neticrm',
         'weight' => '-46',
@@ -378,7 +378,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/pledge/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋認捐',
         'menu' => 'menu-neticrm',
         'weight' => '-45',
@@ -388,7 +388,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/contribute/add',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增募款頁',
         'menu' => 'menu-neticrm',
         'weight' => '-43',
@@ -398,7 +398,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/contribute',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理募款頁',
         'menu' => 'menu-neticrm',
         'weight' => '-42',
@@ -408,7 +408,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/pcp',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '個人募款頁',
         'menu' => 'menu-neticrm',
         'weight' => '-41',
@@ -418,7 +418,7 @@ $menu_links['neticrm'] =array (
       10 => 
       array (
         'path' => 'civicrm/admin/contribute/managePremiums',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理感謝禮品',
         'menu' => 'menu-neticrm',
         'weight' => '-40',
@@ -428,7 +428,7 @@ $menu_links['neticrm'] =array (
       
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增價格表',
         'menu' => 'menu-neticrm',
         'weight' => '-39',
@@ -438,7 +438,7 @@ $menu_links['neticrm'] =array (
       
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理價格表',
         'menu' => 'menu-neticrm',
         'weight' => '-38',
@@ -448,7 +448,7 @@ $menu_links['neticrm'] =array (
       
       array (
         'path' => 'civicrm/admin/contribute/contributionType',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理捐款類型',
         'menu' => 'menu-neticrm',
         'weight' => '-37',
@@ -460,7 +460,7 @@ $menu_links['neticrm'] =array (
  
   array (
     'path' => 'civicrm/event',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '活動',
     'menu' => 'menu-neticrm',
     'weight' => '-47',
@@ -471,7 +471,7 @@ $menu_links['neticrm'] =array (
     array (
       array (
         'path' => 'civicrm/admin/options/event_type',
-        'query' => 'group=event_type&reset=1',
+        'query' => array('group' => 'event_type','reset' => '1'),
         'title' => '新增/管理活動類型',
         'menu' => 'menu-neticrm',
         'weight' => '-41',
@@ -480,7 +480,7 @@ $menu_links['neticrm'] =array (
       ),
       array (
         'path' => 'civicrm/admin/participant_status',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理參加者狀態',
         'menu' => 'menu-neticrm',
         'weight' => '-40',
@@ -490,7 +490,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/options/participant_role',
-        'query' => 'group=participant_role&reset=1',
+        'query' => array('group' => 'participant_role','reset' => '1'),
         'title' => '新增/管理參加者角色',
         'menu' => 'menu-neticrm',
         'weight' => '-39',
@@ -500,7 +500,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/participant/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '登記活動參加者',
         'menu' => 'menu-neticrm',
         'weight' => '-50',
@@ -510,7 +510,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/event/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋活動參加者',
         'menu' => 'menu-neticrm',
         'weight' => '-49',
@@ -520,7 +520,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/event/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入參加者',
         'menu' => 'menu-neticrm',
         'weight' => '-48',
@@ -530,7 +530,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/event/add',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增活動',
         'menu' => 'menu-neticrm',
         'weight' => '-47',
@@ -540,7 +540,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/event/manage',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理活動',
         'menu' => 'menu-neticrm',
         'weight' => '-46',
@@ -550,7 +550,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/eventTemplate',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '活動範本',
         'menu' => 'menu-neticrm',
         'weight' => '-45',
@@ -560,7 +560,7 @@ $menu_links['neticrm'] =array (
       10 => 
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增價格表',
         'menu' => 'menu-neticrm',
         'weight' => '-44',
@@ -570,7 +570,7 @@ $menu_links['neticrm'] =array (
       
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理價格表',
         'menu' => 'menu-neticrm',
         'weight' => '-43',
@@ -582,7 +582,7 @@ $menu_links['neticrm'] =array (
  
   array (
     'path' => 'civicrm/mailing/browse',
-    'query' => 'reset=1&scheduled=true',
+    'query' => array('reset' => '1','scheduled' => 'true'),
     'title' => '電子報',
     'menu' => 'menu-neticrm',
     'weight' => '-46',
@@ -594,7 +594,7 @@ $menu_links['neticrm'] =array (
       0 => 
       array (
         'path' => 'civicrm/mailing/send',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增電子報/郵件',
         'menu' => 'menu-neticrm',
         'weight' => '-50',
@@ -604,7 +604,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/mailing/browse/unscheduled',
-        'query' => 'reset=1&scheduled=false',
+        'query' => array('reset' => '1','scheduled' => 'false'),
         'title' => '草稿與未排程的電子報',
         'menu' => 'menu-neticrm',
         'weight' => '-49',
@@ -614,7 +614,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/mailing/browse/scheduled',
-        'query' => 'reset=1&scheduled=true',
+        'query' => array('reset' => '1','scheduled' => 'true'),
         'title' => '已排程與已寄送的電子報',
         'menu' => 'menu-neticrm',
         'weight' => '-48',
@@ -624,7 +624,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/mailing/browse/archived',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '電子報存檔',
         'menu' => 'menu-neticrm',
         'weight' => '-47',
@@ -634,7 +634,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/component',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '頁首、頁尾、自動回覆訊息',
         'menu' => 'menu-neticrm',
         'weight' => '-46',
@@ -644,7 +644,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/messageTemplates',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '訊息範本',
         'menu' => 'menu-neticrm',
         'weight' => '-45',
@@ -654,7 +654,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/options/from_email',
-        'query' => 'group=from_email_address&reset=1',
+        'query' => array('group' => 'from_email_address','reset' => '1'),
         'title' => 'Email寄件者',
         'menu' => 'menu-neticrm',
         'weight' => '-44',
@@ -664,7 +664,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/options/email_greeting',
-        'query' => 'group=email_greeting&reset=1',
+        'query' => array('group' => 'email_greeting','reset' => '1'),
         'title' => 'Email問候語',
         'menu' => 'menu-neticrm',
         'weight' => '-43',
@@ -676,7 +676,7 @@ $menu_links['neticrm'] =array (
  
   array (
     'path' => 'civicrm/member',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '會員',
     'menu' => 'menu-neticrm',
     'weight' => '-45',
@@ -688,7 +688,7 @@ $menu_links['neticrm'] =array (
       0 => 
       array (
         'path' => 'civicrm/member/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增會員資料',
         'menu' => 'menu-neticrm',
         'weight' => '-50',
@@ -698,7 +698,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/member/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋會員',
         'menu' => 'menu-neticrm',
         'weight' => '-49',
@@ -708,7 +708,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/member/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入會員',
         'menu' => 'menu-neticrm',
         'weight' => '-48',
@@ -718,7 +718,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/member/membershipType',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/編輯會員類型',
         'menu' => 'menu-neticrm',
         'weight' => '-47',
@@ -728,7 +728,7 @@ $menu_links['neticrm'] =array (
      
       array (
         'path' => 'civicrm/admin/member/membershipStatus',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/編輯會員狀態',
         'menu' => 'menu-neticrm',
         'weight' => '0',
@@ -740,7 +740,7 @@ $menu_links['neticrm'] =array (
  
   array (
     'path' => 'civicrm/report/list',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '報表',
     'menu' => 'menu-neticrm',
     'weight' => '-44',
@@ -752,7 +752,7 @@ $menu_links['neticrm'] =array (
       0 => 
       array (
         'path' => 'civicrm/admin/report/template/list',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '從範本新增報表',
         'menu' => 'menu-neticrm',
         'weight' => '2',
@@ -784,7 +784,7 @@ $menu_links['search'] = array (
   0 => 
   array (
     'path' => 'civicrm/contact/search/builder',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '自定搜尋',
     'menu' => 'menu-search',
     'weight' => '4',
@@ -794,7 +794,7 @@ $menu_links['search'] = array (
  
   array (
     'path' => 'civicrm/contact/search/custom',
-    'query' => 'csid=15&reset=1',
+    'query' => array('csid' => '15','reset' => '1'),
     'title' => '全文搜尋',
     'menu' => 'menu-search',
     'weight' => '3',
@@ -804,7 +804,7 @@ $menu_links['search'] = array (
  
   array (
     'path' => 'civicrm/contact/search/advanced',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '進階搜尋',
     'menu' => 'menu-search',
     'weight' => '2',

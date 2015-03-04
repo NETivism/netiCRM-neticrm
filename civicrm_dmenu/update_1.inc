@@ -308,7 +308,7 @@ $menu_links['navigation'] = array (
           0 => 
           array (
             'path' => 'civicrm/admin/access',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '存取控制',
             'description' => '管理支持者系統的進階權限控制',
             'menu' => 'navigation',
@@ -319,7 +319,7 @@ $menu_links['navigation'] = array (
           1 => 
           array (
             'path' => 'civicrm/admin/synchUser',
-            'query' => 'reset=1',
+            'query' => array('reset' => '1'),
             'title' => '同步使用者到聯絡人',
             'description' => '將現有已註冊的使用者，同步成為聯絡人，重複的聯絡人將合併（以Email判斷）',
             'menu' => 'navigation',
@@ -337,7 +337,7 @@ $menu_links['primary-links'] =array (
   0 => 
   array (
     'path' => 'civicrm/contact/search',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '聯絡人',
     'menu' => 'primary-links',
     'weight' => '-49',
@@ -358,7 +358,7 @@ $menu_links['primary-links'] =array (
       1 => 
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Household',
+        'query' => array('reset' => '1','ct' => 'Household'),
         'title' => '新增家庭',
         'menu' => 'primary-links',
         'weight' => '-49',
@@ -368,7 +368,7 @@ $menu_links['primary-links'] =array (
       2 => 
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Individual',
+        'query' => array('reset' => '1','ct' => 'Individual'),
         'title' => '新增個人',
         'menu' => 'primary-links',
         'weight' => '-50',
@@ -378,7 +378,7 @@ $menu_links['primary-links'] =array (
       3 => 
       array (
         'path' => 'civicrm/contact/add',
-        'query' => 'reset=1&ct=Organization',
+        'query' => array('reset' => '1','ct' => 'Organization'),
         'title' => '新增組織',
         'menu' => 'primary-links',
         'weight' => '-48',
@@ -388,7 +388,7 @@ $menu_links['primary-links'] =array (
       4 => 
       array (
         'path' => 'civicrm/activity',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增任務',
         'menu' => 'primary-links',
         'weight' => '-47',
@@ -398,7 +398,7 @@ $menu_links['primary-links'] =array (
       5 => 
       array (
         'path' => 'civicrm/activity/add',
-        'query' => 'atype=3&action=add&reset=1&context=standalone',
+        'query' => array('atype' => '3','action' => 'add','reset' => '1','context' => 'standalone'),
         'title' => '新增 Email',
         'menu' => 'primary-links',
         'weight' => '-46',
@@ -408,7 +408,7 @@ $menu_links['primary-links'] =array (
       6 => 
       array (
         'path' => 'civicrm/import/contact',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入聯絡人資料',
         'menu' => 'primary-links',
         'weight' => '-45',
@@ -418,7 +418,7 @@ $menu_links['primary-links'] =array (
       7 => 
       array (
         'path' => 'civicrm/import/activity',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入任務記錄',
         'menu' => 'primary-links',
         'weight' => '-44',
@@ -428,7 +428,7 @@ $menu_links['primary-links'] =array (
       8 => 
       array (
         'path' => 'civicrm/group/add',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增群組',
         'menu' => 'primary-links',
         'weight' => '-43',
@@ -438,7 +438,7 @@ $menu_links['primary-links'] =array (
       9 => 
       array (
         'path' => 'civicrm/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理群組',
         'menu' => 'primary-links',
         'weight' => '-42',
@@ -448,7 +448,7 @@ $menu_links['primary-links'] =array (
       10 => 
       array (
         'path' => 'civicrm/admin/tag',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增Tag',
         'menu' => 'primary-links',
         'weight' => '-41',
@@ -458,7 +458,7 @@ $menu_links['primary-links'] =array (
       11 => 
       array (
         'path' => 'civicrm/admin/tag',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理標籤（分類）',
         'menu' => 'primary-links',
         'weight' => '-40',
@@ -468,7 +468,7 @@ $menu_links['primary-links'] =array (
       12 => 
       array (
         'path' => 'civicrm/contact/deduperules',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '合併重複聯絡人',
         'menu' => 'primary-links',
         'weight' => '-38',
@@ -478,7 +478,7 @@ $menu_links['primary-links'] =array (
       13 => 
       array (
         'path' => 'civicrm/admin/reltype',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理關係類型',
         'menu' => 'primary-links',
         'weight' => '-39',
@@ -490,7 +490,7 @@ $menu_links['primary-links'] =array (
   1 => 
   array (
     'path' => 'civicrm/contribute',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '捐款',
     'menu' => 'primary-links',
     'weight' => '-48',
@@ -502,7 +502,7 @@ $menu_links['primary-links'] =array (
       0 => 
       array (
         'path' => 'civicrm/admin/options/payment_instrument',
-        'query' => 'group=payment_instrument&reset=1',
+        'query' => array('group' => 'payment_instrument','reset' => '1'),
         'title' => '新增/管理付款工具',
         'menu' => 'primary-links',
         'weight' => '-36',
@@ -512,7 +512,7 @@ $menu_links['primary-links'] =array (
       1 => 
       array (
         'path' => 'civicrm/contribute/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增捐款',
         'menu' => 'primary-links',
         'weight' => '-50',
@@ -522,7 +522,7 @@ $menu_links['primary-links'] =array (
       2 => 
       array (
         'path' => 'civicrm/contribute/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋捐款',
         'menu' => 'primary-links',
         'weight' => '-49',
@@ -532,7 +532,7 @@ $menu_links['primary-links'] =array (
       3 => 
       array (
         'path' => 'civicrm/contribute/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入捐款資料',
         'menu' => 'primary-links',
         'weight' => '-48',
@@ -542,7 +542,7 @@ $menu_links['primary-links'] =array (
       4 => 
       array (
         'path' => 'civicrm/pledge',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '認捐總覽',
         'menu' => 'primary-links',
         'weight' => '-47',
@@ -552,7 +552,7 @@ $menu_links['primary-links'] =array (
       5 => 
       array (
         'path' => 'civicrm/pledge/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增認捐',
         'menu' => 'primary-links',
         'weight' => '-46',
@@ -562,7 +562,7 @@ $menu_links['primary-links'] =array (
       6 => 
       array (
         'path' => 'civicrm/pledge/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋認捐',
         'menu' => 'primary-links',
         'weight' => '-45',
@@ -572,7 +572,7 @@ $menu_links['primary-links'] =array (
       7 => 
       array (
         'path' => 'civicrm/admin/contribute/add',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增募款頁',
         'menu' => 'primary-links',
         'weight' => '-43',
@@ -582,7 +582,7 @@ $menu_links['primary-links'] =array (
       8 => 
       array (
         'path' => 'civicrm/admin/contribute',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理募款頁',
         'menu' => 'primary-links',
         'weight' => '-42',
@@ -592,7 +592,7 @@ $menu_links['primary-links'] =array (
       9 => 
       array (
         'path' => 'civicrm/admin/pcp',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '個人募款頁',
         'menu' => 'primary-links',
         'weight' => '-41',
@@ -602,7 +602,7 @@ $menu_links['primary-links'] =array (
       10 => 
       array (
         'path' => 'civicrm/admin/contribute/managePremiums',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '感謝禮 (感謝禮品)',
         'menu' => 'primary-links',
         'weight' => '-40',
@@ -612,7 +612,7 @@ $menu_links['primary-links'] =array (
       11 => 
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增價格表',
         'menu' => 'primary-links',
         'weight' => '-39',
@@ -622,7 +622,7 @@ $menu_links['primary-links'] =array (
       12 => 
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理價格表',
         'menu' => 'primary-links',
         'weight' => '-38',
@@ -632,7 +632,7 @@ $menu_links['primary-links'] =array (
       13 => 
       array (
         'path' => 'civicrm/admin/contribute/contributionType',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理捐款類型',
         'menu' => 'primary-links',
         'weight' => '-37',
@@ -642,7 +642,7 @@ $menu_links['primary-links'] =array (
       14 => 
       array (
         'path' => 'civicrm/admin/options/accept_creditcard',
-        'query' => 'group=accept_creditcard&reset=1',
+        'query' => array('group' => 'accept_creditcard','reset' => '1'),
         'title' => '新增/管理可用的信用卡',
         'menu' => 'primary-links',
         'weight' => '-35',
@@ -652,7 +652,7 @@ $menu_links['primary-links'] =array (
       15 => 
       array (
         'path' => 'civicrm/admin/uf/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理資料表單',
         'menu' => 'navigation',
         'weight' => '20',
@@ -662,7 +662,7 @@ $menu_links['primary-links'] =array (
       16 => 
       array (
         'path' => 'civicrm/admin/custom/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理自訂欄位',
         'menu' => 'navigation',
         'weight' => '20',
@@ -674,7 +674,7 @@ $menu_links['primary-links'] =array (
   2 => 
   array (
     'path' => 'civicrm/event',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '活動',
     'menu' => 'primary-links',
     'weight' => '-47',
@@ -686,7 +686,7 @@ $menu_links['primary-links'] =array (
       0 => 
       array (
         'path' => 'civicrm/admin/options/participant_listing',
-        'query' => 'group=participant_listing&reset=1',
+        'query' => array('group' => 'participant_listing','reset' => '1'),
         'title' => '參加者列表範本',
         'menu' => 'primary-links',
         'weight' => '-42',
@@ -696,7 +696,7 @@ $menu_links['primary-links'] =array (
       1 => 
       array (
         'path' => 'civicrm/admin/options/event_type',
-        'query' => 'group=event_type&reset=1',
+        'query' => array('group' => 'event_type','reset' => '1'),
         'title' => '新增/管理活動類型',
         'menu' => 'primary-links',
         'weight' => '-41',
@@ -706,7 +706,7 @@ $menu_links['primary-links'] =array (
       2 => 
       array (
         'path' => 'civicrm/admin/participant_status',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理參加者狀態',
         'menu' => 'primary-links',
         'weight' => '-40',
@@ -716,7 +716,7 @@ $menu_links['primary-links'] =array (
       3 => 
       array (
         'path' => 'civicrm/admin/options/participant_role',
-        'query' => 'group=participant_role&reset=1',
+        'query' => array('group' => 'participant_role','reset' => '1'),
         'title' => '新增/管理參加者角色',
         'menu' => 'primary-links',
         'weight' => '-39',
@@ -726,7 +726,7 @@ $menu_links['primary-links'] =array (
       4 => 
       array (
         'path' => 'civicrm/participant/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '登記活動參加者',
         'menu' => 'primary-links',
         'weight' => '-50',
@@ -736,7 +736,7 @@ $menu_links['primary-links'] =array (
       5 => 
       array (
         'path' => 'civicrm/event/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋活動參加者',
         'menu' => 'primary-links',
         'weight' => '-49',
@@ -746,7 +746,7 @@ $menu_links['primary-links'] =array (
       6 => 
       array (
         'path' => 'civicrm/event/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入參加者',
         'menu' => 'primary-links',
         'weight' => '-48',
@@ -756,7 +756,7 @@ $menu_links['primary-links'] =array (
       7 => 
       array (
         'path' => 'civicrm/event/add',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增活動',
         'menu' => 'primary-links',
         'weight' => '-47',
@@ -766,7 +766,7 @@ $menu_links['primary-links'] =array (
       8 => 
       array (
         'path' => 'civicrm/event/manage',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理活動',
         'menu' => 'primary-links',
         'weight' => '-46',
@@ -776,7 +776,7 @@ $menu_links['primary-links'] =array (
       9 => 
       array (
         'path' => 'civicrm/admin/eventTemplate',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '活動範本',
         'menu' => 'primary-links',
         'weight' => '-45',
@@ -786,7 +786,7 @@ $menu_links['primary-links'] =array (
       10 => 
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1&action=add',
+        'query' => array('reset' => '1','action' => 'add'),
         'title' => '新增價格表',
         'menu' => 'primary-links',
         'weight' => '-44',
@@ -796,7 +796,7 @@ $menu_links['primary-links'] =array (
       11 => 
       array (
         'path' => 'civicrm/admin/price',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '管理價格表',
         'menu' => 'primary-links',
         'weight' => '-43',
@@ -806,7 +806,7 @@ $menu_links['primary-links'] =array (
       12 => 
       array (
         'path' => 'civicrm/admin/uf/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理資料表單',
         'menu' => 'navigation',
         'weight' => '20',
@@ -816,7 +816,7 @@ $menu_links['primary-links'] =array (
       13 => 
       array (
         'path' => 'civicrm/admin/custom/group',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/管理自訂欄位',
         'menu' => 'navigation',
         'weight' => '20',
@@ -828,7 +828,7 @@ $menu_links['primary-links'] =array (
   3 => 
   array (
     'path' => 'civicrm/mailing/browse',
-    'query' => 'reset=1&scheduled=true',
+    'query' => array('reset' => '1','scheduled' => 'true'),
     'title' => '電子報',
     'menu' => 'primary-links',
     'weight' => '-46',
@@ -840,7 +840,7 @@ $menu_links['primary-links'] =array (
       0 => 
       array (
         'path' => 'civicrm/mailing/send',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增電子報/郵件',
         'menu' => 'primary-links',
         'weight' => '-50',
@@ -850,7 +850,7 @@ $menu_links['primary-links'] =array (
       1 => 
       array (
         'path' => 'civicrm/mailing/browse/unscheduled',
-        'query' => 'reset=1&scheduled=false',
+        'query' => array('reset' => '1','scheduled' => 'false'),
         'title' => '草稿與未排程的電子報',
         'menu' => 'primary-links',
         'weight' => '-49',
@@ -860,7 +860,7 @@ $menu_links['primary-links'] =array (
       2 => 
       array (
         'path' => 'civicrm/mailing/browse/scheduled',
-        'query' => 'reset=1&scheduled=true',
+        'query' => array('reset' => '1','scheduled' => 'true'),
         'title' => '已排程與已寄送的電子報',
         'menu' => 'primary-links',
         'weight' => '-48',
@@ -870,7 +870,7 @@ $menu_links['primary-links'] =array (
       3 => 
       array (
         'path' => 'civicrm/mailing/browse/archived',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '電子報存檔',
         'menu' => 'primary-links',
         'weight' => '-47',
@@ -880,7 +880,7 @@ $menu_links['primary-links'] =array (
       4 => 
       array (
         'path' => 'civicrm/admin/component',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '頁首、頁尾、自動回覆訊息',
         'menu' => 'primary-links',
         'weight' => '-46',
@@ -890,7 +890,7 @@ $menu_links['primary-links'] =array (
       5 => 
       array (
         'path' => 'civicrm/admin/messageTemplates',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '訊息範本',
         'menu' => 'primary-links',
         'weight' => '-45',
@@ -900,7 +900,7 @@ $menu_links['primary-links'] =array (
       6 => 
       array (
         'path' => 'civicrm/admin/options/from_email',
-        'query' => 'group=from_email_address&reset=1',
+        'query' => array('group' => 'from_email_address','reset' => '1'),
         'title' => 'Email寄件者',
         'menu' => 'primary-links',
         'weight' => '-44',
@@ -910,7 +910,7 @@ $menu_links['primary-links'] =array (
       7 => 
       array (
         'path' => 'civicrm/admin/options/email_greeting',
-        'query' => 'group=email_greeting&reset=1',
+        'query' => array('group' => 'email_greeting','reset' => '1'),
         'title' => 'Email問候語',
         'menu' => 'primary-links',
         'weight' => '-43',
@@ -922,7 +922,7 @@ $menu_links['primary-links'] =array (
   4 => 
   array (
     'path' => 'civicrm/member',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '會員',
     'menu' => 'primary-links',
     'weight' => '-45',
@@ -934,7 +934,7 @@ $menu_links['primary-links'] =array (
       0 => 
       array (
         'path' => 'civicrm/member/add',
-        'query' => 'reset=1&action=add&context=standalone',
+        'query' => array('reset' => '1','action' => 'add','context' => 'standalone'),
         'title' => '新增會員資料',
         'menu' => 'primary-links',
         'weight' => '-50',
@@ -944,7 +944,7 @@ $menu_links['primary-links'] =array (
       1 => 
       array (
         'path' => 'civicrm/member/search',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '搜尋會員',
         'menu' => 'primary-links',
         'weight' => '-49',
@@ -954,7 +954,7 @@ $menu_links['primary-links'] =array (
       2 => 
       array (
         'path' => 'civicrm/member/import',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '匯入會員',
         'menu' => 'primary-links',
         'weight' => '-48',
@@ -964,7 +964,7 @@ $menu_links['primary-links'] =array (
       3 => 
       array (
         'path' => 'civicrm/admin/member/membershipType',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/編輯會員類型',
         'menu' => 'primary-links',
         'weight' => '-47',
@@ -974,7 +974,7 @@ $menu_links['primary-links'] =array (
       4 => 
       array (
         'path' => 'civicrm/admin/member/membershipStatus',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '新增/編輯會員狀態',
         'menu' => 'primary-links',
         'weight' => '0',
@@ -986,7 +986,7 @@ $menu_links['primary-links'] =array (
   5 => 
   array (
     'path' => 'civicrm/report/list',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '報表',
     'menu' => 'primary-links',
     'weight' => '-44',
@@ -998,7 +998,7 @@ $menu_links['primary-links'] =array (
       0 => 
       array (
         'path' => 'civicrm/admin/report/template/list',
-        'query' => 'reset=1',
+        'query' => array('reset' => '1'),
         'title' => '從範本新增報表',
         'menu' => 'primary-links',
         'weight' => '2',
@@ -1046,7 +1046,7 @@ $menu_links['menu-search'] = array (
   0 => 
   array (
     'path' => 'civicrm/contact/search/builder',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '自定搜尋',
     'menu' => 'menu-search',
     'weight' => '4',
@@ -1056,7 +1056,7 @@ $menu_links['menu-search'] = array (
   1 => 
   array (
     'path' => 'civicrm/contact/search/custom',
-    'query' => 'csid=15&reset=1',
+    'query' => array('csid' => '15','reset' => '1'),
     'title' => '全文搜尋',
     'menu' => 'menu-search',
     'weight' => '3',
@@ -1066,7 +1066,7 @@ $menu_links['menu-search'] = array (
   2 => 
   array (
     'path' => 'civicrm/contact/search/advanced',
-    'query' => 'reset=1',
+    'query' => array('reset' => '1'),
     'title' => '進階搜尋',
     'menu' => 'menu-search',
     'weight' => '2',

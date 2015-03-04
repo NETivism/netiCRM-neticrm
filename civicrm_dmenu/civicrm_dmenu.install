@@ -66,7 +66,7 @@ function _civicrm_dmenu_update_link($menu_name){
         ':menu' => $menu_name,
         ':title' => $links['title'],
         ':path' => $links['path'],
-      ))->fetchObject();
+      ))->fetchCol();
     if(is_array($links['children'])){
       _civicrm_dmenu_children_update($menu_name, $links['children'], $pmlid);
     }
@@ -84,8 +84,9 @@ function _civicrm_dmenu_children_update($menu_name, $children, $pmlid = NULL){
           ':menu' => $menu_name, 
           ':path' => $l['path'], 
           ':pmlid' => $pmlid
-          ));
+          ))->fetchAll();
     foreach ($res as $ex) {
+      $ex = get_object_vars($ex);
       $ex['options'] = unserialize($ex['options']);
       if($ex['options']['query'] == $l['query']){
         $exists = $ex;
