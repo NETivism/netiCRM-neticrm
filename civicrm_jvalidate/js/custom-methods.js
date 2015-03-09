@@ -10,7 +10,7 @@ $.validator.addMethod("ckbox", function(value, element, param) {
 },$.validator.messages.required);
 
 $.validator.addMethod("twid", function(value, element, param){
-  if(!value) return true;
+  if(!value || (value == "__________" && !$(element).hasClass('required'))) return true;
   var tab = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
   var A1 = new Array (1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3 );
   var A2 = new Array (0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5 );
@@ -39,6 +39,9 @@ $.validator.addMethod("twid", function(value, element, param){
 }, "請輸入正確的身分證字號!");
 
 $.validator.addMethod("twphone", function(value, element, param) {
+  if(((/^0_-_/.test(value)) || (/^09__-_/.test(value))) && !$(element).hasClass('required')){
+    return true;
+  }
   var tel = /^0[1-9]-[0-9]{7,8}[#_]*[0-9_]*$/;
   var mobile = /^09[0-9]{2}-[0-9]{3}[0-9]{3}$/;
   return this.optional(element) || (tel.test(value)) || (mobile.test(value));

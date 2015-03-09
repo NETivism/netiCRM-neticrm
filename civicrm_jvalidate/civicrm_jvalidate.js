@@ -8,9 +8,13 @@ $.amask.phone_add_validate = function(obj, admin){
   var mobile_mask = function(obj){
     var fid = $(obj).attr("id");
     $("span[rel="+fid+"]").remove();
+    $(obj).rules("add", "twphone");
+    $(obj).css("max-width", "280px")
     $(obj).amask("0z99-999999");
   }
   var phone_mask = function(obj){
+    $(obj).rules("add", "twphone");
+    $(obj).css("max-width", "280px")
     $(obj).amask("0~-9999999?##########");
     // add phone ext box.
     var fid = $(obj).attr("id");
@@ -27,15 +31,16 @@ $.amask.phone_add_validate = function(obj, admin){
     });
   }
 
-  $(obj).rules("add", "twphone");
-  $(obj).css("max-width", "280px")
-
   var mobile = false;
+  var phone = false;
   if(admin){
     var $p = $(obj).parents("tr:first");
     var $type = $p.find("select[name*='phone_type_id']");
     if($type.val() == 2){
       mobile = true;
+    }
+    if($type.val() == 1 || $type.val() == 3){
+      phone = true;
     }
   }
   else{
@@ -47,12 +52,15 @@ $.amask.phone_add_validate = function(obj, admin){
       if(match[idx] == '2'){
         mobile = true;
       }
+      if(match[idx] == '1' || match[idx] == '3'){
+        phone = true;
+      }
     }
   }
   if(mobile){
     mobile_mask(obj);
   }
-  else{
+  else if(phone){
     phone_mask(obj);
   }
 
@@ -63,7 +71,7 @@ $.amask.phone_add_validate = function(obj, admin){
       if(type_id==2){
         mobile_mask(this);
       }
-      else{
+      else if(type_id==1 || type_id==3){
         phone_mask(this);
       }
     });
@@ -72,13 +80,8 @@ $.amask.phone_add_validate = function(obj, admin){
 
 $.amask.id_add_validate = function(obj){
   $(obj).rules("add", "twid");
-  if($(obj).val()){
-    if($(obj).valid()){
-      $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
-    }
-    else{
-      $(obj).rules("remove", "twid");
-    }
+  if(!$(obj).val()){
+    $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
   }
 
   // add id validate remove rule.
@@ -92,6 +95,12 @@ $.amask.id_add_validate = function(obj){
       $(obj).rules("remove", "twid");
       $(obj).unmask();
       $(obj).val(notw);
+      $(obj).removeClass('error');
+      $(obj).parent().find('.error').hide();
+      $(obj).click(function(){
+        $(obj).rules("add", "twid");
+        $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
+      })
     }
   });
 }
@@ -115,7 +124,7 @@ function parse_url(name, url){
 };
 
 $(document).ready(function(){
-  var lang = $('html').attr('lang');
+  var lang = Drupal.settings.jvalidate.lang;
   var skiptwcheck = typeof(Drupal.settings.skiptwcheck) == 'undefined' ? 0 : 1;
   var path = parse_url('path', document.URL);
   var action = parse_url('action', document.URL) == 'update' ? 'update' : 'add';
@@ -189,8 +198,16 @@ $(document).ready(function(){
           $(this).rules("add", {required:true });
         });
         $("#"+formid+" input.required:visible:not([type=checkbox])").blur(function(){
-          $(this).valid();
+          $this = $(this);
+          if($this.hasClass("hasDatepicker")){
+            setTimeout(function(){
+              $this.valid();
+            },300);
+          }else{
+            $this.valid();
+          }
         });
+
         var $ckbox = $("#"+formid+" div.ckbox");
         $ckbox.each(function(){
           $(this).find("input").each(function(){
