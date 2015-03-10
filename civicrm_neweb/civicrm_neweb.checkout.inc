@@ -53,7 +53,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
 }
 
 function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_instrument){
-  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+  $civi_base_url = CRM_Utils_System::currentPath();;
   $cancel_url = CRM_Utils_System::url($civi_base_url,"_qf_Confirm_display=true&qfKey={$params['qfKey']}",false, null, false );
   $return_url = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
 
@@ -113,7 +113,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   }
   $post['returnvalue'] = 0;
   $post['hash'] = md5($post['merchantnumber'].$payment_processor['subject'].$amount.$post['ordernumber']);
-  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
+  $civi_base_url = CRM_Utils_System::currentPath();
   if($neweb_instrument == 'WEBATM'){
     $post['nexturl'] = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
   }
