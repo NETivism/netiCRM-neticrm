@@ -64,14 +64,13 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
   $amount = $params['currencyID'] == 'TWD' && strstr($params['amount'], '.') ? substr($params['amount'], 0, strpos($params['amount'],'.')) .'.00' : $params['amount'];
   $name = function_exists('truncate_utf8') ? truncate_utf8($params['item_name'], 10) : $params['item_name'];
 
-  $deposit_flag = variable_get('civicrm_neweb_deposit_flag',0);
   $neweb_params = array(
     "MerchantNumber" => $payment_processor['user_name'],
     "OrderNumber"    => $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'],
     "Amount"         => $amount,
     "OrgOrderNumber" => $params['contributionID'],
     "ApproveFlag"    => 1,
-    "DepositFlag"    => $deposit_flag,
+    "DepositFlag"    => 0,
     "Englishmode"    => 0,
     "OrderURL"       => $notify_url,
     "ReturnURL"      => $return_url,
