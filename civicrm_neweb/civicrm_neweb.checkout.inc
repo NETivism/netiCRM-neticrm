@@ -53,7 +53,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
 }
 
 function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_instrument){
-  $civi_base_url = CRM_Utils_System::currentPath();
+  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
   $cancel_url = CRM_Utils_System::url($civi_base_url,"_qf_Confirm_display=true&qfKey={$params['qfKey']}",false, null, false );
   $return_url = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
 
@@ -64,13 +64,14 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
   $amount = $params['currencyID'] == 'TWD' && strstr($params['amount'], '.') ? substr($params['amount'], 0, strpos($params['amount'],'.')) .'.00' : $params['amount'];
   $name = function_exists('truncate_utf8') ? truncate_utf8($params['item_name'], 10) : $params['item_name'];
 
+  $deposit_flag = variable_get('civicrm_neweb_deposit_flag',0);
   $neweb_params = array(
     "MerchantNumber" => $payment_processor['user_name'],
     "OrderNumber"    => $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'],
     "Amount"         => $amount,
     "OrgOrderNumber" => $params['contributionID'],
     "ApproveFlag"    => 1,
-    "DepositFlag"    => 0,
+    "DepositFlag"    => $deposit_flag,
     "Englishmode"    => 0,
     "OrderURL"       => $notify_url,
     "ReturnURL"      => $return_url,
@@ -112,7 +113,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   }
   $post['returnvalue'] = 0;
   $post['hash'] = md5($post['merchantnumber'].$payment_processor['subject'].$amount.$post['ordernumber']);
-  $civi_base_url = CRM_Utils_System::currentPath();
+  $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
   if($neweb_instrument == 'WEBATM'){
     $post['nexturl'] = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
   }
