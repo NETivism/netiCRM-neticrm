@@ -150,30 +150,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $recur->modified_date =  $now;
         $installments_total = $recur->installments - 1;
 
-        // every recuring contrib start on next month
-        $month_now = date('n');
-        $day_now = date('j') + 1;
-        if($day_now > 25 ){
-          $month = $month_now == 12 ? 1 : $month_now +1;
-          $cycle_day = 1;
-          $year = $month_now == 12 ? date('Y') + 1  : date('Y');
-        }
-        else{
-          $month = $month_now;
-          $cycle_day = $day_now;
-          $year = date('Y');
-        }
-        $next_recur = mktime(0,0,0, $month, $cycle_day, $year);
-        if($recur->installments){
-          $end_recur = strtotime('+'.$installments_total.' month', $next_recur);
-          $end_recur = mktime(0,0,0, date('n', $end_recur), $cycle_day, date('Y', $end_recur));
-          $recur->end_date = date('YmdHis', $end_recur);
-        }
-
-        $recur->next_sched_contribution = date('YmdHis', $next_recur);
-        $recur->start_date = $recur->next_sched_contribution;
-        $recur->cycle_day = $cycle_day;
-        $recur->contribution_status_id = 2;
+        _civicrm_neweb_end_date_calculte($recur);
         $recur->save();
         CRM_Core_Error::debug_log_message( "Done the recurring object save." );
         CRM_Core_DAO::executeQuery("INSERT INTO civicrm_contribution_neweb_recur (recur_id,order_num,cycle) VALUES ($recur->id, $order_num, 0)");
