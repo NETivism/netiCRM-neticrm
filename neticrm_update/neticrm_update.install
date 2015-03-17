@@ -9,7 +9,6 @@ function neticrm_update_install(){
   neticrm_update_update_6000();
   neticrm_update_update_6001();
   neticrm_update_update_6002();
-  neticrm_update_update_6003();
 }
 /**
  * Implement hook_uninstall()
@@ -52,8 +51,5 @@ function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 function neticrm_update_update_6002() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-function neticrm_update_update_6003() {
   return neticrm_update_load_include(__FUNCTION__);
 }
