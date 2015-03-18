@@ -45,12 +45,14 @@ function civicrm_year_receipt_install() {
       <tr>
         <td class="col-1">姓名/抬頭</td>
         <td class="col-2">{$sort_name}</td>
-        <td class="col-3 signature">協會簽章</td>
       </tr>
       <tr>
         <td class="col-1">身分證字號/統一編號</td>
         <td class="col-2">{$serial_id}</td>
-        <td class="col-3" rowspan="4">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="col-1 signature">簽章</td>
+        <td class="col-2 signature"> _______________________________________</td>
       </tr>
     </table>
   </div>
@@ -82,8 +84,7 @@ function civicrm_year_receipt_install() {
   </div>
 </div>
 
-</div><!-- wrapper -->
-  ';
+</div><!-- wrapper -->';
 
   $params = array(
     'msg_title' => '紙本收據 - 年度整合收據',
