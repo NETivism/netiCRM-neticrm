@@ -27,6 +27,8 @@ function civicrm_year_receipt_install() {
   }
   $action = CRM_Core_Action::ADD;
   $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
+  variable_set('civicrm_year_receipt_option_id', $option->id);
+
   $html = '<div class="wrapper">
 <div class="single-page-header">
   <div class="info">
@@ -101,18 +103,18 @@ function civicrm_year_receipt_install() {
   }
   // add default template
   $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-
-  // add reserved template
-  $params['is_default'] = 0;
-  $params['is_reserved'] = 1;
-  if(variable_get('civicrm_year_receipt_reserved_tpl_id', 0)){
-    $params['id'] = variable_get('civicrm_year_receipt_reserved_tpl_id', 0);
-  }
-  $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-
-  variable_set('civicrm_year_receipt_option_id', $option->id);
   variable_set('civicrm_year_receipt_default_tpl_id', $default_tpl->id);
-  variable_set('civicrm_year_receipt_reserved_tpl_id', $reserved_tpl->id);
+
+  // add reserved template only when first time install. re-install will not change customize template
+  if(!variable_get('civicrm_year_receipt_default_tpl_id', 0)){
+    $params['is_default'] = 0;
+    $params['is_reserved'] = 1;
+    if(variable_get('civicrm_year_receipt_reserved_tpl_id', 0)){
+      $params['id'] = variable_get('civicrm_year_receipt_reserved_tpl_id', 0);
+    }
+    $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
+    variable_set('civicrm_year_receipt_reserved_tpl_id', $reserved_tpl->id);
+  }
 }
 
 /**
