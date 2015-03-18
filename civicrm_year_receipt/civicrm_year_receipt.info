@@ -1,5 +1,5 @@
-name = Yearly receipt token
-description = "Generate yearly receipt token"
+name = Yearly Receipt
+description = "Generate yearly receipt token, and add task in contact search"
 dependencies[] = civicrm
 package = NetiCRM
 core = 6.x
