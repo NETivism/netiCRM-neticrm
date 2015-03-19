@@ -115,6 +115,44 @@ function civicrm_year_receipt_install() {
     $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
     variable_set('civicrm_year_receipt_reserved_tpl_id', $reserved_tpl->id);
   }
+
+  // add custom search
+  $custom_search = array();
+  $group_params = array(
+    'name' => 'custom_search',
+  );
+  CRM_Core_OptionValue::getValues($group_params, $custom_search);
+  $custom_search_id = variable_get('civicrm_year_receipt_custom_search_id', 0);
+  if($custom_search_id){
+    $custom_obj = isset($custom_search[$custom_search_id]) ? $custom_search[$custom_search_id] : NULL;
+  }
+  else{
+    foreach($custom_search as $cid => $c){
+      if($c['name'] == 'CRM_Contact_Form_Search_Custom_YearlyReceipt'){
+        $custom_search_id = $cid;
+        variable_set('civicrm_year_receipt_custom_search_id', $cid);
+        $custom_obj = $c;
+      }
+    }
+  }
+
+  if(empty($custom_obj)){
+    // create custom search
+    $params = array(
+      'label' => 'CRM_Contact_Form_Search_Custom_YearlyReceipt',
+      'name' => 'CRM_Contact_Form_Search_Custom_YearlyReceipt',
+      'description' => t('Print Annual Receipt'),
+      'is_active' => 1,
+    );
+    $group_params = array('name' => 'custom_search');
+    $action = CRM_Core_Action::ADD;
+    $custom_obj = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
+    variable_set('civicrm_year_receipt_custom_search_id', $custom_obj->id);
+  }
+  elseif($custom_obj['is_active'] == 0){
+    // enable custom search
+    CRM_Core_BAO_OptionValue::setIsActive($custom_search_id, 1);
+  }
 }
 
 /**
@@ -128,6 +166,9 @@ function civicrm_year_receipt_uninstall(){
   }
   if(variable_get('civicrm_year_receipt_reserved_tpl_id', 0)){
     CRM_Core_BAO_MessageTemplates::setIsActive(variable_get('civicrm_year_receipt_reserved_tpl_id', 0), 0);
+  }
+  if(variable_get('civicrm_year_receipt_custom_search_id', 0)){
+    CRM_Core_BAO_OptionValue::setIsActive(variable_get('civicrm_year_receipt_custom_search_id', 0), 0);
   }
 
   // We don't need to delete variable. For next time we enable module, we need id to check.

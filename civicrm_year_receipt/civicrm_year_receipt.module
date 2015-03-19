@@ -53,7 +53,7 @@ function civicrm_year_receipt_civicrm_searchTasks($objectType, &$tasks) {
   if($objectType == 'contact'){
     if (CRM_Core_Permission::access('CiviContribute')) {
       $tasks[] = array(
-        'title' => t('Print Yearly Receipt'),
+        'title' => t('Print Annual Receipt'),
         'class' => 'CRM_Contact_Form_Task_YearlyReceipt',
         'result' => TRUE,
       );
