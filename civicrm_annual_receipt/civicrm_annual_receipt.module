@@ -5,8 +5,8 @@
  */
 function civicrm_annual_receipt_civicrm_tokens(&$tokens){
   $tokens['receipt'] = array(
-    'receipt.lastyear' => ts('Receipt info in last year'),
-    'receipt.all' => ts('Receipt info in all lifetime'),
+    'receipt.lastyear' => t('Receipt info in last year'),
+    'receipt.all' => t('Receipt info in all lifetime'),
   );
 }
 
