@@ -6,7 +6,6 @@ define('CIVICRM_PARENT_DIR', 'b_a'); // relationship id
  * hook_civicrm_buildForm
  */
 function civicrm_event_parent_civicrm_buildForm( $formName, &$form ) {
-  dpm($form);
   $reset = true;
   $session = CRM_Core_Session::singleton( );
   if ($formName == 'CRM_Event_Form_Registration_Confirm'){
