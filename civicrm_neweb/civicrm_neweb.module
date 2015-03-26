@@ -366,6 +366,9 @@ function _civicrm_neweb_end_date_calculte(&$recur){
   if($day_now > 25 ){
     $month = $month_now == 12 ? 1 : $month_now +1;
     $cycle_day = 1;
+    if($installments_total >= 1){
+      $installments_total -= 1;
+    }
     $year = $month_now == 12 ? date('Y') + 1  : date('Y');
   }
   else{
