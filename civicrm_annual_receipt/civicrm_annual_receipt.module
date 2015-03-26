@@ -3,17 +3,17 @@
 /**
  * hook_civicrm_tokens
  */
-function civicrm_year_receipt_civicrm_tokens(&$tokens){
+function civicrm_annual_receipt_civicrm_tokens(&$tokens){
   $tokens['receipt'] = array(
-    'receipt.lastyear' => ts('Receipt info in last year'),
-    'receipt.all' => ts('Receipt info in all lifetime'),
+    'receipt.lastyear' => t('Receipt info in last year'),
+    'receipt.all' => t('Receipt info in all lifetime'),
   );
 }
 
 /**
  * hook_civicrm_tokenvalues
  */
-function civicrm_year_receipt_civicrm_tokenValues(&$values, $cids, $job = null){
+function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = null){
   $year = date('Y');
   $year--;
   $header = NULL;
@@ -34,14 +34,29 @@ function civicrm_year_receipt_civicrm_tokenValues(&$values, $cids, $job = null){
   );
   foreach($cids as $k => $cid){
     // TODO: theme table need to be modify for d7
-    $record_lastyear = CRM_Contribute_BAO_Contribution::getReceiptYearlyRecord($cid, $year);
+    $record_lastyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $year);
     if($record_lastyear){
       $values[$cid]['receipt.lastyear'] = theme('table', $header, $record_lastyear, $attr);
     }
-    $record_all = CRM_Contribute_BAO_Contribution::getReceiptYearlyRecord($cid);
+    $record_all = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid);
     if($record_all){
       $values[$cid]['receipt.all'] = theme('table', $header, $record_all, $attr);
     }
   }
 }
 
+
+/**
+ * hook_civicrm_searchTasks
+ */
+function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
+  if($objectType == 'contact'){
+    if (CRM_Core_Permission::access('CiviContribute')) {
+      $tasks[] = array(
+        'title' => t('Print Annual Receipt'),
+        'class' => 'CRM_Contact_Form_Task_AnnualReceipt',
+        'result' => TRUE,
+      );
+    }
+  }
+}

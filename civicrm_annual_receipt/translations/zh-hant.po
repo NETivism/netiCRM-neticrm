@@ -1,0 +1,23 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CiviCRM Annual Receipt\n"
+"POT-Creation-Date: 2015-03-19 09:58+0800\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Language-Team: Chinese, Traditional\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n>1);\n"
+
+msgid "Print Annual Receipt"
+msgstr "列印-年度彙整收據"
+
+msgid "Receipt info in last year"
+msgstr "收據 - 去年度整併"
+
+msgid "Receipt info in all lifetime"
+msgstr "收據 - 所有紀錄整併"
