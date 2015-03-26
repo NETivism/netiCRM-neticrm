@@ -7,8 +7,6 @@ function civicrm_neweb_ipn(){
   require_once 'CRM/Core/BAO/PaymentProcessor.php';
   require_once 'CRM/Contribute/DAO/Contribution.php';
 
-  watchdog('civicrm_neweb', var_export($_POST,true));
-
   // process the real contribution verify
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
