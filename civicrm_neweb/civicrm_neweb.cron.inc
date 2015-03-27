@@ -31,7 +31,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   $list = _civicrm_neweb_sftp('list', '', 'output', $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password']);
 
   if(!is_array($list)){
-    watchdog('civicrm_neweb', 'Sync error. Can\'t get remote file list.');
+    _civicrm_neweb_error('Sync error. Can\'t get remote file list.', $is_test);
   }
   $xx = 0;
   while($last_month < $now){
@@ -97,12 +97,12 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 
   if($response_str === false){
     // error when download files
-    $error = "error in civicrm_newwweb_process_response: Can't download files. ";
+    $error = "error in civicrm_neweb_process_response: Can't download files. ";
     _civicrm_neweb_error($error, $is_test);
     return FALSE;
   }
   elseif($response_str == -1){
-    // $error = "error in civicrm_newwweb_process_response: No response today.";
+    // $error = "error in civicrm_neweb_process_response: No response today.";
     // _civicrm_neweb_error($error, $is_test);
     return -1;
   }
@@ -163,7 +163,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 
 /*
       // fail
-      $error = "error in civicrm_newwweb_process_response:". $r['REFNUMBER'] . ":" . $r['RESPONSE'];
+      $error = "error in civicrm_neweb_process_response:". $r['REFNUMBER'] . ":" . $r['RESPONSE'];
       _civicrm_neweb_error($error, $is_test);
 */
     }
@@ -205,12 +205,12 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 
   if($transaction_str === false){
     // error when download files
-    $error = "In civicrm_newwweb_process_transaction: Today have nothing to download. ";
-    _civicrm_neweb_error($error, $is_test);
+    $error = "In civicrm_neweb_process_transaction: Today have nothing to download. ";
+    _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
   }
   elseif($transaction_str == -1){
     // have file but no response
-    // $error = "error in civicrm_newwweb_process_response: No response today.";
+    // $error = "error in civicrm_neweb_process_response: No response today.";
     // _civicrm_neweb_error($error, $is_test);
     return -1;
   }
@@ -410,16 +410,24 @@ function civicrm_neweb_end_date_calculate($is_test){
   $now = time();
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
+  require_once "CRM/Core/Error.php";
 
   // end recurring calculate
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.installments IS NOT NULL AND cr.end_date IS NULL AND (cr.contribution_status_id = 1 OR cr.contribution_status_id = 2)  && cr.is_test = $is_test";
-  $recur = CRM_Core_DAO::executeQuery($sql);
-  while($recur->fetch()){
-    CRM_Core_Error::debug_log_message( "Exec civicrm_neweb_end_date_calculate() in cron." );
-    _civicrm_neweb_end_date_calculte($recur);
-    $the_end = $recur->end_date;
+  $result = CRM_Core_DAO::executeQuery($sql);
+  while($result->fetch()){
+    $recur = new CRM_Contribute_DAO_ContributionRecur();
+    $recur->id = $result->id;
 
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET end_date = '{$the_end}' WHERE id = {$recur->id}");
+    if ( $recur->find( true ) ) {
+      // caculate end_date
+      $recur->create_date = date('YmdHis',strtotime($recur->create_date));
+      $recur->modified_date =  date('YmdHis',strtotime($now));;
+      $recur = _civicrm_neweb_end_date_calculate($recur);
+      $the_end = $recur->end_date;
+    }
+    _civicrm_neweb_error('Exec civicrm_neweb_end_date_calculate() in cron.', $is_test, WATCHDOG_NOTICE);
+    
   }
 
   // cancel recurring calculate
