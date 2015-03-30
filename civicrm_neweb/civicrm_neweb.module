@@ -118,6 +118,7 @@ function civicrm_neweb_cron(){
 
 
 function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
+
   // recurring contributions
   $test = $is_test ? '_test' : '';
   if($hour >= 19 && $hour <= 23 && variable_get('civicrm_neweb_response'.$test, 0) < $yesterday){
@@ -358,9 +359,12 @@ function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
   }
 }
 
-function _civicrm_neweb_end_date_calculte(&$recur){
+function _civicrm_neweb_end_date_calculate(&$recur){
   // every recuring contrib start on next month
   $installments_total = $recur->installments - 1;
+  if(empty($recur->end_date)){
+    $recur->start_date = $recur->create_date;
+  }
   $month_now = date('n', strtotime($recur->start_date));
   $day_now = date('j', strtotime($recur->start_date)) + 1;
   if($day_now > 25 ){
