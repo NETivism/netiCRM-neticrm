@@ -32,9 +32,10 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = null
     'border' => 0,
     'style' => 'font-size: 13px;',
   );
+  $option = array('year' => $year);
   foreach($cids as $k => $cid){
     // TODO: theme table need to be modify for d7
-    $record_lastyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $year);
+    $record_lastyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
     if($record_lastyear){
       $values[$cid]['receipt.lastyear'] = theme('table', $header, $record_lastyear, $attr);
     }

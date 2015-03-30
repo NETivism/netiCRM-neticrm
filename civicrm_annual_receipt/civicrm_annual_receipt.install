@@ -33,7 +33,7 @@ function civicrm_annual_receipt_install() {
 <div class="single-page-header">
   <div class="info">
     <div class="address">{$address}</div>
-    <div><span class="web-name">{$sort_name}收</span></div>
+    <div><span class="web-name">{$addressee}收</span></div>
   </div>
 </div>
 
