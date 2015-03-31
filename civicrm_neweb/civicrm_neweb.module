@@ -120,7 +120,7 @@ function civicrm_neweb_cron(){
 function civicrm_neweb_civicrm_pageRun(){
   if($_GET['q'] == 'civicrm/contact/view/contribution' && !empty($_GET['cid']) ){
     $cid = $_GET['cid'];
-    $sql = "SELECT id FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.cancel_date IS NULL && cr.contact_id = $cid && cr.contribution_status_id = 2 ";
+    $sql = "SELECT id FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.cancel_date IS NULL && cr.contact_id = $cid && cr.contribution_status_id IN (1,2) ";
     $qRecur = CRM_Core_DAO::executeQuery($sql);
     $arrRecur = array();
     while($qRecur->fetch()){
