@@ -122,28 +122,6 @@
       sel.county.attr('selected', true);
       sel.county.trigger('change');
       
-      /*
-       * enter the zipcode to find the county and area
-       * Wed, 25 August 2010 10:22:12 GMT
-       */
-      sel.zip.keyup(function(){
-
-        var val = $(this).val();
-
-        if(0 === val.length){
-          return;
-        }
-
-        var _countyAndarea = $.fn.twzipcode.fromzip(val);
-        if(2 === _countyAndarea.length){
-          sel.county.val( _countyAndarea[0] );
-          sel.county.attr('selected', true).trigger('change');
-          sel.area.val( _countyAndarea[1] ).trigger('change');
-          sel.area.attr('selected', true);
-          sel.zip.val( val );
-          return;
-        }
-      });
       
       $('input[type=reset]').click(function(){ sel.area.empty().append( opt[1] ); });
     }
