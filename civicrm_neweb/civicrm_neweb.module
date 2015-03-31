@@ -117,6 +117,39 @@ function civicrm_neweb_cron(){
 }
 
 
+function civicrm_neweb_civicrm_pageRun(){
+  if($_GET['q'] == 'civicrm/contact/view/contribution' && !empty($_GET['cid']) ){
+    $cid = $_GET['cid'];
+    $sql = "SELECT id FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.cancel_date IS NULL && cr.contact_id = $cid && cr.contribution_status_id = 2 ";
+    $qRecur = CRM_Core_DAO::executeQuery($sql);
+    $arrRecur = array();
+    while($qRecur->fetch()){
+      $arrRecur[] = $qRecur->id;
+    }
+    if(count($arrRecur)==0){
+      return ;
+    }
+    $js = '<script>$(document).ready(function(){
+  var text = "<h3>藍新金流提醒 : 點選「取消」後不會立刻生效，要注意定期定額的狀態變化。</h3>\
+  <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>\
+後續仍需確認其狀態「待處理」，是否在隔了24小時候變成了「已取消」，此時才正式確認其定期定額成功取消了。</p>\
+<h4>狀態說明 : </h4>\
+<ul><li>「正常」表示會依據每月的扣款日期正常扣款</li>\
+<li>「待處理」表示等待藍新回覆 </li>\
+<li>「已取消」表示定期定額已經取消</li></ul>\
+<p>詳情請參考 <a href=\'https://neticrm.tw/faq/268\' target=\'_blank\'>netiCRM 手冊說明</a></p>";
+  $("#row_'.implode(',#row_',$arrRecur).'").find("a.disable-action").click(function(){
+    setTimeout(function(){
+      $("#enableDisableStatusMsg").prepend($("<div id=\'NewebDisableMsg\'>").html(text)).parent().css("width","600px");
+    },"1000");
+  })
+});</script>';
+    // drupal_add_js($js, 'inline');
+    print($js);
+  }
+}
+
+
 function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
 
   // recurring contributions
