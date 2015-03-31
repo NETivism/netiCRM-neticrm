@@ -138,7 +138,7 @@
         if(2 === _countyAndarea.length){
           sel.county.val( _countyAndarea[0] );
           sel.county.attr('selected', true).trigger('change');
-          sel.area.val( _countyAndarea[1] );
+          sel.area.val( _countyAndarea[1] ).trigger('change');
           sel.area.attr('selected', true);
           sel.zip.val( val );
           return;
