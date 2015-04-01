@@ -106,7 +106,7 @@ function civicrm_annual_receipt_install() {
   variable_set('civicrm_annual_receipt_default_tpl_id', $default_tpl->id);
 
   // add reserved template only when first time install. re-install will not change customize template
-  if(!variable_get('civicrm_annual_receipt_default_tpl_id', 0)){
+  if(!variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
     $params['is_default'] = 0;
     $params['is_reserved'] = 1;
     if(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
