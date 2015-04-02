@@ -139,7 +139,7 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
       variable_set('civicrm_neweb_transaction'.$test, $now);
     }
   }
-  if($hour >= 9 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
+  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
     // doing upload stuff
     if(civicrm_neweb_process_upload($is_test, $pid)){
       variable_set('civicrm_neweb_uploaded'.$test, $now);
