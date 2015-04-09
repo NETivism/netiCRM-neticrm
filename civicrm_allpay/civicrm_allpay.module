@@ -450,3 +450,7 @@ function _civicrm_allpay_postdata($url, $post_data){
   return !empty($receive) ? json_decode($receive) : FALSE;
 }
 
+function _civicrm_allpay_cancel_recuring_message(){
+  $js = '歐付寶無法取消定期定額捐款<script>$(".ui-dialog-buttonset button").hide();</script>';
+  return $js;
+}
