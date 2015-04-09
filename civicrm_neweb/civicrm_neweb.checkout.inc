@@ -45,7 +45,13 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $_SESSION['CiviCRM']['CRM_Contribute_Controller_Contribution_'.$params['qfKey']]['params']['trxn_id'] = $contribution->trxn_id;
 
   // making redirect form
-  print _civicrm_neweb_form_redirect($params_form, $instrument_code);
+  $alter = array(
+    'module' => 'civicrm_neweb',
+    'billing_mode' => $payment_processor['billing_mode'],
+    'params' => $params_form,
+  );
+  drupal_alter('civicrm_checkout_params', $alter);
+  print _civicrm_neweb_form_redirect($alter['params'], $instrument_code);
   // move things to CiviCRM cache as needed
   require_once 'CRM/Core/Session.php';
   CRM_Core_Session::storeSessionObjects( );
