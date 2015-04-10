@@ -425,7 +425,7 @@ function _civicrm_neweb_end_date_calculate(&$recur){
   $day_now = date('j', strtotime($recur->start_date)) + 1;
   if($day_now > 25 ){
     $month = $month_now == 12 ? 1 : $month_now +1;
-    $cycle_day = 1;
+    $cycle_day = 5;
     if($installments_total >= 1){
       $installments_total -= 1;
     }
