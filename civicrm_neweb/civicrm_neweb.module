@@ -415,6 +415,44 @@ function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
   return $data['trxn_id'];
 }
 
+function _civicrm_neweb_end_date_calculate(&$recur){
+  // every recuring contrib start on next month
+  $installments_total = $recur->installments - 1;
+  if(empty($recur->end_date)){
+    $recur->start_date = $recur->create_date;
+  }
+  $month_now = date('n', strtotime($recur->start_date));
+  $day_now = date('j', strtotime($recur->start_date)) + 1;
+  if($day_now > 25 ){
+    $month = $month_now == 12 ? 1 : $month_now +1;
+    $cycle_day = 1;
+    if($installments_total >= 1){
+      $installments_total -= 1;
+    }
+    $year = $month_now == 12 ? date('Y') + 1  : date('Y');
+  }
+  else{
+    $month = $month_now;
+    $cycle_day = $day_now;
+    $year = date('Y');
+  }
+  $next_recur = mktime(0,0,0, $month, $cycle_day, $year);
+  if($recur->installments){
+    $end_recur = strtotime('+'.$installments_total.' month', $next_recur);
+    $end_recur = mktime(0,0,0, date('n', $end_recur), $cycle_day, date('Y', $end_recur));
+    $end_date = date('YmdHis', $end_recur);
+    $recur->end_date = date('YmdHis', $end_recur);
+  }
+  $recur->next_sched_contribution = date('YmdHis', $next_recur);
+  $recur->start_date = $recur->next_sched_contribution;
+  $recur->cycle_day = $cycle_day;
+  $recur->contribution_status_id = 2;
+  $recur->save();
+  CRM_Core_Error::debug_log_message( "Done the recurring object save." );
+  return $recur;
+
+}
+
 function _civicrm_neweb_cancel_recuring_message(){
   $html = "<h3>藍新金流提醒 : 點選「取消」後不會立刻生效，要注意兩天內的定期定額狀態變化。</h3>
   <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>
