@@ -4,6 +4,7 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   static $custom_strings;
   static $function = NULL;
 
+  $old = $string;
   $langcode = isset($langcode) ? $langcode : $language->language;
   if($function === NULL){
     $function = function_exists('locale') ? 'locale' : FALSE;
