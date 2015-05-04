@@ -52,8 +52,10 @@
       var i = 0, tpl = [];
       var opt = ['<option value="">-- 縣市 --</option>', '<option value="">-- 鄉鎮市區 --</option>'];
       var ie = false;
-      if($.browser.msie && $.browser.version.substr(0,1) == '6'){
-        var ie = true;
+      if(typeof $.browser !== 'undefined') {
+        if($.browser.msie && $.browser.version.substr(0,1) == '6'){
+          ie = true;
+        }
       }
       
       try {
@@ -121,29 +123,6 @@
       sel.county.val( dbcode[o.countySel] );
       sel.county.attr('selected', true);
       sel.county.trigger('change');
-      
-      /*
-       * enter the zipcode to find the county and area
-       * Wed, 25 August 2010 10:22:12 GMT
-       */
-      sel.zip.keyup(function(){
-
-        var val = $(this).val();
-
-        if(0 === val.length){
-          return;
-        }
-
-        var _countyAndarea = $.fn.twzipcode.fromzip(val);
-        if(2 === _countyAndarea.length){
-          sel.county.val( _countyAndarea[0] );
-          sel.county.attr('selected', true).trigger('change');
-          sel.area.val( _countyAndarea[1] );
-          sel.area.attr('selected', true);
-          sel.zip.val( val );
-          return;
-        }
-      });
       
       $('input[type=reset]').click(function(){ sel.area.empty().append( opt[1] ); });
     }

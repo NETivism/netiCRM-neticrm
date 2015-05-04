@@ -281,16 +281,18 @@ function _civicrm_twaddress_grouping_js(){
 function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   $return = array();
   $count = 0;
+  $random_id = mt_rand(1000, 9999);
   foreach($field['areaName'] as $k => $v){
     $count++;
-    $insert = "<select id='twaddr-area-{$k}' name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
+    $select_id = "twaddr-area-{$k}-{$random_id}";
+    $insert = "<select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
 
     $js = '
     jQuery(function($){
-      if( $("input[name=\''.$field['areaName'][$k]['name'].'\']").length ){
-        var $form = $("input[name=\''.$field['areaName'][$k]['name'].'\']").parents("form");
-        if(!$("#twaddr-area-'.$k.'").length){
-          $("'.$insert.'").insertAfter("input[name=\''.$field['areaName'][$k]['name'].'\']");
+      if( $("form#'.$form_name.' input[name=\''.$field['areaName'][$k]['name'].'\']").length ){
+        var $form = $("form#'.$form_name.'");
+        if(!$("#'.$select_id.'").length){
+          $("'.$insert.'").insertAfter("form#'.$form_name.' input[name=\''.$field['areaName'][$k]['name'].'\']");
         }
         $("input[name=\''.$field['areaName'][$k]['name'].'\']").hide();
         $("select[name=\''.$field['areaName'][$k]['key'].'\']").change(function(){

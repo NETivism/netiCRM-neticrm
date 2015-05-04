@@ -48,7 +48,7 @@ function civicrm_allpay_civicrm_pageRun(&$page){
   if($_GET['q'] == 'civicrm/contact/view/contribution'){
     if($page->_permission && $page->_action == 4 && !empty($page->_id)){
       $result = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $page->_id);
-      $r = db_fetch_object($result);
+      $r = $result->fetchObject();;
       if(!empty($r)){
         // normal info
         // payment submit date
@@ -242,7 +242,7 @@ function _civicrm_allpay_vars2str($post){
  */
 function _civicrm_allpay_payment_info($cid, $instrument){
   civicrm_initialize();
-  $allpay = db_fetch_object(db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
+  $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
   $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = {$cid}");
   $data = array();
   switch($instrument){
@@ -268,7 +268,7 @@ function civicrm_allpay_popup($instrument){
     drupal_goto();
   }
   else{
-    $allpay = db_fetch_object(db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
+    $allpay = db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
     civicrm_initialize();
     $params = array( 1 => array( $cid, 'Integer' ) );
     $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = %1", $params);
@@ -313,7 +313,7 @@ function civicrm_allpay_record($cid, $data = null){
       }
     }
     if(!empty($data['MerchantID']) || !empty($data['#info']['MerchantID'])){
-      $result = db_result(db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
+      $result = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
       $exists = json_decode($result, TRUE);
       if(is_array($exists)){
         $data = array_merge($exists, $data);
@@ -323,7 +323,7 @@ function civicrm_allpay_record($cid, $data = null){
         'data' => json_encode($data),
       );
       // update
-      if(db_result(db_query("SELECT cid FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid))){
+      if(db_query("SELECT cid FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
         drupal_write_record('civicrm_contribution_allpay', $record, 'cid');
       }
       else{
@@ -337,7 +337,7 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   // remove empty arg
   if(is_array($args)){
     foreach($args as $k => $v){
-      if(empty($v)){
+      if((empty($v) && $v != '0') || $k == 'CheckMacValue'){
         unset($args[$k]);
       }
     }
@@ -364,4 +364,19 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
 
   $checkmacvalue = md5($keystr);
   $args['CheckMacValue'] = $checkmacvalue;
+  return $checkmacvalue;
+}
+
+function _civicrm_allpay_recur_trxn($parent, $gwsr){
+  if(empty($gwsr)){
+    return $parent;
+  }
+  else{
+    return $parent . '-' . $gwsr;
+  }
+}
+
+function _civicrm_allpay_cancel_recuring_message(){
+  $js = '<p>因歐付寶並未提供 API，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://vendor.allpay.com.tw/">歐付寶的後台</a>進行取消之操作。</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/faq/268">手冊說明</a>。</p><script>$(".ui-dialog-buttonset button").hide();</script>';
+  return $js;
 }

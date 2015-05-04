@@ -139,7 +139,7 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
       variable_set('civicrm_neweb_transaction'.$test, $now);
     }
   }
-  if($hour >= 9 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
+  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
     // doing upload stuff
     if(civicrm_neweb_process_upload($is_test, $pid)){
       variable_set('civicrm_neweb_uploaded'.$test, $now);
@@ -342,14 +342,13 @@ function _civicrm_neweb_connect($id, $local, $mode, $is_test){
   $ret = false;
 
   if($is_test){
-    $function = '_civicrm_neweb_ftp';
     $ftp = variable_get("civicrm_neweb_ftp_test", array());
   }
   else{
-    $function = '_civicrm_neweb_sftp';
     $ftp = variable_get("civicrm_neweb_ftp", array());
   }
 
+  $function = '_civicrm_neweb_sftp';
   $remote = $dir."/".basename($local);
   $ret = call_user_func($function, $mode, $local, $remote, $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password']);
 
@@ -414,4 +413,54 @@ function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
   );
   drupal_alter('civicrm_trxn_id', $data);
   return $data['trxn_id'];
+}
+
+function _civicrm_neweb_end_date_calculate(&$recur){
+  // every recuring contrib start on next month
+  $installments_total = $recur->installments - 1;
+  if(empty($recur->end_date)){
+    $recur->start_date = $recur->create_date;
+  }
+  $month_now = date('n', strtotime($recur->start_date));
+  $day_now = date('j', strtotime($recur->start_date)) + 1;
+  if($day_now > 25 ){
+    $month = $month_now == 12 ? 1 : $month_now +1;
+    $cycle_day = 5;
+    if($installments_total >= 1){
+      $installments_total -= 1;
+    }
+    $year = $month_now == 12 ? date('Y') + 1  : date('Y');
+  }
+  else{
+    $month = $month_now;
+    $cycle_day = $day_now;
+    $year = date('Y');
+  }
+  $next_recur = mktime(0,0,0, $month, $cycle_day, $year);
+  if($recur->installments){
+    $end_recur = strtotime('+'.$installments_total.' month', $next_recur);
+    $end_recur = mktime(0,0,0, date('n', $end_recur), $cycle_day, date('Y', $end_recur));
+    $end_date = date('YmdHis', $end_recur);
+    $recur->end_date = date('YmdHis', $end_recur);
+  }
+  $recur->next_sched_contribution = date('YmdHis', $next_recur);
+  $recur->start_date = $recur->next_sched_contribution;
+  $recur->cycle_day = $cycle_day;
+  $recur->contribution_status_id = 2;
+  $recur->save();
+  CRM_Core_Error::debug_log_message( "Done the recurring object save." );
+  return $recur;
+
+}
+
+function _civicrm_neweb_cancel_recuring_message(){
+  $html = "<h3>藍新金流提醒 : 點選「取消」後不會立刻生效，要注意兩天內的定期定額狀態變化。</h3>
+  <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>
+後續仍需確認其狀態「待處理」，是否在兩天內變成了「已取消」，此時才正式確認其定期定額成功取消了。</p>
+<h4>狀態說明 : </h4>
+<ul><li>「正常」表示會依據每月的扣款日期正常扣款</li>
+<li>「待處理」表示等待藍新回覆 </li>
+<li>「已取消」表示定期定額已經取消</li></ul>
+<p>詳情請參考 <a href='https://neticrm.tw/faq/268' target='_blank'>netiCRM 手冊說明</a></p>";
+  return $html;
 }

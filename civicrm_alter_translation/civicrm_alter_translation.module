@@ -1,12 +1,10 @@
 <?php
-function civicrm_alter_translation_civicrm_config(&$config){
-  $config->customTranslateFunction = 'civicrm_alter_translation';
-}
 function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   global $language;
   static $custom_strings;
   static $function = NULL;
 
+  $old = $string;
   $langcode = isset($langcode) ? $langcode : $language->language;
   if($function === NULL){
     $function = function_exists('locale') ? 'locale' : FALSE;
@@ -27,7 +25,13 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   elseif ($function && $langcode != 'en') {
     $string = $function($string, '', $langcode);
   }
-  if (empty($args)) {
+
+  // fallback to use CRM translation
+  if($string === $old){
+    $i18n = CRM_Core_I18n::singleton();
+    return $i18n->crm_translate($string, $args);
+  }
+  elseif (empty($args)) {
     return $string;
   }
   else {

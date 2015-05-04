@@ -423,27 +423,20 @@ function civicrm_neweb_end_date_calculate($is_test){
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.installments IS NOT NULL AND cr.end_date IS NULL AND (cr.contribution_status_id = 1 OR cr.contribution_status_id = 2)  && cr.is_test = $is_test";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while($recur->fetch()){
-    $installments_total = $recur->installments - 1;
-    $month_now = date('n', strtotime($recur->start_date));
-    $day_now = date('j', strtotime($recur->start_date)) + 1;
-    if($day_now > 25 ){
-      $month = $month_now == 12 ? 1 : $month_now +1;
-      $cycle_day = 1;
-    }
-    else{
-      $month = $month_now;
-      $cycle_day = $day_now;
-    }
+    $recur = new CRM_Contribute_DAO_ContributionRecur();
+    $recur->id = $result->id;
 
-    $year = $month_now == 12 ? date('Y') + 1  : date('Y');
-    $next_recur = mktime(0,0,0, $month, $cycle_day, $year);
-    $end_recur = strtotime('+'.$installments_total.' month', $next_recur);
-    $end_recur = mktime(0,0,0, date('n', $end_recur), $cycle_day, date('Y', $end_recur));
-    $the_end = date('Y-m-d H:i:s', $end_recur);
-
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET end_date = '{$the_end}' WHERE id = {$recur->id}");
+    if ( $recur->find( true ) ) {
+      // caculate end_date
+      $recur->create_date = date('YmdHis',strtotime($recur->create_date));
+      $recur->modified_date =  date('YmdHis',strtotime($now));;
+      $recur = _civicrm_neweb_end_date_calculate($recur);
+      $the_end = $recur->end_date;
+    }
+    _civicrm_neweb_error('Exec civicrm_neweb_end_date_calculate() in cron.', $is_test, WATCHDOG_NOTICE);
+    
   }
-
+  
   // cancel recurring calculate
   // 2 day after end day
   $end = $now - 86400*2;
