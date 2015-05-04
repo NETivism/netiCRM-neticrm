@@ -312,7 +312,7 @@ function civicrm_allpay_record($cid, $data = null){
         $data = $_POST;
       }
     }
-    if(!empty($data['MerchantID']) || !empty($data['info']['MerchantID'])){
+    if(!empty($data['MerchantID']) || !empty($data['#info']['MerchantID'])){
       $result = db_result(db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
       $exists = json_decode($result, TRUE);
       if(is_array($exists)){
