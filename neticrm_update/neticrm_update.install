@@ -10,6 +10,7 @@ function neticrm_update_install(){
   neticrm_update_update_6000(); // billing location fix
   neticrm_update_update_6001(); // contribution page custom field
   neticrm_update_update_6002(); // county update for taiwan
+  neticrm_update_update_6003(); // contribution message tpl update, #12866
 }
 /**
  * Implement hook_uninstall()
@@ -52,5 +53,8 @@ function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 function neticrm_update_update_6002() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+function neticrm_update_update_6003() {
   return neticrm_update_load_include(__FUNCTION__);
 }
