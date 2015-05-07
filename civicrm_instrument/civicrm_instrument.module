@@ -168,6 +168,17 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
 }
 
 /**
+ * Implementation of hook_civicrm_copy()
+ */
+function civicrm_instrument_civicrm_copy( $objectName, &$object ){
+  if($objectName == "ContributionPage" && !empty($object->originId)){
+    $dao = CRM_Core_DAO::executeQuery("INSERT into civicrm_instrument (entity_id, entity_table, payment_instruments) SELECT {$object->id},entity_table, payment_instruments FROM civicrm_instrument WHERE entity_id = {$object->originId} ");
+    $dao->fetch();
+  }
+}
+
+
+/**
  * Payment instrument admin javascript
  *
  * Provide payment instrument optoins for contribution and 
