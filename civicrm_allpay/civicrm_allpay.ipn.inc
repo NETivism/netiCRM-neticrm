@@ -139,7 +139,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       $mac = _civicrm_allpay_checkmacvalue($this->_post, self::$_payment_processor);
       if(strtolower($input['CheckMacValue']) != $mac) {
         $note .= ts("Failuare: CheckMacValue not match. Contact system admin.")."\n";
-        watchdog("civicrm_allpay", "Failuare: CheckMacValue not match. Contact system admin.");
+        watchdog("civicrm_allpay", "Failuare: CheckMacValue not match. Should be '{$mac}', but '{$input['CheckMacValue']}' displayed.");
         $pass = FALSE;
       }
     }
