@@ -20,8 +20,8 @@ function civicrm_secure_group_menu(){
 function civicrm_secure_group_settings(){
   $form['civicrm_secure_group_reverse'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Reverse',
-    '#description' => 'Check this will hide other groups when user login with secured role. Uncheck this will show all group if user have permission "administer CiviCRM"',
+    '#title' => 'Hide not listed groups to role',
+    '#description' => 'Check this will hide groups not listed in civicrm_secure_group_gid when user have role. Uncheck this will show all groups when user have permission "administer CiviCRM"',
     '#default_value' => variable_get('civicrm_secure_group_reverse', 0),
   );
   return system_settings_form($form);
@@ -42,11 +42,13 @@ function civicrm_secure_group_civicrm_aclWhereClause( $type, &$tables, &$whereTa
   }
 
   // if the contact has spcific role, dont modify the clause
+  $groups = explode(',', CIVICRM_SECURE_GROUP_GID);
+
   if( array_key_exists(CIVICRM_SECURE_GROUP_RID, $user->roles) ) {
     if(variable_get('civicrm_secure_group_reverse', 0)){
       $groupTable = 'secure_group';
       $tables[$groupTable] = $whereTables[$groupTable] =
-          "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id = " . CIVICRM_SECURE_GROUP_GID . " )";
+          "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id IN(" . CIVICRM_SECURE_GROUP_GID . ") )";
       $where .= " ( $groupTable.status = 'Added' ) ";
     }
     else{
@@ -57,7 +59,7 @@ function civicrm_secure_group_civicrm_aclWhereClause( $type, &$tables, &$whereTa
     // else modify the query so we can ensure that contactIDs belong to the secure group are not shown
     $groupTable = 'secure_group';
     $tables[$groupTable] = $whereTables[$groupTable] =
-        "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id = " . CIVICRM_SECURE_GROUP_GID . " )";
+        "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id IN(" . CIVICRM_SECURE_GROUP_GID . ") )";
     $where .= " ( $groupTable.status is null OR $groupTable.status != 'Added' ) ";
   }
 
@@ -73,14 +75,19 @@ function civicrm_secure_group_civicrm_aclGroup( $type, $contactID, $tableName, &
   civicrm_initialize( );
 
   $currentGroups = $allGroups;
+  $groups = explode(',', CIVICRM_SECURE_GROUP_GID);
 
   if ( !array_key_exists(CIVICRM_SECURE_GROUP_RID, $user->roles) ) {
-    unset( $currentGroups[CIVICRM_SECURE_GROUP_GID] );
-    $currentGroups = array_keys( $currentGroups );
+    foreach($groups as $gid){
+      if(isset($currentGroups[$gid])){
+        unset( $currentGroups[$gid] );
+      }
+    }
+    $currentGroups = array_keys($currentGroups);
   }
   else{
     if(variable_get('civicrm_secure_group_reverse', 0)){
-      $currentGroups = array(CIVICRM_SECURE_GROUP_GID);
+      $currentGroups = $groups;
     }
     else{
       $currentGroups = array_keys( $currentGroups );
