@@ -208,7 +208,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       if($input['PRC'] || $input['SRC']){
         $error = civicrm_neweb_response($input['PRC'], $input['SRC'], $input['BankResponseCode'], 'detail');
         $note .= implode("\n",$error);
-        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']})\n";
+        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BRC']})\n";
         $this->failed( $objects, $transaction );
         $failed = true;
       }
@@ -272,6 +272,13 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         'approvalcode' => $input['ApprovalCode'],
       );
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
+
+      // Check if the contribution status is wait for ipn or not. #15542
+      $status = CRM_Core_DAO::singleValueQuery("SELECT contribution_status_id FROM civicrm_contribution c WHERE c.id = {$record['cid']} ");
+
+      if($status !== "2"){
+        return false;
+      }
 
       if ( ! $this->validateData( $input, $ids, $objects ) ) {
         return false;
