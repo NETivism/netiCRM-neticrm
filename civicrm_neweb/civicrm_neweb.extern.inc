@@ -208,7 +208,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       if($input['PRC'] || $input['SRC']){
         $error = civicrm_neweb_response($input['PRC'], $input['SRC'], $input['BankResponseCode'], 'detail');
         $note .= implode("\n",$error);
-        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BRC']})\n";
+        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']})\n";
         $this->failed( $objects, $transaction );
         $failed = true;
       }
