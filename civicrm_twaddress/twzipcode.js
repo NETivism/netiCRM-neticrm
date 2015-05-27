@@ -52,8 +52,10 @@
       var i = 0, tpl = [];
       var opt = ['<option value="">-- 縣市 --</option>', '<option value="">-- 鄉鎮市區 --</option>'];
       var ie = false;
-      if($.browser.msie && $.browser.version.substr(0,1) == '6'){
-        var ie = true;
+      if(typeof $.browser !== 'undefined') {
+        if($.browser.msie && $.browser.version.substr(0,1) == '6'){
+          ie = true;
+        }
       }
       
       try {
