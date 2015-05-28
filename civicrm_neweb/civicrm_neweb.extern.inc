@@ -273,15 +273,13 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       );
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
 
-      // Check if the contribution status is wait for ipn or not. #15542
-      $status = CRM_Core_DAO::singleValueQuery("SELECT contribution_status_id FROM civicrm_contribution c WHERE c.id = {$record['cid']} ");
-
-      if($status !== "2"){
+      if ( ! $this->validateData( $input, $ids, $objects ) ) {
         return false;
       }
 
-      if ( ! $this->validateData( $input, $ids, $objects ) ) {
-        return false;
+      // Check if the contribution status is wait for ipn or not. #15542
+      if($objects['contribution']->contribution_status_id !== "2"){
+        return ;
       }
 
       self::$_paymentProcessor =& $objects['paymentProcessor'];
