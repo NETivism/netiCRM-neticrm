@@ -121,8 +121,9 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   if(strpos($formName, 'Confirm') || strpos($formName, 'ThankYou')){
     return;
   }
-  //
+
   $enable = TRUE;
+  $override = array();
   $form_name = $form->_attributes['name'];
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
