@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function civicrm_demo_install() {
+  include_once "civicrm_demo.module";
+  
+  $vars['limit'] = 10;
+  civicrm_demo_process_contact($vars);
+
+  $vars['limit'] = 3;
+  civicrm_demo_process_event($vars);
+
+  $vars['limit'] = 30;
+  civicrm_demo_process_contribution();
+}

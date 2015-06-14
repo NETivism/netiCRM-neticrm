@@ -1,6 +1,7 @@
 name = Demo data of CiviCRM
 description = "Random generate chinese demo data of CiviCRM"
 dependencies[] = civicrm
+dependencies[] = civicrm_allpay
 package = NetiCRM
 core = 6.x
 version = 6.x-1.0
