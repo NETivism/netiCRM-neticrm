@@ -26,7 +26,7 @@ function _neticrm_update_update_6003(){
       2 => array($text, 'String'),
       3 => array($msg_id, 'Integer'),
     );
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET html = %1, text = %2 WHERE id = $msg_id", $params);
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1, msg_text = %2 WHERE id = $msg_id", $params);
     return "Successful update message templates of online contribution. (#12866)";
   }
   return FALSE;
