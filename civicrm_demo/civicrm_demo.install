@@ -13,5 +13,5 @@ function civicrm_demo_install() {
   civicrm_demo_process_event($vars);
 
   $vars['limit'] = 30;
-  civicrm_demo_process_contribution();
+  civicrm_demo_process_contribution($vars);
 }
