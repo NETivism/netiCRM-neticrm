@@ -263,7 +263,6 @@ function civicrm_neweb_update_6108(){
 }
 
 function civicrm_neweb_update_6109(){
-  $ret = $updated = array();
   $date_field = array('created_date', 'receive_date', 'receipt_date', 'cancel_date', 'thankyou_date');
   civicrm_initialize();
   $query = CRM_Core_DAO::executeQuery("SELECT count(id) as counter, group_concat(id) as ids, group_concat(receipt_id) as receipt_ids FROM civicrm_contribution where receipt_id IS NOT NULL AND receipt_id != '' group by receipt_id having count(id) > 1");
@@ -302,8 +301,6 @@ function civicrm_neweb_update_6109(){
     }
   }
 
-  $ret['#abort'] = array('success' => TRUE, 'query' => implode(',', $updated));
-  return $ret;
 }
 
 /**
