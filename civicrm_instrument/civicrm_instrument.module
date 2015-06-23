@@ -19,7 +19,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
           $checkbox_name = _civicrm_instrument_form_name($option->name);
           $label = $option->is_reserved ? $option->label." [".ts('Payment Processor')."]*" : $option->label;
           $options[$checkbox_name] = array(
-            'default' => $payment_instruments[$checkbox_name] ? 1: 0,
+            'default' => !empty($payment_instruments[$checkbox_name]) ? 1: 0,
             'label' => $label,
             'reserved' => $option->is_reserved ? 1 : 0,
           );
