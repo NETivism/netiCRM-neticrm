@@ -189,7 +189,7 @@ function civicrm_demo_process_event($vars){
     $contacts = civicrm_contact_search($params2);
 
     // add participants
-    $max = mt_rand(5, $vars['limit']);
+    $max = mt_rand(1, $vars['limit']);
     foreach($contacts as $contact){
       $j++;
       if($j > $max) break;
@@ -225,12 +225,22 @@ function civicrm_demo_process_contribution($vars){
     'is_monetary' => 1,
     'is_recur' => 1,
     'is_allow_other_amount' => 1,
+    'recur_frequency_unit' => 'month',
     'thankyou_title' => '謝謝你的支持',
     'receipt_from_email' => 'demo@demo.neticrm.tw',
   );
   $result = civicrm_api('ContributionPage', 'create', $params);
   if(!empty($result['id'])){
     $contribution_page_id = $result['id'];
+    $payment_instrument = array(
+      'credit_card' => 1,
+      'convenient_store' => 1,
+      'convenient_store_code_' => 1,
+      'web_atm' => 1,
+      'atm' => 1,
+    );
+    $qvar = array(1 => array(serialize($payment_instrument) ,'String'));
+    CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$result['id']}, entity_table='civicrm_contribution_page', payment_instruments=%1", $qvar);
   }
   else{
     $contribution_page_id = 1;
@@ -349,7 +359,7 @@ function _civicrm_demo_rand_email(){
 function _civicrm_demo_rand_addr($type = 'chinese'){
   if($type == 'chinese'){
     $sp = array(
-      'Changhua County','Chiayi City','Chiayi County','Hsinchu City','Hsinchu County','Hualien County','Ilan County','Kaohsiung City','Keelung City','Kinmen County','Lienchiang County','Miaoli County','Nantou County','Penghu County','Pingtung County','Taichung City','Tainan City','Taipei City','Taipei County','Taitung County','Taoyuan County','Yunlin Conuty',
+      'Changhua County','Chiayi City','Chiayi County','Hsinchu City','Hsinchu County','Hualien County','Ilan County','Kaohsiung City','Keelung City','Kinmen County','Lienchiang County','Miaoli County','Nantou County','Penghu County','Pingtung County','Taichung City','Tainan City','Taipei City','Taipei County','Taitung County','Taoyuan City','Yunlin Conuty',
     );
     $seed = array_rand($sp);
     $state_province = $sp[$seed];
@@ -402,7 +412,7 @@ function _civicrm_demo_rand_city_postcode($city){
       '寶山鄉' => '308', '竹東鎮' => '310', '五峰鄉' => '311', '橫山鄉' => '312', '尖石鄉' => '313', '北埔鄉' => '314',
       '峨嵋鄉' => '315'
     ),
-    'Taoyuan County' => array(
+    'Taoyuan City' => array(
       '中壢市' => '320', '平鎮市' => '324', '龍潭鄉' => '325', '楊梅鎮' => '326', '新屋鄉' => '327', '觀音鄉' => '328',
       '桃園市' => '330', '龜山鄉' => '333', '八德市' => '334', '大溪鎮' => '335', '復興鄉' => '336', '大園鄉' => '337',
       '蘆竹鄉' => '338'
