@@ -91,7 +91,7 @@ function civicrm_allpay_civicrm_pageRun(&$page){
           }
         }
 
-        $info = theme('table', NULL, $rows, array('class'=>'crm-info-panel'));
+        $info = theme('table', array('header' => NULL, 'rows' => $rows, 'class'=>'crm-info-panel'));
         $template = $page->getTemplate();
         $template->assign('payment_processor_billinginfo', $info);
       }
@@ -183,7 +183,7 @@ function civicrm_allpay_error(){
   foreach($msg as $m){
     $items[] = $m;
   }
-  $output .= theme('item_list', $items);
+  $output .= theme('item_list', array('items' => $items));
   $output .= '</div>';
   return $output;
 }
@@ -283,7 +283,7 @@ function civicrm_allpay_popup($instrument){
     if($allpay){
       $rows = _civicrm_allpay_payment_info($cid, $instrument);
       $output .= '<h3>付款資訊</h3>';
-      $output .= theme('table', NULL, $rows, array('align' => 'center', 'width' =>' 300', 'id' => 'payment-info'));
+      $output .= theme('table', array('header' => NULL, 'rows' => $rows, 'align' => 'center', 'width' =>' 300', 'id' => 'payment-info'));
       $output .= '<div class="function">';
       $output .= '<input type="button" onclick="print();" value="列印">';
       $output .= '</div>';
@@ -296,7 +296,7 @@ function civicrm_allpay_popup($instrument){
 }
 
 function _civicrm_allpay_popupurl($instrument_code, $cid){
-  return url('allpay/popup/'.$instrument_code, array('absolute' => TRUE, 'query' => 'cid='.$cid));
+  return url('allpay/popup/'.$instrument_code, array('absolute' => TRUE, 'query' => array('cid'=> $cid )));
 }
 function _civicrm_allpay_barcode($mer, $tsr){
   return 'https://ecbank.com.tw/order/barcode_print.php?mer_id='.$mer.'&tsr='.$tsr;
@@ -312,7 +312,7 @@ function civicrm_allpay_record($cid, $data = null){
         $data = $_POST;
       }
     }
-    if(!empty($data['MerchantID']) || !empty($data['#info']['MerchantID'])){
+    if(!empty($data['MerchantID']) || !empty($data['info']['MerchantID'])){
       $result = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
       $exists = json_decode($result, TRUE);
       if(is_array($exists)){
