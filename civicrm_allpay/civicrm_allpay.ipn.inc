@@ -53,7 +53,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
     if(empty($ids['contributionRecur'])){
       // we will save record later if this is recurring
-      civicrm_allpay_record($ids['contribution']);
+      civicrm_allpay_record($ids['contribution'], $this->_post);
       $recur = FALSE;
     }
     else{
@@ -132,7 +132,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
     // check amount
     $amount = $input['TradeAmt'] ? $input['TradeAmt'] : $input['Amount'];
-    if ( round($contribution->total_amount) != $amount ) {
+    if ( round($contribution->total_amount) != $amount && $input['RtnCode'] == 1 ) {
       watchdog("civicrm_allpay", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['amount']}" );
       $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['amount']}")."\n";
       $pass = FALSE;
