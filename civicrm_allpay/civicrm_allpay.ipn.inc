@@ -49,7 +49,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
     if(empty($ids['contributionRecur'])){
       // we will save record later if this is recurring
-      civicrm_allpay_record($ids['contribution']);
+      civicrm_allpay_record($ids['contribution'], $this->_post);
       $recur = FALSE;
     }
     else{
