@@ -201,6 +201,7 @@ function civicrm_demo_process_event($vars){
     $contacts = civicrm_api('Contact', 'get', $params2);
 
     // add participants
+    $j = 0;
     $max = 4;
     foreach($contacts['values'] as $contact){
       $j++;
