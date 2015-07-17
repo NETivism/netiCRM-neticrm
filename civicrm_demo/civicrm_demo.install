@@ -9,7 +9,7 @@ function civicrm_demo_install() {
   $vars['limit'] = 10;
   civicrm_demo_process_contact($vars);
 
-  $vars['limit'] = 3;
+  $vars['limit'] = 5;
   civicrm_demo_process_event($vars);
 
   $vars['limit'] = 30;

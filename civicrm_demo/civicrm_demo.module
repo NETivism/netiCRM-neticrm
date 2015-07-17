@@ -97,22 +97,21 @@ function civicrm_demo_process_contact($vars){
 }
 
 function civicrm_demo_process_event($vars){
-  civicrm_initialize();
-  require_once 'api/api.php';
   $now = time();
 
   // create 5 events
-  for($i=0;  $i < $vars['limit']; $i++){
-    $title = array(
-      '示範活動',
-      '示範活動，有名額、不可候補',
-      '示範活動，有名額、可候補',
-      '示範活動，有名額限制、需事先審核',
-      '示範活動，無名額限制、需事先審核',
+  $title = array(
+      '無名額限制，填表完成送出',
+      '有名額限制，不開放候補',
+      '有名額限制，開放候補',
+      '有名額限制，需事先審核',
+      '無名額限制，需事先審核',
     );
-    $index = $i % count($title);
-    $params = array();
-    $params['title'] = $title[$index];
+  for($i=0;  $i < $vars['limit']; $i++){
+    $seed = $i % count($title);
+    
+    $params = array('version' => 3,);
+    $params['title'] = $title[$seed];
     $params['is_active'] = 1;
     $params['is_monetory'] = 0;
     $params['event_type_id'] = 1;
@@ -121,33 +120,50 @@ function civicrm_demo_process_event($vars){
     $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
     $params['registration_start_date'] = date('Ymd', $now-$i*86400*2);
     $params['registration_end_date'] = date('Ymd', $now+$i*86400*2);
-    $params['max_participants'] = rand(30,50);
-    $result = civicrm_api( 'event','create',$params );
+    $params['max_participants'] = 5;
 
-    $event_id = $result['event_id'];
+    if($seed == 0 || $seed == 4){
+      $params['max_participants'] = 0;  
+    }
+    if($seed == 3 || $seed == 4){
+      $params['requires_approval'] = 1;
+    }
+    if($seed == 2){
+      $params['has_waitlist'] = 1;
+    }
+
+    $params['is_online_registration'] = 1;
+    
+    $result = civicrm_api('Event', 'create', $params);
+
+    $event_id = $result['id'];
+
     $params2 = array(
+      'version' => 3,
       'return.contact_id',
       'sort' => 'contact_id DESC',
     );
-    $contacts = civicrm_contact_search($params2);
+    $contacts = civicrm_api('Contact', 'get', $params2);
 
     // add participants
-    $max = mt_rand(5, $vars['limit']);
-    foreach($contacts as $contact){
+    $j = 0;
+    $max = 4;
+    foreach($contacts['values'] as $contact){
       $j++;
       if($j > $max) break;
-      $params3 = array();
+      $params3 = array('version' => 3,);
       $params3['contact_id'] = $contact['contact_id'];
       $params3['event_id'] = $event_id;
       $params3['status_id'] = 1;
       $params3['role_id'] = 1;
       $params3['register_date'] = date('YmdHis');
       $params3['source'] = '示範用途';
-      $result3 = civicrm_participant_create($params3);
+      $result3 = civicrm_api('Participant', 'create', $params3);
     }
   }
 
 }
+
 
 function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
