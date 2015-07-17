@@ -98,23 +98,21 @@ function civicrm_demo_process_contact($vars){
 
 function civicrm_demo_process_event($vars){
   civicrm_initialize();
-  require_once "api/v2/Event.php";
-  require_once "api/v2/Participant.php";
-  require_once("api/v2/Contact.php");
+  require_once 'api/api.php';
   $now = time();
 
   // create 5 events
   for($i=0;  $i < $vars['limit']; $i++){
-    $seed = mt_rand(0,4);
     $title = array(
-      '實務訓練課程，開放報名',
-      '網路軟體應用研討會',
-      '夏季親子台灣走透透營隊',
-      '生活很健康講座',
-      '心靈環保與生活環保-見面會',
+      '示範活動',
+      '示範活動，有名額、不可候補',
+      '示範活動，有名額、可候補',
+      '示範活動，有名額限制、需事先審核',
+      '示範活動，無名額限制、需事先審核',
     );
+    $index = $i % count($title);
     $params = array();
-    $params['title'] = $title[$seed];
+    $params['title'] = $title[$index];
     $params['is_active'] = 1;
     $params['is_monetory'] = 0;
     $params['event_type_id'] = 1;
@@ -124,7 +122,7 @@ function civicrm_demo_process_event($vars){
     $params['registration_start_date'] = date('Ymd', $now-$i*86400*2);
     $params['registration_end_date'] = date('Ymd', $now+$i*86400*2);
     $params['max_participants'] = rand(30,50);
-    $result = civicrm_event_create($params);
+    $result = civicrm_api( 'event','create',$params );
 
     $event_id = $result['event_id'];
     $params2 = array(
