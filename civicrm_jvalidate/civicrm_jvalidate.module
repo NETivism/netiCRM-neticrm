@@ -28,7 +28,8 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
       'type' => 'file',
     );
     drupal_add_js($t, 'setting');
-    drupal_add_js($path.'/js/jquery.validate.min.js', $options);
+    $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
+    drupal_add_js($path."/js/jquery.validate$min.js", $options);
     if($t['jvalidate']['lang'] == "zh-hant"){
       drupal_add_js($path.'/js/localization/messages_tw.js', $options);
     }
