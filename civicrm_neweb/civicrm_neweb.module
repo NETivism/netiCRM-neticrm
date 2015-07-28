@@ -212,22 +212,22 @@ jQuery(document).ready(function($){
   }
 });  
 ';
-  drupal_add_js($js, 'inline', 'footer');
+  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
 }
 function _civicrm_neweb_js_payment($default, $is_test){
   $element = $is_test ? 'crm-paymentProcessor-form-block-test_url_recur' : 'crm-paymentProcessor-form-block-url_recur';
   $test = $is_test ? 'test_' : '';
   $js = '
-cj(document).ready(function(){
+jQuery(document).ready(function($){
   var def= new Object();
   def = '.drupal_json_encode($default).';
   var e = "'.$element.'";
   var test = "'.$test.'";
   var main = "tr."+e;
   var $new = new Object();
-  $new.ftp_password = cj(main).clone();
-  $new.ftp_user = cj(main).clone();
-  $new.ftp_host = cj(main).clone();
+  $new.ftp_password = $(main).clone();
+  $new.ftp_user = $(main).clone();
+  $new.ftp_host = $(main).clone();
 
   for(var i in $new){
     var $o = $new[i];
@@ -236,11 +236,11 @@ cj(document).ready(function(){
     $o.find("input").attr("name", test+i).val("");
     $o.find("input").val(def[i]);
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
-    cj($o).insertAfter(main);
+    $($o).insertAfter(main);
   }
 });  
 ';
-  drupal_add_js($js, 'inline', 'footer');
+  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
 }
 
 function _civicrm_neweb_instrument($type = 'label'){

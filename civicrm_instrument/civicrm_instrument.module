@@ -80,28 +80,28 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       }
       else{
         if(!empty($form->_submitValues['civicrm_instrument_id'])){
-          $default = 'cj("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
+          $default = 'jQuery("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
         }
         else{
           $default = '
             setTimeout(function(){
-            if(cj("input[name=civicrm_instrument_id_dummy]").length == 1){
-              cj("input[name=civicrm_instrument_id_dummy]").click();
+            if(jQuery("input[name=civicrm_instrument_id_dummy]").length == 1){
+              jQuery("input[name=civicrm_instrument_id_dummy]").click();
             }}, 300);
           ';
         }
         $js = '
-        cj(document).ready(function(){
-          cj("input[name=payment_processor]").live("click", function(){
-            cj("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
+        jQuery(document).ready(function($){
+          $("input[name=payment_processor]").live("click", function(){
+            $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
           });
-          cj("input[name=civicrm_instrument_id_dummy]").live("click", function(){
-            cj("input[name=civicrm_instrument_id]").val(cj(this).val());
+          $("input[name=civicrm_instrument_id_dummy]").live("click", function(){
+            $("input[name=civicrm_instrument_id]").val($(this).val());
           });
           '.$default.'
         });
 ';
-        drupal_add_js($js, 'inline');
+        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
         $form->addElement('hidden', 'civicrm_instrument_id', reset($active_instruments));
       }
       break;
@@ -279,7 +279,7 @@ jQuery(document).ready(function($){
   });
 });
 ';
-  drupal_add_js($js, 'inline', 'footer');
+  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
 }
 
 /**
@@ -352,7 +352,7 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
       $enabled_instruments = array(
         'Credit Card' => $credit_card,
       );
-      if($_GET['id']){
+      if(!empty($_GET['id'])){
         $_POST['civicrm_instrument_id'] = $credit_card['value'];
       }
     }
@@ -361,7 +361,7 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
-      if($active_instruments[$radio_name]){
+      if(!empty($active_instruments[$radio_name])){
         $radios[$i['value']] = array(
           'form_name'=> $radio_name,
           'name'=> $name,
@@ -376,10 +376,11 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
   if(!empty($radios)){
     if(count($radios) && $js){
       // attach by js
-      drupal_add_js(_civicrm_instrument_js_page($radios, $form), 'inline');
+      drupal_add_js(_civicrm_instrument_js_page($radios, $form), array('type' => 'inline', 'scope' => 'footer'));
     }
     else{
       // attach by html
+      $output = '';
       if(count($radios) == 1){
           $rid = key($radios);
           $r = reset($radios);
