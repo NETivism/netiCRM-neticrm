@@ -3,4 +3,4 @@ description = "Generate receipt token per year for civicrm, and add task in cont
 dependencies[] = civicrm
 package = NetiCRM
 core = 6.x
-version = 6.x-1.0
+version = 6.x-1.1
