@@ -123,6 +123,14 @@
       sel.county.val( dbcode[o.countySel] );
       sel.county.attr('selected', true);
       sel.county.trigger('change');
+
+      $('.readonly.post-code').css({
+          "line-height": "18px",
+          "vertical-align": "top",
+          "border": "none",
+          "width": "60px !important",
+          "text-align": "center"
+      });
       
       
       $('input[type=reset]').click(function(){ sel.area.empty().append( opt[1] ); });
