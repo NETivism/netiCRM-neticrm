@@ -76,7 +76,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
     "Amount"         => $amount,
     "OrgOrderNumber" => $params['contributionID'],
     "ApproveFlag"    => 1,
-    "DepositFlag"    => 0,
+    "DepositFlag"    => 1,
     "Englishmode"    => 0,
     "OrderURL"       => $notify_url,
     "ReturnURL"      => $return_url,
