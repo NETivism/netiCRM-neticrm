@@ -216,6 +216,11 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   }
   elseif($transaction_str){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
+
+    // compatibility php 5.2
+    if(function_exists('gc_enable')){
+      gc_enable();
+    }
     foreach($trans as $k => $t){
       if(empty($t)) continue;
       $params = $ids = array();
@@ -316,6 +321,11 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           // 
         }
         _civicrm_neweb_recurring_contact_sync($recur->id);
+      }
+
+      // compatibility php 5.2
+      if(function_exists('gc_collect_cycles')){
+        gc_collect_cycles();
       }
     }
     return TRUE;
