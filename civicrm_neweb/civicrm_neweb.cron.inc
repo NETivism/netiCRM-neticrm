@@ -369,8 +369,12 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $rows[$recur->id] = $upload;
   }
 
-  // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job.
-  $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now) && cr.is_test = $is_test ORDER BY cr.id ASC";
+  // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job. -> x
+  // The rule : status is 6 (experted) and after end_date 2 days. (same as civicrm_neweb_expire_recur() rule)
+  //  or
+  // status is 2 (pending) and have cancel_date.
+  $end = $now - 86400*2;
+  $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE ((cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now)) OR (cr.contribution_status_id = 6 && cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL )) && cr.is_test = $is_test ORDER BY cr.id ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
     $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
@@ -406,13 +410,16 @@ function civicrm_neweb_process_upload($is_test, $pid){
   return false;
 }
 
-function civicrm_neweb_end_date_calculate($is_test){
+function civicrm_neweb_expire_recur($is_test){
   $now = time();
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once "CRM/Core/Error.php";
 
   // end recurring calculate
+  
+  // End date should not be calculated again.
+  /*
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.installments IS NOT NULL AND cr.end_date IS NULL AND (cr.contribution_status_id = 1 OR cr.contribution_status_id = 2)  && cr.is_test = $is_test";
   $result = CRM_Core_DAO::executeQuery($sql);
   while($result->fetch()){
@@ -429,6 +436,7 @@ function civicrm_neweb_end_date_calculate($is_test){
     _civicrm_neweb_error('Exec civicrm_neweb_end_date_calculate() in cron.', $is_test, WATCHDOG_NOTICE);
     
   }
+  */
 
   // cancel recurring calculate
   // 2 day after end day
@@ -437,8 +445,9 @@ function civicrm_neweb_end_date_calculate($is_test){
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
     // just change status to pending and add cancel date.
-    $cancel_date = date('Y-m-d H:i:s', $now);
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET cancel_date = '{$cancel_date}', contribution_status_id = 2 WHERE id = {$recur->id}");
+    // $cancel_date = date('Y-m-d H:i:s', $now);
+    // status 6 is 'expired' , remove cancel_date refs. #15801
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 6 WHERE id = {$recur->id}");
   }
 }
 
