@@ -221,7 +221,8 @@ $.fn.extend({
 							next = seekNext(p);
 
 							if(android){
-								setTimeout($.proxy($.fn.caret,input,next),0);
+								setTimeout(function(){input.caret(next);},0);
+								// setTimeout($.proxy($.fn.caret,input,next),0);
 							}else{
 								input.caret(next);
 							}
