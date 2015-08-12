@@ -100,7 +100,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     'Remark' => '',
     'ChooseSubPayment' => '',
     'OrderResultURL' => $thankyou_url,
-    'NeedExtraPaidInfo' => '',
+    'NeedExtraPaidInfo' => 'Y',
     'DeviceSource' => '',
   );
 
@@ -154,6 +154,9 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
         $args['Frequency'] = 1; // now only support continious recurring
         $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
+      }
+      if($language->language == 'en'){
+        $args['Language'] = 'ENG';
       }
       # Recurring
       break;

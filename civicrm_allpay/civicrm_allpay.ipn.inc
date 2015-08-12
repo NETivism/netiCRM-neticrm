@@ -51,9 +51,11 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
 
+    if(empty($this->_get['is_recur'])){
+      civicrm_allpay_record($ids['contribution'], $this->_post);
+    }
     if(empty($ids['contributionRecur'])){
       // we will save record later if this is recurring
-      civicrm_allpay_record($ids['contribution'], $this->_post);
       $recur = FALSE;
     }
     else{
@@ -181,6 +183,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
         }
         if(!empty($c)){
           unset($objects['contribution']);
+          civicrm_allpay_record($c->id, $this->_post);
           $objects['contribution'] = $c;
           
           // update recurring object
@@ -207,7 +210,6 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
           CRM_Contribute_BAO_ContributionRecur::cancelRecurContribution($recur->id, CRM_Core_DAO::$_nullObject, 4);
         }
       }
-      civicrm_allpay_record($objects['contribution']->id);
     }
       
     // process fail response
