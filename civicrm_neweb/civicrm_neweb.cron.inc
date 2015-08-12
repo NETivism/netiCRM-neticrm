@@ -147,7 +147,25 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
             break;
           case 'delete':
             if($r['RESPONSE'] == '0' || $r['RESPONSE'] == '-31'){
-              $params['contribution_status_id'] = 3;
+              switch($recur->contribution_status_id){
+                case 2:
+                // status 2 and has cancel_date -> 3
+                  if(empty($recur->cancel_date)){
+                    $error = "error : recur_id ". $recur->id . " 's cancel date doesn't set. current value is ". $recur->cancel_date;
+                    _civicrm_neweb_error($error, $is_test);
+                  }else{
+                    $params['contribution_status_id'] = 3;
+                  }
+                  break;
+                case 6:
+                // status 6 (expired) -> 1 (finished) 
+                    $params['contribution_status_id'] = 1;
+                  break;
+                default:
+                  $error = "error : recur_id ". $recur->id . " status doesn't set to pending(2) or expired(6), current is ". $recur->contribution_status_id;
+                    _civicrm_neweb_error($error, $is_test);
+                  break;
+              }
               $params['modified_date'] = date('YmdHis');
             }
             elseif($r['RESPONSE'] == '-32'){
