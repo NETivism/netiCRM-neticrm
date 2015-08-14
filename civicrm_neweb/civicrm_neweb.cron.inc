@@ -137,7 +137,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
                 CRM_Contribute_BAO_ContributionPage::recurringNotify( 'START', $recur->contact_id, $contrib->contribution_page_id, $recur);
               }
             */
-              $params['contribution_status_id'] = 1;
+              $params['contribution_status_id'] = 5;
             }
             else{
               $params['contribution_status_id'] = 4; // failed
