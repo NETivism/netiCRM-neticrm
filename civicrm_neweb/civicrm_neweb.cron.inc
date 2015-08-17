@@ -285,7 +285,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         // we save contribution first, anyway.
         $contribution->save();
         // we save recur object then
-        CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
+        // In #15801, find this will make recur status wrong. 
+        // CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
         
 
         // now we have correct contribution object. procceed.
