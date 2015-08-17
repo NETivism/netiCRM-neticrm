@@ -259,7 +259,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       }
 
       // exists recurring and not cancelled
-      if($recur->id && $recur->contribution_status_id < 3){
+      if($recur->id && ($recur->contribution_status_id == 5 || $recur->contribution_status_id == 2)){
         $params['id'] = $recur->id;
         // check trxn_id first
         $contribution = new CRM_Contribute_DAO_Contribution();
