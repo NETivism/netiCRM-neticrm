@@ -360,6 +360,15 @@ function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
 }
 
 function _civicrm_neweb_end_date_calculate(&$recur){
+  if($recur->installments == 1){
+    // status 1 is 'completed'
+    $recur->contribution_status_id = 1;
+    return ;
+    // $recur->save();
+    // CRM_Core_Error::debug_log_message( "Instrument is less than 1. Don't send Recur." );
+    // return $recur;
+  }
+
   // every recuring contrib start on next month
   $installments_total = $recur->installments - 1;
   if(empty($recur->end_date)){
@@ -390,11 +399,10 @@ function _civicrm_neweb_end_date_calculate(&$recur){
   $recur->next_sched_contribution = date('YmdHis', $next_recur);
   $recur->start_date = $recur->next_sched_contribution;
   $recur->cycle_day = $cycle_day;
-  $recur->contribution_status_id = 2;
-  $recur->save();
-  CRM_Core_Error::debug_log_message( "Done the recurring object save." );
-  return $recur;
-
+  // $recur->contribution_status_id = 2;
+  // $recur->save();
+  // CRM_Core_Error::debug_log_message( "Done the recurring object save." );
+  // return $recur;
 }
 
 function _civicrm_neweb_cancel_recuring_message(){
