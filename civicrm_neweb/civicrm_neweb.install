@@ -314,5 +314,20 @@ function civicrm_neweb_update_6110(){
 }
 
 
+function civicrm_neweb_update_6111(){
+  // modify old status id.
+  // only neweb recur, status id 1 -> 5
+  // status id 3 or 4 (nncf 4, other are 3) -> 1
+  // 
+  
+  civicrm_initialize();
+  // status_id : 1 -> 5, 3 -> 1
+  $sql = "UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1";
+  CRM_Core_DAO::executeQuery($sql);
+  $sql = "UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3";
+  CRM_Core_DAO::executeQuery($sql);
+  
+  
+}
 
 
