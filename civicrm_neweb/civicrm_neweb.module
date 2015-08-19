@@ -104,14 +104,14 @@ function civicrm_neweb_cron(){
   $now = time();
   $yesterday = $now - 86400;
   $is_test = 0;
-  $pid = _civicrm_neweb_is_active($is_test);
-  if($pid){
+  $pids = _civicrm_neweb_is_active($is_test);
+  foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
   }
-  $pid = NULL;
+  
   $is_test = 1;
-  $pid = _civicrm_neweb_is_active($is_test);
-  if($pid){
+  $pids = _civicrm_neweb_is_active($is_test);
+  foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
     _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid);
   }
@@ -121,35 +121,35 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
 
   // recurring contributions
   $test = $is_test ? '_test' : '';
-  if($hour >= 19 && $hour <= 23 && variable_get('civicrm_neweb_response'.$test, 0) < $yesterday){
+  if($hour >= 19 && $hour <= 23 && variable_get('civicrm_neweb_response_'.$pid.$test, 0) < $yesterday){
     // get yesterday modification result
     if(civicrm_neweb_process_response($is_test, NULL, $pid)){
-      variable_set('civicrm_neweb_response'.$test, $now);
+      variable_set('civicrm_neweb_response_'.$pid.$test, $now);
     }
   }
-  if($hour >= 16 && $hour <= 23 && variable_get('civicrm_neweb_transaction'.$test, 0) < $yesterday){
+  if($hour >= 16 && $hour <= 23 && variable_get('civicrm_neweb_transaction_'.$pid.$test, 0) < $yesterday){
     // get yesterday transaction result
     if(civicrm_neweb_process_transaction($is_test, NULL, $pid)){
-      variable_set('civicrm_neweb_transaction'.$test, $now);
+      variable_set('civicrm_neweb_transaction_'.$pid.$test, $now);
     }
   }
-  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
+  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded_'.$pid.$test, 0) < $yesterday){
     // doing upload stuff
     if(civicrm_neweb_process_upload($is_test, $pid)){
-      variable_set('civicrm_neweb_uploaded'.$test, $now);
+      variable_set('civicrm_neweb_uploaded_'.$pid.$test, $now);
     }
   }
-  if(variable_get('civicrm_neweb_end_date_calculate'.$test, 0) < $yesterday){
-    // doing upload stuff
-    if(civicrm_neweb_end_date_calculate($is_test)){
-      variable_set('civicrm_neweb_end_date_calculate'.$test, $now);
+  if(variable_get('civicrm_neweb_expire_recur_'.$pid.$test, 0) < $yesterday){
+    // doing expire recur
+    if(civicrm_neweb_expire_recur($is_test)){
+      variable_set('civicrm_neweb_expire_recur_'.$pid.$test, $now);
     }
   }
 
   // ezpay contributions
-  if($now - variable_get('civicrm_neweb_ezpay', 0) > 7200){
+  if($now - variable_get('civicrm_neweb_ezpay_'.$pid.$test, 0) > 7200){
     civicrm_neweb_process_ezpay($is_test, $now, $pid);
-    variable_set('civicrm_neweb_ezpay'.$test, $now);
+    variable_set('civicrm_neweb_ezpay_'.$pid.$test, $now);
   }
 }
 
@@ -319,8 +319,12 @@ function _civicrm_neweb_connect($id, $local, $mode, $is_test){
 function _civicrm_neweb_is_active($is_test){
   civicrm_initialize();
   $is_test = $is_test ? 1 : 0;
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
-  return $id;
+  $ids = array();
+  $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
+  while($id = $dao->fetch()){
+    $ids[] = $dao->id;
+  }
+  return $ids;
 }
 
 function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
@@ -416,3 +420,4 @@ function _civicrm_neweb_cancel_recuring_message(){
 <p>詳情請參考 <a href='https://neticrm.tw/faq/268' target='_blank'>netiCRM 手冊說明</a></p>";
   return $html;
 }
+
