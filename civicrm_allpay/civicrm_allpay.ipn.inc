@@ -157,11 +157,12 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       $recur = &$objects['contributionRecur'];
       $params = $null = array();
       // see if we are first time, if not first time, save new contribution
-      // cancel recurring
+      // 6 - expired
+      // 5 - processing
       // 4 - fail
-      // 3 - end
+      // 3 - canceled
       // 2 - pending
-      // 1 - current(already submitted first time)
+      // 1 - completed
 
       // not the first time (PeriodReturnURL)
       if($this->_get['is_recur']){
@@ -192,7 +193,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
             $params['id'] = $recur->id;
             $params['modified_date'] = date('YmdHis');
             $params['end_date'] = date('YmdHis');
-            $params['contribution_status_id'] = 3;
+            $params['contribution_status_id'] = 1; // completed
             CRM_Contribute_BAO_ContributionRecur::add($params, $null);
           }
         }
@@ -202,7 +203,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
         if($input['RtnCode'] == 1){
           $params['id'] = $recur->id;
           $params['start_date'] = date('YmdHis', strtotime($input['PaymentDate']));
-          $params['contribution_status_id'] = 1;
+          $params['contribution_status_id'] = 5; // from pending to processing
           $params['modified_date'] = date('YmdHis');
           CRM_Contribute_BAO_ContributionRecur::add($params, $null);
         }
