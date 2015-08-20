@@ -123,6 +123,34 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
   }
 }
 
+/**
+ * Implementation of hook_civicrm_validate()
+ */
+function civicrm_allpay_civicrm_validate($form_name, &$form){
+  $errors = array();
+  if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
+    if(!empty($form['payment_processor'])){
+      $params = array(
+        1 => array($form['payment_processor'], 'Integer'),
+      );
+      $processor_type = CRM_Core_DAO::singleValueQuery("SELECT payment_processor_type FROM civicrm_payment_processor WHERE id = %1", $params);
+      if($processor_type == 'ALLPAY'){
+        if(!empty($form['installments']) && $form['installments'] > 99){
+          $errors['installments'] = t('Installments of recurring must lower than 99.');
+        } 
+      }
+      /* Already done by CRM_Contribute_Form_Contribution_Main
+      if($processor_type == 'ALLPAYX' && !empty($form['is_recur'])){
+        // don't allow recurring on non-credit card method
+        $session = CRM_Core_Session::singleton();
+        $errors['is_recur'] = ts('You cannot set up a recurring contribution if you are not paying online by credit card.');
+      }
+      */
+    }
+  }
+  return empty( $errors ) ? true : $errors;
+}
+
 function civicrm_allpay_error(){
   $msg = $_SESSION['allpay']['error'];
   if(!count($msg)){
