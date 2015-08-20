@@ -322,7 +322,7 @@ function civicrm_neweb_update_6111(){
     civicrm_initialize();
     $sql = "UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1";
     CRM_Core_DAO::executeQuery($sql);
-    $sql = "UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3 AND contribution_status_id = 4";
+    $sql = "UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3 OR contribution_status_id = 4";
     CRM_Core_DAO::executeQuery($sql);
     variable_set('civicrm_neweb_update_6111', 1);
   }  
