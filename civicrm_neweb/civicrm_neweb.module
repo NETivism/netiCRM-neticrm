@@ -60,15 +60,18 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       }
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
+      $pid = $_GET['id'];
+      $pid_test = $pid + 1;
       if($form->_defaultValues['payment_processor_type'] == 'Neweb'){
         $default = array(
+          'pid' => $pid,
           'ftp_host' => '',
           'ftp_user' => '',
           'ftp_password' => '',
         );
-        $ftp = variable_get('civicrm_neweb_ftp', $default);
+        $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
         _civicrm_neweb_js_payment($ftp, 0);
-        $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
+        $ftp_test = variable_get('civicrm_neweb_ftp_test_'.$pid_test, $default);
         _civicrm_neweb_js_payment($ftp_test, 1);
       }
       break;
@@ -80,6 +83,8 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
  */
 function civicrm_neweb_civicrm_postProcess($form_name, &$form){
   if($form_name == 'CRM_Admin_Form_PaymentProcessor'){
+    $pid = $_POST['pid'];
+    $pid_test = $pid + 1;
     $default = array(
       'ftp_host' => '',
       'ftp_user' => '',
@@ -89,8 +94,8 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
       if($_POST[$k]) $default[$k] = $_POST[$k];
       if($_POST['test_'.$k]) $default_test[$k] = $_POST['test_'.$k];
     }
-    variable_set("civicrm_neweb_ftp", $default);
-    variable_set("civicrm_neweb_ftp_test", $default_test);
+    variable_set("civicrm_neweb_ftp_".$pid, $default);
+    variable_set("civicrm_neweb_ftp_test_".$pid_test, $default_test);
   }
 }
 
@@ -196,6 +201,9 @@ cj(document).ready(function(){
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
     cj($o).insertAfter(main);
   }
+
+  $o = $(\'<input type="hidden" name="pid" value="\'+def.pid+\'">\');
+  $o.insertAfter(main);
 });  
 ';
   drupal_add_js($js, 'inline', 'footer');

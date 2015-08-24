@@ -311,6 +311,23 @@ function civicrm_neweb_update_6110(){
     variable_del('civicrm_neweb_expire_recur_'.$test);
     variable_del('civicrm_neweb_ezpay_'.$test);
   }
+
+  $ftp = variable_get('civicrm_neweb_ftp', $default);
+  $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
+
+  $sql = "SELECT id, is_test FROM `civicrm_payment_processor` WHERE `payment_processor_type` = 'Neweb'";
+  $dao = CRM_Core_DAO::executeQuery($sql);
+  while($dao->fetch()){
+    $pid = $dao->id;
+    if($dao->is_test == 0){
+       variable_get('civicrm_neweb_ftp_'.$pid, $ftp);  
+    }else{
+      variable_get('civicrm_neweb_ftp_test_'.$pid, $ftp_test);  
+    }
+  }
+
+  variable_del('civicrm_neweb_ftp');
+  variable_del('civicrm_neweb_ftp_test');
 }
 
 
