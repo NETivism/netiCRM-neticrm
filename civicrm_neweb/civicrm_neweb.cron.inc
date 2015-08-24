@@ -280,13 +280,13 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', $now);
           $contribution->trxn_id = $t['ORGORDERNUMBER'];
-          $params['contribution_status_id'] = 1; // if neweb have transaction, add reucrring to correct status.
+          $params['contribution_status_id'] = 5; // if neweb have transaction, add reucrring to correct status.
         }
         // we save contribution first, anyway.
         $contribution->save();
         // we save recur object then
         // In #15801, find this will make recur status wrong. 
-        // CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
+        CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
         
 
         // now we have correct contribution object. procceed.
