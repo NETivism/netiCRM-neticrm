@@ -19,11 +19,11 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   $now = time();
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test", array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, array());
     $payment = $p->getPayment($pid,'test');
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp", array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$pid, array());
     $payment = $p->getPayment($pid,'live');
   }
   $store_name = $payment['user_name'];
@@ -483,14 +483,14 @@ function civicrm_neweb_expire_recur($is_test){
 function _civicrm_neweb_sslftp($id, $localfile, $upload, $is_test){
   $dir = $upload ? 'import' : 'output';
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test", array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$id, array());
     if($ftp['ftp_host'] && $ftp['ftp_user']){
       $cid = ftp_connect($ftp['ftp_host']);
       $login = ftp_login($cid, $ftp['ftp_user'], $ftp['ftp_password']);
     }
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp", array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$id, array());
     if($ftp['ftp_host'] && $ftp['ftp_user']){
       $cid = ssh2_connect($ftp['ftp_host'], 22);
       $login = ssh2_auth_password($cid, $ftp['ftp_user'], $ftp['ftp_password']);
