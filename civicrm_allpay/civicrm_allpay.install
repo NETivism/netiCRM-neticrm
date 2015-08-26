@@ -134,5 +134,5 @@ function civicrm_allpay_update_7101(){
 
   // update recur status
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 3 WHERE contribution_status_id = 1"); // completed
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
 }
