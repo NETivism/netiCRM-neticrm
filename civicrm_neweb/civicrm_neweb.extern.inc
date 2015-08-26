@@ -144,10 +144,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
         // building recurring object stuff
         $recur->processor_id = $objects['paymentProcessor']->id;
-
-        // status id 2 is 'pending'
-        $recur->contribution_status_id = 2;
-
+        
         // caculate end_date
         $recur->create_date = $recur->create_date ? $recur->create_date : $now;
         $recur->modified_date =  $now;

@@ -137,10 +137,13 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
                 CRM_Contribute_BAO_ContributionPage::recurringNotify( 'START', $recur->contact_id, $contrib->contribution_page_id, $recur);
               }
             */
+              // Process
               $params['contribution_status_id'] = 5;
             }
             else{
               $params['contribution_status_id'] = 4; // failed
+              $error = "error : recur_id ". $recur->id . " RESPONSE is ". $r['RESPONSE'];
+              _civicrm_neweb_error($error, $is_test);
             }
             $params['modified_date'] = date('YmdHis');
             CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
@@ -149,7 +152,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
             if($r['RESPONSE'] == '0' || $r['RESPONSE'] == '-31'){
               switch($recur->contribution_status_id){
                 case 2:
-                // status 2 and has cancel_date -> 3
+                  // status 2 and has cancel_date -> 3
                   if(empty($recur->cancel_date)){
                     $error = "error : recur_id ". $recur->id . " 's cancel date doesn't set. current value is ". $recur->cancel_date;
                     _civicrm_neweb_error($error, $is_test);
@@ -158,22 +161,23 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
                   }
                   break;
                 case 6:
-                // status 6 (expired) -> 1 (finished) 
-                    $params['contribution_status_id'] = 1;
+                  // status 6 (expired) -> 1 (finished) 
+                  $params['contribution_status_id'] = 1;
                   break;
                 default:
                   $error = "error : recur_id ". $recur->id . " status doesn't set to pending(2) or expired(6), current is ". $recur->contribution_status_id;
-                    _civicrm_neweb_error($error, $is_test);
+                  _civicrm_neweb_error($error, $is_test);
                   break;
               }
-              $params['modified_date'] = date('YmdHis');
             }
             elseif($r['RESPONSE'] == '-32'){
-            /*
+              // RESPONSE == -32 is Failed
               $params['contribution_status_id'] = 4;
-              $params['modified_date'] = date('YmdHis');
-            */
+              $error = "error : recur_id ". $recur->id . " RESPONSE is ". $r['RESPONSE'];
+              _civicrm_neweb_error($error, $is_test);
             }
+
+            $params['modified_date'] = date('YmdHis');
             CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
             break;
         }
@@ -241,7 +245,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
     }
     foreach($trans as $k => $t){
       if(empty($t)) continue;
-      $params = $ids = array();
+      $recur_params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $t['REFNUMBER'];
       if ( !$recur->find(true) ) {
@@ -259,8 +263,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       }
 
       // exists recurring and not cancelled
-      if($recur->id && ($recur->contribution_status_id == 5 || $recur->contribution_status_id == 2)){
-        $params['id'] = $recur->id;
+      if($recur->id && ($recur->contribution_status_id == 5 || ($recur->contribution_status_id == 2 && empty($recur->cancel_date)))){
+        $recur_params['id'] = $recur->id;
         // check trxn_id first
         $contribution = new CRM_Contribute_DAO_Contribution();
         $contribution->trxn_id = $t['ORGORDERNUMBER'];
@@ -280,13 +284,13 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', $now);
           $contribution->trxn_id = $t['ORGORDERNUMBER'];
-          $params['contribution_status_id'] = 5; // if neweb have transaction, add reucrring to correct status.
+          $recur_params['contribution_status_id'] = 5; // if neweb have transaction, add reucrring to correct status.
         }
         // we save contribution first, anyway.
         $contribution->save();
         // we save recur object then
         // In #15801, find this will make recur status wrong. 
-        CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
+        CRM_Contribute_BAO_ContributionRecur::add( $recur_params, $ids );
         
 
         // now we have correct contribution object. procceed.
