@@ -315,6 +315,7 @@ function civicrm_neweb_update_6110(){
   $ftp = variable_get('civicrm_neweb_ftp', $default);
   $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
 
+  civicrm_initialize();
   $sql = "SELECT id, is_test FROM `civicrm_payment_processor` WHERE `payment_processor_type` = 'Neweb'";
   $dao = CRM_Core_DAO::executeQuery($sql);
   while($dao->fetch()){
