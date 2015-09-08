@@ -269,6 +269,36 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         $contribution->trxn_id = $t['ORGORDERNUMBER'];
         if($contribution->find( true )){
           $contribution->receive_date = date('YmdHis', $now);
+          $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
+          $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
+
+
+          watchdog('civicrm_neweb', 'message'.var_export($recur_params,true) , array(), WATCHDOG_NOTICE, 'link');
+          // we save contribution first, anyway.
+          $contribution->save();
+          // we save recur object then
+          // In #15801, find this will make recur status wrong. 
+          CRM_Contribute_BAO_ContributionRecur::add( $recur_params, $ids );
+
+          // Check the response
+          // Status: Complete
+          if( ($t['PRC'] == 0 && $t['SRC'] == 0) || ($t['PRC'] == '11' && $t['SRC'] == '205') ){
+            $cycle = $recur->cycle + 1;
+            $sql = "UPDATE civicrm_contribution_neweb_recur SET contributions = $now, cycle = $cycle WHERE recur_id = $recur->id";
+            CRM_Core_DAO::executeQuery($sql);
+            watchdog('civicrm_neweb', 'sql'.var_export($sql,true) , array(), WATCHDOG_NOTICE, 'link');
+          }
+          // Status: failed, cancel. We don't have retry mechnism.
+          else{
+            $err= civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
+            // don't use cancel date , don't combine single failure to whole recurring process
+            // $recur->cancel_date = date("Y-m-d H:i:s");
+            // $recur->contribution_status_id = 4;
+            // $recur->failure_count++;
+            // 
+          }
+          _civicrm_neweb_recurring_contact_sync($recur->id);
+
           continue; // skip recurring transaction when specifix transaction id exists.
         }
         else{
