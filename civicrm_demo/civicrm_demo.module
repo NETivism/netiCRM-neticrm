@@ -282,6 +282,10 @@ function civicrm_demo_process_contribution($vars){
 }
 
 function civicrm_demo_create_contribution_page($payment_processor_type){
+  $payment_page = variable_get('civicrm_demo_payment_page', array());
+  if(isset($payment_page[$payment_processor_type])){
+    return $payment_page[$payment_processor_type];
+  }
   // setup payment processor
   $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
 
@@ -314,6 +318,8 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     );
     $qvar = array(1 => array(serialize($payment_instrument) ,'String'));
     CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$result['id']}, entity_table='civicrm_contribution_page', payment_instruments=%1", $qvar);
+    $payment_page[$payment_processor_type] = $contribution_page_id;
+    variable_set('civicrm_demo_payment_page', $payment_page);
   }
   else{
     $contribution_page_id = 1;
