@@ -66,15 +66,18 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       _civicrm_neweb_js_contritweak($processor);
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
+      $pid = $_GET['id'];
+      $pid_test = $pid + 1;
       if($form->_defaultValues['payment_processor_type'] == 'Neweb'){
         $default = array(
+          'pid' => $pid,
           'ftp_host' => '',
           'ftp_user' => '',
           'ftp_password' => '',
         );
-        $ftp = variable_get('civicrm_neweb_ftp', $default);
+        $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
         _civicrm_neweb_js_payment($ftp, 0);
-        $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
+        $ftp_test = variable_get('civicrm_neweb_ftp_test_'.$pid_test, $default);
         _civicrm_neweb_js_payment($ftp_test, 1);
       }
       break;
@@ -110,14 +113,13 @@ function civicrm_neweb_cron(){
   $now = REQUEST_TIME;
   $yesterday = $now - 86400;
   $is_test = 0;
-  $pid = _civicrm_neweb_is_active($is_test);
-  if($pid){
+  $pids = _civicrm_neweb_is_active($is_test);
+  foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
   }
-  $pid = NULL;
   $is_test = 1;
-  $pid = _civicrm_neweb_is_active($is_test);
-  if($pid){
+  $pids = _civicrm_neweb_is_active($is_test);
+  foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
     _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid);
   }
@@ -127,35 +129,35 @@ function civicrm_neweb_cron(){
 function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
   // recurring contributions
   $test = $is_test ? '_test' : '';
-  if($hour >= 19 && $hour <= 23 && variable_get('civicrm_neweb_response'.$test, 0) < $yesterday){
+  if($hour >= 19 && $hour <= 23 && variable_get('civicrm_neweb_response_'.$pid.$test, 0) < $yesterday){
     // get yesterday modification result
-    if(civicrm_neweb_process_response($is_test, NULL, $pid)){
-      variable_set('civicrm_neweb_response'.$test, $now);
+    if(civicrm_neweb_process_response($is_test, $now, $pid)){
+      variable_set('civicrm_neweb_response_'.$pid.$test, $now);
     }
   }
-  if($hour >= 16 && $hour <= 23 && variable_get('civicrm_neweb_transaction'.$test, 0) < $yesterday){
+  if($hour >= 16 && $hour <= 23 && variable_get('civicrm_neweb_transaction_'.$pid.$test, 0) < $yesterday){
     // get yesterday transaction result
-    if(civicrm_neweb_process_transaction($is_test, NULL, $pid)){
-      variable_set('civicrm_neweb_transaction'.$test, $now);
+    if(civicrm_neweb_process_transaction($is_test, $now, $pid)){
+      variable_set('civicrm_neweb_transaction_'.$pid.$test, $now);
     }
   }
-  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded'.$test, 0) < $yesterday){
+  if($hour >= 12 && $hour <= 15 && variable_get('civicrm_neweb_uploaded_'.$pid.$test, 0) < $yesterday){
     // doing upload stuff
     if(civicrm_neweb_process_upload($is_test, $pid)){
-      variable_set('civicrm_neweb_uploaded'.$test, $now);
+      variable_set('civicrm_neweb_uploaded_'.$pid.$test, $now);
     }
   }
-  if(variable_get('civicrm_neweb_end_date_calculate'.$test, 0) < $yesterday){
-    // doing upload stuff
-    if(civicrm_neweb_end_date_calculate($is_test)){
-      variable_set('civicrm_neweb_end_date_calculate'.$test, $now);
+  if(variable_get('civicrm_neweb_expire_recur_'.$pid.$test, 0) < $yesterday){
+    // doing expire recur
+    if(civicrm_neweb_expire_recur($is_test)){
+      variable_set('civicrm_neweb_expire_recur_'.$pid.$test, $now);
     }
   }
 
   // ezpay contributions
-  if($now - variable_get('civicrm_neweb_ezpay', 0) > 7200){
+  if($now - variable_get('civicrm_neweb_ezpay_'.$pid, 0) > 7200){
     civicrm_neweb_process_ezpay($is_test, $now, $pid);
-    variable_set('civicrm_neweb_ezpay'.$test, $now);
+    variable_set('civicrm_neweb_ezpay_'.$pid.$test, $now);
   }
 }
 
@@ -237,6 +239,8 @@ jQuery(document).ready(function($){
     $o.find("input").val(def[i]);
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
     $($o).insertAfter(main);
+    $o = $(\'<input type="hidden" name="pid" value="\'+def.pid+\'">\');
+    $o.insertAfter(main);
   }
 });  
 ';
@@ -336,16 +340,17 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass){
  * @mode put, get, list
  * @is_test test contribution or not
  */
-function _civicrm_neweb_connect($id, $local, $mode, $is_test){
+function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
   $dir = $mode ? 'import' : 'output';
   $mode = $mode ? 'put' : 'get';
   $ret = false;
+  $pid_test = $pid + 1;
 
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test", array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid_test, array());
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp", array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$pid, array());
   }
 
   $function = '_civicrm_neweb_sftp';
@@ -361,8 +366,12 @@ function _civicrm_neweb_connect($id, $local, $mode, $is_test){
 function _civicrm_neweb_is_active($is_test){
   civicrm_initialize();
   $is_test = $is_test ? 1 : 0;
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
-  return $id;
+  $ids = array();
+  $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
+  while($id = $dao->fetch()){
+    $ids[] = $dao->id;
+  }
+  return $ids;
 }
 
 function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
@@ -416,6 +425,16 @@ function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
 }
 
 function _civicrm_neweb_end_date_calculate(&$recur){
+  if($recur->installments == 1){
+    // status 1 is 'completed'
+    $recur->contribution_status_id = 1;
+    return ;
+    // $recur->save();
+    // CRM_Core_Error::debug_log_message( "Instrument is less than 1. Don't send Recur." );
+    // return $recur;
+  }
+
+
   // every recuring contrib start on next month
   $installments_total = $recur->installments - 1;
   if(empty($recur->end_date)){
@@ -446,10 +465,10 @@ function _civicrm_neweb_end_date_calculate(&$recur){
   $recur->next_sched_contribution = date('YmdHis', $next_recur);
   $recur->start_date = $recur->next_sched_contribution;
   $recur->cycle_day = $cycle_day;
-  $recur->contribution_status_id = 2;
-  $recur->save();
-  CRM_Core_Error::debug_log_message( "Done the recurring object save." );
-  return $recur;
+  // $recur->contribution_status_id = 2;
+  // $recur->save();
+  // CRM_Core_Error::debug_log_message( "Done the recurring object save." );
+  // return $recur;
 
 }
 
