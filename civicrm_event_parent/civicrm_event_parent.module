@@ -174,7 +174,7 @@ function civicrm_event_parent_civicrm_buildForm_regRegister( $formName, &$form )
       else{
         $status = t("Please continue enter this form. We suppose you are !relationship of belows, then we will create relationship between you and belows. If you would like to register for yourself, please <a href='!register_link'>use alternative form to register this event</a>.", $status_msg);
       }
-      CRM_Core_Session::setStatus($status);
+      CRM_Core_Session::setStatus($status, FALSE);
       if($rTypeDir == 'b_a'){
         $title_label = 'label_a_b';
       }
@@ -326,6 +326,7 @@ function civicrm_event_parent_set_default($cid, &$form, $type){
   $retrieved = & civicrm_contact_get( $params );
 
   $fields = array_keys($form->_fields);
+  $phone_types = array();
   foreach($fields as $v){
     if(strstr($v, 'phone')){
       list($p, $t, $phone_type) = explode('-', $v);
