@@ -155,7 +155,7 @@ function civicrm_event_parent_civicrm_buildForm_regRegister( $formName, &$form )
       else{
         $status = t("Please continue enter this form. We suppose you are !relationship of belows, then we will create relationship between you and belows. If you would like to register for yourself, please <a href='!register_link'>use alternative form to register this event</a>.", $status_msg);
       }
-      CRM_Core_Session::setStatus($status);
+      CRM_Core_Session::setStatus($status, FALSE);
       if($rTypeDir == 'b_a'){
         $title_label = 'label_a_b';
       }
