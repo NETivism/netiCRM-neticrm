@@ -19,11 +19,11 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   $now = REQUEST_TIME;
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test", array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, array());
     $payment = $p->getPayment($pid,'test');
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp", array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$pid, array());
     $payment = $p->getPayment($pid,'live');
   }
   $store_name = $payment['user_name'];
@@ -92,7 +92,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
     $response_str = file_get_contents($newebpath."/".$filename);
   }
   else{
-    $response_str = _civicrm_neweb_connect($payment['user_name'], $newebpath.'/'.$filename, NEWEB_DOWNLOAD, $is_test);
+    $response_str = _civicrm_neweb_connect($pid, $payment['user_name'], $newebpath.'/'.$filename, NEWEB_DOWNLOAD, $is_test);
   }
 
   if($response_str === false){
@@ -137,25 +137,46 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
                 CRM_Contribute_BAO_ContributionPage::recurringNotify( 'START', $recur->contact_id, $contrib->contribution_page_id, $recur);
               }
             */
-              $params['contribution_status_id'] = 1;
+              // Process
+              $params['contribution_status_id'] = 5;
             }
             else{
               $params['contribution_status_id'] = 4; // failed
+              $error = "error : recur_id ". $recur->id . " RESPONSE is ". $r['RESPONSE'];
+              _civicrm_neweb_error($error, $is_test);
             }
             $params['modified_date'] = date('YmdHis');
             CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
             break;
           case 'delete':
             if($r['RESPONSE'] == '0' || $r['RESPONSE'] == '-31'){
-              $params['contribution_status_id'] = 3;
-              $params['modified_date'] = date('YmdHis');
+              switch($recur->contribution_status_id){
+                case 2:
+                  // status 2 and has cancel_date -> 3
+                  if(empty($recur->cancel_date)){
+                    $error = "error : recur_id ". $recur->id . " 's cancel date doesn't set. current value is ". $recur->cancel_date;
+                    _civicrm_neweb_error($error, $is_test);
+                  }else{
+                    $params['contribution_status_id'] = 3;
+                  }
+                  break;
+                case 6:
+                  // status 6 (expired) -> 1 (finished) 
+                  $params['contribution_status_id'] = 1;
+                  break;
+                default:
+                  $error = "error : recur_id ". $recur->id . " status doesn't set to pending(2) or expired(6), current is ". $recur->contribution_status_id;
+                    _civicrm_neweb_error($error, $is_test);
+                  break;
+              }
             }
             elseif($r['RESPONSE'] == '-32'){
-            /*
+              // RESPONSE == -32 is Failed
               $params['contribution_status_id'] = 4;
-              $params['modified_date'] = date('YmdHis');
-            */
+              $error = "error : recur_id ". $recur->id . " RESPONSE is ". $r['RESPONSE'];
+              _civicrm_neweb_error($error, $is_test);
             }
+            $params['modified_date'] = date('YmdHis');
             CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
             break;
         }
@@ -200,7 +221,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
     $transaction_str  = file_get_contents($newebpath."/".$filename);
   }
   else{
-    $transaction_str = _civicrm_neweb_connect($payment['user_name'], $newebpath.'/'.$filename, NEWEB_DOWNLOAD, $is_test);
+    $transaction_str = _civicrm_neweb_connect($pid, $payment['user_name'], $newebpath.'/'.$filename, NEWEB_DOWNLOAD, $is_test);
   }
 
   if($transaction_str === false){
@@ -216,6 +237,11 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   }
   elseif($transaction_str){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
+
+    // compatibility php 5.2
+    if(function_exists('gc_enable')){
+      gc_enable();
+    }
     foreach($trans as $k => $t){
       $record = array(
         'prc' => $t['PRC'],
@@ -226,7 +252,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       );
 
       if(empty($t)) continue;
-      $params = $ids = array();
+      $recur_params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $t['REFNUMBER'];
       if ( !$recur->find(true) ) {
@@ -244,14 +270,29 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       }
 
       // exists recurring and not cancelled
-      if($recur->id && $recur->contribution_status_id < 3){
-        $params['id'] = $recur->id;
+      if($recur->id && ($recur->contribution_status_id == 5 || ($recur->contribution_status_id == 2 && empty($recur->cancel_date)))){
+        $recur_params['id'] = $recur->id;
         // check trxn_id first
         $contribution = new CRM_Contribute_DAO_Contribution();
         $contribution->trxn_id = $t['ORGORDERNUMBER'];
         if($contribution->find( true )){
           $contribution->receive_date = date('YmdHis', $now);
-          continue; // skip recurring transaction when specifix transaction id exists.
+          $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
+          $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
+          $contribution->save();
+          if($contribution->contribution_status_id == 1){
+            if( ($t['PRC'] == 0 && $t['SRC'] == 0) || ($t['PRC'] == '11' && $t['SRC'] == '205') ){
+              $cycle = $recur->cycle + 1;
+              $sql = "UPDATE civicrm_contribution_neweb_recur SET contributions = $now, cycle = $cycle WHERE recur_id = $recur->id";
+              CRM_Core_DAO::executeQuery($sql);
+            }
+            else{
+              $err = civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
+              // TODO: record failed reason 
+            }
+            _civicrm_neweb_recurring_contact_sync($recur->id);
+            continue; // skip recurring transaction when specifix transaction id exists.
+          }
         }
         else{
           // clone exists
@@ -265,13 +306,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', $now);
           $contribution->trxn_id = $t['ORGORDERNUMBER'];
-          $params['contribution_status_id'] = 1; // if neweb have transaction, add reucrring to correct status.
+          $contribution->save();
         }
-        // we save contribution first, anyway.
-        $contribution->save();
-        // we save recur object then
-        CRM_Contribute_BAO_ContributionRecur::add( $params, $ids );
-        
 
         // now we have correct contribution object. procceed.
         // submit recurring items by ipn functions
@@ -315,15 +351,16 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         }
         // Status: failed, cancel. We don't have retry mechnism.
         else{
-          $err= civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
+          $err = civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
           $IPN->failed($objects, $transaction);
-          // don't use cancel date , don't combine single failure to whole recurring process
-          // $recur->cancel_date = date("Y-m-d H:i:s");
-          // $recur->contribution_status_id = 4;
-          // $recur->failure_count++;
-          // 
+          // TODO: record failed reason 
         }
         _civicrm_neweb_recurring_contact_sync($recur->id);
+      }
+
+      // compatibility php 5.2
+      if(function_exists('gc_collect_cycles')){
+        gc_collect_cycles();
       }
     }
     return TRUE;
@@ -374,11 +411,19 @@ function civicrm_neweb_process_upload($is_test, $pid){
       'STATUS' => '01',
       'MODE' => 0, // 0 for month mode, 1 for date mode
     );
-    $rows[$recur->id] = $upload;
+
+    $alter = array(
+      'module' => 'civicrm_neweb',
+      'params' => $upload,
+    );
+    drupal_alter('civicrm_recur_params', $alter);
+    
+    $rows[$recur->id] = $alter['params'];
   }
 
   // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job.
-  $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now) && cr.is_test = $is_test ORDER BY cr.id ASC";
+  $end = $now - 86400*2;
+  $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE ((cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now)) OR (cr.contribution_status_id = 6 && cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL )) && cr.is_test = $is_test ORDER BY cr.id ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
     $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
@@ -404,7 +449,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $newebpath = _civicrm_neweb_path($is_test);
     $filename = 'RP_'.$payment['user_name'].'_'.date('Ymd').'.dat';
     file_save_data($data, $newebpath.'/'.$filename, FILE_EXISTS_REPLACE);
-    $uploaded =  _civicrm_neweb_connect($payment['user_name'], $newebpath.'/'.$filename, NEWEB_UPLOAD, $is_test);
+    $uploaded =  _civicrm_neweb_connect($pid, $payment['user_name'], $newebpath.'/'.$filename, NEWEB_UPLOAD, $is_test);
     if($uploaded){
       $sql = "UPDATE civicrm_contribution_neweb_recur SET upload=$now WHERE recur_id IN (".implode(',', array_keys($rows)).")";
     }
@@ -414,12 +459,15 @@ function civicrm_neweb_process_upload($is_test, $pid){
   return false;
 }
 
-function civicrm_neweb_end_date_calculate($is_test){
+function civicrm_neweb_expire_recur($is_test){
   $now = REQUEST_TIME;
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
 
   // end recurring calculate
+  
+  // End date should not be calculated again.
+  /*
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.installments IS NOT NULL AND cr.end_date IS NULL AND (cr.contribution_status_id = 1 OR cr.contribution_status_id = 2)  && cr.is_test = $is_test";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while($recur->fetch()){
@@ -434,32 +482,33 @@ function civicrm_neweb_end_date_calculate($is_test){
       $the_end = $recur->end_date;
     }
     _civicrm_neweb_error('Exec civicrm_neweb_end_date_calculate() in cron.', $is_test, WATCHDOG_NOTICE);
-    
   }
+  */ 
   
   // cancel recurring calculate
   // 2 day after end day
   $end = $now - 86400*2;
-  $sql = "SELECT * FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL && cr.is_test = $is_test && cr.contribution_status_id = 1 ORDER BY cr.end_date ASC";
+  $sql = "SELECT * FROM civicrm_contribution_recur cr INNER JOIN civicrm_contribution_neweb_recur cnr ON cr.id = cnr.recur_id WHERE cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL && cr.is_test = $is_test && cr.contribution_status_id = 5 ORDER BY cr.end_date ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
     // just change status to pending and add cancel date.
-    $cancel_date = date('Y-m-d H:i:s', $now);
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET cancel_date = '{$cancel_date}', contribution_status_id = 2 WHERE id = {$recur->id}");
+    // $cancel_date = date('Y-m-d H:i:s', $now);
+    // status 6 is 'expired' , remove cancel_date refs. #15801
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 6 WHERE id = {$recur->id}");
   }
 }
 
 function _civicrm_neweb_sslftp($id, $localfile, $upload, $is_test){
   $dir = $upload ? 'import' : 'output';
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test", array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$id, array());
     if($ftp['ftp_host'] && $ftp['ftp_user']){
       $cid = ftp_connect($ftp['ftp_host']);
       $login = ftp_login($cid, $ftp['ftp_user'], $ftp['ftp_password']);
     }
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp", array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$id, array());
     if($ftp['ftp_host'] && $ftp['ftp_user']){
       $cid = ssh2_connect($ftp['ftp_host'], 22);
       $login = ssh2_auth_password($cid, $ftp['ftp_user'], $ftp['ftp_password']);

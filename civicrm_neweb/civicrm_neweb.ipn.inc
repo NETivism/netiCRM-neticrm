@@ -150,6 +150,14 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $recur->modified_date =  $now;
         
         _civicrm_neweb_end_date_calculate($recur);
+
+        $alter = array(
+          'module' => 'civicrm_neweb',
+          'params' => $input,
+          'object' => $recur,
+        );
+        drupal_alter('civicrm_recur_params', $alter);
+        
         $recur->save();
         CRM_Core_Error::debug_log_message( "Done the recurring object save." );
         CRM_Core_DAO::executeQuery("INSERT INTO civicrm_contribution_neweb_recur (recur_id,order_num,cycle) VALUES ($recur->id, $order_num, 0)");
