@@ -305,12 +305,13 @@ function civicrm_neweb_update_6109(){
 
 function civicrm_neweb_update_6110(){
   $tests = array(0,1);
-  foreach ($tests as $test) {
-    variable_del('civicrm_neweb_response_'.$test);
-    variable_del('civicrm_neweb_transaction_'.$test);
-    variable_del('civicrm_neweb_uploaded_'.$test);
+  foreach ($tests as $item) {
+    $test = $item ? "" : "_test" ;
+    variable_del('civicrm_neweb_response'.$test);
+    variable_del('civicrm_neweb_transaction'.$test);
+    variable_del('civicrm_neweb_uploaded'.$test);
     variable_del('civicrm_neweb_end_date_calculate'.$test);
-    variable_del('civicrm_neweb_ezpay_'.$test);
+    variable_del('civicrm_neweb_ezpay'.$test);
   }
   $ftp = variable_get('civicrm_neweb_ftp', $default);
   $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
