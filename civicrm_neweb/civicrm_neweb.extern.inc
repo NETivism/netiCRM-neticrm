@@ -153,6 +153,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
         $alter = array(
           'module' => 'civicrm_neweb',
+          'params' => $input,
           'object' => $recur,
         );
         drupal_alter('civicrm_recur_params', $alter);
