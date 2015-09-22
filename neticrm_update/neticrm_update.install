@@ -7,8 +7,8 @@ function neticrm_update_install(){
   // from netiCRM 1.3.x, we migrate db update code to here.
   // when new install, we need trigger 6000 update  manually.
 
-  // neticrm_update_update_6000(); // billing location fix
-  // neticrm_update_update_6001(); // contribution page custom field
+  neticrm_update_update_6000(); // billing location fix
+  neticrm_update_update_6001(); // contribution page custom field
   // neticrm_update_update_6002(); // county update for taiwan
   neticrm_update_update_6003(); // contribution message tpl update, #12866
   neticrm_update_update_6102(); // add more custom search
