@@ -135,4 +135,17 @@ function civicrm_allpay_update_7101(){
   // update recur status
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
+
+
+  // update translations
+  if(module_exists('neticrm_update')){
+    module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+    $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_allpay').'/translations/');
+    foreach($files as $f){
+      $filename = basename($f);
+      $langcode = substr($filename, 0, strpos($filename, '.'));
+      neticrm_update_import_po($f, $langcode);
+    }
+  }
+  return 'Allpay successful updated.';
 }
