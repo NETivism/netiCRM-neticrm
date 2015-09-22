@@ -3,7 +3,8 @@
  * Implement hook_install()
  */
 function neticrm_update_install(){
-  // every drupal 7.x based neticrm should have already apply 6000 update
+  // add more custom search
+  neticrm_update_update_6003();
 }
 /**
  * Implement hook_uninstall()
@@ -46,5 +47,8 @@ function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 function neticrm_update_update_6002() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+function neticrm_update_update_6003() {
   return neticrm_update_load_include(__FUNCTION__);
 }

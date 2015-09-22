@@ -40,3 +40,34 @@ function neticrm_update_find_po_files($path, $recurse=TRUE) {
   }
   return $files;
 }
+
+/**
+ * Add custom search if name not exists.
+ *
+ * @param $name string
+ * @param $desc string
+ * return integer id of custom search
+ */
+function neticrm_update_add_custom_search($name, $desc){
+  $find = array(
+    1 => array($name, 'String')
+  );
+  $exists = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE name LIKE %1", $find);
+
+  if(!$exists){
+    $params = array(
+      'label' => $name,
+      'name' => $name,
+      'description' => t($desc),
+      'is_active' => 1,
+    );
+    $group_params = array('name' => 'custom_search');
+    $action = CRM_Core_Action::ADD;
+    $custom_search_id = NULL;
+    $custom_search = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
+    return $custom_search->value;
+  }
+  else{
+    return $exists;
+  }
+}
