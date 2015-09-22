@@ -4,7 +4,8 @@
  */
 function neticrm_update_install(){
   // add more custom search
-  neticrm_update_update_6003();
+  neticrm_update_update_7201();
+  neticrm_update_update_7202();
 }
 /**
  * Implement hook_uninstall()
@@ -49,6 +50,9 @@ function neticrm_update_update_6001() {
 function neticrm_update_update_6002() {
   return neticrm_update_load_include(__FUNCTION__);
 }
-function neticrm_update_update_6003() {
+function neticrm_update_update_7201() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+function neticrm_update_update_7202() {
   return neticrm_update_load_include(__FUNCTION__);
 }
