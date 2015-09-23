@@ -12,6 +12,7 @@ function neticrm_update_install(){
   // neticrm_update_update_6002(); // county update for taiwan
   neticrm_update_update_6003(); // contribution message tpl update, #12866
   neticrm_update_update_6102(); // add more custom search
+  neticrm_update_update_6103(); // update dedupe rule
 }
 /**
  * Implement hook_uninstall()
@@ -78,5 +79,12 @@ function neticrm_update_update_6003() {
  * Add new custom search(recur search ...etc)
  */
 function neticrm_update_update_6102() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update dedupe rule to prevent overwrite individual
+ */
+function neticrm_update_update_6103() {
   return neticrm_update_load_include(__FUNCTION__);
 }
