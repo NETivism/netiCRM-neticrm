@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_6003(){
+function _neticrm_update_update_7201(){
   $msg_title = ts('Contributions - Receipt (on-line)');
   $params = array(1 => array($msg_title, 'String'));
   $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_default = 1", $params);

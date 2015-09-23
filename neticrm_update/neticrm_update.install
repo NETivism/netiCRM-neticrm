@@ -26,33 +26,52 @@ function neticrm_update_load_include($func){
       $filename = $path . $n. '.inc';
       if(file_exists($filename)){
         include $filename;
-        $func = '_'.$func;
-        return $func();
+        if(function_exists($func)){
+          $func = '_'.$func;
+          return $func();
+        }
       }
     }
-    return 'Could not find update file.';
+    throw new DrupalUpdateException('Could not find update file.');
+    return 0;
   }
   else{
-    return 0;
     throw new DrupalUpdateException('Update for netiCRM Fail');
+    return 0;
   }
 }
 
 /**
- * Implement hook_update_N()
+ * Billing location fix
  */
 function neticrm_update_update_6000() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Enable contribution page support custom field
+ */
 function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * County update for taiwan
+ */
 function neticrm_update_update_6002() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update recurring info to contribution message tpl, #12866
+ */
 function neticrm_update_update_7201() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add new custom search(recur search ...etc)
+ */
 function neticrm_update_update_7202() {
   return neticrm_update_load_include(__FUNCTION__);
 }
