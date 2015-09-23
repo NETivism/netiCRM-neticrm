@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_6004(){
+function _neticrm_update_update_6102(){
   module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
   $to_add = array(
     'CRM_Contact_Form_Search_Custom_PriceSetContribution' => ts('Export Price Set Info for a Contribution Page'),
