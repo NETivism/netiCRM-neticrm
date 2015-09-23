@@ -8,12 +8,12 @@
 function _neticrm_update_update_7201(){
   $msg_title = ts('Contributions - Receipt (on-line)');
   $params = array(1 => array($msg_title, 'String'));
-  $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_default = 1", $params);
+  $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_reserved = 1", $params);
 
   if(empty($msg_id)){
     $msg_title = 'Contributions - Receipt (on-line)';
     $params = array(1 => array($msg_title, 'String'));
-    $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_default = 1", $params);
+    $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_reserved = 1", $params);
   }
 
   // updating template
