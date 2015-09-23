@@ -32,12 +32,14 @@ function neticrm_update_load_include($func){
     if(file_exists($filename)){
       include $filename;
       $func = '_'.$func;
-      $ret = $func();
-      if($ret){
-        return array('success' => TRUE, 'query' => $ret);
-      }
-      else{
-        return array('success' => FALSE, 'query' => "Error when udpate to version $n");
+      if(function_exists($func)){
+        $ret = $func();
+        if($ret){
+          return array('success' => TRUE, 'query' => $ret);
+        }
+        else{
+          return array('success' => FALSE, 'query' => "Error when udpate to version $n");
+        }
       }
     }
   }
