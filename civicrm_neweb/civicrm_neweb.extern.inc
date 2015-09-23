@@ -172,7 +172,8 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $contribution->receive_date = date('YmdHis');
         $input['trxn_id'] = $input['OrderNumber'];
         $note .= ts('Completed')."\n";
-        $this->completeTransaction( $input, $ids, $objects, $transaction);
+        $is_recur = TRUE;
+        $this->completeTransaction($input, $ids, $objects, $transaction, $is_recur);
         $this->addNote($note, $contribution);
       }
     }
