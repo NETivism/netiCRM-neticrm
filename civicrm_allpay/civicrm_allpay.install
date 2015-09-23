@@ -112,7 +112,7 @@ function civicrm_allpay_disable() {
 }
 
 /**
- * Implement hook_update_N
+ * Update trxn_id format to support allpay recur(gwsr)
  */
 function civicrm_allpay_update_6101(){
   require_once('civicrm_allpay.module');

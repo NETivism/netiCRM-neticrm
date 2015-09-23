@@ -302,6 +302,9 @@ function civicrm_neweb_update_6109(){
 }
 
 
+/**
+ * Support multiple neweb payment at the same time
+ */
 function civicrm_neweb_update_6110(){
   $tests = array(0,1);
   foreach ($tests as $item) {
@@ -333,6 +336,9 @@ function civicrm_neweb_update_6110(){
 }
 
 
+/**
+ * Correct recur status
+ */
 function civicrm_neweb_update_6111(){
   if(!variable_get('civicrm_neweb_update_6111', false)){
     // modify old status id.
@@ -345,7 +351,6 @@ function civicrm_neweb_update_6111(){
     CRM_Core_DAO::executeQuery($sql);
     variable_set('civicrm_neweb_update_6111', 1);
   }  
-  
 }
 
 

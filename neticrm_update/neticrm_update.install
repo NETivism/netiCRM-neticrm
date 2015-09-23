@@ -45,20 +45,36 @@ function neticrm_update_load_include($func){
 }
 
 /**
- * Implement hook_update_N()
+ * Billing location fix
  */
 function neticrm_update_update_6000() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Enable contribution page support custom field
+ */
 function neticrm_update_update_6001() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * County update for taiwan
+ */
 function neticrm_update_update_6002() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update recurring info to contribution message tpl, #12866
+ */
 function neticrm_update_update_6003() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add new custom search(recur search ...etc)
+ */
 function neticrm_update_update_6102() {
   return neticrm_update_load_include(__FUNCTION__);
 }
