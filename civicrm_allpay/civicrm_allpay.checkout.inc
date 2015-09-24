@@ -104,9 +104,6 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     'DeviceSource' => '',
   );
 
-  
-  watchdog('civicrm_allpay', var_export($args,TRUE));
-
   switch($instrument_code){
     case 'ATM':
       $args['ExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;

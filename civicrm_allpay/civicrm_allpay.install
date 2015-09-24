@@ -85,8 +85,8 @@ function civicrm_allpay_install() {
 function civicrm_allpay_uninstall() {
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor_type WHERE name LIKE 'ALLPAY'");
-  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY'");
+  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor_type WHERE name LIKE 'ALLPAY%'");
+  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY%'");
   CRM_Core_DAO::executeQuery("OPTIMIZE TABLE civicrm_payment_processor_type");
 
   // we won't delete instrument for preserve contribution record
@@ -109,7 +109,7 @@ function civicrm_allpay_enable() {
 function civicrm_allpay_disable() {
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'ALLPAY'");
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'ALLPAY%'");
   CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 0 WHERE payment_processor_type LIKE 'ALLPAY%'");
 }
 

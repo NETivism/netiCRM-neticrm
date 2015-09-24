@@ -6,7 +6,7 @@ date_default_timezone_set("Asia/Taipei");
 /**
  * Helper function for receive pingback from payment server
  */
-function civicrm_allpay_ipn($instrument, $post = NULL, $get = NULL){
+function civicrm_allpay_ipn($instrument, $post = NULL, $get = NULL, $print = TRUE){
       
   // detect variables
   $post = !empty($post) ? $post : $_POST;
@@ -18,9 +18,16 @@ function civicrm_allpay_ipn($instrument, $post = NULL, $get = NULL){
     drupal_not_found();
   }
   else{
-    if($component = $get['module']){
+    $component = $get['module'];
+    if(!empty($component)){
       $ipn = new CRM_Core_Payment_ALLPAYIPN($post, $get);
-      $ipn->main($component, $instrument);
+      $result = $ipn->main($component, $instrument);
+      if(!empty($result) && $print){
+        echo $result;
+      }
+      else{
+        return $result;
+      }
     }
     else{
       watchdog('civicrm_allpay', "Could not get module name from request url");
@@ -74,7 +81,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
 
     if($objects['contribution']->contribution_status_id == 1 && empty($this->_get['is_recur'])){
       // already completed, skip
-      echo '1|OK';
+      return '1|OK';
     }
     else{
       // start validation
@@ -92,11 +99,11 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
         $this->completeTransaction( $input, $ids, $objects, $transaction, $recur );
         $note .= ts('Completed')."\n";
         $this->addNote($note, $contribution);
-        echo '1|OK';
+        return '1|OK';
       }
       else{
         $note .= ts('Failed')."\n";
-        drupal_set_message(ts("Payment Information").": ".ts("Failed").' - '.$input['response_msg']."({$input['response_code']})", 'error');
+        $note .= ts("Payment Information").": ".ts("Failed").' - '.$input['RtnMsg']."({$input['RtnCode']})";
         $this->addNote($note, $objects['contribution']);
       }
     }
@@ -144,7 +151,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     // only validate this when not test.
     if(!empty($input['CheckMacValue'])){
       $mac = _civicrm_allpay_checkmacvalue($this->_post, self::$_payment_processor);
-      if(strtolower($input['CheckMacValue']) != $mac) {
+      if(strtolower($input['CheckMacValue']) != strtolower($mac)) {
         $note .= ts("Failuare: CheckMacValue not match. Contact system admin.")."\n";
         watchdog("civicrm_allpay", "Failuare: CheckMacValue not match. Should be '{$mac}', but '{$input['CheckMacValue']}' displayed.");
         $pass = FALSE;
