@@ -82,7 +82,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
   }
 
   // building vars
-  $amount = strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
+  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
@@ -92,7 +92,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     'TotalAmount' => $amount,
     'TradeDesc' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['description']),
     'ItemName' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['item_name']),
-    'ReturnURL' => $notify_url,
+    'ReturnURL' => $notify_url."&qfKey=".$vars['qfKey'],
     'ChoosePayment' => $instrument_code,
     #'CheckMacValue' => '', // add in civicrm_allpay_checkmacvalue
     'ClientBackURL' => $thankyou_url,
@@ -100,7 +100,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     'Remark' => '',
     'ChooseSubPayment' => '',
     'OrderResultURL' => $thankyou_url,
-    'NeedExtraPaidInfo' => '',
+    'NeedExtraPaidInfo' => 'Y',
     'DeviceSource' => '',
   );
 
@@ -151,6 +151,9 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
         $args['Frequency'] = 1; // now only support continious recurring
         $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
+        if($language->language == 'en'){
+          $args['Language'] = 'ENG';
+        }
       }
       # Recurring
       break;
@@ -225,7 +228,7 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
       'absolute' => true,
     )
   );
-  if($_SERVER['HTTP_HTTPS'] == 'on' || $_SERVER['HTTPS'] == 'on'){
+  if( ( !empty($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
     return str_replace('http://', 'https://', $url);
   }
   else{
@@ -235,7 +238,7 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
 
 function _civicrm_allpay_trxn_id($is_test, $id){
   if($is_test){
-    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id;
+    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. substr(time(), 0, 3);
   }
   return $id;
 }

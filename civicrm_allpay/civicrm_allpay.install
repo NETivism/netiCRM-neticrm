@@ -1,4 +1,10 @@
 <?php
+define('ALLPAY_REAL_DOMAIN', 'https://payment.allpay.com.tw');
+define('ALLPAY_TEST_DOMAIN', 'https://payment-stage.allpay.com.tw');
+define('ALLPAY_URL_SITE', '/Cashier/AioCheckOut');
+define('ALLPAY_URL_API', '/Cashier/QueryTradeInfo');
+define('ALLPAY_URL_RECUR', '/Cashier/QueryCreditCardPeriodInfo');
+
 // $Id: devel.install,v 1.24.2.7 2009/07/30 19:38:48 weitzman Exp $
 /**
  * @file
@@ -37,11 +43,11 @@ function civicrm_allpay_install() {
   civicrm_initialize( );
 
   // new payment processor - credit card (allowed recurring)
-  $sql = "INSERT INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '歐付寶信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', 'https://payment.allpay.com.tw/Cashier/AioCheckOut', 'https://payment.allpay.com.tw/Cashier/QueryTradeInfo', 'https://payment.allpay.com.tw/Cashier/QueryPeriodCreditCardTradeInfo', NULL, 'http://payment-stage.allpay.com.tw/Cashier/AioCheckOut', 'http://payment-stage.allpay.com.tw/Cashier/QueryTradeInfo', 'http://payment-stage.allpay.com.tw/Cashier/QueryPeriodCreditCardTradeInfo', NULL, 4, 1, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '歐付寶信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."', NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."', NULL, 4, 1, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment processor - others (not allowed recurring)
-  $sql = "INSERT INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAYX', '歐付寶非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', 'https://payment.allpay.com.tw/Cashier/AioCheckOut', 'https://payment.allpay.com.tw/Cashier/QueryTradeInfo', 'https://payment.allpay.com.tw/Cashier/QueryPeriodCreditCardTradeInfo', NULL, 'http://payment-stage.allpay.com.tw/Cashier/AioCheckOut', 'http://payment-stage.allpay.com.tw/Cashier/QueryTradeInfo', 'http://payment-stage.allpay.com.tw/Cashier/QueryPeriodCreditCardTradeInfo', NULL, 4, 0, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAYX', '歐付寶非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', NULL, NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', NULL, NULL, 4, 0, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment instrument
@@ -80,8 +86,8 @@ function civicrm_allpay_install() {
 function civicrm_allpay_uninstall() {
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor_type WHERE name LIKE 'ALLPAY'");
-  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY'");
+  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor_type WHERE name LIKE 'ALLPAY%'");
+  CRM_Core_DAO::executeQuery("DELETE FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY%'");
   CRM_Core_DAO::executeQuery("OPTIMIZE TABLE civicrm_payment_processor_type");
 
   // we won't delete instrument for preserve contribution record
@@ -96,9 +102,8 @@ function civicrm_allpay_uninstall() {
 function civicrm_allpay_enable() {
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 1 WHERE name LIKE 'ALLPAY'");
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 1 WHERE payment_processor_type LIKE 'ALLPAY'");
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 1 WHERE payment_processor_type LIKE 'ALLPAY'");
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 1 WHERE name LIKE 'ALLPAY%'");
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 1 WHERE payment_processor_type LIKE 'ALLPAY%'");
 }
 
 /**
@@ -107,8 +112,8 @@ function civicrm_allpay_enable() {
 function civicrm_allpay_disable() {
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'ALLPAY'");
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 0 WHERE payment_processor_type LIKE 'ALLPAY'");
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'ALLPAY%'");
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 0 WHERE payment_processor_type LIKE 'ALLPAY%'");
 }
 
 /**
@@ -132,5 +137,42 @@ function civicrm_allpay_update_6101(){
     }
   }
 
+  return $ret;
+}
+
+/**
+ * Update recurring status and translations
+ */
+function civicrm_allpay_update_6102(){
+  civicrm_initialize();
+
+  // update payment processor api url
+  $result = CRM_Core_DAO::executeQuery("SELECT id, is_test FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY%'");
+  while($result->fetch()){
+    $base = $result->is_test ? ALLPAY_TEST_DOMAIN : ALLPAY_REAL_DOMAIN;
+    $update = array(
+      1 => array($base.ALLPAY_URL_SITE,'String'),
+      2 => array($base.ALLPAY_URL_API,'String'),
+      3 => array($base.ALLPAY_URL_RECUR,'String'),
+      9 => array($result->id, 'Integer')
+    );
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET url_site = %1, url_api = %2, url_recur = %3 WHERE id = %9", $update);
+  }
+
+  // update recur status
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
+
+  // update translations
+  if(module_exists('neticrm_update')){
+    module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+    $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_allpay').'/translations/');
+    foreach($files as $f){
+      $filename = basename($f);
+      $langcode = substr($filename, 0, strpos($filename, '.'));
+      neticrm_update_import_po($f, $langcode);
+    }
+  }
+  $ret = array();
   return $ret;
 }
