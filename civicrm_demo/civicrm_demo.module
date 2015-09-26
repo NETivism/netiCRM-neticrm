@@ -578,6 +578,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
           'subject' => !empty($p['subject_label']) ? $p['subject'] : NULL,
           'url_site' => !empty($p['url_site_default']) ? $p['url_site_default'] : NULL,
           'url_api' => !empty($p['url_api_default']) ? $p['url_api_default'] : NULL,
+          'url_recur' => !empty($p['url_recur_default']) ? $p['url_recur_default'] : NULL,
           'class_name' => $p['class_name'],
           'billing_mode' => $p['billing_mode'],
           'is_recur' => $p['is_recur'],
