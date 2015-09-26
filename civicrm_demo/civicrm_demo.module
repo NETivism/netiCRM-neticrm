@@ -223,9 +223,9 @@ function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
 
   if(module_exists('civicrm_allpay')){
-    $contribution_page_id[] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
+    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
   }
-  if(module_exists('civicrm_allpay')){
+  if(module_exists('civicrm_neweb')){
     $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
   }
 
@@ -552,7 +552,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
     $domain_id = CRM_Core_Config::domainID();
     foreach($result['values'] as $type_id => $p){
       $p = array_merge($p, $default);
-      $payment_name = 'AUTO payment '.$p['name'];
+      $payment_name = $p['name'].'金流';
       $payment_processor = array(
         'version' => 3,
         'name' => $payment_name,
