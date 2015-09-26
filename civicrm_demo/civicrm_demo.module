@@ -118,12 +118,12 @@ function civicrm_demo_process_event($vars){
     $params['is_show_location'] = 0;
     $params['start_date'] = date('Ymd', $now+$i*86400*5);
     $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
-    $params['registration_start_date'] = date('Ymd', $now-$i*86400*2);
-    $params['registration_end_date'] = date('Ymd', $now+$i*86400*2);
+    $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
+    $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
     $params['max_participants'] = 5;
 
     if($seed == 0 || $seed == 4){
-      $params['max_participants'] = 0;  
+      $params['max_participants'] = "";  
     }
     if($seed == 3 || $seed == 4){
       $params['requires_approval'] = 1;
