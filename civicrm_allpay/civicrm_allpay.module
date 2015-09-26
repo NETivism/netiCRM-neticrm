@@ -375,7 +375,7 @@ function civicrm_allpay_recur_sync(){
   }
 }
 
-function civicrm_allpay_recur_check($rid){
+function civicrm_allpay_recur_check($rid, $order = NULL){
   civicrm_initialize();
   $now = time();
   $query = "SELECT c.id as cid, c.contact_id, c.is_test, c.trxn_id, c.payment_processor_id as pid, c.contribution_status_id, r.id as rid, r.contribution_status_id as recurring_status FROM civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE r.id = %1 ORDER BY c.id ASC";
@@ -402,7 +402,9 @@ function civicrm_allpay_recur_check($rid){
         'TimeStamp' => $now,
       );
       _civicrm_allpay_checkmacvalue($post_data, $processor);
-      $order = _civicrm_allpay_postdata($payment_processor['url_recur'], $post_data);
+      if(empty($order)){
+        $order = _civicrm_allpay_postdata($payment_processor['url_recur'], $post_data);
+      }
       if(!empty($order) && $order->MerchantTradeNo == $result->trxn_id && count($order->ExecLog > 1)){
         // update recur status
         $recur = $order->ExecStatus;
