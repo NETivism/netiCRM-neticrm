@@ -592,6 +592,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $payment_processor['is_test'] = 1;
         $payment_processor['url_site'] = !empty($p['url_site_test_default']) ? $p['url_site_test_default'] : NULL;
         $payment_processor['url_api'] = !empty($p['url_api_test_default']) ? $p['url_api_test_default'] : NULL;
+        $payment_processor['url_recur'] = !empty($p['url_recur_test_default']) ? $p['url_recur_test_default'] : NULL;
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
       }
     }
