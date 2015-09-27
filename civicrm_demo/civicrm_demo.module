@@ -643,7 +643,7 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_recur_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
     $default['ftp_host'] = '127.0.0.1';
     $default['ftp_user'] = 'user'; 
-    $default['ftp_password'] = 'abcd1234;
+    $default['ftp_password'] = 'abcd1234';
   }
   return $default;
 }
