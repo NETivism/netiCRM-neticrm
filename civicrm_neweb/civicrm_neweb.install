@@ -263,7 +263,6 @@ function civicrm_neweb_update_6109(){
   civicrm_initialize();
   $query = CRM_Core_DAO::executeQuery("SELECT count(id) as counter, group_concat(id) as ids, group_concat(receipt_id) as receipt_ids FROM civicrm_contribution where receipt_id IS NOT NULL AND receipt_id != '' group by receipt_id having count(id) > 1");
   while($query->fetch()){
-    dpm($query->ids);
     $ids = $receipt_ids = array();
     $ids = explode(',', $query->ids);
     $receipt_ids = explode(',', $query->receipt_ids);
