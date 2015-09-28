@@ -635,7 +635,6 @@ function _civicrm_neweb_path($is_test){
   }
   $newebfolderurl = 'public://' . $newebfolder;
   file_prepare_directory($newebfolderurl, FILE_CREATE_DIRECTORY);
-  $newebpath = variable_get('file_public_path', conf_path() . '/files') . '/' . $newebfolder;
   file_prepare_directory($newebpath, FILE_MODIFY_PERMISSIONS);
   return $newebpath;
 }
