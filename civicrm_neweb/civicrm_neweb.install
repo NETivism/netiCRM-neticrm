@@ -330,8 +330,8 @@ function civicrm_neweb_update_6110(){
     }
   }
 
-  // variable_del('civicrm_neweb_ftp');
-  // variable_del('civicrm_neweb_ftp_test');
+  variable_del('civicrm_neweb_ftp');
+  variable_del('civicrm_neweb_ftp_test');
 }
 
 
