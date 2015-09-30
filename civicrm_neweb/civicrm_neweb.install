@@ -324,14 +324,14 @@ function civicrm_neweb_update_6110(){
   while($dao->fetch()){
     $pid = $dao->id;
     if($dao->is_test == 0){
-       variable_get('civicrm_neweb_ftp_'.$pid, $ftp);  
+       variable_set('civicrm_neweb_ftp_'.$pid, $ftp);  
     }else{
-      variable_get('civicrm_neweb_ftp_test_'.$pid, $ftp_test);  
+      variable_set('civicrm_neweb_ftp_test_'.$pid, $ftp_test);  
     }
   }
 
-  variable_del('civicrm_neweb_ftp');
-  variable_del('civicrm_neweb_ftp_test');
+  // variable_del('civicrm_neweb_ftp');
+  // variable_del('civicrm_neweb_ftp_test');
 }
 
 
