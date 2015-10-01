@@ -396,7 +396,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $contrib->fetch();
 
     // skip in-complete transaction if first contribution still have problem
-    if($contrib->contribution_status_id != 1) continue;
+    if($contrib->contribution_status_id != 1 || $contrib->payment_processor_id != $pid) continue;
 
     // start to collect output file string
     $upload = array(
@@ -426,12 +426,14 @@ function civicrm_neweb_process_upload($is_test, $pid){
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE ((cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now)) OR (cr.contribution_status_id = 6 && cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL )) && cr.is_test = $is_test ORDER BY cr.id ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
   while( $recur->fetch() ){
-    $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
+    $contrib = CRM_Core_DAO::executeQuery("SELECT payment_processor_id, trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($recur->id, 'Integer')));
+    $contrib->fetch();
+    if($contrib->payment_processor_id != $pid) continue;
     // start to collect output file string
     $upload = array(
       'MERCHANTNUMBER' => $payment['user_name'],
       'REFNUMBER' => $recur->id,
-      'ORDERNUMBER' => $trxn_id,
+      'ORDERNUMBER' => $contrib->trxn_id,
       'BRAND' => '',       // null for our status
       'EXPIREDATE' => '',  // null for our status
       'AMOUNT' => (int)$recur->amount,
