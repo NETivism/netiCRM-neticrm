@@ -76,8 +76,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
           'ftp_password' => '',
         );
         $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
+        $ftp['pid'] = $pid;
         _civicrm_neweb_js_payment($ftp, 0);
         $ftp_test = variable_get('civicrm_neweb_ftp_test_'.$pid_test, $default);
+        $ftp_test['test_pid'] = $pid_test;
         _civicrm_neweb_js_payment($ftp_test, 1);
       }
       break;
@@ -89,7 +91,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
  */
 function civicrm_neweb_civicrm_postProcess($form_name, &$form){
   if($form_name == 'CRM_Admin_Form_PaymentProcessor'){
+    $pid = $_POST['pid'];
+    $pid_test = $_POST['test_pid'];
     $default = array(
+      'pid' => '',
       'ftp_host' => '',
       'ftp_user' => '',
       'ftp_password' => '',
@@ -98,8 +103,8 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
       if($_POST[$k]) $default[$k] = $_POST[$k];
       if($_POST['test_'.$k]) $default_test[$k] = $_POST['test_'.$k];
     }
-    variable_set("civicrm_neweb_ftp", $default);
-    variable_set("civicrm_neweb_ftp_test", $default_test);
+    variable_set("civicrm_neweb_ftp_".$pid, $default);
+    variable_set("civicrm_neweb_ftp_test_".$pid_test, $default_test);
   }
 }
 
@@ -239,7 +244,7 @@ jQuery(document).ready(function($){
     $o.find("input").val(def[i]);
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
     $($o).insertAfter(main);
-    $o = $(\'<input type="hidden" name="pid" value="\'+def.pid+\'">\');
+    $o = $(\'<input type="hidden" name="'.$test.'pid" value="\'+def.'.$test.'pid+\'">\');
     $o.insertAfter(main);
   }
 });  
@@ -344,10 +349,9 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
   $dir = $mode ? 'import' : 'output';
   $mode = $mode ? 'put' : 'get';
   $ret = false;
-  $pid_test = $pid + 1;
 
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid_test, array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, array());
   }
   else{
     $ftp = variable_get("civicrm_neweb_ftp_".$pid, array());
