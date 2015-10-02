@@ -70,8 +70,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
           'ftp_password' => '',
         );
         $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
+        $ftp['pid'] = $pid;
         _civicrm_neweb_js_payment($ftp, 0);
         $ftp_test = variable_get('civicrm_neweb_ftp_test_'.$pid_test, $default);
+        $ftp_test['test_pid'] = $pid_test;
         _civicrm_neweb_js_payment($ftp_test, 1);
       }
       break;
@@ -86,6 +88,7 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
     $pid = $_POST['pid'];
     $pid_test = $pid + 1;
     $default = array(
+      'pid' => '',
       'ftp_host' => '',
       'ftp_user' => '',
       'ftp_password' => '',
@@ -202,7 +205,7 @@ cj(document).ready(function(){
     cj($o).insertAfter(main);
   }
 
-  $o = $(\'<input type="hidden" name="pid" value="\'+def.pid+\'">\');
+  $o = $(\'<input type="hidden" name="'.$test.'pid" value="\'+def.'.$test.'pid+\'">\');
   $o.insertAfter(main);
 });  
 ';
