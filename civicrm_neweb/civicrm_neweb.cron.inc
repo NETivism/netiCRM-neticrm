@@ -208,6 +208,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
 
+  $line_counter = variable_get('civicrm_neweb_process_transaction_count', -1);
+
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $payment = $p->getPayment($pid,'test');
@@ -239,14 +241,19 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
 
     $times_counter = 0;
+    $times_limit = 100;
 
     // compatibility php 5.2
     if(function_exists('gc_enable')){
       gc_enable();
     }
     foreach($trans as $k => $t){
-      if(empty($t)) continue;
+      if(empty($t) || $k <= $line_counter) continue;
       $times_counter++;
+      if($times_counter > $times_limit){
+        break;
+      }
+      $line_counter++;
       $recur_params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $t['REFNUMBER'];
@@ -358,11 +365,13 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       if(function_exists('gc_collect_cycles')){
         gc_collect_cycles();
       }
-
-      if($times_counter >= 100){
-        return FALSE;
-      }
     }
+    
+    if($times_counter > $times_limit){
+      variable_set('civicrm_neweb_process_transaction_count', $line_counter);
+      return FALSE;
+    }
+    variable_del('civicrm_neweb_process_transaction_count');
     return TRUE;
   }
 }
