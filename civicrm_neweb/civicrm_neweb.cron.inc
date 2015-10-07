@@ -238,12 +238,15 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   elseif($transaction_str){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
 
+    $times_counter = 0;
+
     // compatibility php 5.2
     if(function_exists('gc_enable')){
       gc_enable();
     }
     foreach($trans as $k => $t){
       if(empty($t)) continue;
+      $times_counter++;
       $recur_params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $t['REFNUMBER'];
@@ -354,6 +357,10 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       // compatibility php 5.2
       if(function_exists('gc_collect_cycles')){
         gc_collect_cycles();
+      }
+
+      if($times_counter >= 100){
+        return FALSE;
       }
     }
     return TRUE;
