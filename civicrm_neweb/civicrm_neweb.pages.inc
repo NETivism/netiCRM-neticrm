@@ -10,7 +10,7 @@ function civicrm_neweb_recurring_page(){
   civicrm_initialize();
   if($_GET['action'] == 'stop' && is_numeric(arg(3))){
     $recur_id = arg(3);
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET cancel_date = '".date('Y-m-d H:i:s')."' WHERE id = $recur_id");
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET cancel_date = '".date('Y-m-d H:i:s')."' , contribution_status_id = 2 WHERE id = $recur_id");
     drupal_set_message('已成功停止定期定額捐款 #'.arg(3));
     drupal_goto('civicrm/contribute/recurring_nw');
   }
