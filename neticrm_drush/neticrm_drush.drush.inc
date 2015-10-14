@@ -33,8 +33,17 @@ function neticrm_drush_drush_command() {
 function drush_neticrm_schedule_job($function = NULL){
   $jobs = variable_get('drush_neticrm_schedule', array());
 
+  $jobs_default = _drush_neticrm_schedule_default();
   if(empty($jobs)){
-    $jobs = _drush_neticrm_schedule_default();
+    $jobs = $jobs_default;
+  }
+  else{
+    // use default frequency
+    foreach($jobs as $k => $j){
+      if(!empty($jobs_default[$k]['frequency'])){
+        $jobs[$k]['frequency'] = $jobs_default[$k]['frequency'];
+      }
+    }
   }
 
   $error = FALSE;
@@ -105,7 +114,7 @@ function _drush_neticrm_schedule_default(){
 
     // process greeting update
     'run_contact_greeting_update' => array(
-      'frequency' => 604800, // seconds
+      'frequency' => 21600, // seconds
       'last' => 0, // unix timestamp
     ),
 
