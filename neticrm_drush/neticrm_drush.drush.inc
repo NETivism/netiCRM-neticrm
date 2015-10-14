@@ -34,10 +34,15 @@ function drush_neticrm_schedule_job($function = NULL){
   $jobs = variable_get('drush_neticrm_schedule', array());
 
   $jobs_default = _drush_neticrm_schedule_default();
-  // use default frequency
-  foreach($jobs as $k => $j){
-    if(!empty($jobs_default[$k]['frequency'])){
-      $jobs[$k]['frequency'] = $jobs_default[$k]['frequency'];
+  if(empty($jobs)){
+    $jobs = $jobs_default;
+  }
+  else{
+    // use default frequency
+    foreach($jobs as $k => $j){
+      if(!empty($jobs_default[$k]['frequency'])){
+        $jobs[$k]['frequency'] = $jobs_default[$k]['frequency'];
+      }
     }
   }
 
