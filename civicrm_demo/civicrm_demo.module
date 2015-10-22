@@ -154,6 +154,9 @@ function civicrm_demo_process_contact($vars){
 function civicrm_demo_process_event($vars){
   $now = time();
 
+  civicrm_initialize();
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
+
   // create 5 events
   $title = array(
       '無名額限制，填表完成送出',
