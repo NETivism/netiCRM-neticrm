@@ -149,6 +149,9 @@
 
           var checkboxes = $(this).parents(".crm-section:first").find(":input:visible[type=checkbox]");
           checkboxes.parents("div.content:first").addClass("ckbox");
+
+          var advselect = $(this).parents(".crm-section:first").find(".advmultiselect select[multiple]");
+          advselect.removeClass("required");
         }
       });
       if($(this).attr("id")){
