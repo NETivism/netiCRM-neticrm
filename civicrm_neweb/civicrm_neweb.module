@@ -321,7 +321,22 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
   $remote = $dir."/".basename($local);
   $ret = call_user_func($function, $mode, $local, $remote, $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password']);
 
+  if(!$ret && !$is_test){
+    // send email To User1
+    $time = time();
+    $user = user_load(array('uid' => '1'));
+    drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw');
+  }
+
   return $ret;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function civicrm_neweb_mail($key, &$message, $params) {
+  $message['subject'] = t('neweb sftp error.');
+  $message['body'][] = t('There are some errors about logining to neweb sftp, Please check the payment processor settings.');
 }
 
 /**
