@@ -13,6 +13,7 @@
  * @return bool success
  */
 function neticrm_update_import_po($pofile, $langcode, $mode = LOCALE_IMPORT_OVERWRITE, $group = 'default') {
+  include_once('includes/locale.inc');
   $file = new stdClass;
   $file->filepath = $pofile;
   $file->filename = basename($pofile);
