@@ -109,6 +109,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   $post['paymenttype'] = $neweb_instrument;
   $post['paytitle'] = truncate_utf8($params['item_name'], 12);
   $post['bankid'] = '007';
+  $post['duedate'] = date('Ymd', time()+86400*7);
   if($neweb_instrument == 'CS'){
     $post['payname'] = $params['last_name']." ".$params['first_name'];
     if($params['phone']){
