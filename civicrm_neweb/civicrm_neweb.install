@@ -303,7 +303,10 @@ function civicrm_neweb_update_6109(){
 
 }
 
-function civicrm_neweb_update_6110(){
+/**
+ * Write ftp infomation from single payment processor to multiple.
+ */
+function civicrm_neweb_update_7201(){
   $tests = array(0,1);
   foreach ($tests as $item) {
     $test = $item ? "" : "_test" ;
@@ -313,9 +316,12 @@ function civicrm_neweb_update_6110(){
     variable_del('civicrm_neweb_end_date_calculate'.$test);
     variable_del('civicrm_neweb_ezpay'.$test);
   }
-  $ftp = variable_get('civicrm_neweb_ftp', $default);
-  $ftp_test = variable_get('civicrm_neweb_ftp_test', $default);
+  $ftp = variable_get('civicrm_neweb_ftp', NULL);
+  $ftp_test = variable_get('civicrm_neweb_ftp_test', NULL);
 
+  if(empty($ftp) && empty($ftp_test))return ;
+
+  civicrm_initialize();
   $sql = "SELECT id, is_test FROM `civicrm_payment_processor` WHERE `payment_processor_type` = 'Neweb'";
   $dao = CRM_Core_DAO::executeQuery($sql);
   while($dao->fetch()){
