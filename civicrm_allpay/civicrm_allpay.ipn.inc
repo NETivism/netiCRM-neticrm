@@ -169,7 +169,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       if($this->_get['is_recur']){
         $trxn_id = _civicrm_allpay_recur_trxn($input['MerchantTradeNo'], $input['Gwsr']);
         $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
-        if($input['RtnCode'] != 1 || !$pass){
+        if($input['RtnCode'] != 1){
           $contribution->contribution_status_id = 4; // Failed
           $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }

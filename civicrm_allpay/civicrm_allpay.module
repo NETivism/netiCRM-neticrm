@@ -436,7 +436,13 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
           if($order->gwsr == $o->gwsr){
             continue;
           }
-          $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $o->gwsr);
+          $hash = substr(md5(implode('', (array)$o)), 0, 8);
+          if(!empty($o->gwsr)){
+            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $o->gwsr);
+          }
+          else{
+            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $hash);
+          }
           $orders[$trxn_id] = $o;
         }
         // remove exists records
@@ -447,23 +453,25 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
         if(!empty($orders)){
           foreach($orders as $o){
             $get = $post = $ids = array();
+            $hash = substr(md5(implode('', (array)$o)), 0, 8);
             $ids = CRM_Contribute_BAO_Contribution::buildIds($first_contrib_id);
             $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
             parse_str($query, $get);
             $get['is_recur'] = 1;
+            $rtncode = !empty($o->gwsr) ? $order->RtnCode : 'uncertain';
             $post = array(
               'MerchantID' => $order->MerchantID,
               'MerchantTradeNo' => $order->MerchantTradeNo,
-              'RtnCode' => $order->RtnCode,
-              'RtnMsg' => '',
+              'RtnCode' => $rtncode,
+              'RtnMsg' => _civicrm_allpay_error_msg($rtncode),
               'PeriodType' => $order->PeriodType,
               'Frequency' => $order->Frequency,
               'ExecTimes' => $order->ExecTimes,
-              'Amount' => $o->amount,
-              'Gwsr' => $o->gwsr,
+              'Amount' => !empty($o->amount) ? $o->amount : $order->amount,
+              'Gwsr' => !empty($o->gwsr) ? $o->gwsr : $hash,
               'ProcessDate' => $o->process_date,
-              'AuthCode' => $o->auth_code,
-              'FirstAuthAmount' => $o->PeriodAmount,
+              'AuthCode' => !empty($o->auth_code) ? $o->auth_code : '',
+              'FirstAuthAmount' => $order->PeriodAmount,
               'TotalSuccessTimes' => $order->TotalSuccessTimes,
               //'SimulatePaid' => $order->SimulatePaid,
             );
@@ -545,6 +553,13 @@ function _civicrm_allpay_cancel_recuring_message(){
 
 
 function _civicrm_allpay_error_msg($code){
+  $code = (string) $code;
+  // success
+  if($code == '1' || $code == '2'){
+    return;
+  }
+
+  // error
   $msg = array(
     '10100001' => 'IP Access Denied.',
     '10100050' => 'Parameter Error.',
@@ -563,6 +578,7 @@ function _civicrm_allpay_error_msg($code){
     '10200052' => 'MerchantTradeNo Error.',
     '10200073' => 'CheckMacValue Error',
     '10200124' => 'TopUpUsedESUN Trade Error',
+    'uncertain' => 'Go check in allpay.com.tw',
   );
   if(!empty($msg[$code])){
     return t($msg[$code]);
