@@ -352,4 +352,9 @@ function civicrm_neweb_update_6111(){
   }  
 }
 
-
+/**
+ * Update variable in _civicrm_neweb_scan_missing_transaction function
+ */
+function civicrm_neweb_update_6112(){
+  variable_del('civicrm_neweb_scan', $now);
+}

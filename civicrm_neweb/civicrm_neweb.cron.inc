@@ -209,7 +209,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.extern');
 
   $test = $is_test ? '_test' : '';
-  $line_counter = variable_get('civicrm_neweb_process_transaction_count_'.$pid.$test, -1);
+  $line_counter = variable_get('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now), -1);
 
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
@@ -369,10 +369,10 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
     }
     
     if($times_counter > $times_limit){
-      variable_set('civicrm_neweb_process_transaction_count_'.$pid.$test, $line_counter);
+      variable_set('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now), $line_counter);
       return FALSE;
     }
-    variable_del('civicrm_neweb_process_transaction_count_'.$pid.$test);
+    variable_del('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now));
     return TRUE;
   }
 }
