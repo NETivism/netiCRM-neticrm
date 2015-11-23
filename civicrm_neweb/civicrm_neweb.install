@@ -348,3 +348,10 @@ function civicrm_neweb_update_7200() {
   );
   db_add_field('civicrm_contribution_neweb', 'data', $new_field);
 }
+
+/**
+ * Update variable in _civicrm_neweb_scan_missing_transaction function
+ */
+function civicrm_neweb_update_7202(){
+  variable_del('civicrm_neweb_scan');
+}

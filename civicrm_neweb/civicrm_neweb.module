@@ -121,12 +121,13 @@ function civicrm_neweb_cron(){
   $pids = _civicrm_neweb_is_active($is_test);
   foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
+    _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterday, $pid);
   }
   $is_test = 1;
   $pids = _civicrm_neweb_is_active($is_test);
   foreach ($pids as $pid) {
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
-    _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid);
+    _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterday, $pid);
   }
 }
 
@@ -160,7 +161,7 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
   }
 
   // ezpay contributions
-  if($now - variable_get('civicrm_neweb_ezpay_'.$pid, 0) > 7200){
+  if($now - variable_get('civicrm_neweb_ezpay_'.$pid.$test, 0) > 7200){
     civicrm_neweb_process_ezpay($is_test, $now, $pid);
     variable_set('civicrm_neweb_ezpay_'.$pid.$test, $now);
   }
@@ -378,27 +379,35 @@ function _civicrm_neweb_is_active($is_test){
   return $ids;
 }
 
-function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
+function _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterday, $pid){
   // one time a day
   // only process non-test contribution
-  if($hour >= 1 && $hour <= 5 && variable_get('civicrm_neweb_scan', 0) < $yesterday){
+  if($hour >= 1 && $hour <= 5 && variable_get('civicrm_neweb_scan_'.$pid.$is_test, 0) < $yesterday){
     // look back 7 days to see if we miss some file from neweb
     $week = array();
-    $path = _civicrm_neweb_path(0);
+    $path = _civicrm_neweb_path($is_test);
     for($i = 1; $i<=7; $i++){
-      $offset = $i*86400;
+      $offset = $i * 86400;
       $date = $now - $offset;
       // try to find some file
       $ymd = date('Ymd', $date);
       $week[$ymd] = $ymd;
     }
 
-    $result = glob($path.'/RP_Trans_*{'.implode(',', $week).'}.log',GLOB_BRACE);
+    // require_once 'CRM/Core/Payment.php'; 
+    $p = new CRM_Core_BAO_PaymentProcessor();
+    $live_test = $is_test ? 'test' : 'live';
+    $test = $is_test ? '_test' : '';
+    $payment = $p->getPayment($pid,$live_test);
+
+    $result = glob($path.'/RP_Trans_'.$payment['user_name'].'_{'.implode(',', $week).'}.log',GLOB_BRACE);
     foreach($result as $filename){
       // to see what days we miss
+      // If the file exit and doesn't has batch. 
       preg_match('/_([0-9]{4,})\.log$/i', $filename, $matches);
       $ymd = $matches[1];
-      if($ymd){
+      $line_counter = variable_get('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.$ymd, -1);
+      if($ymd && ($line_counter == -1)){
         unset($week[$ymd]);
       }
     }
@@ -407,10 +416,22 @@ function _civicrm_neweb_scan_missing_transaction($now, $hour, $yesterday, $pid){
     if(count($week)){
       foreach($week as $ymd){
         $date = strtotime($ymd);
-        civicrm_neweb_process_transaction(0, $date, $pid);
+        if(!civicrm_neweb_process_transaction($is_test, $date, $pid)){
+          $flag = true;
+          $error = "Doesn't finish process missing transaction file. PP ID is $pid. File should be RP_Trans_".$payment['user_name']."_$ymd.log";
+          _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
+        }
       }
     }
-    variable_set('civicrm_neweb_scan', $now);
+    if(!$flag){
+      variable_set('civicrm_neweb_scan_'.$pid.$is_test, $now);
+      $error = "Finished last 7 days. PP ID is $pid.";
+      _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
+      return ;
+    }
+    $error = "Solving missing transaction doesn't finish. PP ID is $pid.";
+    _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
+    return ;
   }
 }
 
