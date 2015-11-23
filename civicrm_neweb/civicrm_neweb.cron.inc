@@ -31,7 +31,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   $list = _civicrm_neweb_sftp('list', '', 'output', $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password']);
 
   if(!is_array($list)){
-    watchdog('civicrm_neweb', 'Sync error. Can\'t get remote file list.');
+    _civicrm_neweb_error('Sync error. Can\'t get remote file list.', $is_test);
   }
   $xx = 0;
   while($last_month < $now){
@@ -97,12 +97,12 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 
   if($response_str === false){
     // error when download files
-    $error = "error in civicrm_newwweb_process_response: Can't download files. ";
+    $error = "error in civicrm_neweb_process_response: Can't download files. ";
     _civicrm_neweb_error($error, $is_test);
     return FALSE;
   }
   elseif($response_str == -1){
-    // $error = "error in civicrm_newwweb_process_response: No response today.";
+    // $error = "error in civicrm_neweb_process_response: No response today.";
     // _civicrm_neweb_error($error, $is_test);
     return -1;
   }
@@ -166,7 +166,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
                   break;
                 default:
                   $error = "error : recur_id ". $recur->id . " status doesn't set to pending(2) or expired(6), current is ". $recur->contribution_status_id;
-                    _civicrm_neweb_error($error, $is_test);
+                  _civicrm_neweb_error($error, $is_test);
                   break;
               }
             }
@@ -184,7 +184,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 
 /*
       // fail
-      $error = "error in civicrm_newwweb_process_response:". $r['REFNUMBER'] . ":" . $r['RESPONSE'];
+      $error = "error in civicrm_neweb_process_response:". $r['REFNUMBER'] . ":" . $r['RESPONSE'];
       _civicrm_neweb_error($error, $is_test);
 */
     }
@@ -207,6 +207,9 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.ipn');
 
+  $test = $is_test ? '_test' : '';
+  $line_counter = variable_get('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now), -1);
+
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $payment = $p->getPayment($pid,'test');
@@ -226,32 +229,32 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 
   if($transaction_str === false){
     // error when download files
-    $error = "In civicrm_newwweb_process_transaction: Today have nothing to download. ";
-    _civicrm_neweb_error($error, $is_test);
+    $error = "In civicrm_neweb_process_transaction: Today have nothing to download. ";
+    _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
   }
   elseif($transaction_str == -1){
     // have file but no response
-    // $error = "error in civicrm_newwweb_process_response: No response today.";
+    // $error = "error in civicrm_neweb_process_response: No response today.";
     // _civicrm_neweb_error($error, $is_test);
     return -1;
   }
   elseif($transaction_str){
     $trans = _civicrm_neweb_decodeline($transaction_str,'transaction');
 
+    $times_counter = 0;
+    $times_limit = 100;
+
     // compatibility php 5.2
     if(function_exists('gc_enable')){
       gc_enable();
     }
     foreach($trans as $k => $t){
-      $record = array(
-        'prc' => $t['PRC'],
-        'src' => $t['SRC'],
-        'bankrc' => $t['BankResponseCode'],
-        'approvalcode' => $t['APPROVECODE'],
-        'data' => json_encode($t),
-      );
-
-      if(empty($t)) continue;
+      if(empty($t) || $k <= $line_counter) continue;
+      $times_counter++;
+      if($times_counter > $times_limit){
+        break;
+      }
+      $line_counter++;
       $recur_params = $ids = array();
       $recur = new CRM_Contribute_DAO_ContributionRecur( );
       $recur->id = $t['REFNUMBER'];
@@ -363,6 +366,13 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         gc_collect_cycles();
       }
     }
+
+
+    if($times_counter > $times_limit){
+      variable_set('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now), $line_counter);
+      return FALSE;
+    }
+    variable_del('civicrm_neweb_process_transaction_count_'.$pid.$test.'_'.date('Ymd', $now));
     return TRUE;
   }
 }
@@ -421,7 +431,10 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $rows[$recur->id] = $alter['params'];
   }
 
-  // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job.
+  // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job. -> x
+  // The rule : status is 6 (experted) and after end_date 2 days. (same as civicrm_neweb_expire_recur() rule)
+  //  or
+  // status is 2 (pending) and have cancel_date.
   $end = $now - 86400*2;
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE ((cr.contribution_status_id = 2 && cr.cancel_date IS NOT NULL && cr.cancel_date < FROM_UNIXTIME($now)) OR (cr.contribution_status_id = 6 && cr.end_date <= FROM_UNIXTIME($end) && cr.end_date IS NOT NULL && cr.cancel_date IS NULL )) && cr.is_test = $is_test ORDER BY cr.id ASC";
   $recur = CRM_Core_DAO::executeQuery($sql);
@@ -465,14 +478,15 @@ function civicrm_neweb_expire_recur($is_test){
   $now = REQUEST_TIME;
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
+  require_once "CRM/Core/Error.php";
 
   // end recurring calculate
   
   // End date should not be calculated again.
   /*
   $sql = "SELECT * FROM civicrm_contribution_recur cr WHERE cr.installments IS NOT NULL AND cr.end_date IS NULL AND (cr.contribution_status_id = 1 OR cr.contribution_status_id = 2)  && cr.is_test = $is_test";
-  $recur = CRM_Core_DAO::executeQuery($sql);
-  while($recur->fetch()){
+  $result = CRM_Core_DAO::executeQuery($sql);
+  while($result->fetch()){
     $recur = new CRM_Contribute_DAO_ContributionRecur();
     $recur->id = $result->id;
 
