@@ -146,12 +146,12 @@ function _civicrm_neweb_notify_url(&$vars, $path, $component){
   }
   else {
     if ( $vars['membershipID'] ) {
-      $query[] = "mid=".$vars['membershipID'];
+      $query['mid'] = $vars['membershipID'];
     }
     if ($vars['related_contact']) {
-      $query[] = "rid=".$vars['related_contact'];
+      $query['rid'] = $vars['related_contact'];
       if ($vars['onbehalf_dupe_alert']) {
-        $query[] = "onbehalf_dupe_alert=".$vars['onbehalf_dupe_alert'];
+        $query['onbehalf_dupe_alert'] = $vars['onbehalf_dupe_alert'];
       }
     }
   }
