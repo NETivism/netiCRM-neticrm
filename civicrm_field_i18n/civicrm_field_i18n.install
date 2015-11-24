@@ -1,0 +1,16 @@
+<?php
+
+/**
+ * Implement hook_install
+ */
+function civicrm_field_i18n_install(){
+  $sql = "UPDATE system SET weight = 200 WHERE name = 'civicrm_field_i18n'";
+  $result = db_query($sql);
+}
+
+/**
+ * Implement hook_install
+ */
+function civicrm_field_i18n_uninstall(){
+
+}
