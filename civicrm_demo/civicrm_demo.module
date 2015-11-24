@@ -245,6 +245,8 @@ function civicrm_demo_process_contribution($vars){
   // start
   $count_contact = 0;
   $page_id_num = count($contribution_page_id);
+  $types = CRM_Contribute_PseudoConstant::contributionType();
+  $contribution_type_id = reset(array_keys($types));
   while($dao->fetch()){
     $count_contact++;
     $page_id = $contribution_page_id[$count_contact%$page_id_num];
