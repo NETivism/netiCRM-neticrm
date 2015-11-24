@@ -8,6 +8,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
   $allowed = array(
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
+    'CRM_UF_Form_Preview',
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if(is_array($form->_fields)){
