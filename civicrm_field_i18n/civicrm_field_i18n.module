@@ -8,6 +8,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
   $allowed = array(
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
+    'CRM_UF_Form_Preview',
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if(is_array($form->_fields)){
@@ -72,7 +73,7 @@ function civicrm_field_i18n_civicrm_pageRun($page){
 function civicrm_field_i18n_user_view($user, $view_mode){
   if(is_array($user->content)){
     foreach($user->content as $k => $c){
-      if(!empty($c['#title']) && isset($c[$c['#title']])){
+      if(is_array($c) && !empty($c['#title']) && isset($c[$c['#title']])){
         $content = $c[$c['#title']]['#value'];
         if(strstr($content, 'crm-container')){
           $user->content[$k]['#title'] = civicrm_field_i18n_t($c['#title']);
