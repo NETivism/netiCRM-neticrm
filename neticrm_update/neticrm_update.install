@@ -88,3 +88,10 @@ function neticrm_update_update_6102() {
 function neticrm_update_update_6103() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update receipt text not to htmlize
+ */
+function neticrm_update_update_6104() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
