@@ -32,7 +32,7 @@ function civicrm_imce_civicrm_buildForm($formName, &$form) {
   
   if ($editor == 'ckeditor') {
     // clean url ?
-    $clean_url = variable_get('clean_url', 0) ? '' : 'index.php?q=';
+    $clean_url = variable_get('clean_url', 0) ? 'index.php?q=' : 'index.php?q=';
     
     $ckeditor_inline_js = "
       $( document ).ready( function( ) {
