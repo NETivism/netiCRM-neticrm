@@ -421,7 +421,14 @@ function civicrm_neweb_process_upload($is_test, $pid){
       'STATUS' => '01',
       'MODE' => 0, // 0 for month mode, 1 for date mode
     );
-    $rows[$recur->id] = $upload;
+
+    $alter = array(
+      'module' => 'civicrm_neweb',
+      'params' => $upload,
+    );
+    drupal_alter('civicrm_recur_params', $alter);
+
+    $rows[$recur->id] = $alter['params'];
   }
 
   // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job. -> x
