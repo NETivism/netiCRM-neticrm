@@ -90,3 +90,10 @@ function neticrm_update_update_7203() {
 function neticrm_update_update_7204() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update allowed file extension, #16538
+ */
+function neticrm_update_update_7205() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
