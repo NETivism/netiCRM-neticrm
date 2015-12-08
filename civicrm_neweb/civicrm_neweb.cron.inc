@@ -272,8 +272,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         _civicrm_neweb_error($error, $is_test);
       }
 
-      // exists recurring and not cancelled
-      if($recur->id && ($recur->contribution_status_id == 5 || ($recur->contribution_status_id == 2 && empty($recur->cancel_date)))){
+      if($recur->id){
         $recur_params['id'] = $recur->id;
         // check trxn_id first
         $contribution = new CRM_Contribute_DAO_Contribution();
@@ -421,7 +420,14 @@ function civicrm_neweb_process_upload($is_test, $pid){
       'STATUS' => '01',
       'MODE' => 0, // 0 for month mode, 1 for date mode
     );
-    $rows[$recur->id] = $upload;
+
+    $alter = array(
+      'module' => 'civicrm_neweb',
+      'params' => $upload,
+    );
+    drupal_alter('civicrm_recur_params', $alter);
+
+    $rows[$recur->id] = $alter['params'];
   }
 
   // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job. -> x
