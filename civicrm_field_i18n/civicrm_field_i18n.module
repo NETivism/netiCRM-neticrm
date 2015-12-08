@@ -70,6 +70,21 @@ function civicrm_field_i18n_civicrm_pageRun($page){
   }
 }
 
+function civicrm_field_i18n_user($op, &$edit, &$user){
+  if($op == 'view'){
+    if(is_array($user->content)){
+      foreach($user->content as $k => $c){
+        if(is_array($c) && !empty($c['#title']) && isset($c[$c['#title']])){
+          $content = $c[$c['#title']]['#value'];
+          if(strstr($content, 'crm-container')){
+            $user->content[$k]['#title'] = civicrm_field_i18n_t($c['#title']);
+          }
+        }
+      }
+    }
+  }
+}
+
 function civicrm_field_i18n_t($text){
   if(!empty($text) && civicrm_field_i18n_test($text) === $text){
     return t($text, array());
