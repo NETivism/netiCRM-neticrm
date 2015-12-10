@@ -93,9 +93,14 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $js = '
         jQuery(document).ready(function($){
           $("input[name=payment_processor]").live("click", function(){
-            setTimeout(function(){
-            $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
-            }, 400);
+            if($(this).val() == 0){
+              $("input[name=civicrm_instrument_id]").val("0");
+            }
+            else{
+              setTimeout(function(){
+              $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
+              }, 400);
+            }
           });
           $("input[name=civicrm_instrument_id_dummy]").live("click", function(){
             $("input[name=civicrm_instrument_id]").val($(this).val());
