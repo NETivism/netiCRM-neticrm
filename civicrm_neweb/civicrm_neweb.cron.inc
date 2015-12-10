@@ -278,6 +278,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         // check trxn_id first
         $contribution = new CRM_Contribute_DAO_Contribution();
         $contribution->trxn_id = $t['ORGORDERNUMBER'];
+        $contribution->contribution_recur_id = $t['REFNUMBER'];
         if($contribution->find( true )){
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
