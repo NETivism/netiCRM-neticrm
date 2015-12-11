@@ -112,7 +112,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
     foreach($response as $k => $r){
       // find out recur
       $rid = (is_numeric($r['REFNUMBER']) && !empty($r['REFNUMBER'])) ? $r['REFNUMBER'] : 0;
-      $recur = new CRM_Contribute_DAO_ContributionRecur( );
+      $recur = new CRM_Contribute_DAO_ContributionRecur();
       $recur->id = $rid;
 
       if(!$recur->find(true)){
@@ -256,7 +256,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       }
       $line_counter++;
       $recur_params = $ids = array();
-      $recur = new CRM_Contribute_DAO_ContributionRecur( );
+      $recur = new CRM_Contribute_DAO_ContributionRecur();
       $recur->id = $t['REFNUMBER'];
       if ( !$recur->find(true) ) {
         $error = "Could not find recur record: $contributionRecurID";
@@ -276,10 +276,19 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       if($recur->id){
         $recur_params['id'] = $recur->id;
         // check trxn_id first
-        $contribution = new CRM_Contribute_DAO_Contribution();
-        $contribution->trxn_id = $t['ORGORDERNUMBER'];
-        $contribution->contribution_recur_id = $t['REFNUMBER'];
-        if($contribution->find( true )){
+        
+        // Find same trxn_id contribution.
+        $trxn_id = $t['ORGORDERNUMBER'];
+        $recur_id = $t['REFNUMBER'];
+        $sql = "SELECT * FROM civicrm_contribution WHERE trxn_id LIKE '%$trxn_id%'  AND contribution_recur_id = $recur_id";
+        $dao = CRM_Core_DAO::executeQuery($sql); 
+        $dao->fetch(); 
+
+        // If the contribution is belong to correct recuring, and same contribution id, Then update receive data. 
+        if(!empty($dao->id)){
+          $contribution = new CRM_Contribute_DAO_Contribution();
+          $contribution->id = $dao->id;
+          $contribution->find(true);
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
           $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
@@ -299,6 +308,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           }
         }
         else{
+          // Doesn't find same contribution.
+          
           // clone exists
           unset($contribution);
           $contribution =& $contrib;
@@ -309,7 +320,20 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           unset($contribution->receipt_id);
           $contribution->receive_date = date('YmdHis', $now);
           $contribution->created_date = date('YmdHis', $now);
-          $contribution->trxn_id = $t['ORGORDERNUMBER'];
+
+          // If the find trxn_id == 'ORGORDERNUMBER' but recur_id isn't correct.
+          $sql = "SELECT contribution_recur_id FROM civicrm_contribution WHERE trxn_id LIKE '$trxn_id'";
+          $dao = CRM_Core_DAO::executeQuery($sql); 
+          $dao->fetch();
+
+          if(!empty($dao->contribution_recur_id)){
+            // There are another payment processor, so that we have the same trxn_id but different recur. 
+            $contribution->trxn_id = _civicrm_neweb_recur_trxn($t['ORGORDERNUMBER'],$t['MERCHANTNUMBER']);  
+          }else{
+            // Recuring is same.
+            $contribution->trxn_id = $t['ORGORDERNUMBER'];
+          }
+
           $contribution->save();
         }
 
@@ -342,7 +366,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           'paymentProcessor' => $payment,
         );
         require_once 'CRM/Core/Transaction.php';
-        $transaction = new CRM_Core_Transaction( );
+        $transaction = new CRM_Core_Transaction();
         $IPN = new CRM_Core_Payment_NewebIPN();
 
         // Check the response
