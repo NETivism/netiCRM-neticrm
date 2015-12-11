@@ -463,6 +463,18 @@ function _civicrm_neweb_end_date_calculate(&$recur){
   // return $recur;
 }
 
+/**
+ * Use for multiple payment processors
+ */
+function _civicrm_neweb_recur_trxn($parent, $merchant){
+  if(empty($merchant)){
+    return $parent;
+  }
+  else{
+    return $parent . '-' . $merchant;
+  }
+}
+
 function _civicrm_neweb_cancel_recuring_message(){
   $html = "<h3>藍新金流提醒 : 點選「取消」後不會立刻生效，要注意兩天內的定期定額狀態變化。</h3>
   <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>
@@ -474,4 +486,3 @@ function _civicrm_neweb_cancel_recuring_message(){
 <p>詳情請參考 <a href='https://neticrm.tw/faq/268' target='_blank'>netiCRM 手冊說明</a></p>";
   return $html;
 }
-
