@@ -218,7 +218,7 @@ function civicrm_allpay_cron(){
   // every morning, we check allpay payment result
   $last = variable_get('civicrm_allpay_recur_sync', 0);
   $now = time();
-  if($now - $last > 86400 && date('G') > '6' && date('G') < '8'){
+  if($now - $last > 60000 && date('G') > '6' && date('G') < '12'){
     civicrm_allpay_recur_sync();
     variable_set('civicrm_allpay_recur_sync', $now);
   }
@@ -362,16 +362,27 @@ function civicrm_allpay_record($cid, $data = null){
   }
 }
 
-function civicrm_allpay_recur_sync(){
+function civicrm_allpay_recur_sync($days = array()){
   civicrm_initialize();
   module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.ipn');
-  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 5 AND r.end_date IS NULL AND r.frequency_unit = 'month' ORDER BY r.id DESC";
-  $result = CRM_Core_DAO::executeQuery($query);
-  while($result->fetch()){
-    // check if yesterday is next day of expect recurring
-    if(date('d', strtotime($result->start_date) + 86400) === date('d')){
+  if(empty($days)){
+    $days = array(
+      date('j'),
+      date('j', strtotime('-1 day')),
+    );
+  }
+
+  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(start_date) = %1 ORDER BY r.id DESC;";
+  foreach($days as $d){
+    watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
+    $result = CRM_Core_DAO::executeQuery($query, array(1 => array($d, 'String')));
+    while($result->fetch()){
+      // check if is next day of expect recurring
       civicrm_allpay_recur_check($result->id);
+      usleep(300000); // sleep 0.3 second
     }
+    $result->free();
+    $result = NULL;
   }
 }
 
@@ -410,23 +421,30 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
         $recur = $order->ExecStatus;
         if(isset($order->ExecStatus)){
           $update_status = NULL;
+          $recur_param = $null = array();
           if($order->ExecStatus == 0 && $result->recurring_status != 3){
             // cancelled
             $update_status = 3;
-          }
-          elseif($order->ExecStatus == 1){
-            // current running, should be 5, do nothing
+            $recur_param = array(
+              'id' => $rid,
+              'modified_date' => date('YmdHis'),
+              'cancel_date' => date('YmdHis'),
+              'contribution_status_id' => 3, // cancelled
+            );
+            CRM_Contribute_BAO_ContributionRecur::add($recur_param, $null);
           }
           elseif($order->ExecStatus == 2 && $result->recurring_status != 1){
             // completed
-            $update_status = 1;
-          }
-          if($update_status){
             $recur_param = array(
-              1 => array($update_status, 'Integer'),
-              2 => array($rid, 'Integer')
+              'id' => $rid,
+              'modified_date' => date('YmdHis'),
+              'end_date' => date('YmdHis'),
+              'contribution_status_id' => 1, // completed
             );
-            CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = %1 WHERE id = %2", $recur_param);
+            CRM_Contribute_BAO_ContributionRecur::add($recur_param, $null);
+          }
+          elseif($order->ExecStatus == 1){
+            // current running, should be 5, do nothing
           }
         }
 
@@ -540,7 +558,11 @@ function _civicrm_allpay_postdata($url, $post_data){
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
   $receive = curl_exec($ch);
   if(curl_errno($ch)){
-    watchdog('civicrm_allpay', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch));
+    watchdog('civicrm_allpay', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch), 'error');
+  }
+  else{
+    watchdog('civicrm_allpay', 'Request:'.$url."?".$field_string);
+    watchdog('civicrm_allpay', 'Response:'.$receive);
   }
   curl_close($ch);
   return !empty($receive) ? json_decode($receive) : FALSE;
