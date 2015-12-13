@@ -531,7 +531,17 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   $keystr = implode('&', $a);
   $keystr = urlencode($keystr);
   $keystr = strtolower($keystr);
-  $keystr = str_replace("%2a", '*', $keystr);
+  $special_char_allpay = array(
+    '%2d' => '-',
+    '%5f' => '_',
+    '%2e' => '.',
+    '%21' => '!',
+    '%2a' => '*',
+    '%28' => '(',
+    '%29' => ')',
+    '%20' => '+',
+  );
+  $keystr = str_replace(array_keys($special_char_allpay), $special_char_allpay, $keystr);
 
   $checkmacvalue = md5($keystr);
   $args['CheckMacValue'] = $checkmacvalue;
