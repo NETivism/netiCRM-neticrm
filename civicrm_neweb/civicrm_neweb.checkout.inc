@@ -37,7 +37,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   if($params['civicrm_instrument_id']){
     $contrib_values['payment_instrument_id'] = $params['civicrm_instrument_id'];
   }
-  if($contrib_values['is_pay_later'] != $is_pay_later){
+  if($contrib_values['is_pay_later'] != $is_pay_later && $instrument_code !== 'WEBATM'){
     $contrib_values['is_pay_later'] = $is_pay_later;
   }
   $contrib_values['payment_processor_id'] = $payment_processor['id'];
