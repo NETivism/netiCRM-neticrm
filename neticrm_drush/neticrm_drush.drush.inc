@@ -27,6 +27,15 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_civimail',
   );
+
+  /* Rebuild menu path table */
+  $items['neticrm-rebuildmenu'] = array(
+    'description' => 'Process rebuilding menu table.',
+    'examples' => array(
+      'drush neticrm-rebuildmenu',
+    ),
+    'callback' => 'drush_neticrm_rebuild_menu',
+  );
   return $items;
 }
 
@@ -84,6 +93,13 @@ function drush_neticrm_civimail() {
   $file = drupal_get_path('module', 'civicrm').'/../bin/cron/run_civimail.inc';
   require_once($file);
   run_civimail();
+}
+
+/* Rebuild crm menu path table from xml files. */
+function drush_neticrm_rebuild_menu(){
+  civicrm_initialize();
+  CRM_Core_Menu::store();
+  CRM_Core_BAO_Navigation::resetNavigation();
 }
 
 /**
