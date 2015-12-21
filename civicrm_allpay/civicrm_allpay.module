@@ -218,10 +218,17 @@ function civicrm_allpay_cron(){
   // every morning, we check allpay payment result
   $last = variable_get('civicrm_allpay_recur_sync', 0);
   $now = time();
-  if($now - $last > 86400 && date('G') > '6' && date('G') < '8'){
+  if($now - $last > 60000 && date('G') > '6' && date('G') < '12'){
     civicrm_allpay_recur_sync();
     variable_set('civicrm_allpay_recur_sync', $now);
   }
+  /* // TODO: confirm allpay has no problem at this
+  $last_fee_sync = variable_get('civicrm_allpay_fee_sync', 0);
+  if($now - $last > 60000 && date('G') > '3' && date('G') < '9'){
+    civicrm_allpay_fee_sync();
+    variable_set('civicrm_allpay_fee_sync', $now);
+  }
+  */
 }
 
 function _civicrm_allpay_instrument($type = 'normal'){
@@ -362,17 +369,27 @@ function civicrm_allpay_record($cid, $data = null){
   }
 }
 
-
-function civicrm_allpay_recur_sync(){
+function civicrm_allpay_recur_sync($days = array()){
   civicrm_initialize();
   module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.ipn');
-  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 5 AND r.end_date IS NULL AND r.frequency_unit = 'month' ORDER BY r.id DESC";
-  $result = CRM_Core_DAO::executeQuery($query);
-  while($result->fetch()){
-    // check if yesterday is next day of expect recurring
-    if(date('d', strtotime($result->start_date) + 86400) === date('d')){
+  if(empty($days)){
+    $days = array(
+      date('j'),
+      date('j', strtotime('-1 day')),
+    );
+  }
+
+  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(start_date) = %1 ORDER BY r.id DESC;";
+  foreach($days as $d){
+    watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
+    $result = CRM_Core_DAO::executeQuery($query, array(1 => array($d, 'String')));
+    while($result->fetch()){
+      // check if is next day of expect recurring
       civicrm_allpay_recur_check($result->id);
+      usleep(300000); // sleep 0.3 second
     }
+    $result->free();
+    $result = NULL;
   }
 }
 
@@ -486,6 +503,53 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
   }
 }
 
+function civicrm_allpay_fee_sync(){
+  civicrm_initialize();
+  $limit = 100;
+  $check_start_date = date('Y-m-d', strtotime('-60 days'));
+  $check_end_date = date('Y-m-d', strtotime('-8 days'));
+  $query = "SELECT id, created_date, receive_date, total_amount, fee_amount, net_amount, trxn_id, payment_processor_id as pid FROM civicrm_contribution WHERE is_test = 0 AND receive_date > %1 AND receive_date < %2 AND contribution_status_id = 1 AND payment_processor_id IS NOT NULL AND (fee_amount IS NULL OR fee_amount = 0) ORDER BY receive_date DESC LIMIT 0, $limit";
+  $result = CRM_Core_DAO::executeQuery($query, array(
+    1 => array($check_start_date, 'String'),
+    2 => array($check_end_date, 'String'),
+  ));
+
+  while($result->fetch()){
+    if(!isset($payment_processors[$result->pid])){
+      $payment_processors[$result->pid] = CRM_Core_BAO_PaymentProcessor::getPayment($result->pid, 'live');
+    }
+    $payment_processor = $payment_processors[$result->pid];
+    if($payment_processor['payment_processor_type'] != 'ALLPAY'){
+      continue;
+    }
+    else{
+      if(!empty($payment_processor['url_recur']) && !empty($payment_processor['user_name'])){
+        $net_amount = $fee_amount = NULL;
+        $processor = array(
+          'password' => $payment_processor['password'],
+          'signature' => $payment_processor['signature'],
+        );
+        $post_data = array(
+          'MerchantID' => $payment_processor['user_name'],
+          'MerchantTradeNo' => $result->trxn_id,
+          'TimeStamp' => time(),
+        );
+        _civicrm_allpay_checkmacvalue($post_data, $processor);
+        $response = _civicrm_allpay_postdata($payment_processor['url_api'], $post_data, FALSE);
+        if(!empty($response) && $response->MerchantTradeNo == $result->trxn_id && !empty($response->HandlingCharge)){
+          $fee_amount = (float)$response->HandlingCharge;
+          $net_amount = $result->total_amount - $fee_amount;
+          CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET fee_amount = %1, net_amount = %2 WHERE id = %3", array(
+            1 => array($fee_amount, 'Float'),
+            2 => array($net_amount, 'Float'),
+            3 => array($result->id, 'Integer'),
+          ));
+        }
+        usleep(200000); // sleep 0.2 second
+      }
+    }
+  }
+}
 
 function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   // remove empty arg
@@ -515,7 +579,18 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   $keystr = implode('&', $a);
   $keystr = urlencode($keystr);
   $keystr = strtolower($keystr);
-  $keystr = str_replace("%2a", '*', $keystr);
+
+  $special_char_allpay = array(
+    '%2d' => '-',
+    '%5f' => '_',
+    '%2e' => '.',
+    '%21' => '!',
+    '%2a' => '*',
+    '%28' => '(',
+    '%29' => ')',
+    '%20' => '+',
+  );
+  $keystr = str_replace(array_keys($special_char_allpay), $special_char_allpay, $keystr);
 
   $checkmacvalue = md5($keystr);
   $args['CheckMacValue'] = $checkmacvalue;
