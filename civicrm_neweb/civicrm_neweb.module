@@ -45,6 +45,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       break;
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
+      if (module_exists('devel')) {
+        dd($_POST);
+        dpm($_POST);
+      }
       // credit card
       if(isset($_POST['final_result'])){
         if($_POST['final_result'] == 1 && $_POST['final_return_PRC'] == 0 && $_POST['final_return_SRC'] == 0){
