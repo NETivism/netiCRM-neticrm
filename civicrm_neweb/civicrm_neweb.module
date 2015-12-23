@@ -37,6 +37,8 @@ function civicrm_neweb_menu(){
  * Implementation of hook_civicrm_buildForm()
  */
 function civicrm_neweb_civicrm_buildForm($form_name, &$form){
+  $status = $msg = NULL;
+  $params = array();
   switch($form_name){
     case 'CRM_Contribute_Form_Contribution_Main':
       // add neweb payment method selection
@@ -46,7 +48,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       // credit card
       if(isset($_POST['final_result'])){
         if($_POST['final_result'] == 1 && $_POST['final_return_PRC'] == 0 && $_POST['final_return_SRC'] == 0){
-          drupal_set_message(t("Success. Thank you."));
+          $params['trxn_id'] = $_POST['P_OrderNumber'];
+          $status = 1;
+          $msg = t("Success. Thank you.");
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
         else{
           // error here
@@ -55,7 +60,9 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
           $src = $_POST['final_return_SRC'];
           $brc = $_POST['final_return_BankRC'];
           $error = civicrm_neweb_response($prc, $src, $brc);
-          drupal_set_message(implode("<br>", $error), 'error');
+          $status = 4;
+          $msg = implode("<br>", $error);
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
       break;
