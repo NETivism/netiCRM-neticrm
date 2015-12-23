@@ -292,7 +292,7 @@ function _civicrm_neweb_ftp($mode, $local, $remote, $host, $user, $pass){
 /**
  * mode - put / get / list
  */
-function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass){
+function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_test){
   $path = drupal_get_path('module', 'civicrm_neweb'). '/phpseclib/';
   set_include_path(get_include_path() . PATH_SEPARATOR . getcwd().base_path().rtrim($path, '/'));
 
@@ -302,6 +302,16 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass){
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
     watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
+    if(!$is_test && !empty($user) && !empty($pass)){ 
+      // send email To User1
+      $time = time();
+      $user = user_load(array('uid' => '1'));
+      $params = array(
+        'host' => $host,
+        // 'pid' => $pid,
+        );
+      drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
+    }
   }
   else{
     switch($mode){
@@ -361,9 +371,20 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
 
   $function = '_civicrm_neweb_sftp';
   $remote = $dir."/".basename($local);
-  $ret = call_user_func($function, $mode, $local, $remote, $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password']);
+  $ret = call_user_func($function, $mode, $local, $remote, $ftp['ftp_host'], $ftp['ftp_user'], $ftp['ftp_password'],$is_test);
 
   return $ret;
+}
+
+/**
+ * Implements hook_mail().
+ */
+function civicrm_neweb_mail($key, &$message, $params) {
+  $message['subject'] = variable_get('site_name', "Default site name") . ts(' neweb sftp setting is error.');
+  $message['body'][] = ts('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
+  $message['body'][] = ts('Host information : ') . $params['host'];
+  $message['body'][] = ts('More information please checked the configurations of the site. You can modify it by this path : {your domain}')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
+
 }
 
 /**
