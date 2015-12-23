@@ -579,6 +579,13 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   return $checkmacvalue;
 }
 
+function _civicrm_allpay_trxn_id($is_test, $id){
+  if($is_test){
+    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. mt_rand(100, 999);
+    ;
+  }
+  return $id;
+}
 function _civicrm_allpay_recur_trxn($parent, $gwsr){
   if(empty($gwsr)){
     return $parent;

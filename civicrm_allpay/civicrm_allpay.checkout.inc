@@ -238,10 +238,3 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
   }
 }
 
-function _civicrm_allpay_trxn_id($is_test, $id){
-  if($is_test){
-    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. substr(time(), 0, 3);
-    ;
-  }
-  return $id;
-}
