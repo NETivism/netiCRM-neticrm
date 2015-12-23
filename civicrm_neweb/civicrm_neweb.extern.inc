@@ -3,7 +3,7 @@ civicrm_initialize();
 require_once 'CRM/Core/Payment/BaseIPN.php';
 require_once "CRM/Core/DAO.php";
 
-function civicrm_neweb_ipn(){
+function civicrm_neweb_ipn($instrument){
   require_once 'CRM/Core/BAO/PaymentProcessor.php';
   require_once 'CRM/Contribute/DAO/Contribution.php';
 
@@ -243,6 +243,17 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       return $return;
     }
 
+    function ezpay(){
+      // Do something when payment processor system send post to call ezpay url. 
+      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);  
+      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);  
+      if(module_exists('devel')){
+        dd($_POST);
+        dd($_GET);
+      }
+      return NULL;
+    }
+
     function getIds( &$ids , $component){
       $ids['contact'] = $_GET['contact_id'];
       $ids['contribution'] = $_GET['cid'];
@@ -262,6 +273,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     function main( $component = 'contribute' , $input = NULL, $ids = NULL, $objects = NULL) {
       require_once 'CRM/Utils/Request.php';
       $objects = $ids = $input = array();
+
+      $instrument = arg(2);
+      if(!empty($instrument) && $instrument == 'ezpay'){
+        return $this->ezpay($input, $ids, $objects);
+      }
       
       if(!$input){
         $input['component'] = $component;
@@ -271,7 +287,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       if(!$ids){
         $this->getIds($ids, $component);
       }
-       
+
       // save record
       $record = array(
         'cid' => $ids['contribution'],
@@ -281,7 +297,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         'approvalcode' => $input['ApprovalCode'],
       );
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
-
+      
       if ( ! $this->validateData( $input, $ids, $objects ) ) {
         return false;
       }
