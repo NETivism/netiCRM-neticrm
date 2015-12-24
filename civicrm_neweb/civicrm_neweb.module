@@ -54,10 +54,6 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
     case 'CRM_Event_Form_Registration_ThankYou':
       // credit card
       if(isset($_POST['final_result'])){
-        if(module_exist('devel')){
-          dpm($_POST);
-          dd($_POST);
-        }
         if($_POST['final_result'] == 1 && $_POST['final_return_PRC'] == 0 && $_POST['final_return_SRC'] == 0){
           $params['trxn_id'] = $_POST['P_OrderNumber'];
           $status = 1;
