@@ -368,6 +368,7 @@ function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
       }
     }
   }
+  watchdog('civicrm_neweb', "prc = $prc, src = $src, brc = $brc, error : \n" . implode("\n", $error));
   return $error;
 }
 
