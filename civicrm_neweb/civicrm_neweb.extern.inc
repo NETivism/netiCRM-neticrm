@@ -287,6 +287,12 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $this->getInput( $input);
       }
 
+      watchdog('civicrm_neweb', '$input : '.var_export($input,TRUE) , WATCHDOG_NOTICE);  
+      if(module_exists('devel')){
+        dd($input);
+        dpm($input);
+      }
+
       if(!$ids){
         $this->getIds($ids, $component);
       }
