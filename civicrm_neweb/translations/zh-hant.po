@@ -1,0 +1,14 @@
+# LANGUAGE translation of Drupal (general)
+# Copyright NETivism <junsuwhy@netivism.com.tw>
+
+msgid " neweb sftp setting is error."
+msgstr "的藍新sftp設置不正常，請確認。"
+
+msgid "There are some errors about connecting to neweb sftp, Please check the payment processor settings."
+msgstr "連結藍新sftp時出現問題，請檢查你的金流設定"
+
+msgid "Host information : "
+msgstr "目前的sftp主機設置："
+
+msgid "More information please checked the configurations of the site. You can modify it by this path : {your domain}"
+msgstr "更多資訊請進入你的網站設定頁檢查。網址：{你的網域}"

@@ -387,10 +387,10 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
  * Implements hook_mail().
  */
 function civicrm_neweb_mail($key, &$message, $params) {
-  $message['subject'] = variable_get('site_name', "Default site name") . ts(' neweb sftp setting is error.');
-  $message['body'][] = ts('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
-  $message['body'][] = ts('Host information : ') . $params['host'];
-  $message['body'][] = ts('More information please checked the configurations of the site. You can modify it by this path : {your domain}')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
+  $message['subject'] = variable_get('site_name', "Default site name") . t(' neweb sftp setting is error.');
+  $message['body'][] = t('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
+  $message['body'][] = t('Host information : ') . $params['host'];
+  $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : {your domain}')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
 
 }
 
