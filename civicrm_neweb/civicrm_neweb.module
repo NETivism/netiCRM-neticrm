@@ -16,6 +16,12 @@ function civicrm_neweb_init(){
  */
 function civicrm_neweb_menu(){
   return array(
+    'neweb/ipn' => array(
+      'access callback' => true,
+      'page callback' => 'civicrm_neweb_ipn',
+      'type' => MENU_CALLBACK,
+      'file' => 'civicrm_neweb.extern.inc',
+    ),
     'neweb/ipn/%' => array(
       'access callback' => true,
       'page callback' => 'civicrm_neweb_ipn',
