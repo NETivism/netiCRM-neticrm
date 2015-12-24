@@ -55,6 +55,9 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input['Amount'] = self::retrieve('Amount', 'String', 'POST', true);
       $input['amount'] = $input['Amount'];
       $input['BatchNumber'] = self::retrieve('BatchNumber', 'String', 'POST', false);
+      $input['cardnumber'] = self::retrieve('cardnumber', 'String', 'POST', false);
+      $input['issuebank'] = self::retrieve('issuebank', 'String', 'POST', false);
+      $input['EngName'] = self::retrieve('EngName', 'String', 'POST', false);
     }
 
     function addNote($note, &$contribution){
