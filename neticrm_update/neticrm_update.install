@@ -7,6 +7,8 @@ function neticrm_update_install(){
   neticrm_update_update_7201();
   neticrm_update_update_7202();
   neticrm_update_update_7203();
+  // taiwanes tax
+  neticrm_update_update_7207();
 }
 /**
  * Implement hook_uninstall()
@@ -26,6 +28,7 @@ function neticrm_update_load_include($func){
       $path = dirname(__FILE__).'/update/';
       $filename = $path . $n. '.inc';
       if(file_exists($filename)){
+        module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
         include $filename;
         if(function_exists($func)){
           $func = '_'.$func;
@@ -102,5 +105,12 @@ function neticrm_update_update_7205() {
  * Update invoice notify template, #14612
  */
 function neticrm_update_update_7206() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Add new civicrm report for taiwanese tax, #10745
+ */
+function neticrm_update_update_7207() {
   return neticrm_update_load_include(__FUNCTION__);
 }
