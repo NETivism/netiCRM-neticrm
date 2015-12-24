@@ -419,6 +419,10 @@ function civicrm_neweb_brc($c = NULL){
   $code['IE'] = ts('BRC: ID Error');
   
   if($c){
+    if(strpos($c,"/")){
+      $explode_c = explode("/", $c);
+      $c = $explode_c[1];
+    }
     return $code[$c];
   }
   else{
