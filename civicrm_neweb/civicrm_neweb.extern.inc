@@ -329,24 +329,6 @@ function dwd($in){
 
 
 function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
-  watchdog('civicrm_neweb', "Ezpay, $prc : ".var_export($prc,TRUE) , WATCHDOG_NOTICE);  
-  watchdog('civicrm_neweb', "Ezpay, $src : ".var_export($src,TRUE) , WATCHDOG_NOTICE);  
-  watchdog('civicrm_neweb', "Ezpay, $brc : ".var_export($brc,TRUE) , WATCHDOG_NOTICE);  
-  watchdog('civicrm_neweb', "Ezpay, $mode : ".var_export($mode,TRUE) , WATCHDOG_NOTICE);  
-  if(module_exists('devel')){
-    dpm($prc);
-    dd("$prc\n");
-    dd($prc);
-    dpm($src);
-    dd("$src\n");
-    dd($src);
-    dpm($brc);
-    dd("$brc\n");
-    dd($brc);
-    dpm($mode);
-    dd("$mode\n");
-    dd($mode);  
-  }
   if($mode == 'detail'){
     $error[$prc] = civicrm_neweb_prc($prc);
     $error[$brc] = civicrm_neweb_prc($brc);
