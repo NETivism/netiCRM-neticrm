@@ -275,7 +275,8 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
     watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
-    if(!$is_test && !empty($user) && !empty($pass)){ 
+    global $sended_sftp_notice_mail;
+    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass)){ 
       // send email To User1
       $time = time();
       $user = user_load(array('uid' => '1'));
@@ -284,6 +285,7 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
         // 'pid' => $pid,
         );
       drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
+      $sended_sftp_notice_mail = true;
     }
   }
   else{
