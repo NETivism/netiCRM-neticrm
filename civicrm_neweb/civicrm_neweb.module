@@ -22,6 +22,13 @@ function civicrm_neweb_menu(){
       'type' => MENU_CALLBACK,
       'file' => 'civicrm_neweb.extern.inc',
     ),
+    'neweb/ipn/%' => array(
+      'access callback' => true,
+      'page callback' => 'civicrm_neweb_ipn',
+      'page arguments' => array(2),
+      'type' => MENU_CALLBACK,
+      'file' => 'civicrm_neweb.extern.inc',
+    ),
     'civicrm/contribute/recurring_nw' => array(
       'title' => 'Neweb Recurring contribution management',
       'access arguments' => array('edit contributions'),
@@ -36,6 +43,8 @@ function civicrm_neweb_menu(){
  * Implementation of hook_civicrm_buildForm()
  */
 function civicrm_neweb_civicrm_buildForm($form_name, &$form){
+  $status = $msg = NULL;
+  $params = array();
   switch($form_name){
     case 'CRM_Contribute_Form_Contribution_Main':
       // add neweb payment method selection
@@ -46,7 +55,10 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       // credit card
       if(isset($_POST['final_result'])){
         if($_POST['final_result'] == 1 && $_POST['final_return_PRC'] == 0 && $_POST['final_return_SRC'] == 0){
-          drupal_set_message(t("Success. Thank you."));
+          $params['trxn_id'] = $_POST['P_OrderNumber'];
+          $status = 1;
+          $msg = t("Success. Thank you.");
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
         else{
           // error here
@@ -55,7 +67,9 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
           $src = $_POST['final_return_SRC'];
           $brc = $_POST['final_return_BankRC'];
           $error = civicrm_neweb_response($prc, $src, $brc);
-          drupal_set_message(implode("<br>", $error), 'error');
+          $status = 4;
+          $msg = implode("<br>", $error);
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
       break;
@@ -261,15 +275,17 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
     watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
-    if(!$is_test && !empty($user) && !empty($pass)){ 
+    global $sended_sftp_notice_mail;
+    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass)){ 
       // send email To User1
       $time = time();
       $user = user_load(array('uid' => '1'));
       $params = array(
-        'host' => $ftp['ftp_host'],
+        'host' => $host,
         // 'pid' => $pid,
         );
       drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
+      $sended_sftp_notice_mail = true;
     }
   }
   else{
@@ -342,7 +358,7 @@ function civicrm_neweb_mail($key, &$message, $params) {
   $message['subject'] = variable_get('site_name', "Default site name") . t(' neweb sftp setting is error.');
   $message['body'][] = t('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
   $message['body'][] = t('Host information : ') . $params['host'];
-  $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : (your domain)')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
+  $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : {your domain}')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
 
 }
 
@@ -479,9 +495,9 @@ function _civicrm_neweb_cancel_recuring_message(){
   <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>
 後續仍需確認其狀態「待處理」，是否在兩天內變成了「已取消」，此時才正式確認其定期定額成功取消了。</p>
 <h4>狀態說明 : </h4>
-<ul><li>「正常」表示會依據每月的扣款日期正常扣款</li>
+<ul><li>「進行中」表示會依據每月的扣款日期正常扣款</li>
 <li>「待處理」表示等待藍新回覆 </li>
 <li>「已取消」表示定期定額已經取消</li></ul>
-<p>詳情請參考 <a href='https://neticrm.tw/faq/268' target='_blank'>netiCRM 手冊說明</a></p>";
+<p>詳情請參考 <a href='https://neticrm.tw/resources/1355' target='_blank'>netiCRM 手冊說明</a></p>";
   return $html;
 }
