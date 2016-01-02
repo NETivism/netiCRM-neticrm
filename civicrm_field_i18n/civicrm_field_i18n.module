@@ -9,6 +9,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
     'CRM_UF_Form_Preview',
+    'CRM_Contribute_Form_Contribution_Main',
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if(is_array($form->_fields)){
@@ -46,6 +47,24 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
               }
             }
             break;
+        }
+      }
+    }
+    // for civicrm contribution page and event page
+    if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
+      // group title
+      $template = CRM_Core_Smarty::singleton();
+      $profiles = array('customPre', 'customPost');
+      foreach($profiles as $p){
+        $vars = $template->get_template_vars($p);
+        if(!empty($vars)){
+          foreach($vars as $k => $v){
+            if(!empty($v['groupTitle'])){
+              $vars[$k]['groupTitle'] = civicrm_field_i18n_t($v['groupTitle']);
+            }
+          }
+          $template->assign($p, $vars);
+          $vars = array();
         }
       }
     }
