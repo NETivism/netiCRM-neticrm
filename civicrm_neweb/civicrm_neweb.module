@@ -106,7 +106,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
 function civicrm_neweb_civicrm_postProcess($form_name, &$form){
   if($form_name == 'CRM_Admin_Form_PaymentProcessor'){
     $pid = $_POST['pid'];
-    $pid_test = $_POST['test_pid'];
+    $pid_test = $pid + 1;
     $default = array(
       'pid' => '',
       'ftp_host' => '',
@@ -116,6 +116,12 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
     foreach($default as $k => $v){
       if($_POST[$k]) $default[$k] = $_POST[$k];
       if($_POST['test_'.$k]) $default_test[$k] = $_POST['test_'.$k];
+    }
+    // for adding payment processor, Fixed bug #17243
+    if($_POST['pid'] == 'null'){
+      $pids = _civicrm_neweb_is_active($is_test);
+      $pid = $default['pid'] = max($pids);
+      $pid_test = $default_test['pid'] = $pid + 1;
     }
     variable_set("civicrm_neweb_ftp_".$pid, $default);
     variable_set("civicrm_neweb_ftp_test_".$pid_test, $default_test);
