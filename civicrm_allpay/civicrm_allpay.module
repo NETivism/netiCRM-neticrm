@@ -222,11 +222,13 @@ function civicrm_allpay_cron(){
     civicrm_allpay_recur_sync();
     variable_set('civicrm_allpay_recur_sync', $now);
   }
+  /* // TODO: confirm allpay has no problem at this
   $last_fee_sync = variable_get('civicrm_allpay_fee_sync', 0);
   if($now - $last > 60000 && date('G') > '3' && date('G') < '9'){
     civicrm_allpay_fee_sync();
     variable_set('civicrm_allpay_fee_sync', $now);
   }
+  */
 }
 
 function _civicrm_allpay_instrument($type = 'normal'){
