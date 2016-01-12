@@ -505,7 +505,7 @@ function _civicrm_neweb_end_date_calculate(&$recur){
 
   // every recuring contrib start on next month
   $installments_total = $recur->installments - 1;
-  if(empty($recur->end_date)){
+  if(empty($recur->start_date)){
     $recur->start_date = $recur->create_date;
   }
   $month_now = date('n', strtotime($recur->start_date));
@@ -516,12 +516,12 @@ function _civicrm_neweb_end_date_calculate(&$recur){
     if($installments_total >= 1){
       $installments_total -= 1;
     }
-    $year = $month_now == 12 ? date('Y') + 1  : date('Y');
+    $year = $month_now == 12 ? date('Y',strtotime($recur->start_date)) + 1  : date('Y',strtotime($recur->start_date));
   }
   else{
     $month = $month_now;
     $cycle_day = $day_now;
-    $year = date('Y');
+    $year = date('Y',strtotime($recur->start_date));
   }
   $next_recur = mktime(0,0,0, $month, $cycle_day, $year);
   if($recur->installments){
