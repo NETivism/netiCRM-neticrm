@@ -1,0 +1,733 @@
+<?php
+function civicrm_demo_process_contact($vars){
+  civicrm_initialize();
+
+  $limit = $vars['limit'];
+  while($limit) {
+    // 10% to generate eng name
+    $language = mt_rand(1,10) == 1 ? 'english' : 'chinese';
+    $params = array(
+      'version' => 3,
+      'first_name'    => _civicrm_demo_rand_firstname($language),
+      'last_name'     => _civicrm_demo_rand_lastname($language),
+      'email'         => _civicrm_demo_rand_email(),
+      'contact_type'  => 'Individual',
+      'individual_prefix' => _civicrm_demo_rand_prefix(),
+      'gender_id' => mt_rand(1,2),
+      'birth_date' => _civicrm_demo_rand_birth(),
+    );
+
+    $api_phone_create_home = array(
+      'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
+      'phone_type_id' => 1,
+      'location_type' => 'Home'
+    );
+    $api_phone_create_fax = array(
+      'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
+      'phone_type_id' =>  2,
+      'is_primary' => 1,
+      'location_type_id' => 2
+    );
+    $params['api.address.create'] = _civicrm_demo_rand_addr($language);
+    $params['api.phone.create'] = array($api_phone_create_home, $api_phone_create_fax);
+    $contact = civicrm_api('Contact', 'create', $params );
+
+    $limit--;
+  }
+}
+
+function civicrm_demo_process_event($vars){
+  $now = time();
+
+  civicrm_initialize();
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
+
+  // create 5 events
+  $title = array(
+      '無名額限制，填表完成送出',
+      '有名額限制，不開放候補',
+      '有名額限制，開放候補',
+      '有名額限制，需事先審核',
+      '無名額限制，需事先審核',
+    );
+  for($i=0;  $i < $vars['limit']; $i++){
+    $seed = $i % count($title);
+    
+    $params = array('version' => 3,);
+    $params['title'] = $title[$seed];
+    $params['is_active'] = 1;
+    $params['is_monetory'] = 0;
+    $params['event_type_id'] = 1;
+    $params['is_show_location'] = 0;
+    $params['start_date'] = date('Ymd', $now+$i*86400*5);
+    $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
+    $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
+    $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
+    $params['max_participants'] = 5;
+
+    if($seed == 0 || $seed == 4){
+      $params['max_participants'] = "";  
+    }
+    if($seed == 3 || $seed == 4){
+      $params['requires_approval'] = 1;
+    }
+    if($seed == 2){
+      $params['has_waitlist'] = 1;
+    }
+
+    $params['is_online_registration'] = 1;
+    
+    $result = civicrm_api('Event', 'create', $params);
+
+    $event_id = $result['id'];
+
+    $params2 = array(
+      'version' => 3,
+      'return.contact_id',
+      'sort' => 'contact_id DESC',
+    );
+    $contacts = civicrm_api('Contact', 'get', $params2);
+
+    // add participants
+    $j = 0;
+    $max = 4;
+    foreach($contacts['values'] as $contact){
+      $j++;
+      if($j > $max) break;
+      $params3 = array('version' => 3,);
+      $params3['contact_id'] = $contact['contact_id'];
+      $params3['event_id'] = $event_id;
+      $params3['status_id'] = 1;
+      $params3['role_id'] = 1;
+      $params3['register_date'] = date('YmdHis');
+      $params3['source'] = '示範用途';
+      $result3 = civicrm_api('Participant', 'create', $params3);
+    }
+  }
+}
+
+function civicrm_demo_process_contribution($vars){
+  civicrm_initialize();
+
+  if(module_exists('civicrm_allpay')){
+    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
+  }
+  if(module_exists('civicrm_neweb')){
+    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
+  }
+
+  // query exists contact
+  $contrib_per_contact = 5; // limit every contact only have num of contribution.
+  $contrib_limit = $vars['limit']; // total limit this batch
+  $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
+  $dao = CRM_Core_DAO::executeQuery($sql);
+
+  // prepare variable
+  $payment_instrument_id = 1;
+  $start_year = $vars['start_year'] ? $vars['start_year'] : ((int)date('Y'))-5;
+
+  // start
+  $count_contact = 0;
+  $page_id_num = count($contribution_page_id);
+  $types = CRM_Contribute_PseudoConstant::contributionType();
+  $contribution_type_id = reset(array_keys($types));
+  while($dao->fetch()){
+    $count_contact++;
+    $page_id = $contribution_page_id[$count_contact%$page_id_num];
+    $contact_id = $dao->id;
+    for($i = 0; $i < $contrib_per_contact; $i++){
+      $counter++;
+      if($counter > $contrib_limit) break; 
+      $amount = mt_rand(300, 12000);
+      $a = number_format($amount, 2, '.', '');
+      $fee = number_format($amount*0.025, 2, '.', '');
+
+      $year = mt_rand($start_year, date('Y'));
+      $month = sprintf('%02s',mt_rand(1,date('n')));
+      if($year == date('Y') ){
+        $day = sprintf('%02s', mt_rand(1,28));
+      }
+      else{
+        $day = sprintf('%02s', mt_rand(1,date('j')));
+      }
+
+      $params = array(
+        'contact_id'             => $contact_id,
+        'created_date'           => $year.$month.$day,
+        'receive_date'           => $year.$month.$day,
+        'total_amount'           => $a,
+        'payment_instrument_id'  => $payment_instrument_id,
+        'fee_amount'             => $fee,
+        'contribution_status_id' => 1,
+        'contribution_type_id' => $contribution_type_id,
+        'contribution_page_id' => $page_id,
+        'version' => 3,
+      );
+
+      civicrm_api('Contribution', 'create', $params);
+    }
+  }
+
+}
+
+function civicrm_demo_create_contribution_page($payment_processor_type){
+  $payment_page = variable_get('civicrm_demo_payment_page', array());
+  if(isset($payment_page[$payment_processor_type])){
+    return $payment_page[$payment_processor_type];
+  }
+  // setup payment processor
+  $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
+
+  // create contribution page
+  $types = CRM_Contribute_PseudoConstant::contributionType();
+  $contribution_type_id = reset(array_keys($types));
+
+  $params = array(
+    'version' => 3,
+    'title' => '捐款贊助',
+    'contribution_type_id' => reset(array_keys($types)),
+    'payment_processor' => $processors,
+    'is_active' => 1,
+    'is_monetary' => 1,
+    'is_recur' => 1,
+    'is_allow_other_amount' => 1,
+    'recur_frequency_unit' => 'month',
+    'thankyou_title' => '謝謝你的支持',
+    'receipt_from_email' => 'demo@demo.neticrm.tw',
+  );
+  $result = civicrm_api('ContributionPage', 'create', $params);
+  if(!empty($result['id'])){
+    $contribution_page_id = $result['id'];
+    $payment_instrument = array(
+      'credit_card' => 1,
+      'convenient_store' => 1,
+      'convenient_store_code_' => 1,
+      'web_atm' => 1,
+      'atm' => 1,
+    );
+    $qvar = array(1 => array(serialize($payment_instrument) ,'String'));
+    CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$result['id']}, entity_table='civicrm_contribution_page', payment_instruments=%1", $qvar);
+    $payment_page[$payment_processor_type] = $contribution_page_id;
+    variable_set('civicrm_demo_payment_page', $payment_page);
+  }
+  else{
+    $contribution_page_id = 1;
+  }
+  return $contribution_page_id;
+}
+
+function civicrm_demo_create_custom_profile(){
+  civicrm_initialize();
+  $group = _civicrm_demo_create_custom_group('receipt_info', '收據資訊');
+  $uf_group = _civicrm_demo_create_uf_group('receipt_infomation', '收據資訊');
+
+  // custom fields
+  if(!empty($group['id'])){
+    $fields = array();
+    $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'Boolean', 'Radio', $group['id']);
+    $fields['receipt_title'] = _civicrm_demo_create_custom_field('receipt_title', '收據抬頭', 'String', 'Text', $group['id']);
+    $fields['receipt_serial'] = _civicrm_demo_create_custom_field('receipt_serial', '收據編號', 'String', 'Text', $group['id']);
+    $fields['receipt_donor_credit'] = _civicrm_demo_create_custom_field('receipt_donor_credit', '捐款徵信名稱', 'String', 'Text', $group['id']);
+  }
+
+  // uf fields
+  if(!empty($uf_group['id'])){
+    $uf_fields = array();
+    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id']);
+    $uf_fields['receipt_serial'] = _civicrm_demo_create_uf_field('收據編號', 'Contribution', 'custom_'.$fields['receipt_serial']['id'], $uf_group['id']);
+    $uf_fields['receipt_title'] = _civicrm_demo_create_uf_field('收據抬頭', 'Contribution', 'custom_'.$fields['receipt_title']['id'], $uf_group['id']);
+    $uf_fields['receipt_yn'] = _civicrm_demo_create_uf_field('是否需要收據', 'Contribution', 'custom_'.$fields['receipt_yn']['id'], $uf_group['id'], TRUE);
+  }
+
+  // set config
+  $params = array(
+    'receiptYesNo' => $fields['receipt_yn']['id'],
+    'receiptTitle' => $fields['receipt_title']['id'],
+    'receiptSerial' => $fields['receipt_serial']['id'],
+    'receiptDonorCredit' => $fields['receipt_donor_credit']['id'],
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
+
+ 
+  // copy uf group
+  $params = array( 
+    'title' => '姓名及地址',
+    'version' => 3,
+  );
+  $uf_group_name_addr = civicrm_api('uf_group', 'get', $params);
+  $uf_group_pre_id = NULL;
+  if(!empty($uf_group_name_addr['id'])){
+    $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);  
+    if(!empty($copy->id) && $copy->id != $uf_group_name_addr['id']){
+      $copy->title = '捐款基本資料';
+      $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '帳單'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%'");
+      $uf_fields['legal_identifier'] = _civicrm_demo_create_uf_field('身份證字號', 'Individual', 'legal_identifier', $copy->id);
+      $uf_group_pre_id = $copy->id;
+    }
+  }
+
+  // set contribution page default custom pre/post
+  $payment_page = variable_get('civicrm_demo_payment_page', array());
+
+  foreach($payment_page as $page_id){
+    _civicrm_demo_create_uf_join($page_id, $uf_group_pre_id, $uf_group['id']);
+  }
+}
+
+function _civicrm_demo_rand_lastname($type = 'chinese'){
+  // chinese
+  if($type == 'chinese'){
+    $seed = array(
+      '李','王','張','劉','陳','楊','黃','趙','周','吳','徐','孫','朱','馬','胡','郭','林','何','高','梁','鄭','羅','宋','謝','唐','韓','曹','許','鄧','蕭',' 馮','曾','程','蔡','彭','潘','袁','于','董','余',' 蘇','葉','呂','魏','蔣','田','杜','丁','沈','姜',' 范','江','傅','鍾','盧','汪','戴','崔','任','陸',' 廖','姚','方','金','邱','夏','譚','韋','賈','鄒',' 石','熊','孟','秦','閻','薛','侯','雷','白','龍','段','郝','孔','邵','史','毛','常','萬','顧','賴','武','康','賀','嚴','尹','錢','施','牛','洪','龔',
+    );
+  }
+  else{
+    $seed = array(
+      'Smith','Johnson','Williams','Brown','Jones','Miller','Davis','García','Rodríguez','Wilson','Martínez','Anderson','Taylor','Thomas','Hernández','Moore','Martin','Jackson','Thompson','White','López','Lee','González','Harris','Clark','Lewis','Robinson','Walker','Pérez','Hall','Young','Allen','Sánchez','Wright','King','Scott','Green','Baker','Adams','Nelson','Hill','Ramírez','Campbell','Mitchell','Roberts','Carter','Phillips','Evans','Turner','Torres','Parker','Collins','Edwards','Stewart','Flores','Morris','Nguyen','Murphy','Rivera','Cook','Rogers','Morgan','Peterson','Cooper','Reed','Bailey','Bell','Gómez','ward','Ward','Cox','Díaz','Richardson','Wood','Watson','Brooks','Bennett','Gray','James','Reyes','Cruz','Hughes','Price','Myers','Long','Foster','Sanders','Ross','Morales','Powell','Sullivan','Russell','Ortiz','Jenkins','Gutiérrez','Perry','Butler','Barnes','Fisher', 
+    );
+  }
+  $key = array_rand($seed);
+  return $seed[$key];
+}
+
+function _civicrm_demo_rand_firstname($type = 'chinese'){
+  // chinese
+  if($type == 'chinese'){
+    $seed = array(
+      '雅婷 ','怡君 ','雅雯 ','宗翰 ','怡婷 ','家豪 ','冠宇 ','詩涵 ','婉婷 ','承翰 ','郁婷 ','柏翰 ','彥廷 ','詩婷 ','鈺婷 ','冠廷 ','佩珊 ','欣怡 ','家瑋 ','思穎 ','佳蓉 ','佳穎','志豪','怡萱','筱涵',
+    );
+  }
+  else{
+    $seed = array(
+      'Jacob','Ethan','Michael','Jayden','William','Alexander','Noah','Daniel','Aiden','Anthony',
+      'Isabella','Mia','Ashley','Emily','Sophia','Brianna','Melanie','Samantha','Genesis','Kayla',
+    );
+  }
+  $key = array_rand($seed);
+  return $seed[$key];
+}
+
+function _civicrm_demo_rand_birth(){
+  $base = time()-86400*365*3;
+  $time = mt_rand(0, $base);
+  $prev = mt_rand(0, 1);
+  if($prev){
+    $time = 0-$time;
+  }
+  return date('YMDHis', $time);
+}
+
+function _civicrm_demo_rand_prefix(){
+  $array = array(
+    '女士',
+    '小姐',
+    '先生',
+  );
+  $seed = mt_rand(0,2);
+  return $array[$seed];
+}
+
+function _civicrm_demo_rand_email(){
+  $name = trim(strtolower(_civicrm_demo_rand_firstname('english'))).'.'.trim(strtolower(_civicrm_demo_rand_lastname('english')));
+  $company = array(
+    'example.com','test.tw','ilovecivicrm.com','netivism-is-best.com.tw',
+  );
+  $key = array_rand($company);
+  return $name.'@'.$company[$key];
+}
+
+function _civicrm_demo_rand_addr($type = 'chinese'){
+  if($type == 'chinese'){
+    $sp = array(
+      'Changhua County','Chiayi City','Chiayi County','Hsinchu City','Hsinchu County','Hualien County','Ilan County','Kaohsiung City','Keelung City','Kinmen County','Lienchiang County','Miaoli County','Nantou County','Penghu County','Pingtung County','Taichung City','Tainan City','Taipei City','Taipei County','Taitung County','Taoyuan City','Yunlin Conuty',
+    );
+    $seed = array_rand($sp);
+    $state_province = $sp[$seed];
+    list($city, $postal_code) = _civicrm_demo_rand_city_postcode($sp[$seed]);
+    $street = '中山路1段1號';
+    $country = 1208;
+  }
+  else{
+    $state_province = 'California';
+    $city = 'San Francisco';
+    $street = rand(1,800).', FC Road';
+    $country = 1228;
+  }
+
+  return array(
+    'location_type_id'       => 1,
+    'is_primary'             => 1,
+    'city'                   => $city,
+    'state_province'         => $state_province,
+    'street_address'         => $street,
+    'country_id'             => $country,
+  );
+}
+
+function _civicrm_demo_rand_city_postcode($city){
+  $array = array(
+    'Keelung City' => array(
+      '仁愛區' => '200', '信義區' => '201', '中正區' => '202', '中山區' => '203', '安樂區' => '204', '暖暖區' => '205', '七堵區' => '206'
+    ),
+    'Taipei City' => array(
+      '中正區' => '100', '大同區' => '103', '中山區' => '104', '松山區' => '105', '大安區' => '106', '萬華區' => '108', '信義區' => '110', '士林區' => '111', '北投區' => '112', '內湖區' => '114', '南港區' => '115', '文山區' => '116'
+    ),
+    'Taipei County' => array(
+      '萬里區' => '207', '金山區' => '208', '板橋區' => '220', '汐止區' => '221', '深坑區' => '222', '石碇區' => '223',
+      '瑞芳區' => '224', '平溪區' => '226', '雙溪區' => '227', '貢寮區' => '228', '新店區' => '231', '坪林區' => '232',
+      '烏來區' => '233', '永和區' => '234', '中和區' => '235', '土城區' => '236', '三峽區' => '237', '樹林區' => '238',
+      '鶯歌區' => '239', '三重區' => '241', '新莊區' => '242', '泰山區' => '243', '林口區' => '244', '蘆洲區' => '247',
+      '五股區' => '248', '八里區' => '249', '淡水區' => '251', '三芝區' => '252', '石門區' => '253'
+    ),
+    'Ilan County' => array(
+      '宜蘭市' => '260', '頭城鎮' => '261', '礁溪鄉' => '262', '壯圍鄉' => '263', '員山鄉' => '264', '羅東鎮' => '265',
+      '三星鄉' => '266', '大同鄉' => '267', '五結鄉' => '268', '冬山鄉' => '269', '蘇澳鎮' => '270', '南澳鄉' => '272',
+      '釣魚台列嶼' => '290'
+    ),
+    'Hsinchu City' => array(
+      '新竹市' => '300'
+    ),
+    'Hsinchu County' => array(
+      '竹北市' => '302', '湖口鄉' => '303', '新豐鄉' => '304', '新埔鎮' => '305', '關西鎮' => '306', '芎林鄉' => '307',
+      '寶山鄉' => '308', '竹東鎮' => '310', '五峰鄉' => '311', '橫山鄉' => '312', '尖石鄉' => '313', '北埔鄉' => '314',
+      '峨嵋鄉' => '315'
+    ),
+    'Taoyuan City' => array(
+      '中壢市' => '320', '平鎮市' => '324', '龍潭鄉' => '325', '楊梅鎮' => '326', '新屋鄉' => '327', '觀音鄉' => '328',
+      '桃園市' => '330', '龜山鄉' => '333', '八德市' => '334', '大溪鎮' => '335', '復興鄉' => '336', '大園鄉' => '337',
+      '蘆竹鄉' => '338'
+    ),
+    'Miaoli County' => array(
+      '竹南鎮' => '350', '頭份鎮' => '351', '三灣鄉' => '352', '南庄鄉' => '353', '獅潭鄉' => '354', '後龍鎮' => '356',
+      '通霄鎮' => '357', '苑裡鎮' => '358', '苗栗市' => '360', '造橋鄉' => '361', '頭屋鄉' => '362', '公館鄉' => '363',
+      '大湖鄉' => '364', '泰安鄉' => '365', '銅鑼鄉' => '366', '三義鄉' => '367', '西湖鄉' => '368', '卓蘭鎮' => '369'
+    ),
+    'Taichung City' => array('中區' => '400', '東區' => '401', '南區' => '402', '西區' => '403', '北區' => '404', '北屯區' => '406',
+      '西屯區' => '407', '南屯區' => '408',
+      '太平區' => '411', '大里區' => '412', '霧峰區' => '413', '烏日區' => '414', '豐原區' => '420', '后里區' => '421',
+      '石岡區' => '422', '東勢區' => '423', '和平區' => '424', '新社區' => '426', '潭子區' => '427', '大雅區' => '428',
+      '神岡區' => '429', '大肚區' => '432', '沙鹿區' => '433', '龍井區' => '434', '梧棲區' => '435', '清水區' => '436',
+      '大甲區' => '437', '外埔區' => '438', '大安區' => '439'
+    ),
+    'Changhua County' => array(
+      '彰化市' => '500', '芬園鄉' => '502', '花壇鄉' => '503', '秀水鄉' => '504', '鹿港鎮' => '505', '福興鄉' => '506',
+      '線西鄉' => '507', '和美鎮' => '508', '伸港鄉' => '509', '員林鎮' => '510', '社頭鄉' => '511', '永靖鄉' => '512',
+      '埔心鄉' => '513', '溪湖鎮' => '514', '大村鄉' => '515', '埔鹽鄉' => '516', '田中鎮' => '520', '北斗鎮' => '521',
+      '田尾鄉' => '522', '埤頭鄉' => '523', '溪州鄉' => '524', '竹塘鄉' => '525', '二林鎮' => '526', '大城鄉' => '527',
+      '芳苑鄉' => '528', '二水鄉' => '530'
+    ),
+    'Nantou County' => array(
+      '南投市' => '540', '中寮鄉' => '541', '草屯鎮' => '542', '國姓鄉' => '544', '埔里鎮' => '545', '仁愛鄉' => '546',
+      '名間鄉' => '551', '集集鎮' => '552', '水里鄉' => '553', '魚池鄉' => '555', '信義鄉' => '556', '竹山鎮' => '557',
+      '鹿谷鄉' => '558'
+    ),
+    'Chiayi County' => array(
+      '嘉義市' => '600'
+    ),
+    'Chiayi City' => array(
+      '番路鄉' => '602', '梅山鄉' => '603', '竹崎鄉' => '604', '阿里山' => '605', '中埔鄉' => '606', '大埔鄉' => '607',
+      '水上鄉' => '608', '鹿草鄉' => '611', '太保市' => '612', '朴子市' => '613', '東石鄉' => '614', '六腳鄉' => '615',
+      '新港鄉' => '616', '民雄鄉' => '621', '大林鎮' => '622', '溪口鄉' => '623', '義竹鄉' => '624', '布袋鎮' => '625'
+    ),
+    'Yunlin Conuty' => array(
+      '斗南鎮' => '630', '大埤鄉' => '631', '虎尾鎮' => '632', '土庫鎮' => '633', '褒忠鄉' => '634', '東勢鄉' => '635',
+      '臺西鄉' => '636', '崙背鄉' => '637', '麥寮鄉' => '638', '斗六市' => '640', '林內鄉' => '643', '古坑鄉' => '646',
+      '莿桐鄉' => '647', '西螺鎮' => '648', '二崙鄉' => '649', '北港鎮' => '651', '水林鄉' => '652', '口湖鄉' => '653',
+      '四湖鄉' => '654', '元長鄉' => '655'
+    ),
+    'Tainan City' => array('中西區' => '700', '東區' => '701', '南區' => '702', '北區' => '704', '安平區' => '708', '安南區' => '709',
+      '永康區' => '710', '歸仁區' => '711', '新化區' => '712', '左區區' => '713', '玉井區' => '714', '楠西區' => '715',
+      '南化區' => '716', '仁德區' => '717', '關廟區' => '718', '龍崎區' => '719', '官田區' => '720', '麻豆區' => '721',
+      '佳里區' => '722', '西港區' => '723', '七股區' => '724', '將軍區' => '725', '學甲區' => '726', '北門區' => '727',
+      '新營區' => '730', '後壁區' => '731', '白河區' => '732', '東山區' => '733', '六甲區' => '734', '下營區' => '735',
+      '柳營區' => '736', '鹽水區' => '737', '善化區' => '741', '大內區' => '742', '山上區' => '743', '新區區' => '744',
+      '安定區' => '745'
+    ),
+    'Kaohsiung City' => array(
+      '新興區' => '800', '前金區' => '801', '苓雅區' => '802', '鹽埕區' => '803', '鼓山區' => '804', '旗津區' => '805',
+      '前鎮區' => '806', '三民區' => '807', '楠梓區' => '811', '小港區' => '812', '左營區' => '813',
+      '仁武區' => '814', '大社區' => '815', '岡山區' => '820', '路竹區' => '821', '阿蓮區' => '822', '田寮區' => '823',
+      '燕巢區' => '824', '橋頭區' => '825', '梓官區' => '826', '彌陀區' => '827', '永安區' => '828', '湖內區' => '829',
+      '鳳山區' => '830', '大寮區' => '831', '林園區' => '832', '鳥松區' => '833', '大樹區' => '840', '旗山區' => '842',
+      '美濃區' => '843', '六龜區' => '844', '內門區' => '845', '杉林區' => '846', '甲仙區' => '847', '桃源區' => '848',
+      '那瑪夏區' => '849', '茂林區' => '851', '茄萣區' => '852'
+    ),
+    'Pingtung County' => array(
+      '屏東市' => '900', '三地門' => '901', '霧臺鄉' => '902', '瑪家鄉' => '903', '九如鄉' => '904', '里港鄉' => '905',
+      '高樹鄉' => '906', '鹽埔鄉' => '907', '長治鄉' => '908', '麟洛鄉' => '909', '竹田鄉' => '911', '內埔鄉' => '912',
+      '萬丹鄉' => '913', '潮州鎮' => '920', '泰武鄉' => '921', '來義鄉' => '922', '萬巒鄉' => '923', '崁頂鄉' => '924',
+      '新埤鄉' => '925', '南州鄉' => '926', '林邊鄉' => '927', '東港鎮' => '928', '琉球鄉' => '929', '佳冬鄉' => '931',
+      '新園鄉' => '932', '枋寮鄉' => '940', '枋山鄉' => '941', '春日鄉' => '942', '獅子鄉' => '943', '車城鄉' => '944',
+      '牡丹鄉' => '945', '恆春鎮' => '946', '滿州鄉' => '947'
+    ),
+    'Taitung County' => array(
+      '臺東市' => '950', '綠島鄉' => '951', '蘭嶼鄉' => '952', '延平鄉' => '953', '卑南鄉' => '954', '鹿野鄉' => '955',
+      '關山鎮' => '956', '海端鄉' => '957', '池上鄉' => '958', '東河鄉' => '959', '成功鎮' => '961', '長濱鄉' => '962',
+      '太麻里鄉' => '963', '金峰鄉' => '964', '大武鄉' => '965', '達仁鄉' => '966'
+    ),
+    'Hualien County' => array(
+      '花蓮市' => '970', '新城鄉' => '971', '秀林鄉' => '972', '吉安鄉' => '973', '壽豐鄉' => '974', '鳳林鎮' => '975',
+      '光復鄉' => '976', '豐濱鄉' => '977', '瑞穗鄉' => '978', '萬榮鄉' => '979', '玉里鎮' => '981', '卓溪鄉' => '982',
+      '富里鄉' => '983'
+    ),
+    'Linmen County' => array(
+      '金沙鎮' => '890', '金湖鎮' => '891', '金寧鄉' => '892', '金城鎮' => '893', '烈嶼鄉' => '894', '烏坵鄉' => '896'
+     ),
+    'Lienchiang County' => array(
+      '南竿鄉' => '209', '北竿鄉' => '210', '莒光鄉' => '211', '東引鄉' => '212'
+    ),
+    'Penghu County' => array(
+      '馬公市' => '880', '西嶼鄉' => '881', '望安鄉' => '882', '七美鄉' => '883', '白沙鄉' => '884', '湖西鄉' => '885'
+    ),
+  );
+  $key = array_rand($array[$city]);
+  $return = array($key , $array[$city][$key]);
+  return $return;
+}
+
+function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
+  civicrm_initialize();
+  $payment_processors = array();
+  $params = array(
+    'version' => 3,
+    'class_name' => $class_name,
+  );
+  $default = _civicrm_demo_processor_default($class_name);
+
+  $result = civicrm_api('PaymentProcessorType', 'get', $params);
+  if(!empty($result['count'])){
+    $domain_id = CRM_Core_Config::domainID();
+    foreach($result['values'] as $type_id => $p){
+      $p = array_merge($p, $default);
+      $payment_name = $p['name'].'金流';
+      $payment_processor = array(
+        'version' => 3,
+        'name' => $payment_name,
+      );
+      $result = civicrm_api('PaymentProcessor', 'get', $payment_processor);
+      if(!empty($result['count'])){
+        $first = reset($result['values']);
+        $payment_processors[] = $first['id'];
+      }
+      else{
+        $payment_processor = array(
+          'version' => 3,
+          'domain_id' => $domain_id,
+          'name' => $payment_name,
+          'payment_processor_type_id' => $type_id,
+          'payment_processor_type' => $p['name'],
+          'is_active' => 1,
+          'is_default' => 0,
+          'is_test' => 0,
+          'user_name' => !empty($p['user_name_label']) ? $p['user_name'] : NULL,
+          'password' => !empty($p['password_label']) ? $p['password'] : NULL,
+          'signature' => !empty($p['signature_label']) ? $p['signature'] : NULL,
+          'subject' => !empty($p['subject_label']) ? $p['subject'] : NULL,
+          'url_site' => !empty($p['url_site_default']) ? $p['url_site_default'] : NULL,
+          'url_api' => !empty($p['url_api_default']) ? $p['url_api_default'] : NULL,
+          'url_recur' => !empty($p['url_recur_default']) ? $p['url_recur_default'] : NULL,
+          'class_name' => $p['class_name'],
+          'billing_mode' => $p['billing_mode'],
+          'is_recur' => $p['is_recur'],
+          'payment_type' => $p['payment_type'],
+        );
+        $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
+        if(is_numeric($result['id'])){
+          $payment_processors[] = $result['id']; 
+          if($class_name == 'Payment_Neweb'){
+            $ftp = array();
+            $ftp['ftp_host'] = $p['ftp_host'];
+            $ftp['ftp_user'] = $p['ftp_user']; 
+            $ftp['ftp_password'] = $p['ftp_password'];
+            variable_set("civicrm_neweb_ftp_".$result['id'], $ftp);
+            $payment_processors[] = $result['id'];
+          }
+        }
+
+        $payment_processor['is_test'] = 1;
+        $payment_processor['url_site'] = !empty($p['url_site_test_default']) ? $p['url_site_test_default'] : NULL;
+        $payment_processor['url_api'] = !empty($p['url_api_test_default']) ? $p['url_api_test_default'] : NULL;
+        $payment_processor['url_recur'] = !empty($p['url_recur_test_default']) ? $p['url_recur_test_default'] : NULL;
+        $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
+        if(is_numeric($result['id'])){
+          if($class_name == 'Payment_Neweb'){
+            variable_set("civicrm_neweb_ftp_test_".$result['id'], $ftp);
+            $payment_processors[] = $result['id'];
+          }
+        }
+      }
+    }
+  }
+  return $payment_processors;
+}
+
+function _civicrm_demo_processor_default($class_name){
+  $default = array();
+  if($class_name == 'Payment_ALLPAY'){
+    module_load_include('install', 'civicrm_allpay', 'civicrm_allpay');
+    $default['user_name'] = '2000132';
+    $default['password'] = '5294y06JbISpM5x9';
+    $default['signature'] = 'v77hoKGq4kWxNNIS';
+    $default['subject'] = '';
+    $default['url_site'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE;
+    $default['url_api'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_API;
+    $default['url_recur'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR;
+    $default['url_site_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE;
+    $default['url_api_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_API;
+    $default['url_recur_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR;
+  }
+
+  if($class_name == 'Payment_Neweb'){
+    $default['user_name'] = '758200';
+    $default['password'] = '456608';
+    $default['signature'] = 'abcd1234';
+    $default['subject'] = 'abcd1234';
+    $default['url_site_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
+    $default['url_api_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
+    $default['url_recur_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
+    $default['url_site_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
+    $default['url_api_test_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
+    $default['url_recur_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
+    $default['ftp_host'] = '127.0.0.1';
+    $default['ftp_user'] = 'user'; 
+    $default['ftp_password'] = 'abcd1234';
+  }
+  return $default;
+}
+
+function _civicrm_demo_create_custom_group($name, $title){
+  $params = array( 
+    'title' => $title,
+    'version' => 3,
+  );
+  $custom_group = civicrm_api('custom_group', 'get', $params);
+  if(empty($custom_group['id'])){
+    $params = array( 
+      'title' => $title,
+      'name' => $name,
+      'extends' => 'Contribution',
+      'weight' => 4,
+      'collapse_display' => 0,
+      'style' => 'Inline',
+      'help_pre' => '',
+      'help_post' => 'This is Post Help For Test Group 1',
+      'is_active' => 1,
+      'version' => 3,
+    );
+    $custom_group = civicrm_api( 'custom_group','create',$params );
+  }
+  return $custom_group;
+}
+
+function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id){
+  $params = array( 
+    'label' => $title,
+    'version' => 3,
+  );
+  $field = civicrm_api('custom_field', 'get', $params);
+  if(empty($field['id'])){
+    $params = array(
+      'custom_group_id' => $group_id,
+      'name' => $name,
+      'label' => $title,
+      'data_type' => $data_type,
+      'html_type' => $html_type,
+      'default_value' => '',
+      'weight' => 1,
+      'is_required' => 0,
+      'is_searchable' => 1,
+      'is_active' => 1,
+      'version' => 3,
+    );
+    $field = civicrm_api('custom_field', 'create', $params);
+  }
+  return $field;
+}
+
+function _civicrm_demo_create_uf_group($name, $title){
+  $params = array( 
+    'title' => $title,
+    'version' => 3,
+  );
+  $uf_group = civicrm_api('uf_group', 'get', $params);
+  if(empty($uf_group['id'])){
+    $params = array( 
+      'name' => $name,
+      'title' => $title,
+      'add_captcha' => 0,
+      'created_date' => date('Y-m-d H:i:s'),
+      'group_type' => 'Contribution',
+      'help_post' => '',
+      'help_pre' => '',
+      'is_active' => 1,
+      'is_cms_user' => 0,
+      'is_edit_link' => 0,
+      'is_map' => 0,
+      'is_reserved' => 1,
+      'is_uf_link' => 0,
+      'is_update_dupe' => 1, // update duplicate contact info
+      'notify' => '',
+      'cancel_URL' => '',
+      'post_URL' => '',
+      # 'created_id' => 69, // current user
+      'group' => 'null',
+      'add_contact_to_group' => 'null',
+      'version' => 3,
+      'debug' => 1,
+    );
+    $uf_group = civicrm_api('uf_group', 'create', $params);
+  }
+  return $uf_group;
+}
+
+function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 0){
+  $params = array( 
+    'field_type' => $field_type,
+    'field_name' => $field_name,
+    'version' => 3,
+  );
+  $uf_field = civicrm_api('uf_field', 'get', $params);
+  if(empty($uf_field['id'])){
+    $params = array(
+      'label' => $title,
+      'field_type' => $field_type,
+      'field_name' => $field_name,
+      'visibility' => 'Public Pages and Listings',
+      'is_required' => $is_required ? $is_required : 0,
+      'is_searchable' => 1,
+      'is_active' => 1,
+      'version' => 3,
+      'uf_group_id' => $uf_group_id,
+    );
+
+    $uf_field = civicrm_api('uf_field', 'create', $params);
+  }
+  return $uf_field;
+}
+
+function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
+  $params = array( 
+    'module' => 'CiviContribute',
+    'entity_table' => 'civicrm_contribution_page',
+    'entity_id' => $page_id,
+    'weight' => 1,
+    'uf_group_id' => $custom_pre,
+    'is_active' => 1,
+    'version' => 3,
+    'sequential' => 1,
+  );
+  civicrm_api('uf_join', 'create', $params);
+
+  $params = array( 
+    'module' => 'CiviContribute',
+    'entity_table' => 'civicrm_contribution_page',
+    'entity_id' => $page_id,
+    'weight' => 2,
+    'uf_group_id' => $custom_post,
+    'is_active' => 1,
+    'version' => 3,
+    'sequential' => 1,
+  );
+  civicrm_api('uf_join', 'create', $params);
+}
