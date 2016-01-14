@@ -10,6 +10,12 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Profile_Form_Dynamic',
     'CRM_UF_Form_Preview',
     'CRM_Contribute_Form_Contribution_Main',
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Contribute_Form_Contribution_ThankYou',
+    'CRM_Event_Form_Registration_Register',
+    'CRM_Event_Form_Registration_Confirm',
+    'CRM_Event_Form_Registration_ThankYou',    
+
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if(is_array($form->_fields)){
