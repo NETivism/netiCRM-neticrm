@@ -16,7 +16,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
   require_once 'CRM/Contribute/DAO/Contribution.php';
   require_once 'CRM/Utils/Array.php';
   $last_month = strtotime($start);
-  $now = REQUEST_TIME;
+  $now = time();
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, array());
@@ -66,7 +66,7 @@ function civicrm_neweb_recur_sync($is_test, $start = 'last month', $pid){
 }
 
 function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
-  $now = $now ? $now : REQUEST_TIME;
+  $now = $now ? $now : time();
 
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
@@ -194,7 +194,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
 }
 
 function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
-  $now = $now ? $now : REQUEST_TIME;
+  $now = $now ? $now : time();
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once 'CRM/Core/Payment.php'; 
@@ -403,7 +403,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 }
 
 function civicrm_neweb_process_upload($is_test, $pid){
-  $now = REQUEST_TIME;
+  $now = time();
   $nextday = mktime(6,0,0,date('n'),date('j'),date('Y'))+86400;
   $create_check = $now - 86400; // yesterday
   civicrm_initialize();
@@ -483,15 +483,12 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $rows[$recur->id] = $upload;
     //    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 4 WHERE id = $recur->id");
   }
-  print_r($rows);
 
   if(count($rows)){
     $data = _civicrm_neweb_encodeline($rows);
     $newebpath = _civicrm_neweb_path($is_test);
     $filename = 'RP_'.$payment['user_name'].'_'.date('Ymd').'.dat';
-    print_r($filename);
     $saved = file_save_data($data, $newebpath.'/'.$filename, FILE_EXISTS_REPLACE);
-    print_r($saved);
     $uploaded =  _civicrm_neweb_connect($pid, $payment['user_name'], $newebpath.'/'.$filename, NEWEB_UPLOAD, $is_test);
     if($uploaded){
       $sql = "UPDATE civicrm_contribution_neweb_recur SET upload=$now WHERE recur_id IN (".implode(',', array_keys($rows)).")";
@@ -503,7 +500,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
 }
 
 function civicrm_neweb_expire_recur($is_test){
-  $now = REQUEST_TIME;
+  $now = time();
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once "CRM/Core/Error.php";
