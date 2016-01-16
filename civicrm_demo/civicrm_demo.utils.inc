@@ -486,9 +486,13 @@ function _civicrm_demo_rand_city_postcode($city){
       '馬公市' => '880', '西嶼鄉' => '881', '望安鄉' => '882', '七美鄉' => '883', '白沙鄉' => '884', '湖西鄉' => '885'
     ),
   );
-  $key = array_rand($array[$city]);
-  $return = array($key , $array[$city][$key]);
-  return $return;
+  if(!empty($array[$city])){
+    $key = array_rand($array[$city]);
+    return array($key , $array[$city][$key]);
+  }
+  else{
+    return;
+  }
 }
 
 function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
