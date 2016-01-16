@@ -412,6 +412,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
   require_once 'CRM/Core/BAO/PaymentProcessor.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
   $p = new CRM_Core_BAO_PaymentProcessor();
+  echo 'test-neweb-1';
   if($is_test){
     $payment = $p->getPayment($pid,'test');
   }
@@ -455,6 +456,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
     
     $rows[$recur->id] = $alter['params'];
   }
+  echo 'test-neweb-2';
 
   // only one rule for cancelation. just look if they have cancel date and still pending, then process cancel job. -> x
   // The rule : status is 6 (experted) and after end_date 2 days. (same as civicrm_neweb_expire_recur() rule)
@@ -484,6 +486,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
     //    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 4 WHERE id = $recur->id");
   }
 
+  echo 'test-neweb-3';
   if(count($rows)){
     $data = _civicrm_neweb_encodeline($rows);
     $newebpath = _civicrm_neweb_path($is_test);
@@ -496,6 +499,7 @@ function civicrm_neweb_process_upload($is_test, $pid){
     CRM_Core_DAO::executeQuery($sql);
     return $uploaded;
   }
+  echo 'test-neweb-4';
   return false;
 }
 
