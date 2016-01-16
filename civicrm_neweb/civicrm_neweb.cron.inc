@@ -483,12 +483,15 @@ function civicrm_neweb_process_upload($is_test, $pid){
     $rows[$recur->id] = $upload;
     //    CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 4 WHERE id = $recur->id");
   }
+  print_r($rows);
 
   if(count($rows)){
     $data = _civicrm_neweb_encodeline($rows);
     $newebpath = _civicrm_neweb_path($is_test);
     $filename = 'RP_'.$payment['user_name'].'_'.date('Ymd').'.dat';
-    file_save_data($data, $newebpath.'/'.$filename, FILE_EXISTS_REPLACE);
+    print_r($filename);
+    $saved = file_save_data($data, $newebpath.'/'.$filename, FILE_EXISTS_REPLACE);
+    print_r($saved);
     $uploaded =  _civicrm_neweb_connect($pid, $payment['user_name'], $newebpath.'/'.$filename, NEWEB_UPLOAD, $is_test);
     if($uploaded){
       $sql = "UPDATE civicrm_contribution_neweb_recur SET upload=$now WHERE recur_id IN (".implode(',', array_keys($rows)).")";
