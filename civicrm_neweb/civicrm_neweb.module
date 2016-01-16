@@ -312,6 +312,10 @@ function _civicrm_neweb_ftp($mode, $local, $remote, $host, $user, $pass){
  * mode - put / get / list
  */
 function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_test){
+  if(empty($host)){
+    watchdog('civicrm_neweb', "SFTP setup error. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
+    return FALSE;
+  }
   $path = drupal_get_path('module', 'civicrm_neweb'). '/phpseclib/';
   set_include_path(get_include_path() . PATH_SEPARATOR . getcwd().base_path().rtrim($path, '/'));
 
