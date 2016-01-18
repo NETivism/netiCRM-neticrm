@@ -81,9 +81,6 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   dpm($resourceName);
   dd($resourceName);
   print_r($resourceName);
-  dpm($vars);
-  dd($vars);
-  print_r($vars);
 }
 
 function civicrm_field_i18n_civicrm_pageRun($page){
