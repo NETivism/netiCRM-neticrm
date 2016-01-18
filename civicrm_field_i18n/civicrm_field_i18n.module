@@ -24,6 +24,9 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
         if(!empty($form->_fields[$k]['groupTitle'])){
           $form->_fields[$k]['groupTitle'] = civicrm_field_i18n_t($form->_fields[$k]['groupTitle']);
         }
+        if(!empty($form->_fields[$k]['help_post'])){
+          $form->_fields[$k]['help_post'] = civicrm_field_i18n_t($form->_fields[$k]['help_post']);
+        }
       }
     }
     foreach ($form->_elements as $k => $e) {
@@ -57,55 +60,50 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
       }
     }
     // for civicrm contribution page and event page
-    if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
-      // group title
-      $template = CRM_Core_Smarty::singleton();
-      $profiles = array('customPre', 'customPost');
-      foreach($profiles as $p){
-        $vars = $template->get_template_vars($p);
-        if(!empty($vars)){
-          foreach($vars as $k => $v){
-            if(!empty($v['groupTitle'])){
-              $vars[$k]['groupTitle'] = civicrm_field_i18n_t($v['groupTitle']);
-            }
+    // Translate group title and help text
+    $template = CRM_Core_Smarty::singleton();
+    $profiles = array('customPre', 'customPost');
+    foreach($profiles as $p){
+      $vars = $template->get_template_vars($p);
+      if(!empty($vars)){
+        foreach($vars as $k => $v){
+          if(!empty($v['groupTitle'])){
+            $vars[$k]['groupTitle'] = civicrm_field_i18n_t($v['groupTitle']);
           }
-          $template->assign($p, $vars);
-          $vars = array();
+          if(!empty($v['help_post'])){
+            $vars[$k]['help_post'] = civicrm_field_i18n_t($v['help_post']); 
+          }
         }
+        $template->assign($p, $vars);
+        $vars = array();
       }
     }
   }
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
-  $profiles = array('customPre', 'customPost');
-  foreach ($profiles as $p) {
-    $var_name = $p . '_grouptitle';
-    if(!empty($vars[$var_name])){
-      $t = civicrm_field_i18n_t($vars[$var_name]);
-      if(!empty($t)){
-        $vars[$var_name] = $t;
+  global $language;
+  if($language->language != 'en' ){
+    $profiles = array('customPre', 'customPost');
+    foreach ($profiles as $p) {
+      $var_name = $p . '_grouptitle';
+      if(!empty($vars[$var_name])){
+        $vars[$var_name] = civicrm_field_i18n_t($vars[$var_name]);
+      } 
+
+      if(!empty($vars[$p])){
+        foreach ($vars[$p] as $k => $v) {
+          unset($vars[$p][$k]);
+          $vars[$p][civicrm_field_i18n_t($k)] = civicrm_field_i18n_t($v);
+        }  
       }
-    } 
-
-    if(!empty($vars[$p])){
-      foreach ($vars[$p] as $k => $v) {
-        $new_k = civicrm_field_i18n_t($k);
-        if(empty($new_k))$new_k = $k;
-        $new_v = civicrm_field_i18n_t($v);
-        if(empty($new_v))$new_v = $v;
-        unset($vars[$p][$k]);
-        $vars[$p][$new_k] = $new_v;
-      }  
     }
-
   }
-
 }
 
 function civicrm_field_i18n_civicrm_pageRun($page){
   global $language;
-  if(is_object($page)){
+  if(is_object($page) && $language->language != 'en'){
     $class = get_class($page);
     if($class == 'CRM_Profile_Page_Dynamic' && $language->language != 'en'){
       civicrm_initialize();
@@ -114,6 +112,7 @@ function civicrm_field_i18n_civicrm_pageRun($page){
       foreach($fields as $k => $f){
         if(!empty($f['label'])){
           $fields[$k]['label'] = civicrm_field_i18n_t($f['label']);
+          $fields[$k]['value'] = civicrm_field_i18n_t($f['value']);
         }
       }
       $template->assign_by_ref('profileFields', $fields);
@@ -122,7 +121,8 @@ function civicrm_field_i18n_civicrm_pageRun($page){
 }
 
 function civicrm_field_i18n_user($op, &$edit, &$user){
-  if($op == 'view'){
+  global $language;
+  if($op == 'view' && $language->language != 'en'){
     if(is_array($user->content)){
       foreach($user->content as $k => $c){
         if(is_array($c) && !empty($c['#title']) && isset($c[$c['#title']])){
