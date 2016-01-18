@@ -73,6 +73,12 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
           if(!empty($v['help_post'])){
             $vars[$k]['help_post'] = civicrm_field_i18n_t($v['help_post']); 
           }
+          if(!empty($v['groupHelpPre'])){
+            $vars[$k]['groupHelpPre'] = civicrm_field_i18n_t($v['groupHelpPre']); 
+          }
+          if(!empty($v['groupHelpPost'])){
+            $vars[$k]['groupHelpPost'] = civicrm_field_i18n_t($v['groupHelpPost']); 
+          }
         }
         $template->assign($p, $vars);
         $vars = array();
@@ -144,5 +150,5 @@ function civicrm_field_i18n_t($text){
 }
 
 function civicrm_field_i18n_test($text){
-  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!]+/', '', $text);
+  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!<>\n\t\s]+/', '', $text);
 }
