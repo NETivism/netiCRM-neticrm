@@ -78,24 +78,39 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
+  if(!empty($vars['customPre_grouptitle'])){
+    $t = civicrm_field_i18n_t($vars['customPre_grouptitle']);
+    if(!empty($t)){
+      $vars['customPre_grouptitle'] = $t;
+    }
+  }
+  if(!empty($vars['customPost_grouptitle'])){
+    $t = civicrm_field_i18n_t($vars['customPost_grouptitle']);
+    if(!empty($t)){
+      $vars['customPost_grouptitle'] = $t;
+    }
+  }
   if(!empty($vars['customPre'])){
     foreach ($vars['customPre'] as $k => $v) {
       $new_k = civicrm_field_i18n_t($k);
-      if(!$new_k)$new_k = $k;
+      if(empty($new_k))$new_k = $k;
       $new_v = civicrm_field_i18n_t($v);
-      if(!$new_v)$new_v = $v;
-      reset($vars['customPre'][$k]);
+      if(empty($new_v))$new_v = $v;
+      unset($vars['customPre'][$k]);
       $vars['customPre'][$new_k] = $new_v;
     }  
   }
-  
-  if(strpos($resourceName,'string:') === 0){
-      dpm($vars);
-      dd($vars);
-      print_r($vars);
+  if(!empty($vars['customPost'])){
+    foreach ($vars['customPost'] as $k => $v) {
+      $new_k = civicrm_field_i18n_t($k);
+      if(empty($new_k))$new_k = $k;
+      $new_v = civicrm_field_i18n_t($v);
+      if(empty($new_v))$new_v = $v;
+      unset($vars['customPost'][$k]);
+      $vars['customPost'][$new_k] = $new_v;
+    }  
   }
-  dpm($resourceName);
-  dd($resourceName);
+
 }
 
 function civicrm_field_i18n_civicrm_pageRun($page){
