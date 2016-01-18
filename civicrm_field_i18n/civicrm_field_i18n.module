@@ -9,6 +9,12 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
     'CRM_UF_Form_Preview',
+    'CRM_Contribute_Form_Contribution_Main',
+    'CRM_Contribute_Form_Contribution_Confirm',
+    'CRM_Contribute_Form_Contribution_ThankYou',
+    'CRM_Event_Form_Registration_Register',
+    'CRM_Event_Form_Registration_Confirm',
+    'CRM_Event_Form_Registration_ThankYou',    
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if(is_array($form->_fields)){
@@ -16,6 +22,9 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
       foreach($form->_fields as $k => $f){
         if(!empty($form->_fields[$k]['groupTitle'])){
           $form->_fields[$k]['groupTitle'] = civicrm_field_i18n_t($form->_fields[$k]['groupTitle']);
+        }
+        if(!empty($form->_fields[$k]['help_post'])){
+          $form->_fields[$k]['help_post'] = civicrm_field_i18n_t($form->_fields[$k]['help_post']);
         }
       }
     }
@@ -49,12 +58,57 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
         }
       }
     }
+    // for civicrm contribution page and event page
+    // Translate group title and help text
+    $template = CRM_Core_Smarty::singleton();
+    $profiles = array('customPre', 'customPost','customPreGroup','customPostGroup');
+    foreach($profiles as $p){
+      $vars = $template->get_template_vars($p);
+      if(!empty($vars)){
+        foreach($vars as $k => $v){
+          if(!empty($v['groupTitle'])){
+            $vars[$k]['groupTitle'] = civicrm_field_i18n_t($v['groupTitle']);
+          }
+          if(!empty($v['help_post'])){
+            $vars[$k]['help_post'] = civicrm_field_i18n_t($v['help_post']); 
+          }
+          if(!empty($v['groupHelpPre'])){
+            $vars[$k]['groupHelpPre'] = civicrm_field_i18n_t($v['groupHelpPre']); 
+          }
+          if(!empty($v['groupHelpPost'])){
+            $vars[$k]['groupHelpPost'] = civicrm_field_i18n_t($v['groupHelpPost']); 
+          }
+        }
+        $template->assign($p, $vars);
+        $vars = array();
+      }
+    }
+  }
+}
+
+function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
+  global $language;
+  if($language->language != 'en' ){
+    $profiles = array('customPre', 'customPost');
+    foreach ($profiles as $p) {
+      $var_name = $p . '_grouptitle';
+      if(!empty($vars[$var_name])){
+        $vars[$var_name] = civicrm_field_i18n_t($vars[$var_name]);
+      } 
+
+      if(!empty($vars[$p])){
+        foreach ($vars[$p] as $k => $v) {
+          unset($vars[$p][$k]);
+          $vars[$p][civicrm_field_i18n_t($k)] = civicrm_field_i18n_t($v);
+        }  
+      }
+    }
   }
 }
 
 function civicrm_field_i18n_civicrm_pageRun($page){
   global $language;
-  if(is_object($page)){
+  if(is_object($page) && $language->language != 'en'){
     $class = get_class($page);
     if($class == 'CRM_Profile_Page_Dynamic' && $language->language != 'en'){
       civicrm_initialize();
@@ -63,9 +117,24 @@ function civicrm_field_i18n_civicrm_pageRun($page){
       foreach($fields as $k => $f){
         if(!empty($f['label'])){
           $fields[$k]['label'] = civicrm_field_i18n_t($f['label']);
+          $fields[$k]['value'] = civicrm_field_i18n_t($f['value']);
         }
       }
       $template->assign_by_ref('profileFields', $fields);
+    }
+  }
+}
+
+function civicrm_field_i18n_user_view($user, $view_mode){
+  global $language;
+  if(is_array($user->content) && $language->language != 'en'){
+    foreach($user->content as $k => $c){
+      if(is_array($c) && !empty($c['#title']) && isset($c[$c['#title']])){
+        $content = $c[$c['#title']]['#value'];
+        if(strstr($content, 'crm-container')){
+          $user->content[$k]['#title'] = civicrm_field_i18n_t($c['#title']);
+        }
+      }
     }
   }
 }
@@ -81,5 +150,5 @@ function civicrm_field_i18n_t($text){
 }
 
 function civicrm_field_i18n_test($text){
-  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!]+/', '', $text);
+  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!<>\n\t\s]+/', '', $text);
 }
