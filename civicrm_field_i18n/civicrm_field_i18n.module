@@ -62,7 +62,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     // for civicrm contribution page and event page
     // Translate group title and help text
     $template = CRM_Core_Smarty::singleton();
-    $profiles = array('customPre', 'customPost');
+    $profiles = array('customPre', 'customPost','customPreGroup','customPostGroup');
     foreach($profiles as $p){
       $vars = $template->get_template_vars($p);
       if(!empty($vars)){
