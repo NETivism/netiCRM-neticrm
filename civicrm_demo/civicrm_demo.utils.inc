@@ -52,7 +52,7 @@ function civicrm_demo_process_event($vars){
     );
   for($i=0;  $i < $vars['limit']; $i++){
     $seed = $i % count($title);
-    
+
     $params = array('version' => 3,);
     $params['title'] = $title[$seed];
     $params['is_active'] = 1;
@@ -66,7 +66,7 @@ function civicrm_demo_process_event($vars){
     $params['max_participants'] = 5;
 
     if($seed == 0 || $seed == 4){
-      $params['max_participants'] = "";  
+      $params['max_participants'] = "";
     }
     if($seed == 3 || $seed == 4){
       $params['requires_approval'] = 1;
@@ -76,7 +76,7 @@ function civicrm_demo_process_event($vars){
     }
 
     $params['is_online_registration'] = 1;
-    
+
     $result = civicrm_api('Event', 'create', $params);
 
     $event_id = $result['id'];
@@ -137,7 +137,7 @@ function civicrm_demo_process_contribution($vars){
     $contact_id = $dao->id;
     for($i = 0; $i < $contrib_per_contact; $i++){
       $counter++;
-      if($counter > $contrib_limit) break; 
+      if($counter > $contrib_limit) break;
       $amount = mt_rand(300, 12000);
       $a = number_format($amount, 2, '.', '');
       $fee = number_format($amount*0.025, 2, '.', '');
@@ -249,16 +249,16 @@ function civicrm_demo_create_custom_profile(){
   );
   CRM_Core_BAO_ConfigSetting::add($params);
 
- 
+
   // copy uf group
-  $params = array( 
+  $params = array(
     'title' => '姓名及地址',
     'version' => 3,
   );
   $uf_group_name_addr = civicrm_api('uf_group', 'get', $params);
   $uf_group_pre_id = NULL;
   if(!empty($uf_group_name_addr['id'])){
-    $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);  
+    $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);
     if(!empty($copy->id) && $copy->id != $uf_group_name_addr['id']){
       $copy->title = '捐款基本資料';
       $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
@@ -289,7 +289,7 @@ function _civicrm_demo_rand_lastname($type = 'chinese'){
   }
   else{
     $seed = array(
-      'Smith','Johnson','Williams','Brown','Jones','Miller','Davis','García','Rodríguez','Wilson','Martínez','Anderson','Taylor','Thomas','Hernández','Moore','Martin','Jackson','Thompson','White','López','Lee','González','Harris','Clark','Lewis','Robinson','Walker','Pérez','Hall','Young','Allen','Sánchez','Wright','King','Scott','Green','Baker','Adams','Nelson','Hill','Ramírez','Campbell','Mitchell','Roberts','Carter','Phillips','Evans','Turner','Torres','Parker','Collins','Edwards','Stewart','Flores','Morris','Nguyen','Murphy','Rivera','Cook','Rogers','Morgan','Peterson','Cooper','Reed','Bailey','Bell','Gómez','ward','Ward','Cox','Díaz','Richardson','Wood','Watson','Brooks','Bennett','Gray','James','Reyes','Cruz','Hughes','Price','Myers','Long','Foster','Sanders','Ross','Morales','Powell','Sullivan','Russell','Ortiz','Jenkins','Gutiérrez','Perry','Butler','Barnes','Fisher', 
+      'Smith','Johnson','Williams','Brown','Jones','Miller','Davis','García','Rodríguez','Wilson','Martínez','Anderson','Taylor','Thomas','Hernández','Moore','Martin','Jackson','Thompson','White','López','Lee','González','Harris','Clark','Lewis','Robinson','Walker','Pérez','Hall','Young','Allen','Sánchez','Wright','King','Scott','Green','Baker','Adams','Nelson','Hill','Ramírez','Campbell','Mitchell','Roberts','Carter','Phillips','Evans','Turner','Torres','Parker','Collins','Edwards','Stewart','Flores','Morris','Nguyen','Murphy','Rivera','Cook','Rogers','Morgan','Peterson','Cooper','Reed','Bailey','Bell','Gómez','ward','Ward','Cox','Díaz','Richardson','Wood','Watson','Brooks','Bennett','Gray','James','Reyes','Cruz','Hughes','Price','Myers','Long','Foster','Sanders','Ross','Morales','Powell','Sullivan','Russell','Ortiz','Jenkins','Gutiérrez','Perry','Butler','Barnes','Fisher',
     );
   }
   $key = array_rand($seed);
@@ -543,11 +543,11 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         );
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
         if(is_numeric($result['id'])){
-          $payment_processors[] = $result['id']; 
+          $payment_processors[] = $result['id'];
           if($class_name == 'Payment_Neweb'){
             $ftp = array();
             $ftp['ftp_host'] = $p['ftp_host'];
-            $ftp['ftp_user'] = $p['ftp_user']; 
+            $ftp['ftp_user'] = $p['ftp_user'];
             $ftp['ftp_password'] = $p['ftp_password'];
             variable_set("civicrm_neweb_ftp_".$result['id'], $ftp);
             $payment_processors[] = $result['id'];
@@ -599,20 +599,20 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_api_test_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
     $default['url_recur_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
     $default['ftp_host'] = '127.0.0.1';
-    $default['ftp_user'] = 'user'; 
+    $default['ftp_user'] = 'user';
     $default['ftp_password'] = 'abcd1234';
   }
   return $default;
 }
 
 function _civicrm_demo_create_custom_group($name, $title){
-  $params = array( 
+  $params = array(
     'title' => $title,
     'version' => 3,
   );
   $custom_group = civicrm_api('custom_group', 'get', $params);
   if(empty($custom_group['id'])){
-    $params = array( 
+    $params = array(
       'title' => $title,
       'name' => $name,
       'extends' => 'Contribution',
@@ -630,7 +630,7 @@ function _civicrm_demo_create_custom_group($name, $title){
 }
 
 function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL){
-  $params = array( 
+  $params = array(
     'label' => $title,
     'version' => 3,
   );
@@ -650,7 +650,7 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
       'version' => 3,
     );
     if(!is_null($default)){
-      $params['default_value'] = $default; 
+      $params['default_value'] = $default;
     }
     $field = civicrm_api('custom_field', 'create', $params);
   }
@@ -658,13 +658,13 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
 }
 
 function _civicrm_demo_create_uf_group($name, $title){
-  $params = array( 
+  $params = array(
     'title' => $title,
     'version' => 3,
   );
   $uf_group = civicrm_api('uf_group', 'get', $params);
   if(empty($uf_group['id'])){
-    $params = array( 
+    $params = array(
       'name' => $name,
       'title' => $title,
       'add_captcha' => 0,
@@ -694,7 +694,7 @@ function _civicrm_demo_create_uf_group($name, $title){
 }
 
 function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 0){
-  $params = array( 
+  $params = array(
     'field_type' => $field_type,
     'field_name' => $field_name,
     'version' => 3,
@@ -721,7 +721,7 @@ function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_gro
 }
 
 function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
-  $params = array( 
+  $params = array(
     'module' => 'CiviContribute',
     'entity_table' => 'civicrm_contribution_page',
     'entity_id' => $page_id,
@@ -733,7 +733,7 @@ function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
   );
   civicrm_api('uf_join', 'create', $params);
 
-  $params = array( 
+  $params = array(
     'module' => 'CiviContribute',
     'entity_table' => 'civicrm_contribution_page',
     'entity_id' => $page_id,
