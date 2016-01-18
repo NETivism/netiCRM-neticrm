@@ -224,7 +224,7 @@ function civicrm_demo_create_custom_profile(){
   // custom fields
   if(!empty($group['id'])){
     $fields = array();
-    $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'Boolean', 'Radio', $group['id']);
+    $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'Boolean', 'Radio', $group['id'], 1);
     $fields['receipt_title'] = _civicrm_demo_create_custom_field('receipt_title', '收據抬頭', 'String', 'Text', $group['id']);
     $fields['receipt_serial'] = _civicrm_demo_create_custom_field('receipt_serial', '收據編號', 'String', 'Text', $group['id']);
     $fields['receipt_donor_credit'] = _civicrm_demo_create_custom_field('receipt_donor_credit', '捐款徵信名稱', 'String', 'Text', $group['id']);
@@ -629,7 +629,7 @@ function _civicrm_demo_create_custom_group($name, $title){
   return $custom_group;
 }
 
-function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id){
+function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL){
   $params = array( 
     'label' => $title,
     'version' => 3,
@@ -649,6 +649,9 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
       'is_active' => 1,
       'version' => 3,
     );
+    if(!is_null($default)){
+      $params['default_value'] = $default; 
+    }
     $field = civicrm_api('custom_field', 'create', $params);
   }
   return $field;
