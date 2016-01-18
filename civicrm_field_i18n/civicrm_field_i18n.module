@@ -78,6 +78,12 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
+  if(strpos($resourceName,'string:') === 0){
+    if(strpos($resourceName,'Receipt')){
+      dpm($vars);
+      dd($vars);
+    }
+  }
   dpm($resourceName);
   dd($resourceName);
 }
