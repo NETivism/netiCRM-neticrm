@@ -78,6 +78,17 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
+  if(!empty($vars['customPre'])){
+    foreach ($vars['customPre'] as $k => $v) {
+      $new_k = civicrm_field_i18n_t($k);
+      if(!$new_k)$new_k = $k;
+      $new_v = civicrm_field_i18n_t($v);
+      if(!$new_v)$new_v = $v;
+      reset($vars['customPre'][$k]);
+      $vars['customPre'][$new_k] = $new_v;
+    }  
+  }
+  
   if(strpos($resourceName,'string:') === 0){
       dpm($vars);
       dd($vars);
