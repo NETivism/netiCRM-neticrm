@@ -81,6 +81,7 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   if(strpos($resourceName,'string:') === 0){
       dpm($vars);
       dd($vars);
+      print_r($vars);
   }
   dpm($resourceName);
   dd($resourceName);
