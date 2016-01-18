@@ -83,6 +83,10 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
       dpm($vars);
       dd($vars);
     }
+    if(strpos($resourceName,'receipt')){
+      dpm($vars);
+      dd($vars); 
+    }
   }
   dpm($resourceName);
   dd($resourceName);
