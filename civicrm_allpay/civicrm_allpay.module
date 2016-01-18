@@ -379,14 +379,23 @@ function civicrm_allpay_recur_sync($days = array()){
     );
   }
 
-  $query = "SELECT r.* FROM civicrm_contribution_recur r WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(start_date) = %1 ORDER BY r.id DESC;";
+  $query = "SELECT (SELECT c.id FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS exists_cid, r.* FROM civicrm_contribution_recur r
+  WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
+  ORDER BY exists_cid, r.create_date ASC";
   foreach($days as $d){
     watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
-    $result = CRM_Core_DAO::executeQuery($query, array(1 => array($d, 'String')));
+    $query_params = array(
+      1 => array($d, 'String'),
+      2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
+      3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+    );
+    $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
-      // check if is next day of expect recurring
-      civicrm_allpay_recur_check($result->id);
-      usleep(300000); // sleep 0.3 second
+      if(empty($result->exists_cid)){
+        // check if is next day of expect recurring
+        civicrm_allpay_recur_check($result->id);
+        usleep(300000); // sleep 0.3 second
+      }
     }
     $result->free();
     $result = NULL;
@@ -483,7 +492,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
             $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
             parse_str($query, $get);
             $get['is_recur'] = 1;
-            $rtncode = !empty($o->gwsr) ? $order->RtnCode : 'uncertain';
+            $rtncode = !empty($o->gwsr) ? $o->RtnCode : 'uncertain';
             $post = array(
               'MerchantID' => $order->MerchantID,
               'MerchantTradeNo' => $order->MerchantTradeNo,

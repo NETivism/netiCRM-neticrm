@@ -306,7 +306,13 @@ function _esunbank_year2roc($timestamp){
  * 條碼產生
  */
 function esunbank_barcode($serial){
-  module_load_include('inc', 'esunbank', 'barcode39');
+  if(module_exists('civicrm')){
+    civicrm_initialize();
+    require_once('barcode/barcode39.inc');
+  }
+  else{
+    module_load_include('inc', 'esunbank', 'barcode39');
+  }
 
   $dir = 'esunbarcode';
   $ext = 'gif';
