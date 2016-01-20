@@ -40,7 +40,7 @@ function civicrm_allpay_schema(){
  */
 function civicrm_allpay_install() {
   civicrm_initialize( );
-  
+
   // new payment processor - credit card (allowed recurring)
   $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '歐付寶信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."', NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."', NULL, 4, 1, 1)";
   CRM_Core_DAO::executeQuery($sql);
@@ -48,7 +48,7 @@ function civicrm_allpay_install() {
   // new payment processor - others (not allowed recurring)
   $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAYX', '歐付寶非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', NULL, NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', NULL, NULL, 4, 0, 1)";
   CRM_Core_DAO::executeQuery($sql);
-  
+
   // new payment instrument
   include_once "civicrm_allpay.module";
   $new_instrument = _civicrm_allpay_instrument();
@@ -135,7 +135,6 @@ function civicrm_allpay_update_7101(){
   // update recur status
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
-
 
   // update translations
   if(module_exists('neticrm_update')){
