@@ -14,9 +14,17 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Contribute_Form_Contribution_ThankYou',
     'CRM_Event_Form_Registration_Register',
     'CRM_Event_Form_Registration_Confirm',
-    'CRM_Event_Form_Registration_ThankYou',    
+    'CRM_Event_Form_Registration_ThankYou',
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
+    if($_GET['snippet'] == 4){
+      if(!empty($form->_paymentProcessors)){
+        foreach($form->_paymentProcessors as $k => $v){
+          $form->_paymentProcessors[$k]['name'] = civicrm_field_i18n_t($v['name']);
+        }
+      }
+      return;
+    }
     if(is_array($form->_fields)){
       reset($form->_fields);
       foreach($form->_fields as $k => $f){
@@ -70,13 +78,13 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
             $vars[$k]['groupTitle'] = civicrm_field_i18n_t($v['groupTitle']);
           }
           if(!empty($v['help_post'])){
-            $vars[$k]['help_post'] = civicrm_field_i18n_t($v['help_post']); 
+            $vars[$k]['help_post'] = civicrm_field_i18n_t($v['help_post']);
           }
           if(!empty($v['groupHelpPre'])){
-            $vars[$k]['groupHelpPre'] = civicrm_field_i18n_t($v['groupHelpPre']); 
+            $vars[$k]['groupHelpPre'] = civicrm_field_i18n_t($v['groupHelpPre']);
           }
           if(!empty($v['groupHelpPost'])){
-            $vars[$k]['groupHelpPost'] = civicrm_field_i18n_t($v['groupHelpPost']); 
+            $vars[$k]['groupHelpPost'] = civicrm_field_i18n_t($v['groupHelpPost']);
           }
         }
         $template->assign($p, $vars);
@@ -94,13 +102,13 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
       $var_name = $p . '_grouptitle';
       if(!empty($vars[$var_name])){
         $vars[$var_name] = civicrm_field_i18n_t($vars[$var_name]);
-      } 
+      }
 
       if(!empty($vars[$p])){
         foreach ($vars[$p] as $k => $v) {
           unset($vars[$p][$k]);
           $vars[$p][civicrm_field_i18n_t($k)] = civicrm_field_i18n_t($v);
-        }  
+        }
       }
     }
   }
