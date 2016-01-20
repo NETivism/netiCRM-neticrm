@@ -102,3 +102,17 @@ function neticrm_update_update_6104() {
 function neticrm_update_update_6105() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update invoice notify template, #14612
+ */
+function neticrm_update_update_6106() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Add new civicrm report for taiwanese tax, #10745
+ */
+function neticrm_update_update_6107() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
