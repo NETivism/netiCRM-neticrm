@@ -31,6 +31,7 @@ function neticrm_update_load_include($func){
     $path = dirname(__FILE__).'/update/';
     $filename = $path . $n. '.inc';
     if(file_exists($filename)){
+      module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
       include $filename;
       $func = '_'.$func;
       if(function_exists($func)){
