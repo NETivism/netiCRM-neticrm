@@ -15,9 +15,16 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Event_Form_Registration_Register',
     'CRM_Event_Form_Registration_Confirm',
     'CRM_Event_Form_Registration_ThankYou',    
-
   );
   if($language->language != 'en' && in_array($form_name, $allowed)){
+    if($_GET['snippet'] == 4){
+      if(!empty($form->_paymentProcessors)){
+        foreach($form->_paymentProcessors as $k => $v){
+          $form->_paymentProcessors[$k]['name'] = civicrm_field_i18n_t($v['name']); 
+        }
+      }
+      return;
+    }
     if(is_array($form->_fields)){
       reset($form->_fields);
       foreach($form->_fields as $k => $f){

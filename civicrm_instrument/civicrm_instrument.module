@@ -366,9 +366,10 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
           $output .= '<div class="civicrm-instrument-dummy"><label><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio required">'.$r['label'].'</label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
       }
+      $label = ts('Payment Instrument');
       $output = '
       <div class="crm-section">
-        <div class="label">此付款方式可選擇的工具<span class="crm-marker" title="此欄位不可空白。">*</span></div>
+        <div class="label">'.$label.'<span class="crm-marker" title="此欄位不可空白。">*</span></div>
         <div class="content">
           '.$output.'
         </div>
