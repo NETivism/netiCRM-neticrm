@@ -10,6 +10,8 @@ function civicrm_allpay_ipn($instrument, $post = NULL, $get = NULL, $print = TRU
   // detect variables
   $post = !empty($post) ? $post : $_POST;
   $get = !empty($get) ? $get : $_GET;
+
+  // detect variables
   if(empty($post)){
     watchdog("civicrm_allpay", "Could not find POST data from payment server");
     drupal_not_found();
@@ -64,7 +66,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     else{
       $recur = TRUE;
     }
-    
+
     // now, retrieve full object by validateData, or false fallback
     if ( ! $this->validateData( $input, $ids, $objects ) ) {
       return false;
@@ -158,6 +160,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     if($ids['contributionRecur']){
       $recur = &$objects['contributionRecur'];
       $params = $null = array();
+      // see if we are first time, if not first time, save new contribution
       // 6 - expired
       // 5 - processing
       // 4 - fail

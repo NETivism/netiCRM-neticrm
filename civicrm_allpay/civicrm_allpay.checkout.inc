@@ -151,9 +151,9 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
         $args['Frequency'] = 1; // now only support continious recurring
         $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
-        if($language->language == 'en'){
-          $args['Language'] = 'ENG';
-        }
+      }
+      if($language->language == 'en'){
+        $args['Language'] = 'ENG';
       }
       # Recurring
       break;
@@ -165,6 +165,8 @@ function _civicrm_allpay_form_redirect($redirect_vars, $payment_processor){
   header('Pragma: no-cache');
   header('Cache-Control: no-store, no-cache, must-revalidate');
   header('Expires: 0');
+
+  $o = "";
 
   $js = 'document.forms.redirect.submit();';
   $o .= '<form action="'.$payment_processor['url_site'].'" name="redirect" method="post" id="redirect-form">';
@@ -234,11 +236,4 @@ function _civicrm_allpay_notify_url(&$vars, $path, $component){
   else{
     return $url;
   }
-}
-
-function _civicrm_allpay_trxn_id($is_test, $id){
-  if($is_test){
-    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. substr(time(), 0, 3);
-  }
-  return $id;
 }

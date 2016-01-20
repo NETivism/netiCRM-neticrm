@@ -21,13 +21,6 @@ function civicrm_allpay_menu(){
       'weight' => 0,
       'file' => 'civicrm_allpay.ipn.inc',
     ),
-    'allpay/popup/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_allpay_popup',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
     'allpay/record/%' => array(
       'access callback' => true,
       'page callback' => 'civicrm_allpay_record',
@@ -120,6 +113,14 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
         $saved_params = $form->controller->get('params');
         if(!empty($saved_params['trxn_id'])){
           $params['trxn_id'] = $saved_params['trxn_id'];
+
+          // build notify billing info
+          module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+          $info = civicrm_allpay_notify_bytrxn($params['trxn_id']);
+          $display = civicrm_allpay_notify_display($info, $saved_params['civicrm_instrument_id']);
+          $form->assign('payment_instrument', $display); 
+
+          // add result type
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
@@ -194,6 +195,14 @@ function civicrm_allpay_civicrm_validate($form_name, &$form){
     }
   }
   return empty( $errors ) ? true : $errors;
+}
+
+/**
+ * Implementation of hook_civicrm_prepareInvoice()
+ */
+function civicrm_allpay_civicrm_prepareInvoice($contribution_id, &$tplParams){
+  module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+  $tplParams = civicrm_allpay_notify_generate($contribution_id, FALSE);
 }
 
 function civicrm_allpay_error(){
@@ -272,76 +281,12 @@ function _civicrm_allpay_vars2str($post){
   return implode('&', $array);
 }
 
-
-/**
- * Help funtion for printing payment info
- */
-function _civicrm_allpay_payment_info($cid, $instrument){
-  civicrm_initialize();
-  $allpay = db_fetch_object(db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
-  $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = {$cid}");
-  $data = array();
-  switch($instrument){
-    case 'cvs':
-    case 'ibon':
-      $data[] = array('付款代碼', $allpay->payno);
-      $data[] = array('付款金額', $amount);
-      $data[] = array('付款期限', format_date($allpay->expire_datetime, 'short'));
-      break;
-    case 'vacc':
-      $data[] = array('轉帳銀行代碼', '玉山銀行 ('.$allpay->bankcode.')');
-      $data[] = array('轉帳銀行帳號', $allpay->vaccno);
-      $data[] = array('付款金額', $amount);
-      $data[] = array('付款期限', format_date($allpay->expire_datetime, 'custom', 'Y/m/d'));
-      break;
-  }
-  return $data;
-}
-
-function civicrm_allpay_popup($instrument){
-  $cid = $_GET['cid'];
-  if(!$cid){
-    drupal_goto();
-  }
-  else{
-    $allpay = db_fetch_object(db_query("SELECT * FROM {civicrm_contribution_allpay} WHERE cid = %d", $cid));
-    civicrm_initialize();
-    $params = array( 1 => array( $cid, 'Integer' ) );
-    $amount = CRM_Core_DAO::singleValueQuery("SELECT total_amount FROM civicrm_contribution WHERE id = %1", $params);
-    $output = '
-<style>
-  #content { text-align: center;}
-  #content table {text-align: left; width: 300px; margin: 0 auto;}
-  #sidebar {display:none;}
-  #navigation, #branding, #admin-menu { display: none !important; }
-</style>
-    ';
-    if($allpay){
-      $rows = _civicrm_allpay_payment_info($cid, $instrument);
-      $output .= '<h3>付款資訊</h3>';
-      $output .= theme('table', NULL, $rows, array('align' => 'center', 'width' =>' 300', 'id' => 'payment-info'));
-      $output .= '<div class="function">';
-      $output .= '<input type="button" onclick="print();" value="列印">';
-      $output .= '</div>';
-    }
-    else{
-      $output = 'database not found error';
-    }
-  }
-  return $output;
-}
-
-function _civicrm_allpay_popupurl($instrument_code, $cid){
-  return url('allpay/popup/'.$instrument_code, array('absolute' => TRUE, 'query' => 'cid='.$cid));
-}
-function _civicrm_allpay_barcode($mer, $tsr){
-  return 'https://ecbank.com.tw/order/barcode_print.php?mer_id='.$mer.'&tsr='.$tsr;
-}
-
 function civicrm_allpay_record($cid, $data = null){
   if(is_numeric($cid)){
+    $billing_notify = FALSE;
     if(empty($data) && !empty($_POST)){
       if(arg(1) == 'record'){
+        $billing_notify = TRUE;
         $data['#info'] = $_POST;
       }
       else{
@@ -364,6 +309,10 @@ function civicrm_allpay_record($cid, $data = null){
       }
       else{
         drupal_write_record('civicrm_contribution_allpay', $record);
+      }
+      if($billing_notify){
+        module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+        civicrm_allpay_notify_generate($cid, TRUE); // send mail
       }
     }
   }
@@ -595,6 +544,7 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   $keystr = implode('&', $a);
   $keystr = urlencode($keystr);
   $keystr = strtolower($keystr);
+
   $special_char_allpay = array(
     '%2d' => '-',
     '%5f' => '_',
@@ -612,6 +562,13 @@ function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
   return $checkmacvalue;
 }
 
+function _civicrm_allpay_trxn_id($is_test, $id){
+  if($is_test){
+    $id = 'test' . substr(str_replace('.', '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. mt_rand(100, 999);
+    ;
+  }
+  return $id;
+}
 function _civicrm_allpay_recur_trxn($parent, $gwsr){
   if(empty($gwsr)){
     return $parent;
