@@ -49,5 +49,7 @@ function _neticrm_update_update_6106(){
       CRM_Core_BAO_MessageTemplates::add($params);
     }
   }
+  CRM_Core_Menu::store();
+  CRM_Core_BAO_Navigation::resetNavigation();
   return FALSE;
 }
