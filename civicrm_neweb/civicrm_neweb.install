@@ -359,7 +359,7 @@ function civicrm_neweb_update_7202(){
 /**
  * Update sql avoid payment_processor_id IS NULL
  */
-function civicrm_neweb_update_6113(){
+function civicrm_neweb_update_7203(){
   civicrm_initialize();
   // Get first neweb payment processor id 
   $pids = _civicrm_neweb_is_active(0);
