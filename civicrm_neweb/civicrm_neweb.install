@@ -355,3 +355,21 @@ function civicrm_neweb_update_7200() {
 function civicrm_neweb_update_7202(){
   variable_del('civicrm_neweb_scan');
 }
+
+/**
+ * Update sql avoid payment_processor_id IS NULL
+ */
+function civicrm_neweb_update_6113(){
+  civicrm_initialize();
+  // Get first neweb payment processor id 
+  $pids = _civicrm_neweb_is_active(0);
+  $ppid = min($pids);
+  
+  
+  // Run Sql 
+  $sql = "UPDATE civicrm_contribution c INNER JOIN civicrm_contribution_neweb_recur cnr ON c.contribution_recur_id = cnr.recur_id SET c.payment_processor_id = $ppid WHERE c.is_test = 0 AND c.payment_processor_id IS NULL";
+  CRM_Core_DAO::executeQuery($sql);
+
+  $sql = "UPDATE civicrm_contribution c INNER JOIN civicrm_contribution_neweb cn ON c.id = cn.cid SET c.payment_processor_id = $ppid WHERE c.is_test = 0 AND c.payment_processor_id IS NULL";
+  CRM_Core_DAO::executeQuery($sql);
+}
