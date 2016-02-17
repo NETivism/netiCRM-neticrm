@@ -251,14 +251,70 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     function ezpay(){
+      require_once 'CRM/Contribute/DAO/Contribution.php';
+      require_once 'CRM/Core/Payment/BaseIPN.php';
+      require_once 'CRM/Core/Transaction.php';
+
       // Do something when payment processor system send post to call ezpay url.
-      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);
-      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);
-      if(module_exists('devel')){
-        dd($_POST);
-        dd($_GET);
+      $input = $objects = $ids = $result = array();
+      $result = $_POST;
+
+      require_once("civicrm_neweb.cron.inc");
+
+      $c =& new CRM_Contribute_DAO_Contribution();
+      $c->id = $result['ordernumber'];
+      $c->find(true);
+      $ids['contact'] = $c->contact_id;
+      $ids['contribution'] = $c->id;
+      $pid = $c->payment_processor_id;
+      if(!$c->contribution_page_id){
+        $pp = CRM_Core_DAO::executeQuery("SELECT cpp.participant_id, e.id FROM civicrm_participant_payment cpp INNER JOIN civicrm_participant cp ON cpp.participant_id = cp.id INNER JOIN civicrm_event e ON e.id = cp.event_id WHERE cpp.contribution_id = {$c->id}");
+        $pp->fetch(); 
+        $input['component'] = 'event';
+        $ids['event'] = $pp->id;
+        $ids['participant'] = $pp->participant_id;
+      }else{
+        $input['component'] = 'contribute';
       }
-      return NULL;
+
+      $transaction = new CRM_Core_Transaction();
+      $ipn =& new CRM_Core_Payment_BaseIPN();
+      if($ipn->validateData($input, $ids, $objects, TRUE, $pid)){
+
+        // after validate, start to complete some transaction
+        $input['trxn_id'] = $c->trxn_id;
+        $input['payment_instrument_id'] = $c->payment_instrument_id;
+        $input['check_number'] = $result['writeoffnumber'];
+        $input['amount'] = $result['amount'];
+        if($result['timepaid']){
+          $objects['contribution']->receive_date = $result['timepaid'];
+        }
+        else{
+          $objects['contribution']->receive_date = date('YmdHis');
+        }
+        $ipn->completeTransaction($input, $ids, $objects, $transaction);
+
+        // note here;
+        $note .= ts("Merchant number").": ".$result['merchantnumber']."\n";
+        $note .= ts("Order number").": ".$result['ordernumber']."\n";
+        $note .= ts("Serial number").": ".$result['serialnumber']."\n";
+        $note .= ts("Payment Instrument").": ". $result['paymenttype']."\n";
+        $note .= ts("External order number").": ".$result['writeoffnumber']."\n";
+        // $note .= ts("Create date").": ".$result['timecreated']."\n";
+        $note .= ts("Paid date").": ".$result['timepaid']."\n";
+        $note .= ts("Amount").": ".$result['amount']."\n";
+        // $note .= ts("Pay count").": ".$result['paycount']."\n";
+        $note .= ts("Tel").": ".$result['tel']."\n";
+        $note .= ts("Hash").": ".$result['hash']."\n";
+        $note .= ts("Completed");
+        _civicrm_neweb_addnote($note, $c->id, $c->contact_id); 
+      }else{
+        $note .= ts("Error").": ".ts("Validate Error")."\n";
+        _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
+      }
+      
+
+
     }
 
 
