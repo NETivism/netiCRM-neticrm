@@ -250,14 +250,17 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       return $return;
     }
 
-    function ezpay(){
+    function ezpay($post){
       require_once 'CRM/Contribute/DAO/Contribution.php';
       require_once 'CRM/Core/Payment/BaseIPN.php';
       require_once 'CRM/Core/Transaction.php';
 
       // Do something when payment processor system send post to call ezpay url.
       $input = $objects = $ids = $result = array();
-      $result = $_POST;
+      $result = $post;
+      if(module_exists('devel')){
+        dd($result);
+      }
 
       require_once("civicrm_neweb.cron.inc");
 
@@ -307,10 +310,10 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $note .= ts("Tel").": ".$result['tel']."\n";
         $note .= ts("Hash").": ".$result['hash']."\n";
         $note .= ts("Completed");
-        _civicrm_neweb_addnote($note, $c->id, $c->contact_id); 
+        $this->addNote($note, $c->id); 
       }else{
         $note .= ts("Error").": ".ts("Validate Error")."\n";
-        _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
+        $this->addNote($note, $c->id);
       }
       
 
@@ -342,7 +345,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $instrument = arg(2);
       }
       if(!empty($instrument) && $instrument == 'ezpay'){
-        return $this->ezpay($input, $ids, $objects);
+        return $this->ezpay($_POST);
       }
       
       if(!$input){
