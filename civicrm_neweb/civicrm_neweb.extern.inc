@@ -11,6 +11,10 @@ function civicrm_neweb_ipn($instrument){
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
   $NewebIPN = new CRM_Core_Payment_NewebIPN( );
+  if($instrument == 'ezpay'){
+    $NewebIPN->main('contribute', $instrument);
+    return;
+  }
   switch ( $_GET['module'] ) {
     case 'contribute':
       $NewebIPN->main( 'contribute' );
@@ -247,15 +251,16 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     function ezpay(){
-      // Do something when payment processor system send post to call ezpay url. 
-      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);  
-      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);  
+      // Do something when payment processor system send post to call ezpay url.
+      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);
+      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);
       if(module_exists('devel')){
         dd($_POST);
         dd($_GET);
       }
       return NULL;
     }
+
 
     function getIds( &$ids , $component){
       $ids['contact'] = $_GET['contact_id'];
@@ -273,11 +278,13 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
     }
 
-    function main( $component = 'contribute' , $input = NULL, $ids = NULL, $objects = NULL) {
+    function main( $component = 'contribute', $instrument = NULL , $input = NULL, $ids = NULL, $objects = NULL) {
       require_once 'CRM/Utils/Request.php';
       $objects = $ids = $input = array();
 
-      $instrument = arg(2);
+      if(empty($instrument)){
+        $instrument = arg(2);
+      }
       if(!empty($instrument) && $instrument == 'ezpay'){
         return $this->ezpay($input, $ids, $objects);
       }
@@ -285,11 +292,6 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       if(!$input){
         $input['component'] = $component;
         $this->getInput( $input);
-      }
-
-      if(module_exists('devel')){
-        dd($_POST);
-        dd($_GET);
       }
 
       if(!$ids){
