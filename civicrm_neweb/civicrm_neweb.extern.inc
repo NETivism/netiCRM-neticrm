@@ -258,9 +258,6 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       // Do something when payment processor system send post to call ezpay url.
       $input = $objects = $ids = $result = array();
       $result = $post;
-      if(module_exists('devel')){
-        dd($result);
-      }
 
       require_once("civicrm_neweb.cron.inc");
 
@@ -310,10 +307,10 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $note .= ts("Tel").": ".$result['tel']."\n";
         $note .= ts("Hash").": ".$result['hash']."\n";
         $note .= ts("Completed");
-        $this->addNote($note, $c->id); 
+        $this->addNote($note, $c); 
       }else{
         $note .= ts("Error").": ".ts("Validate Error")."\n";
-        $this->addNote($note, $c->id);
+        $this->addNote($note, $c);
       }
       
 
