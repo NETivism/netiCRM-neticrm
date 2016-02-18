@@ -248,6 +248,10 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input = $objects = $ids = $result = array();
       $result = $post;
 
+      if(module_exists($post)){
+        dd($post);
+      }
+
       require_once("civicrm_neweb.cron.inc");
 
       $c =& new CRM_Contribute_DAO_Contribution();
