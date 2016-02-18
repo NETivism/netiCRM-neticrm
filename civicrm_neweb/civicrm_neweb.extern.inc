@@ -11,20 +11,10 @@ function civicrm_neweb_ipn($instrument){
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
   $NewebIPN = new CRM_Core_Payment_NewebIPN( );
-  if($instrument == 'ezpay'){
-    $NewebIPN->main('contribute', $instrument);
-    return;
-  }
-  switch ( $_GET['module'] ) {
-    case 'contribute':
-      $NewebIPN->main( 'contribute' );
-      break;
-    case 'event':
-      $NewebIPN->main( 'event' );
-      break;
-    default:
-      watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
-      break;
+  if( !empty($_GET['module']) || $instrument == 'ezpay' ) {
+    $NewebIPN->main($_GET['module'], $instrument);
+  }else{
+    watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
   }
 }
 
@@ -246,7 +236,6 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
 
       $this->addNote($note, $contribution);
-
       return $return;
     }
 
@@ -264,15 +253,15 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $c =& new CRM_Contribute_DAO_Contribution();
       $c->id = $result['ordernumber'];
       $c->find(true);
+
+      require_once 'CRM/Contribute/BAO/Contribution.php';
+      $ids = CRM_Contribute_BAO_Contribution::buildIds($c->id, false);
       $ids['contact'] = $c->contact_id;
       $ids['contribution'] = $c->id;
       $pid = $c->payment_processor_id;
-      if(!$c->contribution_page_id){
-        $pp = CRM_Core_DAO::executeQuery("SELECT cpp.participant_id, e.id FROM civicrm_participant_payment cpp INNER JOIN civicrm_participant cp ON cpp.participant_id = cp.id INNER JOIN civicrm_event e ON e.id = cp.event_id WHERE cpp.contribution_id = {$c->id}");
-        $pp->fetch(); 
+      
+      if(!empty($cids['participant'])){
         $input['component'] = 'event';
-        $ids['event'] = $pp->id;
-        $ids['participant'] = $pp->participant_id;
       }else{
         $input['component'] = 'contribute';
       }
@@ -343,6 +332,10 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
       if(!empty($instrument) && $instrument == 'ezpay'){
         return $this->ezpay($_POST);
+      }
+
+      if(empty($component)){
+        $component = $_GET['module'];
       }
       
       if(!$input){
