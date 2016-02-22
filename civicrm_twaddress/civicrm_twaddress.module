@@ -119,6 +119,43 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   }
   // we don't change form on step 2 / 3 / 4
   if(strpos($formName, 'Confirm') || strpos($formName, 'ThankYou')){
+    $js = 'jQuery(function($){
+var arrChecked = [];
+$(".custom_pre-group fieldset").children().each(checkForm);
+$(".custom_post-group fieldset").children().each(checkForm);
+
+function checkForm(){
+    var c = $(this).attr("class");
+    for (var i = 0; i < arrChecked.length; i++) {
+      if(c.match(arrChecked[i]))return; 
+    }
+    // arrType = [];
+    arrFieldType = ["state_province-","postal_code-","city-"];
+    match = c.match(/(state_province-|postal_code-|city-)([^ ]+)-section/);
+    if(match && match.length >=3){
+      type = match[2];
+      classname = match[0];
+      arrChecked.push(classname);
+      $current = $(this).next();
+      arrItems = [];
+      while($current.next().length!==0){
+        match = $current.attr("class").match(RegExp("(state_province-|postal_code-|city-)" + type + "-section"));
+        if(match && match.length>=2){
+          arrItems.push($current);
+        }
+        $current = $current.next();
+      }
+      if(arrItems.length>=2){
+        for (var i = 0; i < arrItems.length; i++) {
+          arrChecked.push(arrItems[i].attr("class").match(/(state_province-|postal_code-|city-)([^ ]+)-section/)[0]);
+          $(this).find(".content").append(arrItems[i].find(".content").text());
+          arrItems[i].hide();
+        }
+      }
+    }
+  }
+            
+        });';
     return;
   }
 
