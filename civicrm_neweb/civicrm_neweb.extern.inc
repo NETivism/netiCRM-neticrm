@@ -248,10 +248,6 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input = $objects = $ids = $result = array();
       $result = $post;
 
-      if(module_exists('devel')){
-        dd($post);
-      }
-
       require_once("civicrm_neweb.cron.inc");
 
       $c =& new CRM_Contribute_DAO_Contribution();
@@ -264,7 +260,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $ids['contribution'] = $c->id;
       $pid = $c->payment_processor_id;
       
-      if(!empty($cids['participant'])){
+      if(!empty($ids['participant'])){
         $input['component'] = 'event';
       }else{
         $input['component'] = 'contribute';
