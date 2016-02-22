@@ -147,8 +147,24 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
       if($vars['is_recur']){
         $args['PeriodAmount'] = $amount;
         $period = strtoupper($vars['frequency_unit'][0]);
-        $args['PeriodType'] = $period;
-        $args['Frequency'] = 1; // now only support continious recurring
+        $args['PeriodType'] = $vars['frequency_unit'] == 'week' ? 'D' : $period;
+
+        if($vars['frequency_unit'] == 'month'){
+          $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
+        }
+        elseif($vars['frequency_unit'] == 'week'){
+          $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
+        }
+        elseif($vars['frequency_unit'] == 'day'){
+          $frequency_interval = $vars['frequency_interval'] > 365 ? 365 : $vars['frequency_interval'];
+        }
+        elseif($vars['frequency_unit'] == 'year'){
+          $frequency_interval = 1;
+        }
+        if(empty($frequency_interval)){
+          $frequency_interval = 1;
+        }
+        $args['Frequency'] = $frequency_interval;
         $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
       }
