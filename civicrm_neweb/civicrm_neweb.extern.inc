@@ -248,7 +248,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input = $objects = $ids = $result = array();
       $result = $post;
 
-      if(module_exists($post)){
+      if(module_exists('devel')){
         dd($post);
       }
 
