@@ -326,6 +326,23 @@ function civicrm_allpay_recur_sync($days = array()){
       date('j'),
       date('j', strtotime('-1 day')),
     );
+    if(date('n') == '2'){
+      if(date('j') == '28'){
+        $days[] = '29';
+        $days[] = '30';
+        $days[] = '31';
+      }
+      elseif(date('j') == '29'){
+        $days[] = '30';
+        $days[] = '31';
+      }
+    }
+    elseif(date('j') == '30'){
+      $days[] = '31';
+    }
+    elseif(date('j') == '1' && !array_search('31', $days)){
+      $days[] = '31';
+    }
   }
 
   $query = "SELECT (SELECT c.id FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS exists_cid, r.* FROM civicrm_contribution_recur r
