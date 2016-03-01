@@ -25,7 +25,7 @@
 <?php if($logo){ ?>
   <img src="<?php print $vars['logo']; ?>" id="logo" />
 <?php } ?>
-<h1><span>超商/郵局/ATM/玉山銀行代收</span>繳款單</h1>
+<h1><span>超商/郵局/ATM</span>繳款單</h1>
 <div class="section1 clear-block">
 <h2>第一聯  繳款人收執聯</h2>
   <div class="info-right">
@@ -45,7 +45,7 @@
 </div><!-- section1 -->
 <div align="center"><img src="<?php print $vars['path'].'images/line.png'; ?>" border="0" /></div>
 <div class="section2 clear-block">
-<div class="head"><?php print $vars['site_name']; ?><span>超商/郵局/ATM/玉山銀行代收</span>繳款單</div>
+<div class="head"><?php print $vars['site_name']; ?><span>超商/郵局/ATM</span>繳款單</div>
 <h2>第二聯  代理收款傳票</h2>
 <div class="payment-info payment-info-store">
 <h3>便利商店專用（上限2萬元）- 可至統一超商/全家/OK/萊爾富便利商店繳納</h3>
@@ -57,7 +57,7 @@ foreach($vars['barcode_store'] as $k => $v){
 ?>
 </div>
 <div class="payment-info payment-info-atm">
-<h3>ATM轉帳/玉山銀行繳款 - 可用網路ATM或實體ATM或至玉山銀行臨櫃繳納</h3>
+<h3>ATM轉帳 - 可用網路ATM或實體ATM繳納</h3>
 <div class="bank-right">
   <p><label>繳款人：</label><?php print $vars['user']; ?></p>
   <p><label>繳款日：</label>中華民國&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</p>
