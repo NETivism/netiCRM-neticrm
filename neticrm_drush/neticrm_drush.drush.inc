@@ -107,7 +107,7 @@ function drush_neticrm_rebuild_menu(){
  */
 function _neticrm_drush_init(){
   global $user;
-  $user = user_load(array('uid' => 1, 'status' => 1));
+  $user = user_load(1);
   civicrm_initialize();
 }
 
