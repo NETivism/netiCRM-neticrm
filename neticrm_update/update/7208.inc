@@ -1,11 +1,11 @@
 <?php
 /**
  * @file
- * Update for 6108
+ * Update for 7208
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_6108(){
+function _neticrm_update_update_7208(){
   $params = array('version' => 3, 'name' => 'recur_frequency_units');
   $result = civicrm_api('OptionGroup', 'Get', $params);
   if(!empty($result['id'])){
