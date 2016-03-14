@@ -17,7 +17,7 @@ $(document).ready(function() {
     is_gPie = !(data_pie[1][1] == 0 && data_pie[2][1] == null);
     is_gBar = data_bar.length !== 1;
     $('form#Search').parent().prepend('<div id="stat-wrapper" claass="clear-block"></div>');
-    $('form#Search').parent().prepend('<a class="stat-expand"><i class="fa fa-arrow-right"></i>'+Drupal.settings.neticrm_event_stat.t.most_active_p+'</a>');
+    $('form#Search').parent().prepend('<a class="stat-expand">'+Drupal.settings.neticrm_event_stat.t.most_active_p+'</a>');
     $(".stat-expand").click(function(){
       $("#stat-wrapper").slideToggle();
     });
