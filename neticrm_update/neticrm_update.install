@@ -117,3 +117,10 @@ function neticrm_update_update_6106() {
 function neticrm_update_update_6107() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change and disable civicrm recurring unit, #17604
+ */
+function neticrm_update_update_6108() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
