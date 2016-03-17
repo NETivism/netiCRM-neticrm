@@ -11,16 +11,10 @@ function civicrm_neweb_ipn($instrument){
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
   $NewebIPN = new CRM_Core_Payment_NewebIPN( );
-  switch ( $_GET['module'] ) {
-    case 'contribute':
-      $NewebIPN->main( 'contribute' );
-      break;
-    case 'event':
-      $NewebIPN->main( 'event' );
-      break;
-    default:
-      watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
-      break;
+  if( !empty($_GET['module']) || $instrument == 'ezpay' ) {
+    $NewebIPN->main($_GET['module'], $instrument);
+  }else{
+    watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
   }
 }
 
@@ -55,6 +49,9 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input['Amount'] = self::retrieve('Amount', 'String', 'POST', true);
       $input['amount'] = $input['Amount'];
       $input['BatchNumber'] = self::retrieve('BatchNumber', 'String', 'POST', false);
+      $input['cardnumber'] = self::retrieve('cardnumber', 'String', 'POST', false);
+      $input['issuebank'] = self::retrieve('issuebank', 'String', 'POST', false);
+      $input['EngName'] = self::retrieve('EngName', 'String', 'POST', false);
     }
 
     function addNote($note, &$contribution){
@@ -78,6 +75,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       );
       CRM_Core_BAO_Note::add( $noteParams, $note_id );
     }
+
 
     function recur( &$input, &$ids, &$objects) {
       // check contribution first.
@@ -158,7 +156,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         );
         drupal_alter('civicrm_recur_params', $alter);
         
-        $recur->save();
+        $alter['object']->save();
         CRM_Core_Error::debug_log_message( "Done the recurring object save." );
         CRM_Core_DAO::executeQuery("INSERT INTO civicrm_contribution_neweb_recur (recur_id,order_num,cycle) VALUES ($recur->id, $order_num, 0)");
 
@@ -172,7 +170,8 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $contribution->receive_date = date('YmdHis');
         $input['trxn_id'] = $input['OrderNumber'];
         $note .= ts('Completed')."\n";
-        $this->completeTransaction( $input, $ids, $objects, $transaction);
+        $is_recur = TRUE;
+        $this->completeTransaction($input, $ids, $objects, $transaction, $is_recur);
         $this->addNote($note, $contribution);
       }
     }
@@ -242,15 +241,71 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       return $return;
     }
 
-    function ezpay(){
-      // Do something when payment processor system send post to call ezpay url. 
-      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);  
-      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);  
-      if(module_exists('devel')){
-        dd($_POST);
-        dd($_GET);
+    function ezpay($post){
+      require_once 'CRM/Contribute/DAO/Contribution.php';
+      require_once 'CRM/Core/Payment/BaseIPN.php';
+      require_once 'CRM/Core/Transaction.php';
+
+      // Do something when payment processor system send post to call ezpay url.
+      $input = $objects = $ids = $result = array();
+      $result = $post;
+
+      require_once("civicrm_neweb.cron.inc");
+
+      $c =& new CRM_Contribute_DAO_Contribution();
+      $c->id = $result['ordernumber'];
+      $c->find(true);
+
+      require_once 'CRM/Contribute/BAO/Contribution.php';
+      $ids = CRM_Contribute_BAO_Contribution::buildIds($c->id, false);
+      $ids['contact'] = $c->contact_id;
+      $ids['contribution'] = $c->id;
+      $pid = $c->payment_processor_id;
+
+      if(!empty($ids['participant'])){
+        $input['component'] = 'event';
+      }else{
+        $input['component'] = 'contribute';
       }
-      return NULL;
+
+      $transaction = new CRM_Core_Transaction();
+      $ipn =& new CRM_Core_Payment_BaseIPN();
+      if($ipn->validateData($input, $ids, $objects, TRUE, $pid)){
+
+        // after validate, start to complete some transaction
+        $input['trxn_id'] = $c->trxn_id;
+        $input['payment_instrument_id'] = $c->payment_instrument_id;
+        $input['check_number'] = $result['writeoffnumber'];
+        $input['amount'] = $result['amount'];
+        if($result['timepaid']){
+          $objects['contribution']->receive_date = $result['timepaid'];
+        }
+        else{
+          $objects['contribution']->receive_date = date('YmdHis');
+        }
+        $ipn->completeTransaction($input, $ids, $objects, $transaction);
+
+        // note here;
+        $note .= ts("Merchant number").": ".$result['merchantnumber']."\n";
+        $note .= ts("Order number").": ".$result['ordernumber']."\n";
+        $note .= ts("Serial number").": ".$result['serialnumber']."\n";
+        $note .= ts("Payment Instrument").": ". $result['paymenttype']."\n";
+        $note .= ts("External order number").": ".$result['writeoffnumber']."\n";
+        // $note .= ts("Create date").": ".$result['timecreated']."\n";
+        $note .= ts("Paid date").": ".$result['timepaid']."\n";
+        $note .= ts("Amount").": ".$result['amount']."\n";
+        // $note .= ts("Pay count").": ".$result['paycount']."\n";
+        $note .= ts("Tel").": ".$result['tel']."\n";
+        $note .= ts("Hash").": ".$result['hash']."\n";
+        $note .= ts("Completed");
+        $this->addNote($note, $c);
+      }else{
+        $note .= ts("Error").": ".ts("Validate Error")."\n";
+        $this->addNote($note, $c);
+      }
+
+
+
     }
 
     function getIds( &$ids , $component){
@@ -269,13 +324,19 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
     }
 
-    function main( $component = 'contribute' , $input = NULL, $ids = NULL, $objects = NULL) {
+    function main( $component = 'contribute', $instrument = NULL , $input = NULL, $ids = NULL, $objects = NULL) {
       require_once 'CRM/Utils/Request.php';
       $objects = $ids = $input = array();
 
-      $instrument = arg(2);
+      if(empty($instrument)){
+        $instrument = arg(2);
+      }
       if(!empty($instrument) && $instrument == 'ezpay'){
-        return $this->ezpay($input, $ids, $objects);
+        return $this->ezpay($_POST);
+      }
+
+      if(empty($component)){
+        $component = $_GET['module'];
       }
            
       if(!$input){
@@ -301,6 +362,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
       if ( ! $this->validateData( $input, $ids, $objects ) ) {
         return false;
+      }
+
+      // Check if the contribution status is wait for ipn or not. #15542
+      if($objects['contribution']->contribution_status_id !== "2"){
+        return ;
       }
 
       self::$_paymentProcessor =& $objects['paymentProcessor'];
@@ -355,14 +421,13 @@ function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
       }
     }
   }
+  watchdog('civicrm_neweb', "prc = $prc, src = $src, brc = $brc, error : \n" . implode("\n", $error));
+
   return $error;
 }
 
 // Bank response	
 function civicrm_neweb_brc($c = NULL){
-  if(!empty($c) && strpos($c, '/')){
-    $c = substr($c, strpos($c, '/')+1 );
-  }
   static $code = array();
 
   $code['00'] = ts('BRC: Approved or completed successfully ');
