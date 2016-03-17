@@ -689,6 +689,15 @@ function _civicrm_demo_create_uf_group($name, $title){
       'debug' => 1,
     );
     $uf_group = civicrm_api('uf_group', 'create', $params);
+
+    // remove all unecessery uf_join
+    if($uf_group['id']){
+      $query_params = array(
+        1 => array($uf_group['id'], 'Integer'),
+      );
+      CRM_Core_DAO::executeQuery("DELETE FROM civicrm_uf_join WHERE uf_group_id = %1 AND module != 'CiviContribute'", $query_params);
+    
+    }
   }
   return $uf_group;
 }
