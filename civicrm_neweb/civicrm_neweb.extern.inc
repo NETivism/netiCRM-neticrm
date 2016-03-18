@@ -14,10 +14,12 @@ function civicrm_neweb_ipn($instrument, $post = NULL, $get = NULL, $print = TRUE
   // process the real contribution verify
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
-  exit;
   $NewebIPN = new CRM_Core_Payment_NewebIPN($post, $get);
   if( !empty($get['module']) || $instrument == 'ezpay' ) {
-    $NewebIPN->main($get['module'], $instrument);
+    $result = $NewebIPN->main($get['module'], $instrument);
+    if(!empty($result) && $print){
+      echo $result;
+    }
   }else{
     watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
   }
