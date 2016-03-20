@@ -3,32 +3,37 @@ civicrm_initialize();
 require_once 'CRM/Core/Payment/BaseIPN.php';
 require_once "CRM/Core/DAO.php";
 
-function civicrm_neweb_ipn($instrument){
+function civicrm_neweb_ipn($instrument, $post = NULL, $get = NULL, $print = TRUE){
+  // detect variables
+  $post = !empty($post) ? $post : $_POST;
+  $get = !empty($get) ? $get : $_GET;
+
   require_once 'CRM/Core/BAO/PaymentProcessor.php';
   require_once 'CRM/Contribute/DAO/Contribution.php';
 
   // process the real contribution verify
   require_once 'CRM/Utils/Array.php';
   require_once 'CRM/Core/Payment/NewebIPN.php';
-  $NewebIPN = new CRM_Core_Payment_NewebIPN( );
-  switch ( $_GET['module'] ) {
-    case 'contribute':
-      $NewebIPN->main( 'contribute' );
-      break;
-    case 'event':
-      $NewebIPN->main( 'event' );
-      break;
-    default:
-      watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
-      break;
+  $NewebIPN = new CRM_Core_Payment_NewebIPN($post, $get);
+  if( !empty($get['module']) || $instrument == 'ezpay' ) {
+    $result = $NewebIPN->main($get['module'], $instrument);
+    if(!empty($result) && $print){
+      echo $result;
+    }
+  }else{
+    watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
   }
 }
 
 class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     static $_paymentProcessor = null;
+    public $_post = NULL;
+    public $_get = NULL;
 
-    function __construct( ) {
+    function __construct($post, $get) {
         parent::__construct( );
+        $this->_post = $post;
+        $this->_get = $get;
     }
 
     static function retrieve( $name, $type, $location = 'POST', $abort = true ) 
@@ -45,16 +50,19 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     function getInput( &$input) {
-      $input['CheckSum'] = self::retrieve('CheckSum', 'String', 'POST', false);
-      $input['PRC'] = self::retrieve('PRC', 'Int', 'POST', true);
-      $input['SRC'] = self::retrieve('SRC', 'Int', 'POST', true);
-      $input['ApprovalCode'] = self::retrieve('ApprovalCode', 'String', 'POST', false);
-      $input['BankResponseCode'] = self::retrieve('BankResponseCode', 'String', 'POST', false);
-      $input['MerchantNumber'] = self::retrieve('MerchantNumber', 'String', 'POST', true);
-      $input['OrderNumber'] = self::retrieve('OrderNumber', 'String', 'POST', true);
-      $input['Amount'] = self::retrieve('Amount', 'String', 'POST', true);
+      $input['CheckSum'] = CRM_Utils_Array::value('CheckSum', $this->_post);
+      $input['PRC'] = CRM_Utils_Array::value('PRC', $this->_post);
+      $input['SRC'] = CRM_Utils_Array::value('SRC', $this->_post);
+      $input['ApprovalCode'] = CRM_Utils_Array::value('ApprovalCode', $this->_post);
+      $input['BankResponseCode'] = CRM_Utils_Array::value('BankResponseCode', $this->_post);
+      $input['MerchantNumber'] = CRM_Utils_Array::value('MerchantNumber', $this->_post);
+      $input['OrderNumber'] = CRM_Utils_Array::value('OrderNumber', $this->_post);
+      $input['Amount'] = CRM_Utils_Array::value('Amount', $this->_post);
       $input['amount'] = $input['Amount'];
-      $input['BatchNumber'] = self::retrieve('BatchNumber', 'String', 'POST', false);
+      $input['BatchNumber'] = CRM_Utils_Array::value('BatchNumber', $this->_post);
+      $input['cardnumber'] = CRM_Utils_Array::value('cardnumber', $this->_post);
+      $input['issuebank'] = CRM_Utils_Array::value('issuebank', $this->_post);
+      $input['EngName'] = CRM_Utils_Array::value('EngName', $this->_post);
     }
 
     function addNote($note, &$contribution){
@@ -78,6 +86,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       );
       CRM_Core_BAO_Note::add( $noteParams, $note_id );
     }
+
 
     function recur( &$input, &$ids, &$objects) {
       // check contribution first.
@@ -158,7 +167,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         );
         drupal_alter('civicrm_recur_params', $alter);
         
-        $recur->save();
+        $alter['object']->save();
         CRM_Core_Error::debug_log_message( "Done the recurring object save." );
         CRM_Core_DAO::executeQuery("INSERT INTO civicrm_contribution_neweb_recur (recur_id,order_num,cycle) VALUES ($recur->id, $order_num, 0)");
 
@@ -172,7 +181,8 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $contribution->receive_date = date('YmdHis');
         $input['trxn_id'] = $input['OrderNumber'];
         $note .= ts('Completed')."\n";
-        $this->completeTransaction( $input, $ids, $objects, $transaction);
+        $is_recur = TRUE;
+        $this->completeTransaction($input, $ids, $objects, $transaction, $is_recur);
         $this->addNote($note, $contribution);
       }
     }
@@ -242,40 +252,102 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       return $return;
     }
 
-    function ezpay(){
-      // Do something when payment processor system send post to call ezpay url. 
-      watchdog('civicrm_neweb', "Ezpay, POST : ".var_export($_POST,TRUE) , WATCHDOG_NOTICE);  
-      watchdog('civicrm_neweb', "Ezpay, GET : ".var_export($_GET,TRUE) , WATCHDOG_NOTICE);  
-      if(module_exists('devel')){
-        dd($_POST);
-        dd($_GET);
+    function ezpay($post){
+      require_once 'CRM/Contribute/DAO/Contribution.php';
+      require_once 'CRM/Core/Payment/BaseIPN.php';
+      require_once 'CRM/Core/Transaction.php';
+
+      // Do something when payment processor system send post to call ezpay url.
+      $input = $objects = $ids = $result = array();
+      $result = $post;
+
+      require_once("civicrm_neweb.cron.inc");
+
+      $c =& new CRM_Contribute_DAO_Contribution();
+      $c->id = $result['ordernumber'];
+      $c->find(true);
+
+      require_once 'CRM/Contribute/BAO/Contribution.php';
+      $ids = CRM_Contribute_BAO_Contribution::buildIds($c->id, false);
+      $ids['contact'] = $c->contact_id;
+      $ids['contribution'] = $c->id;
+      $pid = $c->payment_processor_id;
+
+      if(!empty($ids['participant'])){
+        $input['component'] = 'event';
+      }else{
+        $input['component'] = 'contribute';
       }
-      return NULL;
+
+      $transaction = new CRM_Core_Transaction();
+      $ipn =& new CRM_Core_Payment_BaseIPN();
+      if($ipn->validateData($input, $ids, $objects, TRUE, $pid)){
+
+        // after validate, start to complete some transaction
+        $input['trxn_id'] = $c->trxn_id;
+        $input['payment_instrument_id'] = $c->payment_instrument_id;
+        $input['check_number'] = $result['writeoffnumber'];
+        $input['amount'] = $result['amount'];
+        if($result['timepaid']){
+          $objects['contribution']->receive_date = $result['timepaid'];
+        }
+        else{
+          $objects['contribution']->receive_date = date('YmdHis');
+        }
+        $ipn->completeTransaction($input, $ids, $objects, $transaction);
+
+        // note here;
+        $note .= ts("Merchant number").": ".$result['merchantnumber']."\n";
+        $note .= ts("Order number").": ".$result['ordernumber']."\n";
+        $note .= ts("Serial number").": ".$result['serialnumber']."\n";
+        $note .= ts("Payment Instrument").": ". $result['paymenttype']."\n";
+        $note .= ts("External order number").": ".$result['writeoffnumber']."\n";
+        // $note .= ts("Create date").": ".$result['timecreated']."\n";
+        $note .= ts("Paid date").": ".$result['timepaid']."\n";
+        $note .= ts("Amount").": ".$result['amount']."\n";
+        // $note .= ts("Pay count").": ".$result['paycount']."\n";
+        $note .= ts("Tel").": ".$result['tel']."\n";
+        $note .= ts("Hash").": ".$result['hash']."\n";
+        $note .= ts("Completed");
+        $this->addNote($note, $c);
+      }else{
+        $note .= ts("Error").": ".ts("Validate Error")."\n";
+        $this->addNote($note, $c);
+      }
+
+
+
     }
 
     function getIds( &$ids , $component){
-      $ids['contact'] = $_GET['contact_id'];
-      $ids['contribution'] = $_GET['cid'];
+      $ids['contact'] = CRM_Utils_Array::value('contact_id', $this->_get);
+      $ids['contribution'] = CRM_Utils_Array::value('cid', $this->_get);
       if ( $component == 'event' ) {
-        $ids['event'] = $_GET['eid'];
-        $ids['participant'] = $_GET['pid'];
+        $ids['event'] = CRM_Utils_Array::value('eid', $this->_get);
+        $ids['participant'] = CRM_Utils_Array::value('pid', $this->_get);
       }
       else {
-        $ids['membership'] = $_GET['mid'];
-        $ids['contributionRecur'] = $_GET['crid'];
-        $ids['contributionPage'] = $_GET['cpid'];
-        $ids['related_contact'] = $_GET['rid'];
-        $ids['onbehalf_dupe_alert'] = $_GET['onbehalf_dupe_alert'];
+        $ids['membership'] = CRM_Utils_Array::value('mid', $this->_get);
+        $ids['contributionRecur'] = CRM_Utils_Array::value('crid', $this->_get);
+        $ids['contributionPage'] = CRM_Utils_Array::value('cpid', $this->_get);
+        $ids['related_contact'] = CRM_Utils_Array::value('rid', $this->_get);
+        $ids['onbehalf_dupe_alert'] = CRM_Utils_Array::value('onbehalf_dupe_alert', $this->_get);
       }
     }
 
-    function main( $component = 'contribute' , $input = NULL, $ids = NULL, $objects = NULL) {
+    function main( $component = 'contribute', $instrument = NULL , $input = NULL, $ids = NULL, $objects = NULL) {
       require_once 'CRM/Utils/Request.php';
       $objects = $ids = $input = array();
 
-      $instrument = arg(2);
+      if(empty($instrument)){
+        $instrument = arg(2);
+      }
       if(!empty($instrument) && $instrument == 'ezpay'){
-        return $this->ezpay($input, $ids, $objects);
+        return $this->ezpay($this->_post);
+      }
+
+      if(empty($component)){
+        $component = CRM_Utils_Array::value('module', $this->_get);
       }
            
       if(!$input){
@@ -288,7 +360,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
        
       // save record
-      $post = !empty($_POST) ? $_POST : $input;
+      $post = !empty($this->_post) ? $this->_post : $input;
       $record = array(
         'cid' => $ids['contribution'],
         'prc' => $input['PRC'],
@@ -301,6 +373,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
       if ( ! $this->validateData( $input, $ids, $objects ) ) {
         return false;
+      }
+
+      // Check if the contribution status is wait for ipn or not. #15542
+      if($objects['contribution']->contribution_status_id !== "2"){
+        return ;
       }
 
       self::$_paymentProcessor =& $objects['paymentProcessor'];
@@ -355,14 +432,12 @@ function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
       }
     }
   }
+  watchdog('civicrm_neweb', "prc = $prc, src = $src, brc = $brc, error : \n" . implode("\n", $error));
   return $error;
 }
 
 // Bank response	
 function civicrm_neweb_brc($c = NULL){
-  if(!empty($c) && strpos($c, '/')){
-    $c = substr($c, strpos($c, '/')+1 );
-  }
   static $code = array();
 
   $code['00'] = ts('BRC: Approved or completed successfully ');
