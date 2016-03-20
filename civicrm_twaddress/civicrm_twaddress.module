@@ -162,6 +162,16 @@ function checkForm(){
   $enable = TRUE;
   $override = array();
   $form_name = $form->_attributes['name'];
+  $menu = menu_get_item();
+  if($menu['page_callback'] == 'drupal_get_form') {
+    $allowed = array('user_profile_form', 'user_register_form');
+    if(in_array($menu['page_arguments'][0], $allowed)) {
+      $form_name = str_replace('_', '-', $menu['page_arguments'][0]);
+    }
+  }
+  elseif($menu['page_callback'] == 'user_admin' && $menu['page_arguments'][0] == 'create'){
+    $form_name = 'user-register-form';
+  }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
