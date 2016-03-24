@@ -7,13 +7,13 @@ function civicrm_demo_install() {
   include_once "civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
   
-  $vars['limit'] = 10;
+  $vars['limit'] = 5;
   civicrm_demo_process_contact($vars);
 
   $vars['limit'] = 5;
   civicrm_demo_process_event($vars);
 
-  $vars['limit'] = 30;
+  $vars['limit'] = 5;
   civicrm_demo_process_contribution($vars);
 
   civicrm_demo_create_custom_profile();
