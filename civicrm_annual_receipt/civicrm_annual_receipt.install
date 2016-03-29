@@ -141,13 +141,32 @@ function civicrm_annual_receipt_install() {
     $params = array(
       'label' => 'CRM_Contact_Form_Search_Custom_AnnualReceipt',
       'name' => 'CRM_Contact_Form_Search_Custom_AnnualReceipt',
-      'description' => ts('Print Annual Receipt'),
+      'description' => '產生年度收據',
       'is_active' => 1,
     );
     $group_params = array('name' => 'custom_search');
     $action = CRM_Core_Action::ADD;
     $custom_obj = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
     variable_set('civicrm_annual_receipt_custom_search_id', $custom_obj->id);
+
+    // create druapl menu for that
+    if (module_exists('civicrm_dmenu')) {
+      $exists = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/search/AnnualReceipt'")->fetchField();
+      if(!$exists){
+        $plid = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/contribute'")->fetchField(); 
+        civicrm_dmenu_menu_item(
+          'civicrm/search/AnnualReceipt',
+          '產生年度收據',
+          NULL,
+          'menu-neticrm',
+          $plid,
+          '-44',
+          'menu',
+          NULL,
+          0
+        );
+      }
+    }
   }
   elseif($custom_obj['is_active'] == 0){
     // enable custom search
