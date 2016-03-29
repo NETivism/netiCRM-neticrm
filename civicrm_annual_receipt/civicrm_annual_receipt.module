@@ -1,0 +1,76 @@
+<?php
+
+/**
+ * hook_civicrm_tokens
+ */
+function civicrm_annual_receipt_civicrm_tokens(&$tokens){
+  $tokens['receipt'] = array(
+    'receipt.thisyear' => t('Receipt info in this year'),
+    'receipt.lastyear' => t('Receipt info in last year'),
+    'receipt.all' => t('Receipt info in all lifetime'),
+  );
+}
+
+/**
+ * hook_civicrm_tokenvalues
+ */
+function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL, $tokens = array(), $context = NULL){
+  if(!empty($tokens['receipt'])){
+    $year = date('Y');
+    $header = NULL;
+    if(function_exists('ts')){
+      $header = array(
+        ts('Receipt ID'),
+        ts('Contribution Types'),
+        ts('Payment Instrument'),
+        ts('Receipt Date'),
+        ts('Total Amount'),
+      );
+    }
+    $attr = array(
+      'cellpadding' => 5,
+      'cellspacing' => 0,
+      'border' => 0,
+      'style' => 'font-size: 13px;',
+    );
+    foreach($cids as $k => $cid){
+      // TODO: theme table need to be modify for d7
+      if(!empty($tokens['receipt']['thisyear'])){
+        $option = array('year' => $year);
+        $record_thisyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
+        if($record_thisyear){
+          $values[$cid]['receipt.thisyear'] = theme('table', $header, $record_thisyear, $attr);
+        }
+      }
+      if(!empty($tokens['receipt']['lastyear'])){
+        $option = array('year' => $year - 1);
+        $record_lastyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
+        if($record_lastyear){
+          $values[$cid]['receipt.lastyear'] = theme('table', $header, $record_lastyear, $attr);
+        }
+      }
+      if(!empty($tokens['receipt']['all'])){
+        $record_all = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid);
+        if($record_all){
+          $values[$cid]['receipt.all'] = theme('table', $header, $record_all, $attr);
+        }
+      }
+    }
+  }
+}
+
+
+/**
+ * hook_civicrm_searchTasks
+ */
+function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
+  if($objectType == 'contact'){
+    if (CRM_Core_Permission::access('CiviContribute')) {
+      $tasks[] = array(
+        'title' => t('Print Annual Receipt'),
+        'class' => 'CRM_Contact_Form_Task_AnnualReceipt',
+        'result' => TRUE,
+      );
+    }
+  }
+}
