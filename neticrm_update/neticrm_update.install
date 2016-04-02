@@ -124,3 +124,10 @@ function neticrm_update_update_6107() {
 function neticrm_update_update_6108() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Top participant, #16800
+ */
+function neticrm_update_update_6109() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
