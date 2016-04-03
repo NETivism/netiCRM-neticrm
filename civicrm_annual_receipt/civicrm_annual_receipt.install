@@ -161,7 +161,7 @@ function civicrm_annual_receipt_install() {
             NULL,
             'menu-neticrm',
             $plid,
-            '-44',
+            '-20',
             'menu',
             NULL,
             0
