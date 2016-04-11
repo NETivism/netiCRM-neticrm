@@ -131,3 +131,11 @@ function neticrm_update_update_6108() {
 function neticrm_update_update_6109() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * participant status translation correct, #12480
+ */
+function neticrm_update_update_6110() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
