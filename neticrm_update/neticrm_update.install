@@ -128,3 +128,10 @@ function neticrm_update_update_7208() {
 function neticrm_update_update_7209() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * participant status translation correct, #12480
+ */
+function neticrm_update_update_7210() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
