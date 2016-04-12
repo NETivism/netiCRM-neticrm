@@ -6,10 +6,17 @@ function civicrm_demo_process_contact($vars){
   while($limit) {
     // 10% to generate eng name
     $language = mt_rand(1,10) == 1 ? 'english' : 'chinese';
+    $first_name = _civicrm_demo_rand_firstname($language);
+    $last_name = _civicrm_demo_rand_lastname($language);
+    if($language == 'chinese'){
+      $sort_name = $last_name.$first_name; 
+    }
     $params = array(
       'version' => 3,
       'first_name'    => _civicrm_demo_rand_firstname($language),
       'last_name'     => _civicrm_demo_rand_lastname($language),
+      'sort_name'     => $sort_name,
+      'display_name'  => $sort_name,
       'email'         => _civicrm_demo_rand_email(),
       'contact_type'  => 'Individual',
       'individual_prefix' => _civicrm_demo_rand_prefix(),
@@ -620,7 +627,7 @@ function _civicrm_demo_create_custom_group($name, $title){
       'collapse_display' => 0,
       'style' => 'Inline',
       'help_pre' => '',
-      'help_post' => 'This is Post Help For Test Group 1',
+      'help_post' => '',
       'is_active' => 1,
       'version' => 3,
     );
@@ -689,6 +696,15 @@ function _civicrm_demo_create_uf_group($name, $title){
       'debug' => 1,
     );
     $uf_group = civicrm_api('uf_group', 'create', $params);
+
+    // remove all unecessery uf_join
+    if($uf_group['id']){
+      $query_params = array(
+        1 => array($uf_group['id'], 'Integer'),
+      );
+      CRM_Core_DAO::executeQuery("DELETE FROM civicrm_uf_join WHERE uf_group_id = %1 AND module != 'CiviContribute'", $query_params);
+    
+    }
   }
   return $uf_group;
 }

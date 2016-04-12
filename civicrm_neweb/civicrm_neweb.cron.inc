@@ -303,7 +303,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
               $err = civicrm_neweb_response($t['PRC'], $t['SRC'], 'detail');
               // TODO: record failed reason 
             }
-            _civicrm_neweb_recurring_contact_sync($recur->id);
+            CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
             continue; // skip recurring transaction when specifix transaction id exists.
           }
         }
@@ -383,7 +383,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $IPN->failed($objects, $transaction);
           // TODO: record failed reason 
         }
-        _civicrm_neweb_recurring_contact_sync($recur->id);
+        CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
       }
 
       // compatibility php 5.2
@@ -910,38 +910,4 @@ function _civicrm_neweb_error($msg, $is_test = NULL, $type = NULL){
   else{
     watchdog('civicrm_neweb', $msg, array(), $type);
   }
-}
-
-function _civicrm_neweb_recurring_contact_sync($rid){
-  require_once 'CRM/Core/BAO/CustomValueTable.php';
-  require_once 'CRM/Utils/String.php';
-  static $counting;
-//  if($counting > 1) return; // only for test
-
-  $query = CRM_Core_DAO::executeQuery("SELECT id, trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC", array(1 => array($rid, 'Integer')));
-  while($query->fetch()){
-    if(strlen($query->trxn_id) > 8 && strpos($query->trxn_id, '99') === 0){
-     // load custom field values
-     $parent = CRM_Core_BAO_CustomValueTable::getEntityValues($query->id, 'Contribution');
-    }
-    else{
-     $children[] = $query->id;
-    }
-  }
-
-  if(!empty($parent) && !empty($children)){
-    $counting++;
-    // prepare original params
-    foreach($parent as $k => $v){
-      if($v !== NULL){
-        $params_parent['custom_'.$k] =$v;
-      }
-    }
-    foreach($children as $cid){
-      $params = array('entityID' => $cid);
-      $params += $params_parent;
-      CRM_Core_BAO_CustomValueTable::setValues($params);
-    }
-  }
-
 }

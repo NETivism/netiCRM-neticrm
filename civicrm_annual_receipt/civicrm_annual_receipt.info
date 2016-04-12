@@ -1,0 +1,7 @@
+name = Annual Receipt
+description = "Generate receipt token per year for civicrm, and add task in contact search to generate annual receipt PDF"
+dependencies[] = civicrm
+dependencies[] = neticrm_preset
+package = NetiCRM
+core = 7.x
+version = 7.x-2.1
