@@ -156,6 +156,7 @@ function checkForm(){
   }
             
         });';
+        drupal_add_js($js , 'inline');
     return;
   }
 
