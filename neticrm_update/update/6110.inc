@@ -36,7 +36,6 @@ function _neticrm_update_update_6110(){
     db_query('DELETE FROM {locales_source} WHERE lid = %d', $s->lid);
     db_query('DELETE FROM {locales_target} WHERE lid = %d', $s->lid);
   }
-  _locale_invalidate_js();
   cache_clear_all('locale:', 'cache', TRUE);
 
   // Second, update civicrm database. Beware of old translations
