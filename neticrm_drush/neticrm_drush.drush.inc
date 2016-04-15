@@ -36,6 +36,22 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_rebuild_menu',
   );
+  
+  /* Welcome email for user 3 */
+  $items['neticrm-set-domain'] = array(
+    'description' => 'Set domain info.',
+    'examples' => array(
+      'drush neticrm-set-domain'
+    ),
+    'callback' => 'drush_neticrm_set_domain',
+  );
+  $items['neticrm-welcome-mail'] = array(
+    'description' => 'send welcome email to user 3',
+    'examples' => array(
+      'drush neticrm-welcome-mail'
+    ),
+    'callback' => 'drush_neticrm_welcome_mail',
+  );
   return $items;
 }
 
@@ -100,6 +116,26 @@ function drush_neticrm_rebuild_menu(){
   civicrm_initialize();
   CRM_Core_Menu::store();
   CRM_Core_BAO_Navigation::resetNavigation();
+}
+
+function drush_neticrm_set_domain(){
+  if (variable_get('smtp_username', '')) {
+    $smtp_mail = variable_get('smtp_username', '');
+    variable_set('site_mail', $smtp_mail);
+
+    civicrm_initialize();
+    module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
+    _neticrm_preset_domain_info();
+  }
+}
+
+function drush_neticrm_welcome_mail(){
+  $account = user_load(3);
+  if ($account->uid && variable_get('smtp_username', '')) {
+    $op = 'register_no_approval_required';
+    // Send an email.
+    _user_mail_notify($op, $account);
+  }
 }
 
 /**
