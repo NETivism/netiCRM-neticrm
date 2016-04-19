@@ -48,6 +48,7 @@ function civicrm_demo_process_event($vars){
 
   civicrm_initialize();
   CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
+  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
 
   // create 5 events
   $title = array(
@@ -110,7 +111,7 @@ function civicrm_demo_process_event($vars){
       $params3['role_id'] = 1;
       $params3['register_date'] = date('YmdHis');
       $params3['source'] = '示範用途';
-      $params3['is_test'] = 1;
+      $params3['is_test'] = $is_test;
       $result3 = civicrm_api('Participant', 'create', $params3);
     }
   }
@@ -118,6 +119,7 @@ function civicrm_demo_process_event($vars){
 
 function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
+  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
 
   if(module_exists('civicrm_allpay')){
     $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
@@ -171,7 +173,7 @@ function civicrm_demo_process_contribution($vars){
         'contribution_status_id' => 1,
         'contribution_type_id' => $contribution_type_id,
         'contribution_page_id' => $page_id,
-        'is_test' => 1,
+        'is_test' => $is_test,
         'version' => 3,
       );
 
