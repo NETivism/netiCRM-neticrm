@@ -71,6 +71,8 @@ function civicrm_demo_process_event($vars){
     $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
     $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
     $params['max_participants'] = 5;
+    $params['is_template'] = 1;
+    $params['template_title'] = $title[$seed];
 
     if($seed == 0 || $seed == 4){
       $params['max_participants'] = "";
@@ -108,6 +110,7 @@ function civicrm_demo_process_event($vars){
       $params3['role_id'] = 1;
       $params3['register_date'] = date('YmdHis');
       $params3['source'] = '示範用途';
+      $params3['is_test'] = 1;
       $result3 = civicrm_api('Participant', 'create', $params3);
     }
   }
@@ -168,6 +171,7 @@ function civicrm_demo_process_contribution($vars){
         'contribution_status_id' => 1,
         'contribution_type_id' => $contribution_type_id,
         'contribution_page_id' => $page_id,
+        'is_test' => 1,
         'version' => 3,
       );
 
