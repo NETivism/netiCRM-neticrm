@@ -72,8 +72,10 @@ function civicrm_demo_process_event($vars){
     $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
     $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
     $params['max_participants'] = 5;
-    $params['is_template'] = 1;
-    $params['template_title'] = $title[$seed];
+    if(!variable_get('civicrm_demo_sample_data', 0)){
+      $params['is_template'] = 1;
+      $params['template_title'] = $title[$seed];
+    }
 
     if($seed == 0 || $seed == 4){
       $params['max_participants'] = "";
