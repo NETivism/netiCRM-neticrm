@@ -139,3 +139,9 @@ function neticrm_update_update_6110() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * member only priceset option, #17919
+ */
+function neticrm_update_update_6111() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
