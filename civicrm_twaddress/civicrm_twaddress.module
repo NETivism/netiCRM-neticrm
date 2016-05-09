@@ -362,6 +362,10 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
                 cancelTWZIPAddress("'.$select_id.'",'.$address_info_json.');
               }
             }).trigger("change");
+            var countryID       = "#'.$field['country'][$k]['name'].'"
+            var stateProvinceID = "#'.$field['countyName'][$k]['key'].'"
+            var callbackURL     = "/zh-hant/civicrm/ajax/jqState"
+            cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"'._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).'"} );
           }
       ';
     }else{
@@ -370,6 +374,12 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
 
 
     $js .= '
+        cj(document).ajaxComplete(function(event, xhr, settings){
+          var url = settings.url;
+          if(url.match("/zh-hant/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
+            $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
+          }
+        });
       }
     });
 
@@ -378,6 +388,8 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         if(!$("#"+select_id).length){
           var select = "<select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select>";
           $(select).insertAfter("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']");
+        }else if($("#"+select_id).css("display") == "none"){
+          $("#"+select_id).show();
         }
         $("input[name=\'" + address_info.areaField + "\']").hide();
         $("select[name=\'" + address_info.areaName + "\']").change(function(){
@@ -393,7 +405,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
 
         var $form = $("form#'.$form_name.'");
         $("input[name=\'" + address_info.areaField + "\']").show();
-        $("select[name=\'" + address_info.areaName + "\']").unbind("change").remove();
+        $("select[name=\'" + address_info.areaName + "\']").hide();
         $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly");
 
       }
@@ -464,4 +476,31 @@ function _civicrm_twaddress_search_value($key, $array){
     return $array[$key];
   }
   return $return;
+}
+
+function _civicrm_twaddress_get_province_id($name){
+  $arr = array( "南投縣"=> "4855",
+    "台中市"=> "5219",
+    "台北市"=> "5221",
+    "台南市"=> "5224",
+    "台東縣"=> "4861",
+    "嘉義市"=> "5222",
+    "嘉義縣"=> "4849",
+    "基隆市"=> "4864",
+    "宜蘭縣"=> "4852",
+    "屏東縣"=> "4857",
+    "彰化縣"=> "4848",
+    "新北市"=> "4860",
+    "新竹市"=> "5223",
+    "新竹縣"=> "4850",
+    "桃園市"=> "4862",
+    "澎湖縣"=> "4856",
+    "花蓮縣"=> "4851",
+    "苗栗縣"=> "4854",
+    "連江縣"=> "5225",
+    "金門縣"=> "5226",
+    "雲林縣"=> "4863",
+    "高雄市"=> "5220",
+  );
+  return $arr[$name];
 }
