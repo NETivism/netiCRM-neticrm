@@ -142,3 +142,10 @@ function neticrm_update_update_7210() {
 function neticrm_update_update_7211() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * mailing advanced search, #15329
+ */
+function neticrm_update_update_7212() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
