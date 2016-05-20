@@ -5,9 +5,6 @@
  If you don't do this, you may notice that browser is ignoring all your changes.
  */
 CKEDITOR.editorConfig = function(config) {
-  // plug-in 
-  config.extraPlugins = 'MediaEmbed,imagemap';
-  
   // disabled
   config.disableNativeSpellChecker = true;
   config.scayt_autoStartup = false;
@@ -85,6 +82,5 @@ CKEDITOR.editorConfig = function(config) {
    */
   config.bodyClass = '';
   config.bodyId = '';
-  config.skin = 'BootstrapCK-Skin';
   config.resize_enabled = false;
 };
