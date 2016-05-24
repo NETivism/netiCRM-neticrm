@@ -108,8 +108,6 @@ function civicrm_instrument_uninstall() {
 /* update */
 function civicrm_instrument_update_6001(){
   civicrm_initialize( );
-  require_once "CRM/Core/DAO.php";
-  CRM_Core_DAO::executeQuery($query);
 
   $query = "UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name != 'GW' AND name != 'Neweb'";
   CRM_Core_DAO::executeQuery($query);
