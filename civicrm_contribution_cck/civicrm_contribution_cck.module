@@ -262,7 +262,7 @@ function civicrm_contribution_cck_save(&$node, $op) {
 
   // default processor type id
   if( variable_get('civicc_payment_processor_id', 0) ){
-    $params['payment_processor_id'] = variable_get('civicc_payment_processor_id', 0);
+    $params['payment_processor'] = variable_get('civicc_payment_processor_id', 0);
   }
 
   $obj = CRM_Contribute_BAO_ContributionPage::create($params);
