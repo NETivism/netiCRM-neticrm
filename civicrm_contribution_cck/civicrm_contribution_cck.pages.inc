@@ -121,7 +121,7 @@ function civicrm_contribution_cck_admin_settings() {
   return system_settings_form($form);
 }
 
-function civicrm_contribution_cck_donors(&$node){
+function civicrm_contribution_cck_donors($node){
   civicrm_initialize();
   $is_test = $_GET['action'] == 'preview' ? 1 : 0;
 
@@ -136,7 +136,7 @@ function civicrm_contribution_cck_donors(&$node){
   return $output;
 }
 
-function civicrm_contribution_cck_donors_filter(&$node, $is_test = 0, $limit = NULL){
+function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NULL){
   require_once("CRM/Contribute/PseudoConstant.php");
   require_once("CRM/Utils/Money.php");
   require_once("api/v2/Contribution.php");
