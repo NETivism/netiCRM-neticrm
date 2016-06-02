@@ -364,7 +364,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
             }).trigger("change");
             var countryID       = "#'.$field['country'][$k]['name'].'"
             var stateProvinceID = "#'.$field['countyName'][$k]['key'].'"
-            var callbackURL     = "/zh-hant/civicrm/ajax/jqState"
+            var callbackURL     = "/civicrm/ajax/jqState"
             cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"'._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).'"} );
           }
       ';
@@ -376,7 +376,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $js .= '
         cj(document).ajaxComplete(function(event, xhr, settings){
           var url = settings.url;
-          if(url.match("/zh-hant/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
+          if(url.match("/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
             $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
           }
         });
