@@ -364,11 +364,13 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
             }).trigger("change");
             var countryID       = "#'.$field['country'][$k]['name'].'"
             var stateProvinceID = "#'.$field['countyName'][$k]['key'].'"
-            var callbackURL     = "/zh-hant/civicrm/ajax/jqState"
+            var callbackURL     = "/civicrm/ajax/jqState"
             cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"'._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).'"} );
           }
       ';
-    }else{
+    }elseif(!($_GET['q']=='civicrm/contact/add' && $k > 1)){
+      // In contact edit page, the addresses after second
+      // will auto use ajaxComplete to build blockes.
       $js .= 'applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');';
     }
 
@@ -376,15 +378,27 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $js .= '
         cj(document).ajaxComplete(function(event, xhr, settings){
           var url = settings.url;
-          if(url.match("/zh-hant/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
+          if(url.match("/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
             $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
           }
         });
       }
     });
 
-      function applyTWZIPAddress(select_id, address_info){
+    ';
+    if($add_js){
+      drupal_add_js($js , 'inline');
+    }
+    else{
+      $return[$k] = $js;
+    }
+  }
+  $js = '
+      applyTWZIPAddress = function(select_id, address_info){
         var $form = $("form#'.$form_name.'");
+        $("[for="+address_info.areaName+"].error").remove();
+        $("[for="+address_info.countyName+"].error").remove();
+        $("[for="+address_info.zipName+"].error").remove();
         if(!$("#"+select_id).length){
           var select = "<select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select>";
           $(select).insertAfter("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']");
@@ -401,7 +415,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         $form.twzipcode(address_info);
       }
 
-      function cancelTWZIPAddress(select_id, address_info){
+      cancelTWZIPAddress = function(select_id, address_info){
 
         var $form = $("form#'.$form_name.'");
         $("input[name=\'" + address_info.areaField + "\']").show();
@@ -409,13 +423,38 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly");
 
       }
-    ';
-    if($add_js){
-      drupal_add_js($js , 'inline');
-    }
-    else{
-      $return[$k] = $js;
-    }
+
+      cj(document).ajaxComplete(function(event, xhr, settings){
+          var url = settings.url;
+          if(url.match("/civicrm/contact/add") && url.match("block=Address")){
+            var $res = $(xhr.responseText);
+            var nth_address = $res.filter(".crm-edit-address-block").attr("id").match(/\d+/)[0];
+            var field_id = "twaddr-area-"+nth_address;
+            var countySel_id = $res.find("#address_"+nth_address+"_state_province_id").val();
+            var countySel = $res.find("#address_"+nth_address+"_state_province_id option:selected").text();
+            var zipSel = $res.find("#address_"+nth_address+"_postal_code").val();
+            var areaSel = $res.find("#address_"+nth_address+"_city").val();
+
+            applyTWZIPAddress("twaddr-area-"+nth_address,{
+              zipField:"",
+              countyField:"",
+              areaField:"address["+nth_address+"][city]",
+              zipName:"address["+nth_address+"][postal_code]",
+              countyName:"address["+nth_address+"][state_province_id]",
+              areaName:"_address["+nth_address+"][city]",
+              zipSel:zipSel,
+              countySel:countySel,
+              areaSel:areaSel
+            });
+          }
+        });
+  ';
+
+  if($add_js){
+    drupal_add_js($js , 'inline');
+  }
+  else{
+    $return[] = $js;
   }
   return $return;
 }
