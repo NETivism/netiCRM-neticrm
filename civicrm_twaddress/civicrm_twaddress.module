@@ -378,8 +378,13 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $js .= '
         cj(document).ajaxComplete(function(event, xhr, settings){
           var url = settings.url;
-          if(url.match("/civicrm/ajax/jqState") && url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
-            jQuery("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
+          if(url.match("/civicrm/ajax/jqState")){
+            if(url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
+              $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
+            }else if(url.match(/_id=country-(\d)+/)[1] == "' .$k. '"){
+              $("#'.$field['areaName'][$k]['name'].'").val("");
+              $("#'.$field['zipName'][$k]['key'].'").val("");
+            }
           }
         });
       }
@@ -397,6 +402,9 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     (function($){
       applyTWZIPAddress = function(select_id, address_info){
         var $form = $("form#'.$form_name.'");
+        $("[for="+address_info.areaField+"].error").remove();
+        $("[for="+address_info.countyName+"].error").remove();
+        $("[for="+address_info.zipName+"].error").remove();
         if(!$("#"+select_id).length){
           var select = "<select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select>";
           $(select).insertAfter("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']");
