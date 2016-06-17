@@ -33,16 +33,17 @@ CKEDITOR.editorConfig = function(config) {
   // This toolbar should work fine with "Filtered HTML" filter
   config.toolbar_CiviCRM = [
     ['Maximize'],
-    ['Bold','Italic','Underline','Strike','RemoveFormat'],
+    ['Bold','Italic','Underline','Strike'],
     ['JustifyLeft','JustifyCenter','JustifyRight','JustifyBlock'],
     ['NumberedList','BulletedList','Outdent','Indent','Blockquote'],
-    ['Link','Unlink','Image','MediaEmbed'],
+    ['Link','Unlink'],['Image','IMCE','MediaEmbed'],
     '/',
+    ['RemoveFormat'],
     ['Format','Font','FontSize'],
     ['PasteFromWord','PasteText'],
     ['TextColor','BGColor'],
     ['Table','HorizontalRule'],
-    ['Source','ImageMap']
+    ['Source']
    ];
 
   /*
@@ -83,4 +84,7 @@ CKEDITOR.editorConfig = function(config) {
   config.bodyClass = '';
   config.bodyId = '';
   config.resize_enabled = false;
+  config.extraAllowedContent = 'p()[]{*};div()[]{*};li()[]{*};ul()[]{*}';
 };
+CKEDITOR.dtd.$removeEmpty['i'] = false;
+CKEDITOR.dtd.$removeEmpty['span'] = false;

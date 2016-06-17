@@ -5,15 +5,24 @@
 function civicrm_ckeditor_civicrm_buildForm($formName, &$form) {
   foreach ($form->_elements as $element) {
     if($element->_type == 'CKeditor') {
-      $path = base_path().drupal_get_path('module', 'civicrm_ckeditor');
-      $ckeditor_inline_js = "
-        $( function( ) {
-          CKEDITOR.config.customConfig= '$path/ckeditor.config.js';
-          CKEDITOR.config.toolbar = 'CiviCRM';
-        });
-        ";
-      drupal_add_js($ckeditor_inline_js, 'inline');
-      break;
+      // add external plugin
+      if(empty($extraplugins)){
+        $module_path = base_path().drupal_get_path('module', 'civicrm_ckeditor');
+        $plugin_path = base_path().drupal_get_path('module', 'civicrm').'/../packages/ckeditor/extraplugins';
+        $plugins = array('widget', 'lineutils',  'imce', 'mediaembed', 'tableresize', 'image2');
+        foreach($plugins as $name){
+          $extraplugins[] = 'CKEDITOR.plugins.addExternal("'.$name.'", "'.$plugin_path.'/'.$name.'/", "plugin.js");';
+        }
+        $ckeditor_inline_js = "
+cj( function( ) {
+  ".implode("\n  ", $extraplugins)."
+  CKEDITOR.config.extraPlugins = '".implode(',', $plugins)."';
+  CKEDITOR.config.customConfig = '$module_path/ckeditor.config.js';
+  CKEDITOR.config.toolbar = 'CiviCRM';
+});
+";
+        drupal_add_js($ckeditor_inline_js, 'inline');
+      }
     }
   }
 }

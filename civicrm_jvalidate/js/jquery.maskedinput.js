@@ -5,11 +5,12 @@
 	Version: 1.3.1
 */
 (function($) {
-	function getPasteEvent() {
-    var el = document.createElement('input'),
-        name = 'onpaste';
-    el.setAttribute(name, '');
-    return (typeof el[name] === 'function')?'paste':'input';             
+
+function getPasteEvent() {
+  var el = document.createElement('input'),
+      name = 'onpaste';
+  el.setAttribute(name, '');
+  return (typeof el[name] === 'function')?'paste':'input';
 }
 
 var pasteEventName = getPasteEvent() + ".amask",
@@ -72,7 +73,9 @@ $.fn.extend({
 			tests,
 			partialPosition,
 			firstNonMaskPos,
-			len;
+			len,
+			keyIsPress,
+			isIME;
 
 		if (!amask && this.length > 0) {
 			input = $(this[0]);
@@ -173,6 +176,8 @@ $.fn.extend({
 					pos,
 					begin,
 					end;
+			        keyIsPress = false;
+				isIME = false;
 
 				//backspace, delete, and escape get special treatment
 				if (k === 8 || k === 46 || (iPhone && k === 127)) {
@@ -192,19 +197,24 @@ $.fn.extend({
 					input.val(focusText);
 					input.caret(0, checkVal());
 					e.preventDefault();
+				} else if (k == 229) { // ime
+					e.preventDefault();
+					isIME = true;
 				}
 			}
 
 			function keypressEvent(e) {
 				var k = e.which,
-					pos = input.caret(),
+					pos,
 					p,
 					c,
 					next;
+				keyIsPress = true;
 
 				if (e.ctrlKey || e.altKey || e.metaKey || k < 32) {//Ignore
 					return;
 				} else if (k) {
+					pos = input.caret();
 					if (pos.end - pos.begin !== 0){
 						clearBuffer(pos.begin, pos.end);
 						shiftL(pos.begin, pos.end-1);
@@ -234,6 +244,50 @@ $.fn.extend({
 					}
 					e.preventDefault();
 				}
+			}
+
+			function keyupEvent(e){
+				var k = e.which,
+					pos,
+					p,
+					c,
+					next;
+			        if (keyIsPress) {
+					keyIsPress = false;
+					return;
+				}
+
+				if (e.ctrlKey || e.altKey || e.metaKey || k < 32 || !isIME) {//Ignore
+					return;
+				}
+				else if (k) {
+					pos = input.caret();
+					pos.end--;
+					pos.begin--;
+					if (pos.end - pos.begin !== 0){
+						clearBuffer(pos.begin, pos.end);
+						shiftL(pos.begin, pos.end-1);
+					}
+
+					p = seekNext(pos.begin - 1);
+					if (p < len) {
+						c = String.fromCharCode(k-48);
+						if (tests[p].test(c)) {
+							shiftR(p);
+
+							buffer[p] = c;
+							writeBuffer();
+							next = seekNext(p);
+							input.caret(next);
+
+							if (settings.completed && next >= len) {
+								settings.completed.call(input);
+							}
+						}
+					}
+					e.preventDefault();
+				}
+				keyIsPress = false;
 			}
 
 			function clearBuffer(start, end) {
@@ -305,7 +359,7 @@ $.fn.extend({
 
 					focusText = input.val();
 					pos = checkVal();
-					
+
 					caretTimeoutId = setTimeout(function(){
 						writeBuffer();
 						if (pos == amask.length) {
@@ -322,10 +376,11 @@ $.fn.extend({
 				})
 				.bind("keydown.amask", keydownEvent)
 				.bind("keypress.amask", keypressEvent)
+				.bind("keyup.amask", keyupEvent)
 				.bind(pasteEventName, function() {
-					setTimeout(function() { 
+					setTimeout(function() {
 						var pos=checkVal(true);
-						input.caret(pos); 
+						input.caret(pos);
 						if (settings.completed && pos == input.val().length)
 							settings.completed.call(input);
 					}, 0);
