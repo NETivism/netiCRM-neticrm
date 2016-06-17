@@ -36,6 +36,15 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_rebuild_menu',
   );
+
+  /* Clear civicrm cache */
+  $items['neticrm-clear-cache'] = array(
+    'description' => 'Clear civicrm cache table',
+    'examples' => array(
+      'drush neticrm-clear-cache',
+    ),
+    'callback' => 'drush_neticrm_clear_cache',
+  );
   
   /* Welcome email for user 3 */
   $items['neticrm-set-domain'] = array(
@@ -138,6 +147,14 @@ function drush_neticrm_welcome_mail(){
   }
 }
 
+function drush_neticrm_clear_cache(){
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  $config->clearDBCache();
+  $config->cleanup(1);
+}
+
+
 /**
  * Bootstrap function for civicrm
  */
@@ -183,3 +200,4 @@ function _drush_neticrm_schedule_default(){
     ),
   );
 }
+
