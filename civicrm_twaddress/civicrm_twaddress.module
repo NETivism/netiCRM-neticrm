@@ -401,7 +401,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   $js = '
       applyTWZIPAddress = function(select_id, address_info){
         var $form = $("form#'.$form_name.'");
-        $("[for="+address_info.areaName+"].error").remove();
+        $("[for="+address_info.areaField+"].error").remove();
         $("[for="+address_info.countyName+"].error").remove();
         $("[for="+address_info.zipName+"].error").remove();
         if(!$("#"+select_id).length){
