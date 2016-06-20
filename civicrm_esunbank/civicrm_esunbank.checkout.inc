@@ -47,6 +47,9 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   $tpl['invoice_link'] = esunbank_api_link($p);
   $tpl['invoice_html'] = esunbank_api($p);
   $tpl['invoice_html'] = civicrm_esunbank_convert_css($tpl['invoice_html']);
+  // prevent pdf error, #18170
+  $tpl['invoice_html'] = str_replace('window.print();', '', $tpl['invoice_html']);
+
   
   // now process contribution to save some default value
   $contrib_params = array( 'id' => $vars['contributionID'] );
@@ -118,6 +121,7 @@ $(document).ready(function(){
         $from = $values['receipt_from_name']. ' <'.$values['receipt_from_email'].'>';
       }
     }
+
     $send_params = array(
       'from' => $from ? $from : $from_default,
       'toName' => $p['user'],
