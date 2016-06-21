@@ -152,3 +152,10 @@ function neticrm_update_update_6111() {
 function neticrm_update_update_6112() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Apply new receipt letter template. refs #17024
+ */
+function neticrm_update_update_6113() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
