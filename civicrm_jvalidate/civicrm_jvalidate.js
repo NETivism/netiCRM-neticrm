@@ -204,10 +204,10 @@
         }
         // only validate required when not in contact adding
         else{
-          $("#"+formid+" input.required:visible:not([type=checkbox])").each(function(){
+          $("#"+formid+" input.required:visible:not([type=checkbox]):not(.ignore-required)").each(function(){
             $(this).rules("add", {required:true });
           });
-          $("#"+formid+" input.required:visible:not([type=checkbox])").blur(function(){
+          $("#"+formid+" input.required:visible:not([type=checkbox]):not(.ignore-required)").blur(function(){
             $this = $(this);
             if($this.hasClass("hasDatepicker")){
               setTimeout(function(){
@@ -220,7 +220,7 @@
 
           var $ckbox = $("#"+formid+" div.ckbox");
           $ckbox.each(function(){
-            $(this).find("input").each(function(){
+            $(this).find("input:not(.ignore-required)").each(function(){
               $(this).rules("add", 'ckbox');
             });
           });

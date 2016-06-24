@@ -163,16 +163,6 @@ function checkForm(){
   $enable = TRUE;
   $override = array();
   $form_name = $form->_attributes['name'];
-  $menu = menu_get_item();
-  if($menu['page_callback'] == 'drupal_get_form') {
-    $allowed = array('user_profile_form', 'user_register_form');
-    if(in_array($menu['page_arguments'][0], $allowed)) {
-      $form_name = str_replace('_', '-', $menu['page_arguments'][0]);
-    }
-  }
-  elseif($menu['page_callback'] == 'user_admin' && $menu['page_arguments'][0] == 'create'){
-    $form_name = 'user-register-form';
-  }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
@@ -208,7 +198,15 @@ function checkForm(){
       $override['areaName'][$key]['default'] = $default;
     }
     if(strstr($name, 'country')){
-      $enable = FALSE;
+      $key = _civicrm_twaddress_key($name);
+
+      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
+      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      // Find that default value is depands on zip code. The code here is no use.
+      $override['country'][$key]['key'] = '_'.$name;
+      $override['country'][$key]['name'] = $name;
+      $override['country'][$key]['default'] = $default;
     }
   }
   
@@ -275,6 +273,9 @@ function civicrm_twaddress_order(){
 }
 
 function _civicrm_twaddress_key($name){
+  if(preg_match('/Primary/', $name)){
+    return 'Primary';
+  }
   preg_match('/\d/', $name, $matches);
   $key = is_numeric($matches[0]) ? $matches[0] : 1;
 
@@ -330,8 +331,8 @@ function _civicrm_twaddress_grouping_js(){
 function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   $return = array();
   $count = 0;
-  $random_id = mt_rand(1000, 9999);
   foreach($field['areaName'] as $k => $v){
+    $random_id = mt_rand(1000, 9999);
     $count++;
     $select_id = "twaddr-area-{$k}-{$random_id}";
     $insert = "<select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
@@ -339,27 +340,56 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $js = '
     jQuery(function($){
       if( $("form#'.$form_name.' input[name=\''.$field['areaName'][$k]['name'].'\']").length ){
-        var $form = $("form#'.$form_name.'");
-        if(!$("#'.$select_id.'").length){
-          $("'.$insert.'").insertAfter("form#'.$form_name.' input[name=\''.$field['areaName'][$k]['name'].'\']");
-        }
-        $("input[name=\''.$field['areaName'][$k]['name'].'\']").hide();
-        $("select[name=\''.$field['areaName'][$k]['key'].'\']").change(function(){
-          var v = $(this).val();
-          $("input[name=\''.$field['areaName'][$k]['name'].'\']").val(v);
-        });
-        $("input[name=\''.$field['zipName'][$k]['key'].'\']").addClass("readonly post-code");
+        ';
+    $address_info_json = '{
+      zipField:"'.$field['zipName'][$k]['name'].'",
+      countyField:"'.$field['countyName'][$k]['name'].'",
+      areaField:"'.$field['areaName'][$k]['name'].'",
+      zipName:"'.$field['zipName'][$k]['key'].'",
+      countyName:"'.$field['countyName'][$k]['key'].'",
+      areaName:"'.$field['areaName'][$k]['key'].'",
+      zipSel:"'.$field['zipName'][$k]['default'].'",
+      countySel:"'.$field['countyName'][$k]['default'].'",
+      areaSel:"'.$field['areaName'][$k]['default'].'"
+    }';
 
-        $form.twzipcode({
-          zipName:"'.$field['zipName'][$k]['key'].'",
-          countyName:"'.$field['countyName'][$k]['key'].'",
-          areaName:"'.$field['areaName'][$k]['key'].'",
-          zipSel:"'.$field['zipName'][$k]['default'].'",
-          countySel:"'.$field['countyName'][$k]['default'].'",
-          areaSel:"'.$field['areaName'][$k]['default'].'"
+    if( !empty($field['country'][$k])){
+      $js .= '
+      if( $("form#'.$form_name.' select[name=\''.$field['country'][$k]['name'].'\']").length ){
+            $("select[name='.$field['country'][$k]['name'].']").change(function(){
+              if($(this).val() == "1208"){
+                applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
+              }else{
+                cancelTWZIPAddress("'.$select_id.'",'.$address_info_json.');
+              }
+            }).trigger("change");
+            var countryID       = "#'.$field['country'][$k]['name'].'"
+            var stateProvinceID = "#'.$field['countyName'][$k]['key'].'"
+            var callbackURL     = "/civicrm/ajax/jqState"
+            cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"'._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).'"} );
+
+          }
+      ';
+    }else{
+      $js .= 'applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');';
+    }
+
+
+    $js .= '
+        cj(document).ajaxComplete(function(event, xhr, settings){
+          var url = settings.url;
+          if(url.match("/civicrm/ajax/jqState")){
+            if(url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
+              $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
+            }else if(url.match(/_id=country-(\d)+/)[1] == "' .$k. '"){
+              $("#'.$field['areaName'][$k]['name'].'").val("");
+              $("#'.$field['zipName'][$k]['key'].'").val("");
+            }
+          }
         });
       }
     });
+
     ';
     if($add_js){
       drupal_add_js($js , 'inline');
@@ -368,6 +398,48 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
       $return[$k] = $js;
     }
   }
+  $js = '
+    (function($){
+      applyTWZIPAddress = function(select_id, address_info){
+        var $form = $("form#'.$form_name.'");
+        $("[for="+address_info.areaField+"].error").remove();
+        $("[for="+address_info.countyName+"].error").remove();
+        $("[for="+address_info.zipName+"].error").remove();
+        if(!$("#"+select_id).length){
+          var select = "<select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select>";
+          $(select).insertAfter("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']");
+        }else if($("#"+select_id).css("display") == "none"){
+          $("#"+select_id).show();
+
+        }
+        $("input[name=\'" + address_info.areaField + "\']").hide();
+        $("select[name=\'" + address_info.areaName + "\']").change(function(){
+          var v = $(this).val();
+          $("input[name=\'" + address_info.areaField + "\']").val(v);
+        });
+        $("input[name=\'" + address_info.zipName + "\']").addClass("readonly post-code");
+
+        $form.twzipcode(address_info);
+      }
+
+      cancelTWZIPAddress = function(select_id, address_info){
+
+        var $form = $("form#'.$form_name.'");
+        $("input[name=\'" + address_info.areaField + "\']").show();
+        $("select[name=\'" + address_info.areaName + "\']").hide();
+        $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly");
+
+      }
+    })(jQuery);
+  ';
+
+  if($add_js){
+    drupal_add_js($js , 'inline');
+  }
+  else{
+    $return[] = $js;
+  }
+
   return $return;
 }
 
@@ -427,4 +499,31 @@ function _civicrm_twaddress_search_value($key, $array){
     return $array[$key];
   }
   return $return;
+}
+
+function _civicrm_twaddress_get_province_id($name){
+  $arr = array( "南投縣"=> "4855",
+    "台中市"=> "5219",
+    "台北市"=> "5221",
+    "台南市"=> "5224",
+    "台東縣"=> "4861",
+    "嘉義市"=> "5222",
+    "嘉義縣"=> "4849",
+    "基隆市"=> "4864",
+    "宜蘭縣"=> "4852",
+    "屏東縣"=> "4857",
+    "彰化縣"=> "4848",
+    "新北市"=> "4860",
+    "新竹市"=> "5223",
+    "新竹縣"=> "4850",
+    "桃園市"=> "4862",
+    "澎湖縣"=> "4856",
+    "花蓮縣"=> "4851",
+    "苗栗縣"=> "4854",
+    "連江縣"=> "5225",
+    "金門縣"=> "5226",
+    "雲林縣"=> "4863",
+    "高雄市"=> "5220",
+  );
+  return $arr[$name];
 }
