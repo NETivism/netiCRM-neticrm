@@ -203,7 +203,9 @@ $.fn.extend({
           input.caret(0, checkVal());
           e.preventDefault();
         } else if (k == 229) { // ime
-          e.preventDefault();
+          if (!android) {
+            e.preventDefault();
+          }
           isIME = true;
         }
       }
