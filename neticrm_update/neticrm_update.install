@@ -156,3 +156,10 @@ function neticrm_update_update_7212() {
 function neticrm_update_update_7213() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Apply website type in profile. refs #18283
+ */
+function neticrm_update_update_7214() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
