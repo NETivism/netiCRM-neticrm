@@ -141,7 +141,7 @@ function civicrm_event_parent_civicrm_buildForm_regRegister( $formName, &$form )
     }
     // now the real registration process
     else {
-      if($_GET['_qf_Confirm_display'] || $_GET['_qf_ThankYou_display']){
+      if($_GET['_qf_Confirm_display'] || $_GET['_qf_ThankYou_display'] || !empty($form->_submitValues)){
         return;
       }
       $status_msg = array(
