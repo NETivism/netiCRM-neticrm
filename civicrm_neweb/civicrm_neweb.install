@@ -341,12 +341,15 @@ function civicrm_neweb_update_7201(){
  * Add db field to swallow whole response
  */
 function civicrm_neweb_update_7200() {
-  $new_field = array(
-    'type' => 'blob',
-    'not null' => TRUE,
-    'description' => 'Whole response object from neweb.',
-  );
-  db_add_field('civicrm_contribution_neweb', 'data', $new_field);
+  $field_exists = db_field_exists('civicrm_contribution_neweb', 'data');
+  if (!$field_exists) {
+    $new_field = array(
+      'type' => 'blob',
+      'not null' => TRUE,
+      'description' => 'Whole response object from neweb.',
+    );
+    db_add_field('civicrm_contribution_neweb', 'data', $new_field);
+  }
 }
 
 /**
