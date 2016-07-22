@@ -75,6 +75,11 @@
         }
         else if(type_id==1 || type_id==3){
           phone_mask(this);
+        }else{
+          $(this).rules('remove');
+          $(this).unmask();
+          var fid = $(this).attr("id");
+          $("span[rel="+fid+"]").remove();
         }
       });
     });
