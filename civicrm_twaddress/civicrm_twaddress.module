@@ -461,6 +461,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   else{
     $return[] = $js;
   }
+  $return = array_reverse($return);
   return $return;
 }
 
