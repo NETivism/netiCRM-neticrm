@@ -81,6 +81,14 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     $values =& $_SESSION['CiviCRM'][$form_key]['values'];
   }
 
+  // max 7 days of expire
+  if (!empty($values['expiration_time']) && $values['expiration_time'] < 24) {
+    $values['expiration_time'] = 24;
+  }
+  if (!empty($values['expiration_time']) && $values['expiration_time'] > 24*7 ) {
+    $values['expiration_time'] = 24*7;
+  }
+
   // building vars
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
@@ -108,7 +116,11 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     case 'ATM':
       $args['ExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
     case 'BARCODE':
+      $args['StoreExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
     case 'CVS':
+      if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
+        $args['StoreExpireDate'] = $values['expiration_time'] * 60;
+      }
       $args['Desc_1'] = '';
       $args['Desc_2'] = '';
       $args['Desc_3'] = '';
