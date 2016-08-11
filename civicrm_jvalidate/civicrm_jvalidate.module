@@ -17,20 +17,35 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
     global $language;
     $js = '';
     $path = drupal_get_path('module', 'civicrm_jvalidate');
-    $t = array('jvalidate' => array(
+    $config = array('jvalidate' => array(
       'ext'=> t('Phone Ext.'),
       'extprompt' => t('Enter phone number Ext.'),
       'notw' => t('other format?'),
       'notwprompt' => t('Enter id below.'),
       'lang' => $language->language,
+      'phoneMask' => '',
+      'mobileMask' => '',
+      'phoneValidator' => '',
     ));
+    $phone_mask = variable_get('civicrm_jvalidate_phone_mask', '');
+    $mobile_mask = variable_get('civicrm_jvalidate_mobile_mask', '');
+    $phone_validator = variable_get('civicrm_jvalidate_phone_validator', '');
+    if ($phone_mask) {
+      $config['jvalidate']['phoneMask'] = $phone_mask;
+    }
+    if ($mobile_mask) {
+      $config['jvalidate']['mobileMask'] = $mobile_mask;
+    }
+    if ($phone_validator) {
+      $config['jvalidate']['phoneValidator'] = $phone_validator;
+    }
     $options = array(
       'type' => 'file',
     );
-    drupal_add_js($t, 'setting');
+    drupal_add_js($config, 'setting');
     $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
     drupal_add_js($path."/js/jquery.validate$min.js", $options);
-    if($t['jvalidate']['lang'] == "zh-hant"){
+    if($config['jvalidate']['lang'] == "zh-hant"){
       drupal_add_js($path.'/js/localization/messages_tw.js', $options);
     }
     drupal_add_js($path.'/js/custom-methods.js', $options);
