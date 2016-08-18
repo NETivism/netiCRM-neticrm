@@ -73,6 +73,7 @@ $.fn.extend({
       partialPosition,
       firstNonMaskPos,
       len,
+      keyIsPress,
       isIME = false,
       imeValue;
 
@@ -192,7 +193,8 @@ $.fn.extend({
         var k = e.which,
           pos,
           begin,
-          end;
+          end,
+          keyIsPress = false;
 
         //backspace, delete, and escape get special treatment
         if (isIME) {
@@ -226,6 +228,7 @@ $.fn.extend({
           p,
           c,
           next;
+        keyIsPress = true;
 
         if (isIME) {
           e.preventDefault();
@@ -272,11 +275,57 @@ $.fn.extend({
           p,
           c,
           next;
-
         if (isIME) {
           e.preventDefault();
           return;
         }
+        if (keyIsPress) {
+          keyIsPress = false;
+          return;
+        }
+
+        if ((e.ctrlKey || e.altKey || e.metaKey || k < 32 || isIME) && !android) {//Ignore
+          return;
+        }
+        else if (k) {
+          pos = input.caret();
+          pos.end--;
+          pos.begin--;
+          if (pos.end - pos.begin !== 0){
+            clearBuffer(pos.begin, pos.end);
+            shiftL(pos.begin, pos.end-1);
+          }
+
+          p = seekNext(pos.begin - 1);
+          if (p < len) {
+            if (android && (k === 229 || k === 0) ) {
+              k = getKeyCode(input.val());
+              c = String.fromCharCode(k);
+            }
+            else{
+              c = String.fromCharCode(k-48);
+            }
+
+            if (tests[p].test(c)) {
+              shiftR(p);
+
+              buffer[p] = c;
+              writeBuffer();
+              next = seekNext(p);
+              if(android){
+                setTimeout(function(){input.caret(next);},0);
+              }else{
+                input.caret(next);
+              }
+
+              if (settings.completed && next >= len) {
+                settings.completed.call(input);
+              }
+            }
+          }
+          e.preventDefault();
+        }
+        keyIsPress = false;
       }
 
       function compositionEnd(e) {
