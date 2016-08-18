@@ -275,16 +275,12 @@ $.fn.extend({
           p,
           c,
           next;
-        if (isIME) {
-          e.preventDefault();
-          return;
-        }
         if (keyIsPress) {
           keyIsPress = false;
           return;
         }
 
-        if ((e.ctrlKey || e.altKey || e.metaKey || k < 32 || isIME) && !android) {//Ignore
+        if ((e.ctrlKey || e.altKey || e.metaKey || k < 32 || !isIME) && !android) {//Ignore
           return;
         }
         else if (k) {
