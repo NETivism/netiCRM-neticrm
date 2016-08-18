@@ -30,6 +30,9 @@ msgstr "這個訊息表示您剛剛已經填寫過此表單，並且成功送出
 msgid "Installments of recurring must lower than 99."
 msgstr "定期定額期數需要小於或等於 99 期。"
 
+msgid "The years of recurring installments must lower than 9."
+msgstr "年份的定期定額期數需要小於或等於 9 期。"
+
 msgid "IP Access Denied."
 msgstr "IP 拒絕存取"
 
