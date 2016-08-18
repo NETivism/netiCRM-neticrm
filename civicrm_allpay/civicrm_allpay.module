@@ -143,6 +143,9 @@ function civicrm_allpay_civicrm_validate($form_name, &$form){
       if($processor_type == 'ALLPAY'){
         if(!empty($form['installments']) && $form['installments'] > 99){
           $errors['installments'] = t('Installments of recurring must lower than 99.');
+        }
+        if(!empty($form['installments']) && $form['installments'] > 9 && !empty($form['frequency_unit']) && $form['frequency_unit'] == 'year'){
+          $errors['installments'] = t('The years of recurring installments must lower than 9.');
         } 
       }
       /* Already done by CRM_Contribute_Form_Contribution_Main
