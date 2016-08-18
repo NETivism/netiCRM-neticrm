@@ -73,8 +73,8 @@ $.fn.extend({
       partialPosition,
       firstNonMaskPos,
       len,
-      keyIsPress,
-      isIME;
+      isIME = false,
+      imeValue;
 
     if (!amask && this.length > 0) {
       input = $(this[0]);
@@ -176,16 +176,30 @@ $.fn.extend({
         }
       }
 
+      function compositionStart(e) {
+        isIME = true;
+        // handling notify message of ime start
+        var error = input.next('.error');
+        if (!error.length) {
+          var notifyLabel = '<label for="'+input.attr('id')+'" generated="true" class="error">'+Drupal.settings.jvalidate.imeNotify+'</label>';
+          input.after(notifyLabel);
+        }
+        input.attr('title', Drupal.settings.jvalidate.imeNotify);
+        imeValue = input.val();
+      }
+
       function keydownEvent(e) {
         var k = e.which,
           pos,
           begin,
           end;
-              keyIsPress = false;
-        isIME = false;
 
         //backspace, delete, and escape get special treatment
-        if (k === 8 || k === 46 || (iPhone && k === 127)) {
+        if (isIME) {
+          e.preventDefault();
+          return;
+        }
+        else if (k === 8 || k === 46 || (iPhone && k === 127)) {
           pos = input.caret();
           begin = pos.begin;
           end = pos.end;
@@ -198,15 +212,11 @@ $.fn.extend({
           shiftL(begin, end - 1);
 
           e.preventDefault();
-        } else if (k == 27) {//escape
+        }
+        else if (k == 27) {//escape
           input.val(focusText);
           input.caret(0, checkVal());
           e.preventDefault();
-        } else if (k == 229) { // ime
-          if (!android) {
-            e.preventDefault();
-          }
-          isIME = true;
         }
       }
 
@@ -216,11 +226,15 @@ $.fn.extend({
           p,
           c,
           next;
-        keyIsPress = true;
 
-        if (e.ctrlKey || e.altKey || e.metaKey || k < 32) {//Ignore
+        if (isIME) {
+          e.preventDefault();
           return;
-        } else if (k) {
+        }
+        else if (e.ctrlKey || e.altKey || e.metaKey || k < 32) {//Ignore
+          e.preventDefault();
+        }
+        else if (k) {
           pos = input.caret();
           if (pos.end - pos.begin !== 0){
             clearBuffer(pos.begin, pos.end);
@@ -238,7 +252,7 @@ $.fn.extend({
               next = seekNext(p);
 
               if(android){
-                setTimeout(function(){input.caret(next);},0);
+                setTimeout(function(){input.caret(next);}, 1);
               }else{
                 input.caret(next);
               }
@@ -252,59 +266,23 @@ $.fn.extend({
         }
       }
 
-      function keyupEvent(e){
+      function keyupEvent(e) {
         var k = e.which,
           pos,
           p,
           c,
           next;
-        if (keyIsPress) {
-          keyIsPress = false;
-          return;
-        }
 
-        if ((e.ctrlKey || e.altKey || e.metaKey || k < 32 || !isIME) && !android) {//Ignore
-          return;
-        }
-        else if (k) {
-          pos = input.caret();
-          pos.end--;
-          pos.begin--;
-          if (pos.end - pos.begin !== 0){
-            clearBuffer(pos.begin, pos.end);
-            shiftL(pos.begin, pos.end-1);
-          }
-
-          p = seekNext(pos.begin - 1);
-          if (p < len) {
-            if (android && (k === 229 || k === 0) ) {
-              k = getKeyCode(input.val());
-              c = String.fromCharCode(k);
-            }
-            else{
-              c = String.fromCharCode(k-48);
-            }
-
-            if (tests[p].test(c)) {
-              shiftR(p);
-
-              buffer[p] = c;
-              writeBuffer();
-              next = seekNext(p);
-              if(android){
-                setTimeout(function(){input.caret(next);},0);
-              }else{
-                input.caret(next);
-              }
-
-              if (settings.completed && next >= len) {
-                settings.completed.call(input);
-              }
-            }
-          }
+        if (isIME) {
           e.preventDefault();
+          return;
         }
-        keyIsPress = false;
+      }
+
+      function compositionEnd(e) {
+        isIME = false;
+        setTimeout(function() { input.val(imeValue); }, 50);
+        input.attr('title', '');
       }
 
       function clearBuffer(start, end) {
@@ -391,6 +369,8 @@ $.fn.extend({
           if (input.val() != focusText)
             input.change();
         })
+        .on("compositionstart", compositionStart)
+        .on("compositionend", compositionEnd)
         .bind("keydown.amask", keydownEvent)
         .bind("keypress.amask", keypressEvent)
         .bind("keyup.amask", keyupEvent)

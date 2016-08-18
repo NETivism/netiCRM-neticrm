@@ -22,6 +22,7 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
       'extprompt' => t('Enter phone number Ext.'),
       'notw' => t('other format?'),
       'notwprompt' => t('Enter id below.'),
+      'imeNotify' => t('Please close your Input Method to input number'),
       'lang' => $language->language,
       'phoneMask' => '',
       'mobileMask' => '',
