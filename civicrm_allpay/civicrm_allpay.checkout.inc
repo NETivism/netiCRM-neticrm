@@ -177,7 +177,11 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
           $frequency_interval = 1;
         }
         $args['Frequency'] = $frequency_interval;
-        $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
+        if($vars['frequency_unit'] == 'year'){
+          $args['ExecTimes'] = empty($vars['installments']) ? 9 : $vars['installments'];
+        }else{
+          $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
+        }
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
       }
       if($language->language == 'en'){
