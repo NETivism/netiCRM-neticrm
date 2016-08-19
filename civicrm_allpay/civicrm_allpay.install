@@ -176,3 +176,11 @@ function civicrm_allpay_update_6102(){
   $ret = array();
   return $ret;
 }
+
+/**
+ * Update translations for yearly recurring contribution. refs #18616
+ */
+function civicrm_allpay_update_6103() {
+  module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
+  _neticrm_preset_import_po('civicrm_allpay');
+}
