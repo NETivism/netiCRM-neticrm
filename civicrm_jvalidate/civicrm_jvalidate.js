@@ -152,7 +152,7 @@
           var inputs = $(this).parents(".crm-section:first").find(":input:visible:first:not([type=checkbox])");
           inputs.addClass("required");
 
-          var checkboxes = $(this).parents(".crm-section:first").find(":input:visible[type=checkbox]:not([novalidate=novalidate])");
+          var checkboxes = $(this).parents(".crm-section:first").find(":input:visible[type=checkbox]:not(.ignore-required)");
           checkboxes.parents("div.content:first").addClass("ckbox");
 
           var sselect = $(this).parents(".crm-section:first").find(".advmultiselect select[multiple]");
