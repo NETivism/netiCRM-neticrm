@@ -148,3 +148,11 @@ function civicrm_allpay_update_7101(){
   }
   return 'Allpay successful updated.';
 }
+
+/**
+ * Update translations for yearly recurring contribution. refs #18616
+ */
+function civicrm_allpay_update_7102() {
+  module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
+  _neticrm_preset_import_po('civicrm_allpay');
+}
