@@ -163,3 +163,10 @@ function neticrm_update_update_7213() {
 function neticrm_update_update_7214() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Clear matching field cache to apply group tag import, refs #18274
+ */
+function neticrm_update_update_7215() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
