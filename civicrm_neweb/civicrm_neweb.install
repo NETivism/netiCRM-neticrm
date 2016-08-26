@@ -375,3 +375,18 @@ function civicrm_neweb_update_6113(){
   $sql = "UPDATE civicrm_contribution c INNER JOIN civicrm_contribution_neweb cn ON c.id = cn.cid SET c.payment_processor_id = $ppid WHERE c.is_test = 0 AND c.payment_processor_id IS NULL";
   CRM_Core_DAO::executeQuery($sql);
 }
+
+function civicrm_neweb_update_6114(){
+  $ret = array();
+  db_add_field($ret, 'civicrm_contribution_neweb', 'post_data', array(
+    'description' => 'Transaction response object from neweb.',
+    'type' => 'blob',
+    'not null' => FALSE,
+  ));
+  db_add_field($ret, 'civicrm_contribution_neweb', 'return_data', array(
+    'description' => 'Transaction response object from neweb.',
+    'type' => 'blob',
+    'not null' => FALSE,
+  ));
+  return $ret;
+}

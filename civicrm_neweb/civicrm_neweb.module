@@ -71,6 +71,21 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
           $msg = implode("<br>", $error);
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
+      }else{
+        // non-direct payment
+        $saved_params = $form->controller->get('params');
+        if(!empty($saved_params['trxn_id'])){
+          // build notify billing info
+          module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
+          $info = civicrm_neweb_notify_bytrxn($saved_params['trxn_id']);
+          $civicrm_instrument_id = preg_match("/Registration/", $form_name)?$saved_params[0]['civicrm_instrument_id']:$saved_params['civicrm_instrument_id'];
+          $display = civicrm_neweb_notify_display($info, $civicrm_instrument_id);
+          $form->assign('payment_instrument', $display);
+
+          // add result type
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
+        }
+
       }
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
@@ -120,6 +135,14 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
     variable_set("civicrm_neweb_ftp_".$pid, $default);
     variable_set("civicrm_neweb_ftp_test_".$pid_test, $default_test);
   }
+}
+
+/**
+ * Implementation of hook_civicrm_prepareInvoice()
+ */
+function civicrm_neweb_civicrm_prepareInvoice($contribution_id, &$tplParams){
+  module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
+  $tplParams = civicrm_neweb_notify_generate($contribution_id, FALSE);
 }
 
 /**
