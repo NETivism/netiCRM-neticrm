@@ -376,6 +376,9 @@ function civicrm_neweb_update_6113(){
   CRM_Core_DAO::executeQuery($sql);
 }
 
+/**
+ * Add new column to contribution_neweb for non-sync instrument msg. refs #16908
+ */
 function civicrm_neweb_update_6114(){
   $ret = array();
   db_add_field($ret, 'civicrm_contribution_neweb', 'post_data', array(
