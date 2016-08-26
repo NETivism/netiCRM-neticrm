@@ -74,7 +74,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       }else{
         // non-direct payment
         $saved_params = $form->controller->get('params');
-        if(!empty($saved_params['trxn_id'])){
+        if(!empty($saved_params['trxn_id']) && !empty($saved_params['returnvalue']) && $saved_params['returnvalue'] == 1){
           // build notify billing info
           module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
           $info = civicrm_neweb_notify_bytrxn($saved_params['trxn_id']);

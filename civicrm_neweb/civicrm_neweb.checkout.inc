@@ -44,6 +44,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   // Special hacking for display trxn_id after thank you page.
   $form_key = $component == 'event' ? 'CRM_Event_Controller_Registration_'.$params['qfKey'] : 'CRM_Contribute_Controller_Contribution_'.$params['qfKey'];
   $_SESSION['CiviCRM'][$form_key]['params']['trxn_id'] = $contribution->trxn_id;
+  $_SESSION['CiviCRM'][$form_key]['params']['returnvalue'] = $params_form['returnvalue'];
 
   // making redirect form
   $alter = array(
@@ -53,11 +54,16 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   );
   drupal_alter('civicrm_checkout_params', $alter);
 
+  // avoid doesn't execute update.php , check the new column existed.
   $post_data = json_encode($alter['params']);
-  $sql = "UPDATE civicrm_contribution_neweb SET post_data = '$post_data' WHERE cid = {$contribution->id}";
-  CRM_Core_DAO::executeQuery($sql);
+  $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+  $has_column = CRM_Core_DAO::singleValueQuery($sql);
+  if(!empty($has_column)){
+    $sql = "UPDATE civicrm_contribution_neweb SET post_data = '$post_data' WHERE cid = {$contribution->id}";
+    CRM_Core_DAO::executeQuery($sql);
+  }
 
-  if($instrument_code == 'Credit Card' || $instrument_code == 'WEBATM'){
+  if($instrument_code == 'Credit Card' || $alter['params']['returnvalue'] == 0){
     print _civicrm_neweb_form_redirect($alter['params'], $instrument_code);
     // move things to CiviCRM cache as needed
     CRM_Core_Session::storeSessionObjects();
@@ -158,7 +164,9 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
       $post['payphone'] = preg_replace("/[^\d]+/i", $params['phone']);
     }
   }
-  $post['returnvalue'] = $neweb_instrument == 'WEBATM' ? 0 : 1;
+  $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+  $is_returnable = CRM_Core_DAO::singleValueQuery($sql);
+  $post['returnvalue'] = (($neweb_instrument == 'WEBATM') || empty($is_returnable)) ? 0 : 1;
   $post['hash'] = md5($post['merchantnumber'].$payment_processor['subject'].$amount.$post['ordernumber']);
   $civi_base_url = CRM_Utils_System::currentPath();
   if($neweb_instrument == 'WEBATM'){
