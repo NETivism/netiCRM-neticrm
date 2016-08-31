@@ -142,7 +142,15 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
  */
 function civicrm_neweb_civicrm_prepareInvoice($contribution_id, &$tplParams){
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
-  $tplParams = civicrm_neweb_notify_generate($contribution_id, FALSE);
+  global $is_returnable;
+  if(!isset($is_returnable)){
+    $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+    $is_returnable = CRM_Core_DAO::singleValueQuery($sql);
+    $is_returnable = isset($is_returnable)?1:0;
+  }
+  if($is_returnable == 1){
+    $tplParams = civicrm_neweb_notify_generate($contribution_id, FALSE);
+  }
 }
 
 /**
