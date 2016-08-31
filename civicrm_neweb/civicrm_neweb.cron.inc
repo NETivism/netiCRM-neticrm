@@ -812,9 +812,11 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
   }
 }
 
-function civicrm_neweb_postdata($post, $payment_processor){
+function civicrm_neweb_postdata($post, $payment_processor, $url = NULL){
   $postdata = _civicrm_neweb_vars2str($post);
-  $url = rtrim($payment_processor['url_api'],'/')."/Query"; 
+  if(is_null($url)){
+    $url = rtrim($payment_processor['url_api'],'/')."/Query";
+  }
 
   $ch = curl_init($url);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
@@ -827,8 +829,8 @@ function civicrm_neweb_postdata($post, $payment_processor){
   if(curl_errno($ch)){
     _civicrm_neweb_error("CURL Error: ".curl_error($ch));
     $ch2 = curl_init($url);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch2, CURLOPT_SSL_VERIFYHOST, 1);
+    curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch2, CURLOPT_POST, 1);
     curl_setopt($ch2, CURLOPT_POSTFIELDS, $postdata);
     curl_setopt($ch2, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS

@@ -45,7 +45,9 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
   // Inject in quickform sessions
   // Special hacking for display trxn_id after thank you page.
-  $_SESSION['CiviCRM']['CRM_Contribute_Controller_Contribution_'.$params['qfKey']]['params']['trxn_id'] = $trxn_id;
+  $form_key = $component == 'event' ? 'CRM_Event_Controller_Registration_'.$params['qfKey'] : 'CRM_Contribute_Controller_Contribution_'.$params['qfKey'];
+  $_SESSION['CiviCRM'][$form_key]['params']['trxn_id'] = $contribution->trxn_id;
+  $_SESSION['CiviCRM'][$form_key]['params']['returnvalue'] = $params_form['returnvalue'];
 
   // making redirect form
   $alter = array(
@@ -54,11 +56,50 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     'params' => $params_form,
   );
   drupal_alter('civicrm_checkout_params', $alter);
-  print _civicrm_neweb_form_redirect($alter['params'], $instrument_code);
-  // move things to CiviCRM cache as needed
-  require_once 'CRM/Core/Session.php';
-  CRM_Core_Session::storeSessionObjects( );
-  exit();
+
+  // avoid doesn't execute update.php , check the new column existed.
+  $post_data = json_encode($alter['params']);
+  $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+  $has_column = CRM_Core_DAO::singleValueQuery($sql);
+  if(!empty($has_column)){
+    $sql = "UPDATE civicrm_contribution_neweb SET post_data = '$post_data' WHERE cid = {$contribution->id}";
+    CRM_Core_DAO::executeQuery($sql);
+  }
+
+  if($instrument_code == 'Credit Card' || $alter['params']['returnvalue'] == 0){
+    print _civicrm_neweb_form_redirect($alter['params'], $instrument_code);
+    // move things to CiviCRM cache as needed
+    CRM_Core_Session::storeSessionObjects();
+    exit();
+  }else{
+    module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.cron');
+    $result = civicrm_neweb_postdata($alter['params'], $payment_processor, $alter['params']['#action']);
+
+    if(!empty($result)){
+      $sql = "SELECT return_data FROM civicrm_contribution_neweb WHERE cid = {$contribution->id}";
+      $data = CRM_Core_DAO::singleValueQuery($sql);
+      if(!empty($data)){
+        $result = json_decode($data);
+        $sql = "UPDATE civicrm_contribution_neweb SET return_data = '$result' WHERE cid = {$contribution->id}";
+        CRM_Core_DAO::executeQuery($sql);
+      }else{
+        $result = json_encode($result);
+        $sql = "UPDATE civicrm_contribution_neweb SET return_data = '$result' WHERE cid = {$contribution->id}";
+        CRM_Core_DAO::executeQuery($sql);
+      }
+
+      require_once("civicrm_neweb.notify.inc");
+      civicrm_neweb_notify_generate($contribution->id, TRUE);
+      $civi_base_url = CRM_Utils_System::currentPath();
+      $query = array(
+        '_qf_ThankYou_display' => 'true',
+        'qfKey' => $params['qfKey'],
+        'instrument' => $instrument_code,
+      );
+      CRM_Core_Session::storeSessionObjects( );
+      drupal_goto($civi_base_url, array('query' => $query,));
+    }
+  }
 }
 
 function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_instrument){
@@ -126,7 +167,9 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
       $post['payphone'] = preg_replace("/[^\d]+/i", $params['phone']);
     }
   }
-  $post['returnvalue'] = 0;
+  $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+  $is_returnable = CRM_Core_DAO::singleValueQuery($sql);
+  $post['returnvalue'] = (($neweb_instrument == 'WEBATM') || empty($is_returnable)) ? 0 : 1;
   $post['hash'] = md5($post['merchantnumber'].$payment_processor['subject'].$amount.$post['ordernumber']);
   $civi_base_url = CRM_Utils_System::currentPath();
   if($neweb_instrument == 'WEBATM'){
