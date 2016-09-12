@@ -40,13 +40,13 @@ function civicrm_allpay_notify_info($cid){
         $return['繳費期限'] = $info['ExpireDate'];
         break;
       case 'CVS':
-        $help = l('» 步驟說明', 'https://www.allpay.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
+        $help = l('» 步驟說明', 'https://www.ecpay.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
         $return['便利商店繳費代碼'] = $info['PaymentNo'];
         $return['繳費期限'] = $info['ExpireDate'];
         $return[] = $help;
         break;
       case 'BAR':
-        $barcodepath = 'https://pay.allpay.com.tw/bank/tcbank/cnt/GenerateBarcode?barcode=';
+        $barcodepath = 'https://pay.ecpay.com.tw/bank/tcbank/cnt/GenerateBarcode?barcode=';
         $barcode = array($info['Barcode1'], $info['Barcode2'], $info['Barcode3']);
         foreach($barcode as $k => $b){
           $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';

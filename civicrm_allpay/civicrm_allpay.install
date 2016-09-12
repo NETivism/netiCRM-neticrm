@@ -1,6 +1,6 @@
 <?php
-define('ALLPAY_REAL_DOMAIN', 'https://payment.allpay.com.tw');
-define('ALLPAY_TEST_DOMAIN', 'https://payment-stage.allpay.com.tw');
+define('ALLPAY_REAL_DOMAIN', 'https://payment.ecpay.com.tw');
+define('ALLPAY_TEST_DOMAIN', 'https://payment-stage.ecpay.com.tw');
 define('ALLPAY_URL_SITE', '/Cashier/AioCheckOut');
 define('ALLPAY_URL_API', '/Cashier/QueryTradeInfo');
 define('ALLPAY_URL_RECUR', '/Cashier/QueryCreditCardPeriodInfo');
