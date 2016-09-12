@@ -184,3 +184,27 @@ function civicrm_allpay_update_6103() {
   module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
   _neticrm_preset_import_po('civicrm_allpay');
 }
+
+/**
+ * Update allpay to ecpay. refs #18766
+ */
+function civicrm_allpay_update_6104() {
+  civicrm_initialize( );
+  $sql = "UPDATE civicrm_payment_processor_type SET 
+  url_site_default = '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."',
+  url_api_default = '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."',
+  url_recur_default = '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."',
+  url_site_test_default = '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."',
+  url_api_test_default = '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."',
+  url_recur_test_default = '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."'
+  WHERE url_site_default LIKE '%allpay.com%'";
+  CRM_Core_DAO::executeQuery($sql);
+
+  $sql = "UPDATE civicrm_payment_processor SET 
+  url_site = REPLACE(url_site, 'allpay.com', 'ecpay.com'), 
+  url_api = REPLACE(url_api, 'allpay.com', 'ecpay.com'), 
+  url_recur = REPLACE(url_recur, 'allpay.com', 'ecpay.com') 
+  WHERE url_site LIKE '%allpay.com%'";
+  CRM_Core_DAO::executeQuery($sql);
+}
+
