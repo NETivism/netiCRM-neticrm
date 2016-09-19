@@ -1,12 +1,14 @@
 <?php
-define('CIVICRM_ESUNBANK_EXPIRED_DAY', 7);
-
 /**
  * Implementation of hook_init()
  */
 function civicrm_esunbank_init(){
   if(strstr($_GET['q'], 'payment-esunbank')){
     $GLOBALS['conf']['cache'] = FALSE;
+  }
+  if (!variable_get('civicrm_esunbank_expired_day', 0)) {
+    global $conf;
+    $conf['civicrm_esunbank_expired_day'] = 7;
   }
 }
 
@@ -119,7 +121,8 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
 
     if(count($ids)){
       $processor = $pids = array();
-      $least_day = date('Y-m-d H:i:s', strtotime('-'.CIVICRM_ESUNBANK_EXPIRED_DAY.' days'));
+      $expired_day = variable_get('civicrm_esunbank_expired_day', 7);
+      $least_day = date('Y-m-d H:i:s', strtotime('-'.$expired_day.' days'));
       $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", array(1 => array($instrument_id, 'Integer')));
       while($query->fetch()){
         if(empty($processor[$query->pid]) && !empty($query->pid)){
@@ -134,7 +137,7 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
             'number' => $query->id,
             'length' => $pp['password'],
             'price' => round($rows[$k]['total_amount']),
-            'timestamp' => strtotime($rows[$k]['created_date'])+86400*CIVICRM_ESUNBANK_EXPIRED_DAY,
+            'timestamp' => strtotime($rows[$k]['created_date'])+86400*$expired_day,
             'store' => $pp['subject'],
             'type' => $pp['signature'],
             'user' => $rows[$k]['sort_name'],

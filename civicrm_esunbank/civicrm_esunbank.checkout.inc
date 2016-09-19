@@ -26,11 +26,12 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
 
   // Generate esunbank payment serial
   // the order is matter, see function esunbank_api
+  $expired_day = variable_get('civicrm_esunbank_expired_day', 7);
   $p['code'] = $payment_processor['user_name'];
   $p['number'] = $vars['contributionID'];
   $p['length'] = $payment_processor['password'];
   $p['price'] = $vars['amount'];
-  $p['timestamp'] = strtotime('+'.CIVICRM_ESUNBANK_EXPIRED_DAY.' days');
+  $p['timestamp'] = strtotime('+'.$expired_day.' days');
   $p['store'] = $payment_processor['subject'];
   $p['type'] = $payment_processor['signature'];
 
