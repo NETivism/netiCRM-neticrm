@@ -60,6 +60,7 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
 
   $arguments = _civicrm_spgateway_order($vars, $component, $payment_processor, $instrument_code, $form_key);
   _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
+  watchdog('civicrm_spgateway', var_export($arguments,true));
   print _civicrm_spgateway_form_redirect($arguments, $payment_processor);
   // move things to CiviCRM cache as needed
   CRM_Utils_System::civiExit();
@@ -94,41 +95,67 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
-    'MerchantTradeNo' => $vars['trxn_id'],
-    'MerchantTradeDate' => date('Y/m/d H:i:s'),
+    'RespondType' => 'JSON',
+    #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
+    'TimeStamp' => time(),
+    'Version' => '1.2',
+    #'LangType' => '', // add beside this.
+    'MerchantOrderNo' => $vars['trxn_id'],
+    'Amt' => $amount,
+    'ItemDesc' => '', // Dismiss
+    #'TradeLimit' => '', // Limit seconds, dismiss
+    #'ExpireDate' => '', // add beside this.
+    #'ReturnURL' => $thankyou_url,
+    'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+    #'CustomerURL' => '', // Page after post, Todo.
+    'ClientBackURL' => $thankyou_url,
+    'Email' => $vars['email-5'],
+    #'EmailModify' => '', // Dismiss
+    'LoginType' => '0',
+    #'OrderComment' => '', // Dismiss
+
+/*
     'PaymentType' => 'aio',
-    'TotalAmount' => $amount,
     'TradeDesc' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['description']),
     'ItemName' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['item_name']),
-    'ReturnURL' => $notify_url."&qfKey=".$vars['qfKey'],
+
     'ChoosePayment' => $instrument_code,
-    #'CheckMacValue' => '', // add in civicrm_spgateway_checkmacvalue
-    'ClientBackURL' => $thankyou_url,
+    
     'ItemURL' => '',
     'Remark' => '',
     'ChooseSubPayment' => '',
-    'OrderResultURL' => $thankyou_url,
+    
     'NeedExtraPaidInfo' => 'Y',
     'DeviceSource' => '',
+
+    // 'MerchantTradeDate' => date('Y/m/d H:i:s'),
+    */
   );
 
   switch($instrument_code){
     case 'ATM':
-      $args['ExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['VACC'] = 1;
+      $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
     case 'BARCODE':
-      $args['StoreExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['BARCODE'] = 1;
+      $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
     case 'CVS':
+      $args['CVS'] = 1;
       if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
-        $args['StoreExpireDate'] = $values['expiration_time'] * 60;
+        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+        $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
       }
-      $args['Desc_1'] = '';
-      $args['Desc_2'] = '';
-      $args['Desc_3'] = '';
-      $args['Desc_4'] = '';
+      // $args['Desc_1'] = '';
+      // $args['Desc_2'] = '';
+      // $args['Desc_3'] = '';
+      // $args['Desc_4'] = '';
 
       #ATM / CVS / BARCODE
-      $args['PaymentInfoURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+      $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
       break;
+    /*
     case 'Alipay':
       $params = array(
         'version' => 3,
@@ -148,6 +175,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       $args['PhoneNo'] = $phone;
       $args['UserName'] = $name;
       break;
+    */
     /*
     case 'Tenpay':
       $args['ExpireTime'] = '';
@@ -184,11 +212,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         }
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
       }
-      if($language->language == 'en'){
-        $args['Language'] = 'ENG';
-      }
+      $args['CREDIT'] = 1;
       # Recurring
       break;
+  }
+  if($language->language == 'en'){
+    $args['Language'] = 'ENG';
   }
   return $args ;
 }

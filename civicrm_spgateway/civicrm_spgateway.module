@@ -505,7 +505,7 @@ function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
   // remove empty arg
   if(is_array($args)){
     foreach($args as $k => $v){
-      if($k == 'CheckMacValue'){
+      if($k == 'CheckValue'){
         unset($args[$k]);
       }
     }
@@ -523,28 +523,29 @@ function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
     'HashKey='.$payment_processor['password'],
   );
   foreach($args as $k => $v){
-    $a[] = $k.'='.$v;
+    $a[] = $k.'='.urlencode($v);
   }
   $a[] = 'HashIV='.$payment_processor['signature'];
   $keystr = implode('&', $a);
-  $keystr = urlencode($keystr);
-  $keystr = strtolower($keystr);
+  
+  // $keystr = strtolower($keystr);
 
-  $special_char_spgateway = array(
-    '%2d' => '-',
-    '%5f' => '_',
-    '%2e' => '.',
-    '%21' => '!',
-    '%2a' => '*',
-    '%28' => '(',
-    '%29' => ')',
-    '%20' => '+',
-  );
-  $keystr = str_replace(array_keys($special_char_spgateway), $special_char_spgateway, $keystr);
+  // $special_char_spgateway = array(
+  //   '%2d' => '-',
+  //   '%5f' => '_',
+  //   '%2e' => '.',
+  //   '%21' => '!',
+  //   '%2a' => '*',
+  //   '%28' => '(',
+  //   '%29' => ')',
+  //   '%20' => '+',
+  // );
+  // $keystr = str_replace(array_keys($special_char_spgateway), $special_char_spgateway, $keystr);
+  var_export($keystr);
 
-  $checkmacvalue = md5($keystr);
-  $args['CheckMacValue'] = $checkmacvalue;
-  return $checkmacvalue;
+  $checkvalue = strtoupper(hash("sha256", $keystr));
+  $args['CheckValue'] = $checkvalue;
+  return $checkvalue;
 }
 
 function _civicrm_spgateway_trxn_id($is_test, $id){
