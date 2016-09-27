@@ -93,6 +93,10 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   // building vars
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
+  $itemDescription = $vars['description'];
+  $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
+  $itemDescription .= ':'.$vars['amount'];
+
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
     'RespondType' => 'JSON',
@@ -102,13 +106,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     #'LangType' => '', // add beside this.
     'MerchantOrderNo' => $vars['trxn_id'],
     'Amt' => $amount,
-    'ItemDesc' => '', // Dismiss
+    'ItemDesc' => $itemDescription, // Required.
     #'TradeLimit' => '', // Limit seconds, dismiss
     #'ExpireDate' => '', // add beside this.
     #'ReturnURL' => $thankyou_url,
     'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
     #'CustomerURL' => '', // Page after post, Todo.
-    'ClientBackURL' => $thankyou_url,
     'Email' => $vars['email-5'],
     #'EmailModify' => '', // Dismiss
     'LoginType' => '0',
@@ -153,7 +156,8 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       // $args['Desc_4'] = '';
 
       #ATM / CVS / BARCODE
-      $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+      $args['CustomerURL'] = $thankyou_url;
+      // $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
       break;
     /*
     case 'Alipay':
