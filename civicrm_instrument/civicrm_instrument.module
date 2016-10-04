@@ -338,17 +338,17 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
       if(count($radios) == 1){
           $rid = key($radios);
           $r = reset($radios);
-          $output = '<div class="civicrm-instrument-dummy"><label><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio required">'.$r['label'].'</label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio"><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio required"><span class="elem-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
       }
       else{
         foreach($radios as $rid => $r){
-          $output .= '<div class="civicrm-instrument-dummy"><label><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio required">'.$r['label'].'</label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio"><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio required"><span class="elem-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
       }
       $label = ts('Payment Instrument');
       $output = '
-      <div class="crm-section">
-        <div class="label">'.$label.'<span class="crm-marker" title="此欄位不可空白。">*</span></div>
+      <div class="crm-section instrument-section">
+        <div class="label"><label>'.$label.'<span class="crm-marker" title="此欄位不可空白。">*</span></label></div>
         <div class="content">
           '.$output.'
         </div>
