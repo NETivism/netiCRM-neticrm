@@ -29,9 +29,9 @@ function neticrm_update_load_include($func){
       $filename = $path . $n. '.inc';
       if(file_exists($filename)){
         module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
-        include $filename;
+        require_once $filename;
+        $func = '_'.$func;
         if(function_exists($func)){
-          $func = '_'.$func;
           return $func();
         }
       }
@@ -168,5 +168,12 @@ function neticrm_update_update_7214() {
  * Clear matching field cache to apply group tag import, refs #18274
  */
 function neticrm_update_update_7215() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Correct county - area name, refs #18989
+ */
+function neticrm_update_update_7216() {
   return neticrm_update_load_include(__FUNCTION__);
 }
