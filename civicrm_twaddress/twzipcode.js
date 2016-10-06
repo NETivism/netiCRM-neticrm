@@ -86,11 +86,12 @@
       sel.county.change(function(){
         i = 0;
         tpl = [];
+        sel.zip.val('');
         if(sel.county.val() == ''){
           sel.area.empty().append( opt[1] ).trigger('change');
-          sel.zip.val('');
         }
         else {
+          tpl[i++] = opt[1];
           for( var data in zipcode[ sel.county.children("option:selected").text() ] ){
             if( data ){
               tpl[i++] = '<option value="';
