@@ -166,3 +166,10 @@ function neticrm_update_update_6113() {
 function neticrm_update_update_6114() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Correct county - area name, refs #18989
+ */
+function neticrm_update_update_6115() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
