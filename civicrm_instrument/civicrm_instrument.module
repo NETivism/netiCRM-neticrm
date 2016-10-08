@@ -242,7 +242,7 @@ function _civicrm_instrument_js_page($radios, &$form){
     }
     $checked = $value == $submitted_instrument_id ? "checked='checked'" : '';
     $radio['description'] = str_replace(array("\n","\r"), array('',''), $radio['description']);
-    $output .= "<div class='civicrm-instrument-dummy'><label class='crm-form-elem crm-form-radio'><input type='radio' name='civicrm_instrument_id_dummy' value='".$value."' class='form-radio required' $checked /><span class='elem-label'>".$radio['label']."</span></label>$error_str<div class='hover-item'>".$radio['description']."</div></div>";
+    $output .= "<div class='civicrm-instrument-dummy'><label class='crm-form-elem crm-form-radio md-elem md-radio' for='civicrm-instrument-dummy-".$value."'><input id='civicrm-instrument-dummy-".$value."' type='radio' name='civicrm_instrument_id_dummy' value='".$value."' class='form-radio md-radio-input required' $checked /><span class='elem-label md-radio-label'>".$radio['label']."</span></label>$error_str<div class='hover-item'>".$radio['description']."</div></div>";
   }
   $output .= '</div>';
   $output .= "<div class='clear'></div>";
@@ -338,11 +338,11 @@ function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_
       if(count($radios) == 1){
           $rid = key($radios);
           $r = reset($radios);
-          $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio"><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio required"><span class="elem-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
       }
       else{
         foreach($radios as $rid => $r){
-          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio"><input type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio required"><span class="elem-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
       }
       $label = ts('Payment Instrument');
