@@ -99,7 +99,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
-    'Respo5ndType' => 'JSON',
+    'RespondType' => 'JSON',
     #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
     'TimeStamp' => time(),
     'Version' => '1.2',
