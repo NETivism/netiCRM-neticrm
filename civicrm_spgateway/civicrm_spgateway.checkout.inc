@@ -94,7 +94,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
   $itemDescription = $vars['description'];
-  $itemDescription .= ['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
+  $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
   $itemDescription .= ':'.$vars['amount'];
 
   $args = array(
