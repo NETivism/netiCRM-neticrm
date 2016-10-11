@@ -94,12 +94,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
   $itemDescription = $vars['description'];
-  $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
+  $itemDescription .= ['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
   $itemDescription .= ':'.$vars['amount'];
 
   $args = array(
     'MerchantID' => $payment_processor['user_name'],
-    'RespondType' => 'JSON',
+    'Respo5ndType' => 'JSON',
     #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
     'TimeStamp' => time(),
     'Version' => '1.2',
@@ -140,10 +140,14 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       $args['VACC'] = 1;
       $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
       $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+      $args['CustomerURL'] = $thankyou_url;
+      break;
     case 'BARCODE':
       $args['BARCODE'] = 1;
       $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
       $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+      $args['CustomerURL'] = $thankyou_url;
+      break;
     case 'CVS':
       $args['CVS'] = 1;
       if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
@@ -216,6 +220,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         }
         $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
       }
+      $args['ReturnURL'] = $thankyou_url;
       $args['CREDIT'] = 1;
       # Recurring
       break;

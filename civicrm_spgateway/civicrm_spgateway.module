@@ -502,6 +502,16 @@ function civicrm_spgateway_fee_sync(){
 }
 
 function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
+  $used_args = array('HashKey','Amt','MerchantID','MerchantOrderNo','TimeStamp','Version','HashIV');
+  return _civicrm_spgateway_encode($args, $payment_processor, $used_args);
+}
+
+function _civicrm_spgateway_checkcode(&$args, $payment_processor){
+  $used_args = array('HashIV','Amt','MerchantID','MerchantOrderNo','TradeNo','HashKey');
+  return _civicrm_spgateway_encode($args, $payment_processor, $used_args);
+}
+
+function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = array()){
   // remove empty arg
   if(is_array($args)){
     foreach($args as $k => $v){
@@ -518,14 +528,23 @@ function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
       $args[$key] = $value;
     }
   }
-  $used_args = array('Amt','MerchantID','MerchantOrderNo','TimeStamp','Version');
-  $a = array(
-    'HashKey='.$payment_processor['password'],
-  );
-  foreach($used_args as $k){
-    $a[] = $k.'='.$args[$k];
+  if(count($checkArgs) == 0){
+    $checkArgs = array('HashKey','Amt','MerchantID','MerchantOrderNo','TimeStamp','Version','HashIV');
   }
-  $a[] = 'HashIV='.$payment_processor['signature'];
+  foreach($checkArgs as $k){
+    switch ($k) {
+      case 'HashIV':
+        $v = $payment_processor['signature'];
+        break;
+      case 'HashKey':
+        $v = $payment_processor['password'];
+        break;
+      default:
+        $v = $args[$k];
+        break;
+    }
+    $a[] = $k.'='.$v;
+  }
   $keystr = implode('&', $a);
 
   $checkvalue = strtoupper(hash("sha256", $keystr));
