@@ -53,6 +53,16 @@ function civicrm_neweb_schema(){
         'type' => 'blob',
         'not null' => FALSE,
       ),
+      'post_data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'return_data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('cid'),
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
