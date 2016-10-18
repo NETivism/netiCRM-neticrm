@@ -6,7 +6,7 @@
  * This file should be civicrm compliant.
  */
 function _neticrm_update_update_6114(){
-  CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_uf_field ADD COLUMN IF NOT EXISTS `website_type_id` int(10) unsigned DEFAULT NULL COMMENT 'Website Type Id, if required' AFTER phone_type_id, ADD INDEX IF NOT EXISTS `IX_website_type_id` (`website_type_id`)");
+  CRM_Core_DAO::executeQuery("ALTER TABLE civicrm_uf_field ADD COLUMN `website_type_id` int(10) unsigned DEFAULT NULL COMMENT 'Website Type Id, if required' AFTER phone_type_id, ADD INDEX `IX_website_type_id` (`website_type_id`)");
 
   $types = CRM_Core_PseudoConstant::websiteType();
   $website_type_id = key($types);
