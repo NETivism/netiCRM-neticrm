@@ -122,6 +122,7 @@ function _esunbank_check_calc($serial, $price = NULL){
     $check += $v*$plus;
   }
   if(!empty($price)){
+    $price = (float) $price;
     $price = (string)$price;
     $ary = str_split($price);
     $ary = array_reverse($ary);

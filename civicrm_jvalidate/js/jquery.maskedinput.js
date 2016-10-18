@@ -74,6 +74,7 @@ $.fn.extend({
       firstNonMaskPos,
       len,
       keyIsPress,
+      keyBackAndroid,
       isIME;
 
     if (!amask && this.length > 0) {
@@ -116,9 +117,13 @@ $.fn.extend({
         }),
         focusText = input.val();
 
-      function getKeyCode(str){
-        var regex = new RegExp('\['+settings.placeholder +'\]*$');
-        str = str.replace(regex, '');
+      function getKeyCode(str, idx){
+        if (typeof idx == 'undefined') {
+          idx = str.indexOf(settings.placeholder);
+        }
+        if (idx >= 0) {
+          str = str.substr(0, idx);
+        }
         return str.charCodeAt(str.length - 1);
       }
 
@@ -181,8 +186,10 @@ $.fn.extend({
           pos,
           begin,
           end;
-              keyIsPress = false;
+        keyIsPress = false;
         isIME = false;
+        pos = input.caret();
+        keyBackAndroid = pos.end;
 
         //backspace, delete, and escape get special treatment
         if (k === 8 || k === 46 || (iPhone && k === 127)) {
@@ -278,7 +285,16 @@ $.fn.extend({
           p = seekNext(pos.begin - 1);
           if (p < len) {
             if (android && (k === 229 || k === 0) ) {
-              k = getKeyCode(input.val());
+              if(pos.end+1 > keyBackAndroid) {
+                k = getKeyCode(input.val(), pos.end+1);
+                c = String.fromCharCode(k);
+              }
+              else {
+                c = settings.placeholder;
+              }
+            }
+            else if (!android && (k === 229 || k === 0)) {
+              k = getKeyCode(input.val(), pos.end+1);
               c = String.fromCharCode(k);
             }
             else{
@@ -291,11 +307,7 @@ $.fn.extend({
               buffer[p] = c;
               writeBuffer();
               next = seekNext(p);
-              if(android){
-                setTimeout(function(){input.caret(next);},0);
-              }else{
-                input.caret(next);
-              }
+              input.caret(next);
 
               if (settings.completed && next >= len) {
                 settings.completed.call(input);
