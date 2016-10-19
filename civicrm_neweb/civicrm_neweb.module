@@ -52,6 +52,9 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       break;
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
+      if(!preg_match("/Neweb/",$form->_paymentProcessor['payment_processor_type'])){
+        return;
+      }
       // credit card
       if(isset($_POST['final_result'])){
         if($_POST['final_result'] == 1 && $_POST['final_return_PRC'] == 0 && $_POST['final_return_SRC'] == 0){
@@ -74,7 +77,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       }else{
         // non-direct payment
         $saved_params = $form->controller->get('params');
-        if(!empty($saved_params['trxn_id'])){
+        if(!empty($saved_params['trxn_id']) && !empty($saved_params['returnvalue']) && $saved_params['returnvalue'] == 1){
           // build notify billing info
           module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
           $info = civicrm_neweb_notify_bytrxn($saved_params['trxn_id']);
