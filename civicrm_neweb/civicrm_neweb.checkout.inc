@@ -236,13 +236,20 @@ function _civicrm_neweb_form_redirect($redirect_params, $instrument){
     case 'Credit Card':
     case 'WEBATM':
     case 'ALIPAY':
-      $js = 'document.forms.redirect.submit();';
+      $js = 'document.forms.redirect.submit();
+      var btn = document.getElementById("submit-button");
+      btn.style.display = "none";
+      setTimeout(function(){
+        btn.style.display = "block";
+      }, 1000);
+      ';
       $o .= '<form action="'.$redirect_params['#action'].'" name="redirect" method="post" id="redirect-form">';
       foreach($redirect_params as $k=>$p){
         if($k[0] != '#'){
           $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
         }
       }
+      $o .= '<div align="center" id="submit-button"><p>若未自動轉向繳款頁面，請您按「下一步」來繼續進行動作</p><div><input type="submit" value="下一步" /></div></div>';
       $o .= '</form>';
       break;
     case 'ATM':
