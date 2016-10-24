@@ -1,4 +1,5 @@
 (function($){
+  jvalidateSetting = Drupal.settings.jvalidate;
 
   $.amask.definitions['~']='[1-9]';
   $.amask.definitions['o']='[0]';
@@ -10,14 +11,36 @@
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
-      $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("0z99-999999");
+
+      if (Drupal.settings.jvalidate.phoneValidator) {
+        $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+      }
+      else{
+        $(obj).rules("add", "twphone");
+      }
+      if (Drupal.settings.jvalidate.mobileMask) {
+        $(obj).amask(Drupal.settings.jvalidate.mobileMask);
+      }
+      else{
+        $(obj).amask("0z99-999999");
+      }
     }
     var phone_mask = function(obj){
-      $(obj).rules("add", "twphone");
+      if (Drupal.settings.jvalidate.phoneValidator) {
+        $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+      }
+      else {
+        $(obj).rules("add", "twphone");
+      }
       $(obj).css("max-width", "280px")
-      $(obj).amask("0~-9999999?##########");
+
+      if (Drupal.settings.jvalidate.phoneMask) {
+        $(obj).amask(Drupal.settings.jvalidate.phoneMask);
+      }
+      else{
+        $(obj).amask("0~-9999999?##########");
+      }
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();

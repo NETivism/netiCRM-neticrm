@@ -45,3 +45,6 @@ msgstr "此模組是用於 CiviCRM 表單 的 jquery 驗證插件。"
 msgid "NetiCRM"
 msgstr "NetiCRM"
 
+#: civicrm_jvalidate.module
+msgid "Please close your Input Method to input number"
+msgstr "請將輸入法切換為英數模式，或關閉輸入法"

@@ -74,6 +74,9 @@ $.fn.extend({
       firstNonMaskPos,
       len,
       keyIsPress,
+      keyIsInput,
+      keyBackAndroid,
+      preventDoubleInput = 0,
       isIME;
 
     if (!amask && this.length > 0) {
@@ -116,9 +119,13 @@ $.fn.extend({
         }),
         focusText = input.val();
 
-      function getKeyCode(str){
-        var regex = new RegExp('\['+settings.placeholder +'\]*$');
-        str = str.replace(regex, '');
+      function getKeyCode(str, idx){
+        if (typeof idx == 'undefined') {
+          idx = str.indexOf(settings.placeholder);
+        }
+        if (idx >= 0) {
+          str = str.substr(0, idx);
+        }
         return str.charCodeAt(str.length - 1);
       }
 
@@ -181,8 +188,10 @@ $.fn.extend({
           pos,
           begin,
           end;
-              keyIsPress = false;
+        keyIsPress = false;
         isIME = false;
+        pos = input.caret();
+        keyBackAndroid = pos.end;
 
         //backspace, delete, and escape get special treatment
         if (k === 8 || k === 46 || (iPhone && k === 127)) {
@@ -203,10 +212,11 @@ $.fn.extend({
           input.caret(0, checkVal());
           e.preventDefault();
         } else if (k == 229) { // ime
+          isIME = true;
           if (!android) {
             e.preventDefault();
+            return;
           }
-          isIME = true;
         }
       }
 
@@ -252,57 +262,85 @@ $.fn.extend({
         }
       }
 
-      function keyupEvent(e){
-        var k = e.which,
-          pos,
-          p,
-          c,
-          next;
+      function keyInput(e) {
+        // workaround for firefox
+        if (typeof e.timeStamp !== 'undefined' && typeof InstallTrigger !== 'undefined') {
+          if (preventDoubleInput !== 0) {
+            var different = e.timeStamp - preventDoubleInput;
+            if (different <= 3) {
+              preventDoubleInput = e.timeStamp;
+              return;
+            }
+          }
+          preventDoubleInput = e.timeStamp;
+        }
+        // fallback when no keypress
+        keyIsInput = true;
         if (keyIsPress) {
           keyIsPress = false;
           return;
         }
-
-        if ((e.ctrlKey || e.altKey || e.metaKey || k < 32 || !isIME) && !android) {//Ignore
-          return;
+        var currentInput = this.value,
+          k,
+          pos,
+          p,
+          c,
+          next;
+        
+        pos = input.caret();
+        pos.end--;
+        pos.begin--;
+        if (pos.end - pos.begin !== 0){
+          clearBuffer(pos.begin, pos.end);
+          shiftL(pos.begin, pos.end-1);
         }
-        else if (k) {
-          pos = input.caret();
-          pos.end--;
-          pos.begin--;
-          if (pos.end - pos.begin !== 0){
-            clearBuffer(pos.begin, pos.end);
-            shiftL(pos.begin, pos.end-1);
-          }
 
-          p = seekNext(pos.begin - 1);
-          if (p < len) {
-            if (android && (k === 229 || k === 0) ) {
-              k = getKeyCode(input.val());
+        p = seekNext(pos.begin - 1);
+        if (p < len) {
+          if (android) {
+            if(pos.end+1 > keyBackAndroid) {
+              k = getKeyCode(this.value, pos.end+1);
               c = String.fromCharCode(k);
             }
-            else{
-              c = String.fromCharCode(k-48);
-            }
+            else {
+              // backspace handling of android
+              var begin = pos.begin + 1;
+              var end = pos.end + 1;
 
-            if (tests[p].test(c)) {
-              shiftR(p);
-
-              buffer[p] = c;
-              writeBuffer();
-              next = seekNext(p);
-              if(android){
-                setTimeout(function(){input.caret(next);},0);
-              }else{
-                input.caret(next);
+              if (end - begin === 0) {
+                begin = seekNext(begin-1);
+                end = end;
               }
 
-              if (settings.completed && next >= len) {
-                settings.completed.call(input);
+              clearBuffer(begin, end);
+              if (begin > end) {
+                end--;
+                begin = end;
               }
+              shiftL(begin, end - 1);
+              return;
             }
           }
-          e.preventDefault();
+          else {
+            k = getKeyCode(this.value, pos.end+1);
+            c = String.fromCharCode(k);
+          }
+
+          if (tests[p].test(c)) {
+            shiftR(p);
+
+            buffer[p] = c;
+            writeBuffer();
+            next = seekNext(p);
+            input.caret(next);
+
+            if (settings.completed && next >= len) {
+              settings.completed.call(input);
+            }
+          }
+        }
+        else {
+          shiftL(pos.begin, pos.end);
         }
         keyIsPress = false;
       }
@@ -316,7 +354,9 @@ $.fn.extend({
         }
       }
 
-      function writeBuffer() { input.val(buffer.join('')); }
+      function writeBuffer() {
+        input.val(buffer.join(''));
+      }
 
       function checkVal(allow) {
         //try to place characters where they belong
@@ -393,7 +433,7 @@ $.fn.extend({
         })
         .bind("keydown.amask", keydownEvent)
         .bind("keypress.amask", keypressEvent)
-        .bind("keyup.amask", keyupEvent)
+        .bind("input", keyInput)
         .bind(pasteEventName, function() {
           setTimeout(function() { 
             var pos=checkVal(true);
