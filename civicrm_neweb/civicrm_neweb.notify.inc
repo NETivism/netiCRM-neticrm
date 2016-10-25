@@ -27,7 +27,8 @@ function civicrm_neweb_notify_bytrxn($trxn_id){
 function civicrm_neweb_notify_info($cid){
   $sql = "SELECT payment_processor_id AS pid,is_test FROM civicrm_contribution WHERE id = $cid";
   $dao = CRM_Core_DAO::executeQuery($sql);
-  if($id = $dao->fetch()){
+  $dao->fetch();
+  if($dao->pid){
     $p = new CRM_Core_BAO_PaymentProcessor();
     $payment_processor = $p->getPayment($dao->pid,$dao->is_test);
   }
