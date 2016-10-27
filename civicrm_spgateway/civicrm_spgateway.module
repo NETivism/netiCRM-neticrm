@@ -21,13 +21,6 @@ function civicrm_spgateway_menu(){
       'weight' => 0,
       'file' => 'civicrm_spgateway.ipn.inc',
     ),
-    'spgateway/record/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_spgateway_record',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
   );
 }
 
@@ -113,6 +106,16 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       // non-direct payment
       else {
+        if(!empty($_POST)){
+          $saved_params = $form->controller->get('params');
+          $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
+          $contrib_values = $contrib_ids = array();
+          CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
+
+          $input = _civicrm_spgateway_post_decode($_POST);
+          civicrm_spgateway_record($contrib_values['id'], $input);
+        }
+
         $saved_params = $form->controller->get('params');
         if(!empty($saved_params['trxn_id'])){
           $params['trxn_id'] = $saved_params['trxn_id'];
@@ -256,35 +259,29 @@ function civicrm_spgateway_record($cid, $data = null){
   if(is_numeric($cid)){
     $billing_notify = FALSE;
     if(empty($data) && !empty($_POST)){
-      if(arg(1) == 'record'){
-        $billing_notify = TRUE;
-        $data['#info'] = $_POST;
-      }
-      else{
-        $data = $_POST;
-      }
+      $data = $_POST;
     }
-    if(!empty($data['MerchantID']) || !empty($data['#info']['MerchantID'])){
-      $result = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
-      $exists = json_decode($result, TRUE);
-      if(is_array($exists)){
-        $data = array_merge($exists, $data);
-      }
-      $record = array(
-        'cid' => $cid,
-        'data' => json_encode($data),
-      );
-      // update
-      if(db_query("SELECT cid FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
-        drupal_write_record('civicrm_contribution_spgateway', $record, 'cid');
-      }
-      else{
-        drupal_write_record('civicrm_contribution_spgateway', $record);
-      }
-      if($billing_notify){
-        module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
-        civicrm_spgateway_notify_generate($cid, TRUE); // send mail
-      }
+    $input = _civicrm_spgateway_post_decode($data);
+    $result = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
+    $exists = json_decode($result, TRUE);
+    if(is_array($exists)){
+      $data = array_merge($exists, $data);
+    }
+    $record = array(
+      'cid' => $cid,
+      'data' => json_encode($data),
+    );
+    CRM_Core_Error::debug_var('record',$record);
+    // update
+    if(db_query("SELECT cid FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
+      drupal_write_record('civicrm_contribution_spgateway', $record, 'cid');
+    }
+    else{
+      drupal_write_record('civicrm_contribution_spgateway', $record);
+    }
+    if($billing_notify){
+      module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
+      civicrm_spgateway_notify_generate($cid, TRUE); // send mail
     }
   }
 }
@@ -502,6 +499,18 @@ function civicrm_spgateway_fee_sync(){
       }
     }
   }
+}
+
+function _civicrm_spgateway_post_decode($post = null){
+  $post = empty($post) ? $_POST : $post;
+  if(!empty($post['JSONData'])){
+    $jsonData = json_decode(str_replace("\\\\", "\\",$post['JSONData']));
+    if(isset($jsonData->Result)){
+      $input = json_decode($jsonData->Result,true);
+      $input['Status'] = $jsonData->Status;
+    }
+  }
+  return $input;
 }
 
 function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){

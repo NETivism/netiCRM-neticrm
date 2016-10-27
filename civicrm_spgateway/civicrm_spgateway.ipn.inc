@@ -52,13 +52,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     // get the contribution and contact ids from the GET params
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
-    if(is_array($this->_post) && $this->_post['JSONData']){
-      $jsonData = json_decode(str_replace("\\\\", "\\",$this->_post['JSONData']));
-      if(isset($jsonData->Result)){
-        $input = json_decode($jsonData->Result,true);
-        $input['Status'] = $jsonData->Status;
-      }
-    }
+    $input = _civicrm_spgateway_post_decode($this->_post);
     watchdog('civicrm_spgateway', var_export($input,true));
     $this->getIds($ids, $component);
     $input['component'] = $component;
