@@ -56,6 +56,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $jsonData = json_decode(str_replace("\\\\", "\\",$this->_post['JSONData']));
       if(isset($jsonData->Result)){
         $input = json_decode($jsonData->Result,true);
+        $input['Status'] = $jsonData->Status;
       }
     }
     watchdog('civicrm_spgateway', var_export($input,true));
@@ -146,7 +147,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
 
     // check amount
     $amount = $input['Amt'] ? $input['Amt'] : $input['Amount'];
-    if ( round($contribution->total_amount) != $amount && $input['RespondCode'] == '00' ) {
+    if ( round($contribution->total_amount) != $amount && $input['Status'] == 'SUCCESS' ) {
       watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['Amt']}" );
       $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['Amt']}")."\n";
       $pass = FALSE;
@@ -184,7 +185,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
           $trxn_id = _civicrm_spgateway_recur_trxn($input['MerchantOrderNo'], $input['Gwsr']);
         }
         $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
-        if($input['RespondCode'] != '00'){
+        if($input['Status'] != 'SUCCESS'){
           $contribution->contribution_status_id = 4; // Failed
           $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }
@@ -200,7 +201,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       }
       else{
         // is first time
-        if($input['RespondCode'] == '00'){
+        if($input['Status'] == 'SUCCESS'){
           $params['id'] = $recur->id;
           $params['start_date'] = date('YmdHis', strtotime($input['PayTime']));
           $params['contribution_status_id'] = 5; // from pending to processing
@@ -214,8 +215,8 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
       
     // process fail response
-    if($input['RespondCode'] != '00' && $pass){
-      $response_code = $input['RespondCode'];
+    if($input['Status'] != 'SUCCESS' && $pass){
+      $response_code = $input['Status'];
       $response_msg = $input['RtnMsg'];
       $note .= "Failed $response_code: $response_msg";
       $this->failed( $objects, $transaction );
