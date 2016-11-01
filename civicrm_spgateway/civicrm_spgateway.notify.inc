@@ -27,7 +27,7 @@ function civicrm_spgateway_notify_bytrxn($trxn_id){
 
 function civicrm_spgateway_notify_info($cid){
   $data = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
-  $json = json_decode($data, TRUE);
+  $json = _civicrm_spgateway_post_decode($data);
   $type = $json['PaymentType'];
   $return = array();
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);

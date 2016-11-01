@@ -109,7 +109,6 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     'ItemDesc' => $itemDescription, // Required.
     #'TradeLimit' => '', // Limit seconds, dismiss
     #'ExpireDate' => '', // add beside this.
-    #'ReturnURL' => $thankyou_url,
     'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
     #'CustomerURL' => '', // Page after post, Todo.
     'Email' => $vars['email-5'],
@@ -141,12 +140,14 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
       $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
       $args['CustomerURL'] = $thankyou_url;
+      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
       break;
     case 'BARCODE':
       $args['BARCODE'] = 1;
       $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
       $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
       $args['CustomerURL'] = $thankyou_url;
+      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
       break;
     case 'CVS':
       $args['CVS'] = 1;
@@ -154,6 +155,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
       }
+      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
       // $args['Desc_1'] = '';
       // $args['Desc_2'] = '';
       // $args['Desc_3'] = '';

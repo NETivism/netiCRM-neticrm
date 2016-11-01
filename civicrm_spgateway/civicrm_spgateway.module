@@ -21,6 +21,13 @@ function civicrm_spgateway_menu(){
       'weight' => 0,
       'file' => 'civicrm_spgateway.ipn.inc',
     ),
+    'spgateway/record/%' => array(
+      'access callback' => true,
+      'page callback' => 'civicrm_spgateway_record',
+      'page arguments' => array(2),
+      'type' => MENU_CALLBACK,
+      'weight' => 0,
+    ),
   );
 }
 
@@ -111,9 +118,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
-
-          $input = _civicrm_spgateway_post_decode($_POST);
-          civicrm_spgateway_record($contrib_values['id'], $input);
+          civicrm_spgateway_record($contrib_values['id'], $_POST);
         }
 
         $saved_params = $form->controller->get('params');
@@ -261,17 +266,19 @@ function civicrm_spgateway_record($cid, $data = null){
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
-    $input = _civicrm_spgateway_post_decode($data);
-    $result = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
-    $exists = json_decode($result, TRUE);
-    if(is_array($exists)){
-      $data = array_merge($exists, $data);
+    $json = $data['JSONData'];
+    $exists = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
+    if(!empty($exists)){
+      if($exists == $json){
+        watchdog('civicrm_spgateway', "Data is exists which cid = $cid, but data = $exists .");
+      }else{
+        watchdog('civicrm_spgateway', "Data is exists which cid = $cid, and data is the same.");
+      }
     }
     $record = array(
       'cid' => $cid,
-      'data' => json_encode($data),
+      'data' => $json,
     );
-    CRM_Core_Error::debug_var('record',$record);
     // update
     if(db_query("SELECT cid FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
       drupal_write_record('civicrm_contribution_spgateway', $record, 'cid');
@@ -502,15 +509,26 @@ function civicrm_spgateway_fee_sync(){
 }
 
 function _civicrm_spgateway_post_decode($post = null){
+  // Make $post be the object.
   $post = empty($post) ? $_POST : $post;
+  if(is_string($post)){
+    $data = json_decode($post);
+  }else{
+    $data = $post;
+  }
+
   if(!empty($post['JSONData'])){
     $jsonData = json_decode(str_replace("\\\\", "\\",$post['JSONData']));
-    if(isset($jsonData->Result)){
-      $input = json_decode($jsonData->Result,true);
-      $input['Status'] = $jsonData->Status;
-    }
+  }else{
+    $jsonData = $data;
   }
-  return $input;
+
+  if(isset($jsonData->Result)){
+    $return = json_decode($jsonData->Result,true);
+    $return['Status'] = $jsonData->Status;
+    $return['Message'] = $jsonData->Message;
+  }
+  return $return;
 }
 
 function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
