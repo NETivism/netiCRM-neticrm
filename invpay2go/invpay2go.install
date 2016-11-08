@@ -1,0 +1,121 @@
+<?php
+
+/**
+ * Implementation of hook_schema()
+ */
+function invpay2go_schema(){
+  $schema['invpay2go'] = array(
+    'fields' => array(
+      'pid' => array(
+        'description' => 'Pay2go hash info id',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'merchantid' => array(
+        'description' => 'Merchant Id',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => FALSE,
+      ),
+      'merchantid_test' => array(
+        'description' => 'Merchant Id Test',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => FALSE,
+      ),
+      'hashkey' => array(
+        'description' => 'hash key and api info',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'hashiv' => array(
+        'description' => 'hash iv and api info',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'hashkey_test' => array(
+        'description' => 'hash key and api info',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'hashiv_test' => array(
+        'description' => 'hash iv and api info',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('pid'),
+    'indexes' => array('merchantid' => array('merchantid'), 'merchantid_test' => array('merchantid')),
+    'mysql_suffix' => 'ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
+  );
+  $schema['invpay2go_invoice'] = array(
+    'fields' => array(
+      'order_number' => array(
+        'description' => 'order_number',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+      'pid' => array(
+        'type' => 'int',
+        'length' => '11',
+        'not null' => TRUE,
+      ),
+      'is_test' => array(
+        'type' => 'int',
+        'length' => '11',
+        'default' => 0,
+        'not null' => TRUE,
+      ),
+      'invoice_number' => array(
+        'description' => 'Invoice number',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => FALSE,
+      ),
+      'issue_response' => array(
+        'description' => 'Response object of issue',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'search_response' => array(
+        'description' => 'Response object of search',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'invalid_response' => array(
+        'description' => 'Response object of allowance',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'allowance_response' => array(
+        'description' => 'Response object of allowance',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('order_number'),
+    'unique keys' => array('invoice_number' => array('invoice_number')),
+    'mysql_suffix' => 'ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install()
+ */
+function invpay2go_install() {
+
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function invpay2go_uninstall() {
+dpm(123);
+
+}

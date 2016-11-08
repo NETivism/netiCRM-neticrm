@@ -1,0 +1,6 @@
+name = Pay2Go Invoice API
+description = Pay2Go Invoice API functions, this module only provide helper functions, and dependence from other module.
+package = NetiCRM Payment Method
+core = 7.x
+version = 7.x-1.0
+configure = admin/config/system/invpay2go
