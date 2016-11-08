@@ -110,7 +110,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
       $processor_type = $form->_paymentProcessor['payment_processor_type'];
-      if(isset($fields['payment_processor']) && $fields['payment_processor'] !== '0' && $processor_type != 'ESUNBANK'){
+      if(isset($fields['payment_processor']) && $fields['payment_processor'] !== '0' && $processor_type != 'ESUNBANK' && $processor_type != 'NCCC'){
         if( empty($fields['civicrm_instrument_id']) && isset($fields['civicrm_instrument_id_dummy'])){
           return array(
             'civicrm_instrument_id_dummy' => ts('This field is required.'),
