@@ -3,7 +3,7 @@ define('SPGATEWAY_REAL_DOMAIN', 'https://core.spgateway.com');
 define('SPGATEWAY_TEST_DOMAIN', 'https://ccore.spgateway.com');
 define('SPGATEWAY_URL_SITE', '/MPG/mpg_gateway');
 define('SPGATEWAY_URL_API', '/API/QueryTradeInfo');
-define('SPGATEWAY_URL_RECUR', '/API/PeriodAPI');
+define('SPGATEWAY_URL_RECUR', '/MPG/period');
 
 // $Id: devel.install,v 1.24.2.7 2009/07/30 19:38:48 weitzman Exp $
 /**
