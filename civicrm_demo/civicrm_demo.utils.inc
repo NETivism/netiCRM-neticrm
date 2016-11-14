@@ -9,7 +9,7 @@ function civicrm_demo_process_contact($vars){
     $first_name = _civicrm_demo_rand_firstname($language);
     $last_name = _civicrm_demo_rand_lastname($language);
     if($language == 'chinese'){
-      $sort_name = $last_name.$first_name; 
+      $sort_name = $last_name.$first_name;
     }
     $params = array(
       'version' => 3,
@@ -644,7 +644,7 @@ function _civicrm_demo_create_custom_group($name, $title){
   return $custom_group;
 }
 
-function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL){
+function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL, $options = NULL){
   $params = array(
     'label' => $title,
     'version' => 3,
@@ -664,6 +664,9 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
       'is_active' => 1,
       'version' => 3,
     );
+    if (!empty($options)) {
+      $params['option_values'] = $options; 
+    }
     if(!is_null($default)){
       $params['default_value'] = $default;
     }

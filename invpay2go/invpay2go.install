@@ -116,6 +116,5 @@ function invpay2go_install() {
  * Implementation of hook_uninstall()
  */
 function invpay2go_uninstall() {
-dpm(123);
 
 }

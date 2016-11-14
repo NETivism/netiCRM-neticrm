@@ -177,3 +177,10 @@ function neticrm_update_update_7215() {
 function neticrm_update_update_7216() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add tax receipt column - refs #18992
+ */
+function neticrm_update_update_7217() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

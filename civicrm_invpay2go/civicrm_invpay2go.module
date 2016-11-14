@@ -1,0 +1,4 @@
+<?php
+function civicrm_invpay2go_buildForm() {
+
+}

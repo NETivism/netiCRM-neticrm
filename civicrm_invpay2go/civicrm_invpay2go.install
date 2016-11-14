@@ -1,0 +1,64 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function civicrm_invpay2go_install() {
+  module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+
+  civicrm_initialize();
+  $group = _civicrm_demo_create_custom_group('taxreceipt_info', '發票資訊');
+  $uf_group = _civicrm_demo_create_uf_group('taxreceipt_infomation', '發票資訊');
+
+  // custom fields
+  if(!empty($group['id'])){
+    $fields = array();
+    // radio
+    $type_options = array(
+      'elec' => array('label' => '索取電子發票', 'value' => 'elec', 'is_active' => 1, 'weight' => 1),
+      'donate' => array('label' => '捐發票', 'value' => 'donate', 'is_active' => 1, 'weight' => 2),
+    );
+    $fields['taxreceipt_type'] = _civicrm_demo_create_custom_field('taxreceipt_type', '索取發票類型', 'String', 'Radio', $group['id'], NULL, $type_options);
+    $device_type_options = array(
+      'member' => array('label' => '會員載具', 'value' => 'member', 'is_active' => 1, 'weight' => 1),
+      'cellphone' => array('label' => '手機載具', 'value' => 'cellphone', 'is_active' => 1, 'weight' => 2),
+      'identifier' => array('label' => '身份證字號', 'value' => 'identifier', 'is_active' => 1, 'weight' => 3),
+    );
+    $fields['taxreceipt_device_type'] = _civicrm_demo_create_custom_field('taxreceipt_device_type', '電子發票載具', 'String', 'Radio', $group['id'], NULL, $device_type_options);
+
+    // text
+    $fields['taxreceipt_device_number'] = _civicrm_demo_create_custom_field('taxreceipt_device_number', '自訂載具編號', 'String', 'Text', $group['id']);
+    $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group['id']);
+    $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group['id']);
+    $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group['id']);
+  }
+
+  // uf fields
+  if(!empty($uf_group['id'])){
+    $uf_fields = array();
+    $uf_fields['taxreceipt_type'] = _civicrm_demo_create_uf_field('索取發票類型', 'Contribution', 'custom_'.$fields['taxreceipt_type']['id'], $uf_group['id'], TRUE);
+    $uf_fields['taxreceipt_device_type'] = _civicrm_demo_create_uf_field('電子發票載具', 'Contribution', 'custom_'.$fields['taxreceipt_device_type']['id'], $uf_group['id']);
+    $uf_fields['taxreceipt_device_number'] = _civicrm_demo_create_uf_field('自訂載具編號', 'Contribution', 'custom_'.$fields['taxreceipt_device_number']['id'], $uf_group['id']);
+    $uf_fields['taxreceipt_donate'] = _civicrm_demo_create_uf_field('捐贈發票單位', 'Contribution', 'custom_'.$fields['taxreceipt_donate']['id'], $uf_group['id']);
+    $uf_fields['taxreceipt_serial'] = _civicrm_demo_create_uf_field('統一編號', 'Contribution', 'custom_'.$fields['taxreceipt_serial']['id'], $uf_group['id']);
+    CRM_Core_BAO_UFGroup::updateGroupTypes($uf_group['id'], array('Contribution'));
+  }
+
+  // set config
+  $params = array(
+    'taxReceiptType' => $fields['taxreceipt_type']['id'],
+    'taxReceiptDeviceType' => $fields['taxreceipt_type']['id'],
+    'taxReceiptDeviceNumber' => $fields['receipt_title']['id'],
+    'taxReceiptDonate' => $fields['receipt_serial']['id'],
+    'taxReceiptSerial' => $fields['receipt_donor_credit']['id'],
+    'taxReceiptNumber' => $fields['receipt_donor_credit']['id'],
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function civicrm_invpay2go_uninstall() {
+
+}
