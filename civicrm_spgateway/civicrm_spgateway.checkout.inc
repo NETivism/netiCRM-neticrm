@@ -97,140 +97,162 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
   $itemDescription .= ':'.$vars['amount'];
 
-  $args = array(
-    'MerchantID' => $payment_processor['user_name'],
-    'RespondType' => 'JSON',
-    #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
-    'TimeStamp' => time(),
-    'Version' => '1.2',
-    #'LangType' => '', // add beside this.
-    'MerchantOrderNo' => $vars['trxn_id'],
-    'Amt' => $amount,
-    'ItemDesc' => $itemDescription, // Required.
-    #'TradeLimit' => '', // Limit seconds, dismiss
-    #'ExpireDate' => '', // add beside this.
-    'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
-    #'CustomerURL' => '', // Page after post, Todo.
-    'Email' => $vars['email-5'],
-    #'EmailModify' => '', // Dismiss
-    'LoginType' => '0',
-    #'OrderComment' => '', // Dismiss
+  if(!$vars['is_recur']){
+    $args = array(
+      'MerchantID' => $payment_processor['user_name'],
+      'RespondType' => 'JSON',
+      #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
+      'TimeStamp' => time(),
+      'Version' => '1.2',
+      #'LangType' => '', // add beside this.
+      # 'MerchantOrderNo' => $vars['trxn_id'],
+      'Amt' => $amount,
+      # 'ItemDesc' => $itemDescription, // Required.
+      #'TradeLimit' => '', // Limit seconds, dismiss
+      #'ExpireDate' => '', // add beside this.
+      'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+      #'CustomerURL' => '', // Page after post, Todo.
+      'Email' => $vars['email-5'],
+      // 'EmailModify' => '0', // Dismiss
+      'LoginType' => '0',
+      '#url' => $payment_processor['url_site'],
+      #'OrderComment' => '', // Dismiss
+    );
 
-/*
-    'PaymentType' => 'aio',
-    'TradeDesc' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['description']),
-    'ItemName' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['item_name']),
-
-    'ChoosePayment' => $instrument_code,
-    
-    'ItemURL' => '',
-    'Remark' => '',
-    'ChooseSubPayment' => '',
-    
-    'NeedExtraPaidInfo' => 'Y',
-    'DeviceSource' => '',
-
-    // 'MerchantTradeDate' => date('Y/m/d H:i:s'),
-    */
-  );
-
-  switch($instrument_code){
-    case 'ATM':
-      $args['VACC'] = 1;
-      $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
-      $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
-      $args['CustomerURL'] = $thankyou_url;
-      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-      break;
-    case 'BARCODE':
-      $args['BARCODE'] = 1;
-      $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
-      $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
-      $args['CustomerURL'] = $thankyou_url;
-      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-      break;
-    case 'CVS':
-      $args['CVS'] = 1;
-      if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
+    switch($instrument_code){
+      case 'ATM':
+        $args['VACC'] = 1;
         $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
-      }
-      $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-      // $args['Desc_1'] = '';
-      // $args['Desc_2'] = '';
-      // $args['Desc_3'] = '';
-      // $args['Desc_4'] = '';
+        $args['CustomerURL'] = $thankyou_url;
+        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        $args['MerchantOrderNo'] = $vars['trxn_id'];
+        $args['ItemDesc'] = $itemDescription;
+        break;
+      case 'BARCODE':
+        $args['BARCODE'] = 1;
+        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+        $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+        $args['CustomerURL'] = $thankyou_url;
+        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        $args['MerchantOrderNo'] = $vars['trxn_id'];
+        $args['ItemDesc'] = $itemDescription;
+        break;
+      case 'CVS':
+        $args['CVS'] = 1;
+        if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
+          $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+          $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+        }
+        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        // $args['Desc_1'] = '';
+        // $args['Desc_2'] = '';
+        // $args['Desc_3'] = '';
+        // $args['Desc_4'] = '';
 
-      #ATM / CVS / BARCODE
-      $args['CustomerURL'] = $thankyou_url;
-      // $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-      break;
-    /*
-    case 'Alipay':
-      $params = array(
-        'version' => 3,
-        'id' => $vars['contactID'],
-        'return.sort_name' => 1,
-        'return.phone' => 1,
-      );
-      $result = civicrm_api('contact', 'get', $params);
-      if(!empty($result['count'])){
-        $phone = $result['values'][$result['id']]['phone'];
-        $name = $result['values'][$result['id']]['sort_name'];
-      }
-      $args['AlipayItemName'] = $vars['item_name'];
-      $args['AlipayItemCounts'] = 1;
-      $args['AlipayItemPrice'] = $amount;
-      $args['Email'] = $vars['email-5'];
-      $args['PhoneNo'] = $phone;
-      $args['UserName'] = $name;
-      break;
-    */
-    /*
-    case 'Tenpay':
-      $args['ExpireTime'] = '';
-      break;
-     */
-    case 'WebATM':
-      break;
-    case 'Credit':
-      if($vars['is_recur']){
-        $args['PeriodAmount'] = $amount;
-        $period = strtoupper($vars['frequency_unit'][0]);
-        $args['PeriodType'] = $vars['frequency_unit'] == 'week' ? 'D' : $period;
+        #ATM / CVS / BARCODE
+        $args['CustomerURL'] = $thankyou_url;
+        $args['MerchantOrderNo'] = $vars['trxn_id'];
+        $args['ItemDesc'] = $itemDescription;
+        // $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        break;
+      case 'WebATM':
+        $args['WEBATM'] = 1;
+        $args['CustomerURL'] = $thankyou_url;
+        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        $args['MerchantOrderNo'] = $vars['trxn_id'];
+        $args['ItemDesc'] = $itemDescription;
+        break;
+      case 'Credit':
+        $args['MerchantOrderNo'] = $vars['trxn_id'];
+        $args['ItemDesc'] = $itemDescription;
+        $args['ReturnURL'] = $thankyou_url;
+        $args['CREDIT'] = 1;
+        # Recurring
+        break;
+    }
+    if($language->language == 'en'){
+      $args['Language'] = 'ENG';
+    }
+  }else{
+    $data = array(
+      'MerchantID' => $payment_processor['user_name'],
+      'RespondType' => 'JSON',
+      #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
+      'TimeStamp' => time(),
+      'Version' => '1.0',
+      #'LangType' => '', // add beside this.
+      # 'MerchantOrderNo' => $vars['trxn_id'],
+      'Amt' => $amount,
+      # 'ItemDesc' => $itemDescription, // Required.
+      #'TradeLimit' => '', // Limit seconds, dismiss
+      #'ExpireDate' => '', // add beside this.
+      'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+      #'CustomerURL' => '', // Page after post, Todo.
+      'Email' => $vars['email-5'],
+      // 'EmailModify' => '0', // Dismiss
+      'LoginType' => '0',
+      '#url' => $payment_processor['url_site'],
+      #'OrderComment' => '', // Dismiss
+    );
+    $data['MerOrderNo'] = $vars['trxn_id'];
+    $data['ProdDesc'] = $itemDescription;
 
-        if($vars['frequency_unit'] == 'month'){
-          $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
-        }
-        elseif($vars['frequency_unit'] == 'week'){
-          $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
-        }
-        elseif($vars['frequency_unit'] == 'day'){
-          $frequency_interval = $vars['frequency_interval'] > 365 ? 365 : $vars['frequency_interval'];
-        }
-        elseif($vars['frequency_unit'] == 'year'){
-          $frequency_interval = 1;
-        }
-        if(empty($frequency_interval)){
-          $frequency_interval = 1;
-        }
-        $args['Frequency'] = $frequency_interval;
-        if($vars['frequency_unit'] == 'year'){
-          $args['ExecTimes'] = empty($vars['installments']) ? 9 : $vars['installments'];
-        }else{
-          $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
-        }
-        $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
-      }
-      $args['ReturnURL'] = $thankyou_url;
-      $args['CREDIT'] = 1;
-      # Recurring
-      break;
+    // $data['Version'] = '1.0';
+    $data['PeriodAmt'] = $amount;
+    $period = strtoupper($vars['frequency_unit'][0]);
+
+    if($vars['frequency_unit'] == 'month'){
+      $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
+      $data['PeriodType'] = 'M';
+      $data['PeriodPoint'] = date('d');
+    }
+    elseif($vars['frequency_unit'] == 'week'){
+      $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
+      $data['PeriodType'] = 'W';
+    }
+    elseif($vars['frequency_unit'] == 'year'){
+      $frequency_interval = 1;
+      $data['PeriodType'] = 'Y';
+      $data['PeriodPoint'] = date('MD');
+    }
+    if(empty($frequency_interval)){
+      $frequency_interval = 1;
+    }
+    // $data['PeriodTimes'] = $frequency_interval;
+    if($vars['frequency_unit'] == 'year'){
+      $data['PeriodTimes'] = empty($vars['installments']) ? 9 : $vars['installments'];
+    }else{
+      $data['PeriodTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
+    }
+    $data['PeriodStartType'] = 2;
+    $data['NotifyURL'] = $notify_url.'&is_recur=1';
+    ksort($data);
+    $str = http_build_query($data);
+    $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
+    $args['PostData_'] = $strPost;
+    $args['MerchantID_'] = $payment_processor['user_name'];
+    $args['#url'] = $payment_processor['url_recur'];
+
   }
-  if($language->language == 'en'){
-    $args['Language'] = 'ENG';
-  }
+
+  
   return $args ;
+}
+
+function _civicrm_spgateway_recur_encrypt($args, $payment_processor){
+  $key = $payment_processor['password'];
+  $iv = $payment_processor['signature'];
+  $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key,
+_civicrm_spgateway_addpadding($str), MCRYPT_MODE_CBC, $iv))); 
+  return $str;
+}
+
+function _civicrm_spgateway_addpadding($string, $blocksize = 32) {
+  $len = strlen($string);
+  $pad = $blocksize - ($len % $blocksize);
+  $string .= str_repeat(chr($pad), $pad); 
+  return $string;
 }
 
 function _civicrm_spgateway_form_redirect($redirect_vars, $payment_processor){
@@ -241,7 +263,7 @@ function _civicrm_spgateway_form_redirect($redirect_vars, $payment_processor){
   $o = "";
 
   $js = 'document.forms.redirect.submit();';
-  $o .= '<form action="'.$payment_processor['url_site'].'" name="redirect" method="post" id="redirect-form">';
+  $o .= '<form action="'.$redirect_vars['#url'].'" name="redirect" method="post" id="redirect-form">';
   foreach($redirect_vars as $k=>$p){
     if($k[0] != '#'){
       $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
