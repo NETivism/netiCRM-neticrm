@@ -1,6 +1,10 @@
 <?php
 
-define('SPGATEWAY_EXPIRE_DAY', 7);
+// define('SPGATEWAY_EXPIRE_DAY', 7);
+CONST SPGATEWAY_EXPIRE_DAY = 7;
+CONST SPGATEWAY_RESPONSE_TYPE = 'JSON';
+CONST SPGATEWAY_MPG_VERSION = '1.2';
+CONST SPGATEWAY_RECUR_VERSION = '1.0';
 
 /**
  * Checkout functions
@@ -60,7 +64,7 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
 
   $arguments = _civicrm_spgateway_order($vars, $component, $payment_processor, $instrument_code, $form_key);
   _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
-  watchdog('civicrm_spgateway', var_export($arguments,true));
+  CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
   print _civicrm_spgateway_form_redirect($arguments, $payment_processor);
   // move things to CiviCRM cache as needed
   CRM_Utils_System::civiExit();
@@ -86,8 +90,8 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   if (!empty($values['expiration_time']) && $values['expiration_time'] < 24) {
     $values['expiration_time'] = 24;
   }
-  if (!empty($values['expiration_time']) && $values['expiration_time'] > 24*7 ) {
-    $values['expiration_time'] = 24*7;
+  if (!empty($values['expiration_time']) && $values['expiration_time'] > 24 * SPGATEWAY_EXPIRE_DAY ) {
+    $values['expiration_time'] = 24 * SPGATEWAY_EXPIRE_DAY;
   }
 
   // building vars
@@ -100,48 +104,37 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   if(!$vars['is_recur']){
     $args = array(
       'MerchantID' => $payment_processor['user_name'],
-      'RespondType' => 'JSON',
-      #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
+      'RespondType' => SPGATEWAY_RESPONSE_TYPE,
       'TimeStamp' => time(),
-      'Version' => '1.2',
-      #'LangType' => '', // add beside this.
-      # 'MerchantOrderNo' => $vars['trxn_id'],
+      'Version' => SPGATEWAY_MPG_VERSION,
       'Amt' => $amount,
-      # 'ItemDesc' => $itemDescription, // Required.
-      #'TradeLimit' => '', // Limit seconds, dismiss
-      #'ExpireDate' => '', // add beside this.
       'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
-      #'CustomerURL' => '', // Page after post, Todo.
       'Email' => $vars['email-5'],
-      // 'EmailModify' => '0', // Dismiss
       'LoginType' => '0',
+      'ItemDesc' => $itemDescription,
+      'MerchantOrderNo' => $vars['trxn_id'],
       '#url' => $payment_processor['url_site'],
-      #'OrderComment' => '', // Dismiss
     );
 
     switch($instrument_code){
       case 'ATM':
         $args['VACC'] = 1;
-        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
         $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-        $args['MerchantOrderNo'] = $vars['trxn_id'];
-        $args['ItemDesc'] = $itemDescription;
         break;
       case 'BARCODE':
         $args['BARCODE'] = 1;
-        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
         $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-        $args['MerchantOrderNo'] = $vars['trxn_id'];
-        $args['ItemDesc'] = $itemDescription;
         break;
       case 'CVS':
         $args['CVS'] = 1;
         if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
-          $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+          $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
           $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         }
         $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
@@ -152,54 +145,40 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
         #ATM / CVS / BARCODE
         $args['CustomerURL'] = $thankyou_url;
-        $args['MerchantOrderNo'] = $vars['trxn_id'];
-        $args['ItemDesc'] = $itemDescription;
-        // $args['CustomerURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         break;
       case 'WebATM':
         $args['WEBATM'] = 1;
         $args['CustomerURL'] = $thankyou_url;
         $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-        $args['MerchantOrderNo'] = $vars['trxn_id'];
-        $args['ItemDesc'] = $itemDescription;
         break;
       case 'Credit':
-        $args['MerchantOrderNo'] = $vars['trxn_id'];
-        $args['ItemDesc'] = $itemDescription;
-        $args['ReturnURL'] = $thankyou_url;
         $args['CREDIT'] = 1;
-        # Recurring
+        $args['ReturnURL'] = $thankyou_url;
         break;
     }
+
     if($language->language == 'en'){
-      $args['Language'] = 'ENG';
+      $args['LangType'] = 'en';
     }
   }else{
     $data = array(
       'MerchantID' => $payment_processor['user_name'],
-      'RespondType' => 'JSON',
-      #'CheckValue' => '', // add in civicrm_spgateway_checkmacvalue
+      'RespondType' => SPGATEWAY_RESPONSE_TYPE,
       'TimeStamp' => time(),
-      'Version' => '1.0',
-      #'LangType' => '', // add beside this.
-      # 'MerchantOrderNo' => $vars['trxn_id'],
+      'Version' => SPGATEWAY_RECUR_VERSION,
       'Amt' => $amount,
-      # 'ItemDesc' => $itemDescription, // Required.
-      #'TradeLimit' => '', // Limit seconds, dismiss
-      #'ExpireDate' => '', // add beside this.
       'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
-      #'CustomerURL' => '', // Page after post, Todo.
       'Email' => $vars['email-5'],
-      // 'EmailModify' => '0', // Dismiss
       'LoginType' => '0',
-      '#url' => $payment_processor['url_site'],
-      #'OrderComment' => '', // Dismiss
+      'MerOrderNo' => $vars['trxn_id'],
+      'ProdDesc' => $itemDescription,
+      'PeriodAmt' => $amount,
+      'PeriodStartType' => 2,
+      'NotifyURL' => $notify_url.'&is_recur=1',
+      'ReturnURL' => $thankyou_url,
+      'PaymentInfo' => 'N',
+      'OrderInfo' => 'N',
     );
-    $data['MerOrderNo'] = $vars['trxn_id'];
-    $data['ProdDesc'] = $itemDescription;
-
-    // $data['Version'] = '1.0';
-    $data['PeriodAmt'] = $amount;
     $period = strtoupper($vars['frequency_unit'][0]);
 
     if($vars['frequency_unit'] == 'month'){
@@ -225,22 +204,18 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     }else{
       $data['PeriodTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
     }
-    $data['PeriodStartType'] = 2;
-    $data['NotifyURL'] = $notify_url.'&is_recur=1';
-    ksort($data);
     $str = http_build_query($data);
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
     $args['MerchantID_'] = $payment_processor['user_name'];
     $args['#url'] = $payment_processor['url_recur'];
-
   }
 
   
   return $args ;
 }
 
-function _civicrm_spgateway_recur_encrypt($args, $payment_processor){
+function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
   $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key,
