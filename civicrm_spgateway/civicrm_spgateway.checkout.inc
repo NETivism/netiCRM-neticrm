@@ -63,7 +63,9 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   $vars['trxn_id'] = $contribution->trxn_id;
 
   $arguments = _civicrm_spgateway_order($vars, $component, $payment_processor, $instrument_code, $form_key);
-  _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
+  if(!$contrib_values['is_recur']){
+    _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
+  }
   CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
   print _civicrm_spgateway_form_redirect($arguments, $payment_processor);
   // move things to CiviCRM cache as needed
@@ -213,21 +215,6 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
   
   return $args ;
-}
-
-function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
-  $key = $payment_processor['password'];
-  $iv = $payment_processor['signature'];
-  $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key,
-_civicrm_spgateway_addpadding($str), MCRYPT_MODE_CBC, $iv))); 
-  return $str;
-}
-
-function _civicrm_spgateway_addpadding($string, $blocksize = 32) {
-  $len = strlen($string);
-  $pad = $blocksize - ($len % $blocksize);
-  $string .= str_repeat(chr($pad), $pad); 
-  return $string;
 }
 
 function _civicrm_spgateway_form_redirect($redirect_vars, $payment_processor){

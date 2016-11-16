@@ -50,6 +50,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
 
   function main($component = 'contribute', $instrument){
     // get the contribution and contact ids from the GET params
+    civicrm_spgateway_record($ids['contribution'], $this->_post);
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $input = _civicrm_spgateway_post_decode($this->_post);
@@ -58,10 +59,6 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     $input['component'] = $component;
     $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-
-    if(empty($this->_get['is_recur'])){
-      civicrm_spgateway_record($ids['contribution'], $this->_post);
-    }
     if(empty($ids['contributionRecur'])){
       // we will save record later if this is recurring
       $recur = FALSE;
@@ -131,29 +128,48 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
   function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
+    $valid_value = array();
+
+    if($ids['contributionRecur']){
+      $valid_value = array(
+        'MerchantOrderNo' => $input['MerOrderNo'],
+        'Amt' => $input['PeriodAmt'],
+        'CheckCode' => $input['AuthCode'],
+      );
+    }else{
+      $valid_value = array(
+        'MerchantOrderNo' => $input['MerchantOrderNo'],
+        'Amt' => $input['Amt'],
+        'CheckCode' => $input['CheckCode'],
+      );
+    }
     
     // check contribution id matches
-    if ( $contribution->trxn_id != $input['MerchantOrderNo'] ) {
-      watchdog("civicrm_spgateway", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$input['MerchantOrderNo']} " );
-      $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$input['MerchantOrderNo']}")."\n";
+    if ( $contribution->trxn_id != $valid_value['MerchantOrderNo'] ) {
+      watchdog("civicrm_spgateway", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']} " );
+      $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']}")."\n";
       $pass = FALSE;
     } 
 
     // check amount
-    $amount = $input['Amt'] ? $input['Amt'] : $input['Amount'];
+    $amount = $valid_value['Amt'] ? $valid_value['Amt'] : $valid_value['Amount'];
     if ( round($contribution->total_amount) != $amount && $input['Status'] == 'SUCCESS' ) {
-      watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['Amt']}" );
-      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$input['Amt']}")."\n";
+      watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$valid_value['Amt']}" );
+      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$valid_value['Amt']}")."\n";
       $pass = FALSE;
     }
 
     // spgateway validation
     // only validate this when not test.
-    if(!empty($input['CheckCode'])){
-      $mac = _civicrm_spgateway_checkcode($input, self::$_payment_processor);
-      if(strtolower($input['CheckCode']) != strtolower($mac)) {
+    if(!empty($valid_value['CheckCode'])){
+      if($ids['contributionRecur']){
+        $check_code = _civicrm_spgateway_recur_decrypt($valid_value['CheckCode'], self::$_payment_processor);
+      }else{
+        $check_code = _civicrm_spgateway_checkcode($input, self::$_payment_processor);
+      }
+      if(strtolower($valid_value['CheckCode']) != strtolower($check_code)) {
         $note .= ts("Failuare: CheckCode not match. Contact system admin.")."\n";
-        watchdog("civicrm_spgateway", "Failuare: CheckCode not match. Should be '{$mac}', but '{$input['CheckCode']}' displayed.");
+        watchdog("civicrm_spgateway", "Failuare: CheckCode not match. Should be '{$check_code}', but '{$input['CheckCode']}' displayed.");
         $pass = FALSE;
       }
     }
