@@ -1,4 +1,130 @@
 <?php
-function civicrm_invpay2go_buildForm() {
 
+function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_params, &$tax_receipt, &$object) {
+  // check if exists
+  if (!empty($object->trxn_id)) {
+    $exists = invpay2go_api_get($object->trxn_id);
+    $field_info= _civicrm_invpay2go_get_field_info($contribution_id);
+    $tpl_params['taxReceiptFields'] = $field_info;
+    if ($exists) {
+      $tax_receipt = $exists;
+    }
+  }
+}
+
+function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_result, &$object) {
+  if (!empty($object->trxn_id)) {
+    $exists = invpay2go_api_get($object->trxn_id);
+    if (empty($exists)) {
+      $field_info = _civicrm_invpay2go_get_field_info($contribution_id);
+      $contact_params = array(
+        'id' => $object->contact_id,
+        'version' => 3,
+      );
+      $result = civicrm_api('Contact', 'GET', $contact_params);
+      if (!empty($result['id']) && $result['id'] == $contact_params['id']) {
+        $contact = $result['values'][$object->contact_id];
+      }
+
+      $contribution = (array) $object;
+      $params = _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info);
+      $pid = invpay2go_default_pid();
+      $api_params = array(
+        'apitype' => 'invoice_issue',
+        'pid' => $pid,
+      );
+      $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
+      return $req_result;
+    }
+  }
+}
+
+function _civicrm_invpay2go_get_field_info($contribution_id) {
+  civicrm_initialize();
+
+  $config = CRM_Core_Config::singleton();
+  $custom_values = CRM_Core_BAO_CustomValueTable::getEntityValues($contribution_id, 'Contribution');
+  $custom_fields = CRM_Core_BAO_CustomField::getFields('Contribution');
+  $display = array();
+  foreach($config as $key => $v){
+    if (strstr($key, 'taxReceipt') && !empty($custom_values[$v])) {
+      $label = $custom_fields[$v]['label'];
+      $value = $custom_values[$v];
+      if (!empty($custom_fields[$v]['option_group_id'])) {
+        $options = CRM_Core_BAO_CustomOption::valuesByID($v, $custom_fields[$v]['option_group_id']);
+        $value_label = $options[$value];
+      }
+      else {
+        $value_label = $value;
+      }
+      $display[$key] = array(
+        'field_id' => $v,
+        'label' => $label,
+        'value' => $value,
+        'value_label' => $value_label,
+      );
+    }
+  }
+  return $display;
+}
+
+function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info){
+  civicrm_initialize();
+
+  $types = CRM_Contribute_PseudoConstant::contributionType();
+  $type = $types[$contribution['contribution_status_id']];
+  $b2b = !empty($field_info['taxReceiptSerial']['value']) && is_numeric($field_info['taxReceiptSerial']['value']) ? $field_info['taxReceiptSerial']['value'] : FALSE;
+  $total_amt = round($contribution['total_amount']);
+  $tax_rate = 5;
+  $amt = $total_amount / ((100 + $tax_rate)/100);
+  $tax_amt = $total_amt - $amt;
+  $params =  array(
+    'MerchantOrderNo' => $contribution['trxn_id'],
+    'TransNum' => '', // if pay2go, provide
+    'Status' => '1', // 1 - immediately, 0 - trigger to issue, 3 - datetime to issue
+    'CreateStatusTime' => '', // only apply this when Status = 3
+    'Category' => $b2b ? 'B2B' : 'B2C',
+    'BuyerName' => $contact['sort_name'],
+    'BuyerUBN' => $b2b ? $b2b : '',
+    'BuyerAddress' => '', // not provided
+    'BuyerEmail' => $contact['email'],
+    'CarrierType' => (!$b2b && !empty($field_info['taxReceiptDeviceType'])) ? $field_info['taxReceiptDeviceType']['value'] : '', // Category=B2C - 0,1,2, no lovecode
+    'LoveCode' => (!$b2b && !empty($field_info['taxReceiptDonate']['value'])) ? $field_info['taxReceiptDonate']['value'] : '', // only b2c
+    'TaxType' => '1', // TODO what type of tax, read document
+    'TaxRate' => $tax_rate, // TODO what rate of tax, read document
+    'CustomsClearance' => '', // only taxtype = 2, TODO base on tax type, read doc
+    'Amt' => $amt, // total amount
+    'AmtSales' => '', // TODO base on tax type 9, do not implement
+    'AmtZero' => '', // TODO base on tax type 9, do not implement
+    'AmtFree' => '', // TODO base on tax type 9, do not implement
+    'TaxAmt' => $tax_amt,
+    'TotalAmt' => $total_amt,
+    'ItemName' => $type, // TODO
+    'ItemCount' => '1', // TODO
+    'ItemUnit' => '人', // TODO
+    'ItemPrice' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
+    'ItemAmt' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
+    'ItemTaxType' => '', // TODO do not implement
+    'Comment' => truncate_utf8($contribution['source'], 30), // TODO meaningful comment
+  );
+
+  // Carrier Num
+  if (!$b2b && isset($params['CarrierType'])) {
+    if ($params['CarrierType'] == 2) {
+      $params['CarrierNum'] = rawurlencode($contact['email']);
+    }
+    else {
+      $params['CarrierNum'] = $field_info['taxReceiptDeviceNumber']['value'];
+    }
+  }
+
+  // PrintFlag
+  $params['PrintFlag'] = 'N';
+  if ($b2b) {
+    $params['PrintFlag'] = 'Y';
+  }
+  elseif (!$b2b && $params['CarrierType'] === '' && empty($params['LoveCode'])) {
+    $params['PrintFlag'] = 'Y';
+  }
+  return $params;
 }

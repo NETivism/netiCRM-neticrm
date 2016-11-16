@@ -17,7 +17,6 @@ function invpay2go_menu() {
   );
 }
 
-
 /**
  * Run api query
  *
@@ -35,24 +34,26 @@ function invpay2go_menu() {
  *   A boolean indicate if this api call test or not.
  */
 function invpay2go_api_run($params, $api_params, $is_test){
-  $merchantid = $api_params['merchantid'];
   $apitype = $api_params['apitype'];
   if (!empty($api_params['pid'])) {
     $secret = db_select('invpay2go', 'inv')
       ->fields('inv')
-      ->condition('pid', $pid, '=')
+      ->condition('pid', $api_params['pid'], '=')
       ->execute()
       ->fetchAssoc();
     if ($is_test) {
+      $merchantid = $secret['merchantid_test'];
       $key = $secret['hashkey_test'];
       $iv = $secret['hashiv_test'];
     }
     else {
+      $merchantid = $secret['merchantid'];
       $key = $secret['hashkey'];
       $iv = $secret['hashiv'];
     }
   }
   else{
+    $merchantid = $api_params['merchantid'];
     $key = $api_params['key'];
     $iv = $api_params['iv'];
   }
@@ -100,4 +101,12 @@ function invpay2go_api_search($pid, $isTest){
 function invpay2go_api_fields($apitype){
   module_load_include('inc', 'invpay2go', 'invpay2go.lib');
   return Pay2goInvoice::fields($apitype);
+}
+
+function invpay2go_default_pid() {
+  $result = db_select('invpay2go', 'inv')
+    ->fields('inv')
+    ->execute()
+    ->fetchAssoc();
+  return $result['pid'];
 }

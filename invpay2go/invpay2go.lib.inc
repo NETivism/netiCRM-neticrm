@@ -101,6 +101,7 @@ class Pay2goInvoice {
     // force version and RespondType
     $postData['RespondType'] = self::RESPONSE_TYPE;
     $postData['Version'] = self::VERSION;
+    $postData['TimeStamp'] = (string) time();
 
     $postStr = http_build_query($postData);
     $encryptedPostData = self::encrypt($postStr, $this->hashKey, $this->hashIv);
@@ -250,7 +251,13 @@ class Pay2goInvoice {
       $return = array();
       foreach($record as $key => $r){
         if (strstr($key, 'response')) {
-          $return[$key] = json_decode($r);
+          $json = json_decode($r);
+          foreach ($json as $k => $v) {
+            if($k == 'Result' && !empty($v)) {
+              $json->Result = json_decode($v);
+            }
+          }
+          $return[$key] = $json;
         }
         else{
           $return[$key] = $r;
