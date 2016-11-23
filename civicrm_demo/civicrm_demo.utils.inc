@@ -129,6 +129,9 @@ function civicrm_demo_process_contribution($vars){
   if(module_exists('civicrm_neweb')){
     $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
   }
+  if(module_exists('civicrm_spgateway')){
+    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
+  }
 
   // query exists contact
   $contrib_per_contact = 5; // limit every contact only have num of contribution.

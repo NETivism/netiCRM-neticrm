@@ -54,7 +54,6 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $input = _civicrm_spgateway_post_decode($this->_post);
-    watchdog('civicrm_spgateway', var_export($input,true));
     $this->getIds($ids, $component);
     $input['component'] = $component;
     $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
