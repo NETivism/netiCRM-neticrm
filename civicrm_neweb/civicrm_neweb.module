@@ -328,8 +328,8 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
     global $sended_sftp_notice_mail;
     if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass)){ 
       // send email To User1
-      $time = time();
-      $user = user_load(array('uid' => '1'));
+      $time = REQUEST_TIME;
+      $user = user_load(1);
       $params = array(
         'host' => $host,
         // 'pid' => $pid,
