@@ -402,32 +402,33 @@ function dwd($in){
 
 function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
   if($mode == 'detail'){
-    $error[$prc] = civicrm_neweb_prc($prc);
-    $error[$brc] = civicrm_neweb_prc($brc);
+    $error[] = $prc . ' : ' . civicrm_neweb_prc($prc);
+    $error[] = $src . ' : ' . ts('SRC');
+    $error[] = $brc . ' : ' . civicrm_neweb_brc($brc);
   }
   else{
     $error['nopaid'] = ts("Transaction failed. You won't be doing any charge of this transaction. Below is the detail of this failed transaction:");
     if($prc == 8){
   "contribution";
-      $error[$prc] = civicrm_neweb_prc($prc);
-      $error[$prc] .= ': '.ts("This may occurred because you press the back button of browser. You can ignore this transaction, and try <a href='%1'>create a new one.</a>.", array($dup_link));
+      $error[] = civicrm_neweb_prc($prc);
+      $error[] .= ': '.ts("This may occurred because you press the back button of browser. You can ignore this transaction, and try <a href='%1'>create a new one.</a>.", array($dup_link));
     }
     elseif($prc == 52){
-      $error[$prc] = civicrm_neweb_prc($prc);
+      $error[] = civicrm_neweb_prc($prc);
       if($brc){
-        $error[$prc] .= ": ".civicrm_neweb_brc($brc);
+        $error[] .= ": ".civicrm_neweb_brc($brc);
       }
     }
     elseif($prc == 34){
-      $error[$prc] = civicrm_neweb_prc($prc);
+      $error[] = civicrm_neweb_prc($prc);
       if($brc){
-        $error[$prc] .= ": ".civicrm_neweb_brc($brc);
+        $error[] .= ": ".civicrm_neweb_brc($brc);
       }
     }
     else{
       $error['system'] = ts("Network or system error. Please try again a minutes later, if you still can't success, please contact us for further assistance.");
       if($brc){
-        $error[$brc] = civicrm_neweb_brc($brc);
+        $error[] = civicrm_neweb_brc($brc);
       }
     }
   }
@@ -492,7 +493,7 @@ function civicrm_neweb_brc($c = NULL){
   $code['99'] = ts('BRC: Line Busy');
   $code['IE'] = ts('BRC: ID Error');
   
-  if($c){
+  if(is_string($c)){
     if(strpos($c,"/")){
       $explode_c = explode("/", $c);
       $c = $explode_c[1];
@@ -556,7 +557,7 @@ function civicrm_neweb_prc($c = NULL){
   $code['32768'] = ts('PRC: missing API version');
   $code['-1'] = ts('PRC: dispathcer error');
   
-  if($c){
+  if(is_string($c)){
     return $code[$c];
   }
   else{
