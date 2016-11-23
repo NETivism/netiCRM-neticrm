@@ -18,6 +18,21 @@ function invpay2go_menu() {
 }
 
 /**
+ * Implementation of hook_theme
+ */
+function invpay2go_theme($existing, $type, $theme, $path) {
+  return array(
+    'invpay2go' => array(
+      'template' => 'invpay2go',
+      'variables' => array(
+        'receipt' => NULL,
+      ),
+      'file' => 'invpay2go.theme.inc'
+    ),
+  );
+}
+
+/**
  * Run api query
  *
  * @param array $params
@@ -25,16 +40,51 @@ function invpay2go_menu() {
  *   api type which needs call, read documnet for full params
  * @param array $api_params
  *   An associative array of additional options
- *   - 'apitype': required, specify api type to call for.
+ *   - 'apiType': required, specify api type to call for.
  *   - 'pid': if specify, you don't needs following parameter
- *   - 'merchantid': merchant id from pay2go
+ *   - 'merchantId': merchant id from pay2go
  *   - 'key': from pay2go
  *   - 'iv': from pay2go
  * @param bool $is_test
  *   A boolean indicate if this api call test or not.
+ * @param bool $extra
+ *   Fetch extra info from api search
  */
-function invpay2go_api_run($params, $api_params, $is_test){
-  $apitype = $api_params['apitype'];
+function invpay2go_api_run($params, $api_params, $is_test, $extra = TRUE){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  _invpay2go_api_params($api_params, $is_test);
+  $req = new Pay2goInvoice($api_params, $is_test);
+  $data = $req->request($params);
+
+  if ($req->status && $extra) {
+    $search_params = array(
+      'MerchantOrderNo' => $params['MerchantOrderNo'],
+      'SearchType' => 1,
+      'TotalAmt' => $params['TotalAmt'],
+      'DisplayFlag' => 0,
+    );
+    $api_params['apiType'] = 'invoice_search';
+    $search = invpay2go_api_search($search_params, $api_params, $is_test);
+    if ($search->status) {
+      $req->response[$search->recordField] = $search->response[$search->recordField];
+    }
+  }
+  $req->requestParams = $params;
+  return $req;
+}
+
+function invpay2go_api_search($params, $api_params, $is_test) {
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  _invpay2go_api_params($api_params, $is_test);
+  $search = new Pay2goInvoice($api_params, $is_test);
+
+  // hack for different version
+  $params['Version'] = '1.1';
+  $search->request($params);
+  return $search;
+}
+
+function _invpay2go_api_params(&$api_params, $is_test){
   if (!empty($api_params['pid'])) {
     $secret = db_select('invpay2go', 'inv')
       ->fields('inv')
@@ -42,25 +92,16 @@ function invpay2go_api_run($params, $api_params, $is_test){
       ->execute()
       ->fetchAssoc();
     if ($is_test) {
-      $merchantid = $secret['merchantid_test'];
-      $key = $secret['hashkey_test'];
-      $iv = $secret['hashiv_test'];
+      $api_params['merchantId'] = $secret['merchantid_test'];
+      $api_params['key'] = $secret['hashkey_test'];
+      $api_params['iv'] = $secret['hashiv_test'];
     }
     else {
-      $merchantid = $secret['merchantid'];
-      $key = $secret['hashkey'];
-      $iv = $secret['hashiv'];
+      $api_params['merchantId'] = $secret['merchantid'];
+      $api_params['key'] = $secret['hashkey'];
+      $api_params['iv'] = $secret['hashiv'];
     }
   }
-  else{
-    $merchantid = $api_params['merchantid'];
-    $key = $api_params['key'];
-    $iv = $api_params['iv'];
-  }
-  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
-  $req = new Pay2goInvoice($merchantid, $key, $iv, $apitype, $is_test);
-  $req->request($params);
-  return $req;
 }
 
 /**
@@ -69,7 +110,7 @@ function invpay2go_api_run($params, $api_params, $is_test){
  * @param string $order_number
  * @param string $invoice_number
  */
-function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $api_search = FALSE){
+function invpay2go_api_get($order_number = NULL, $invoice_number = NULL){
   module_load_include('inc', 'invpay2go', 'invpay2go.lib');
   if ($order_number) {
     $record = Pay2goInvoice::getRecord($order_number);
@@ -80,22 +121,21 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $api_se
   if ($record) {
     return $record;
   }
-  else {
-    if ($api_search) {
-      $result = invpay2go_api_search();
-      $record['search_response'] = $result;
-    }
-  }
+  return FALSE;
 }
 
 /**
- * Get remote result by api 
- *
- * @param string $order_number
- * @param string $invoice_number
+ * Helper function for printing tax receipt
+ * @param mix $object
+ *   object must have InvoiceNumber to print
+ *   If it's string, get receipt info from db
+ *   If it's object, check invoice number
+ * @return string
+ *   Return printing html with inline css style prepared for printing
  */
-function invpay2go_api_search($pid, $isTest){
-  // not implement yet.
+function invpay2go_api_print(&$object){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  return Pay2goInvoice::printReceipt($object);
 }
 
 function invpay2go_api_fields($apitype){

@@ -10,9 +10,11 @@ class Pay2goInvoice {
   public $isTest = 0;
   public $status = 0;
   public $response;
+  public $requestParams;
   public $orderNumber;
   public $checkResult;
   public $pid;
+  public $recordField;
 
   protected $merchantId;
   protected $hashKey;
@@ -32,18 +34,20 @@ class Pay2goInvoice {
   /**
    * Initialize a connection
    *
-   * @param string $merchantId
-   *   merchantID provided by pay2go
-   * @param string $key
-   *   Hash key provided by pay2go
-   * @param string $iv
-   *   hash iv provided by pay2go
-   * @param string $apitype
-   *   api type which needs call
+   * @param $apiParams
+       - string $merchantId
+   *     merchantID provided by pay2go
+   *   - string $key
+   *     Hash key provided by pay2go
+   *   - string $iv
+   *     hash iv provided by pay2go
+   *   - string $apiType
+   *     api type which needs call
    * @param bool $isTest
    *   A boolean indicate if this api call test or not.
    */
-  function __construct($merchantId, $key, $iv, $apitype, $isTest){
+  function __construct($apiParams, $isTest){
+    extract($apiParams);
     if (empty($merchantId) || empty($key) || empty($iv) || is_null($isTest)) {
       throw new Exception('Required parameters missing: merchantId, key, iv, isTest');
     }
@@ -59,11 +63,12 @@ class Pay2goInvoice {
     if ($obj->hashkey != $key || $obj->hashiv != $iv) {
       throw new Exception('Hash key or iv not correct between api and db');
     }
-    if (empty($this->apiTypes[$apitype])) {
+    if (empty($this->apiTypes[$apiType])) {
       throw new Exception('API type not supported currently or given wrong type');
     }
     $this->pid = $obj->pid;
-    $this->apiType = $apitype;
+    $this->apiType = $apiType;
+    $this->recordField = $this->recordType();
     $this->merchantId = $merchantId;
     $this->hashKey = $key;
     $this->hashIv = $iv;
@@ -100,7 +105,7 @@ class Pay2goInvoice {
 
     // force version and RespondType
     $postData['RespondType'] = self::RESPONSE_TYPE;
-    $postData['Version'] = self::VERSION;
+    $postData['Version'] = empty($postData['Version']) ? self::VERSION : $postData['Version'];
     $postData['TimeStamp'] = (string) time();
 
     $postStr = http_build_query($postData);
@@ -121,6 +126,37 @@ class Pay2goInvoice {
     if (isset($data->Result->InvoiceNumber)) {
       $record['invoice_number'] = $data->Result->InvoiceNumber;
     }
+    $record[$this->recordField] = $resp['response'];
+    self::writeRecord($this->orderNumber, $record);
+
+    // verify data comes from
+    if (isset($data->Result->CheckCode) && $verifyResponse) {
+      $checkResult = self::checkCode($data, $this->hashKey, $this->hashIv);
+      $this->checkResult = $checkResult;
+    }
+    $this->status = 0;
+    if ($verifyResponse && $this->checkResult && $data->status == 'SUCCESS') {
+      $this->status = 1;
+    }
+    elseif ($data->status == 'SUCCESS') {
+      $this->status = 1;
+    }
+
+    $this->response[$this->recordField] = $data;
+    return $data;
+  }
+
+  /**
+   * Free current response object
+   */
+  public function free() {
+    unset($this->response);
+  }
+
+  /**
+   * Record type
+   */
+  private function recordType(){
     $recordField = '';
     switch($this->apiType) {
       case 'invoice_issue':
@@ -138,31 +174,20 @@ class Pay2goInvoice {
         $recordField = 'allowance_response';
         break;
     }
-    $record[$recordField] = $resp['response'];
-    self::writeRecord($this->orderNumber, $record);
-
-    // verify data comes from
-    if (isset($data->Result->CheckCode) && $verifyResponse) {
-      $checkResult = self::checkCode($data, $this->hashKey, $this->hashIv);
-      $this->checkResult = $checkResult;
-    }
-    $this->status = 0;
-    if ($verifyResponse && $this->checkResult && $data->status == 'SUCCESS') {
-      $this->status = 1;
-    }
-    elseif ($data->status == 'SUCCESS') {
-      $this->status = 1;
-    }
-
-    $this->response = $data;
-    return $data;
+    $this->recordField = $recordField;
+    return $recordField;
   }
-
+  
   /**
-   * Free current response object
+   * Base api url for api
    */
-  public function free() {
-    unset($this->response);
+  public function apiUrl() {
+    if ($this->isTest) {
+      return self::INVPAY2GO_TEST . '/API/' . $this->apiType;
+    }
+    else {
+      return self::INVPAY2GO_PROD. '/API/' . $this->apiType;
+    }
   }
 
   /**
@@ -188,18 +213,6 @@ class Pay2goInvoice {
       throw new Exception('Empty response');
     }
     return FALSE;
-  }
-
-  /**
-   * Base api url for api
-   */
-  public function apiUrl() {
-    if ($this->isTest) {
-      return self::INVPAY2GO_TEST . '/API/' . $this->apiType;
-    }
-    else {
-      return self::INVPAY2GO_PROD. '/API/' . $this->apiType;
-    }
   }
 
   /**
@@ -291,6 +304,34 @@ class Pay2goInvoice {
     else{
       drupal_write_record('invpay2go_invoice', $record);
     }
+  }
+
+  /**
+   * Helper function for printing tax receipt
+   * @param mix $object
+   *   object must have InvoiceNumber to print
+   *   If it's string, get receipt info from db
+   *   If it's object, check invoice number
+   * @return string
+   *   Return printing html with inline css style prepared for printing
+   */
+  static public function printReceipt($object){
+    $print = '';
+    if (is_string($object)) {
+      $object = self::getRecord($object);
+    }
+    $info = array();
+    if (!empty($object['issue_response']->Result)) {
+      $info = (array) $object['issue_response']->Result;
+    }
+    if (!empty($object['search_response']->Result)) {
+      $result = (array) $object['search_response']->Result;
+      $info = array_merge($info, $result);
+    }
+    if (!empty($info['InvoiceNumber'])) {
+      $print = theme('invpay2go', array('receipt' => $info));
+    }
+    return $print;
   }
 
   /**

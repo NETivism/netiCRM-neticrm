@@ -7,6 +7,13 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
     $field_info= _civicrm_invpay2go_get_field_info($contribution_id);
     $tpl_params['taxReceiptFields'] = $field_info;
     if ($exists) {
+      if (!empty($exists['issue_response'])) {
+        $html = invpay2go_api_print($exists);
+        $exists['receipt_info'] = $exists['issue_response']->Result;
+        $exists['receipt_status'] = $exists['issue_response']->Status == 'SUCCESS' ? 1 : 0;
+        $exists['receipt_message'] = $exists['issue_response']->Message;
+        $exists['receipt_print'] = $html;
+      }
       $tax_receipt = $exists;
     }
   }
@@ -30,11 +37,10 @@ function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_resu
       $params = _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info);
       $pid = invpay2go_default_pid();
       $api_params = array(
-        'apitype' => 'invoice_issue',
+        'apiType' => 'invoice_issue',
         'pid' => $pid,
       );
       $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
-      return $req_result;
     }
   }
 }
