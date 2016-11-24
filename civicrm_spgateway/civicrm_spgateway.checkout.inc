@@ -170,13 +170,13 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       'Version' => SPGATEWAY_RECUR_VERSION,
       'Amt' => $amount,
       'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
-      'Email' => $vars['email-5'],
+      'PayerEmail' => $vars['email-5'],
       'LoginType' => '0',
       'MerOrderNo' => $vars['trxn_id'],
       'ProdDesc' => $itemDescription,
       'PeriodAmt' => $amount,
       'PeriodStartType' => 2,
-      'NotifyURL' => $notify_url.'&is_recur=1',
+      'NotifyURL' => $notify_url,
       'ReturnURL' => $thankyou_url,
       'PaymentInfo' => 'N',
       'OrderInfo' => 'N',
@@ -276,6 +276,7 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
      if ($vars['contributionRecurID']) {
        $query["crid"] = $vars['contributionRecurID'];
        $query["cpid"] = $vars['contributionPageID'];
+       $query["ppid"] = $vars['payment_processor'];
      }
   }
 

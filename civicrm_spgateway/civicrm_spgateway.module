@@ -266,10 +266,8 @@ function civicrm_spgateway_record($cid, $data = null){
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
-    CRM_Core_Error::debug_var('civicrm_spgateway_record_data', $data);
     // $json = $data['JSONData'];
     $exists = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
-    CRM_Core_Error::debug_var('civicrm_spgateway_record_exist', $exists);
     if(!empty($exists->data)){
       if($exists->data == $data){
         watchdog('civicrm_spgateway', "Data is exists which cid = $cid, but data = $exists .");
@@ -526,7 +524,11 @@ function _civicrm_spgateway_post_decode($post = null){
   }
 
   if(isset($jsonData->Result)){
-    $return = json_decode($jsonData->Result,true);
+    if(is_string($jsonData->Result)){
+      $return = json_decode($jsonData->Result,true);
+    }else{
+      $return = (array) $jsonData->Result;
+    }
     $return['Status'] = $jsonData->Status;
     $return['Message'] = $jsonData->Message;
   }
@@ -553,7 +555,7 @@ function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
 function _civicrm_spgateway_recur_decrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
-  $str = bin2hex(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, hex2bin($str), MCRYPT_MODE_CBC, $iv));
+  $str = _civicrm_spgateway_strippadding(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, hex2bin($str), MCRYPT_MODE_CBC, $iv));
   return $str;
 }
 
@@ -562,6 +564,17 @@ function _civicrm_spgateway_addpadding($string, $blocksize = 32) {
   $pad = $blocksize - ($len % $blocksize);
   $string .= str_repeat(chr($pad), $pad);
   return $string;
+}
+
+function _civicrm_spgateway_strippadding($string) {
+    $slast = ord(substr($string, -1));
+    $slastc = chr($slast);
+    if (preg_match("/$slastc{" . $slast . "}/", $string)) {
+        $string = substr($string, 0, strlen($string) - $slast);
+        return $string;
+    } else {
+        return false;
+    }
 }
 
 function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = array()){
