@@ -133,19 +133,18 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
   function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
-    $valid_value = array();
-
+    $valid_value = array(
+      'MerchantOrderNo' => $input['MerchantOrderNo']
+    );
     if($ids['contributionRecur']){
-      $valid_value = array(
-        'MerchantOrderNo' => $input['MerchantOrderNo'],
-        'Amt' => $input['PeriodAmt'],
-      );
+      if(!empty($valid_value['AuthAmt'])){
+        $valid_value['Amt'] = $input['PeriodAmt'];
+      }else{
+        $valid_value['AuthAmt'] = $input['PeriodAmt'];
+      }
     }else{
-      $valid_value = array(
-        'MerchantOrderNo' => $input['MerchantOrderNo'],
-        'Amt' => $input['Amt'],
-        'CheckCode' => $input['CheckCode'],
-      );
+      $valid_value['Amt'] = $input['Amt'];
+      $valid_value['CheckCode'] = $input['CheckCode'];
     }
     
     // check contribution id matches
@@ -156,7 +155,6 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     } 
 
     // check amount
-    $amount = $valid_value['Amt'] ? $valid_value['Amt'] : $valid_value['Amount'];
     if ( round($contribution->total_amount) != $amount && $input['Status'] == 'SUCCESS' ) {
       watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}" );
       $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}")."\n";
