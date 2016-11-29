@@ -171,11 +171,15 @@
 
     $("#crm-container form").each(function(){
       $(".crm-section .label .crm-marker").each(function(){
-        if($(this).text() == "*"){
-          var inputs = $(this).parents(".crm-section:first").find(":input:visible:first:not([type=checkbox])");
+        if($(this).text() == "*") {
+          var inputs = $(this).parents(".crm-section:first").find(":input:first:not([type=checkbox])").filter(function(){
+            return $(this).offset().left > 0;
+          });
           inputs.addClass("required");
 
-          var checkboxes = $(this).parents(".crm-section:first").find(":input:visible[type=checkbox]:not(.ignore-required)");
+          var checkboxes = $(this).parents(".crm-section:first").find(":input[type=checkbox]:not(.ignore-required)").filter(function(){
+            return $(this).offset().left > 0;
+          });
           checkboxes.parents("div.content:first").addClass("ckbox");
 
           var advselect = $(this).parents(".crm-section:first").find(".advmultiselect select[multiple]");
