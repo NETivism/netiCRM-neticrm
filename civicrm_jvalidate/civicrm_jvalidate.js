@@ -172,14 +172,10 @@
     $("#crm-container form").each(function(){
       $(".crm-section .label .crm-marker").each(function(){
         if($(this).text() == "*") {
-          var inputs = $(this).parents(".crm-section:first").find(":input:first:not([type=checkbox])").filter(function(){
-            return $(this).offset().left > 0;
-          });
+          var inputs = $(this).parents(".crm-section:first").find(":input:first:visible:not([type=checkbox])");
           inputs.addClass("required");
 
-          var checkboxes = $(this).parents(".crm-section:first").find(":input[type=checkbox]:not(.ignore-required)").filter(function(){
-            return $(this).offset().left > 0;
-          });
+          var checkboxes = $(this).parents(".crm-section:first").find(":input[type=checkbox]:visible:not(.ignore-required)");
           checkboxes.parents("div.content:first").addClass("ckbox");
 
           var advselect = $(this).parents(".crm-section:first").find(".advmultiselect select[multiple]");
@@ -235,13 +231,13 @@
             $(this).rules("add", {required:true });
           });
           $("#"+formid+" input.required:visible:not([type=checkbox]):not(.ignore-required)").blur(function(){
-            $this = $(this);
-            if($this.hasClass("hasDatepicker")){
+            var currentForm = $(this).closest('form');
+            if($(this).hasClass("hasDatepicker")){
               setTimeout(function(){
-                $this.valid();
+                currentForm.valid();
               },300);
             }else{
-              $this.valid();
+              currentForm.valid();
             }
           });
 
@@ -254,7 +250,8 @@
           $ckbox.find("input:checkbox").click(function(){
             var $p = $(this).parents("div.ckbox:first");
             $p.find("label.error").remove();
-            $(this).valid();
+            var currentForm = $(this).closest('form');
+            currentForm.valid();
           });
           $("#"+formid+" input[name*=url]").each(function(){
             $(this).rules("add", {required:false,url:true});
