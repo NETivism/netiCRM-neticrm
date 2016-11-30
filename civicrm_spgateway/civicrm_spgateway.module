@@ -266,6 +266,10 @@ function civicrm_spgateway_record($cid, $data = null){
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
+
+    if(!empty($data['JSONData'])){
+      $data = $data['JSONData'];
+    }
     // $json = $data['JSONData'];
     $exists = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
     if(!empty($exists->data)){
@@ -510,18 +514,15 @@ function civicrm_spgateway_fee_sync(){
 
 function _civicrm_spgateway_post_decode($post = null){
   // Make $post be the object.
-  $post = empty($post) ? $_POST : $post;
-  if(is_string($post)){
-    $data = json_decode($post);
-  }else{
-    $data = $post;
+  $data = empty($post) ? $_POST : $post;
+  if(!empty($data['JSONData'])){
+    $data = $data['JSONData'];
   }
 
-  if(!empty($post['JSONData'])){
-    $jsonData = json_decode(str_replace("\\\\", "\\",$post['JSONData']));
-  }else{
-    $jsonData = $data;
+  while(is_string($data)){
+    $data = json_decode($data);
   }
+  $jsonData = $data;
 
   if(isset($jsonData->Result)){
     if(is_string($jsonData->Result)){

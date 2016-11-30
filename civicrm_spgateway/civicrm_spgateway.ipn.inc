@@ -10,8 +10,6 @@ function civicrm_spgateway_ipn($instrument, $post = NULL, $get = NULL, $print = 
   // detect variables
   $post = !empty($post) ? $post : $_POST;
   $get = !empty($get) ? $get : $_GET;
-  // watchdog('civicrm_spgateway',var_export($post,true));
-  // watchdog('civicrm_spgateway',var_export($get,true));
 
   // detect variables
   if(empty($post)){
@@ -63,7 +61,6 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
       $this->_post = _civicrm_spgateway_recur_decrypt($this->_post['Period'],$payment_processors);
     }
-
     $input = _civicrm_spgateway_post_decode($this->_post);
     // get the contribution and contact ids from the GET params
     civicrm_spgateway_record($ids['contribution'], $this->_post);
@@ -155,7 +152,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     } 
 
     // check amount
-    if ( round($contribution->total_amount) != $amount && $input['Status'] == 'SUCCESS' ) {
+    if ( round($contribution->total_amount) != $valid_value['Amt'] && $input['Status'] == 'SUCCESS' ) {
       watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}" );
       $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}")."\n";
       $pass = FALSE;
