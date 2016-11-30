@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * Implement hook_civicrm_prepareTaxReceipt
+ */
 function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_params, &$tax_receipt, &$object) {
   // check if exists
   if (!empty($object->trxn_id)) {
@@ -19,6 +22,9 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
   }
 }
 
+/**
+ * Implement hook_civicrm_createTaxReceipt
+ */
 function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_result, &$object) {
   if (!empty($object->trxn_id)) {
     $exists = invpay2go_api_get($object->trxn_id);
@@ -43,6 +49,82 @@ function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_resu
       $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
     }
   }
+}
+
+/**
+ * Implement hook_civicrm_buildForm
+ */
+function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
+  // skip snippet
+  switch ($form_name) {
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+      if ($form->controller->_print != 4) {
+        $elements = _civcirm_invpay2go_form_elements($form);
+        $form->_invpay2goElements = $elements;
+        drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+      }
+      break;
+  }
+}
+
+function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$object){
+  $allowed = array(
+    'CRM/Event/Form/Registration/Register.tpl',
+    'CRM/Contribute/Form/Contribution/Main.tpl'
+  );
+  if (in_array($tpl, $allowed) && $object->controller->_print != 4 && !empty($object->_invpay2goElements))  {
+    require_once 'CRM/Core/Smarty/resources/String.php';
+    civicrm_smarty_register_string_resource();
+    $smarty =& CRM_Core_Smarty::singleton();
+    foreach($object->_invpay2goElements as $field){
+      $html = $smarty->fetch($field['string_tpl']);
+      $replace .= $html;
+    }
+    $replace = '<!--invpay2go-separator--><div id="invpay2go-section">'.$replace.'</div>';
+    $content = str_replace('<!--payment-separator-->', $replace.'<!--payment-separator-->', $content);
+  }
+}
+
+/**
+ * Implement hook_civicrm_validate
+ */
+function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$form) {
+
+}
+
+/**
+ * Implement hook_civicrm_validate
+ */
+function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
+
+}
+
+function _civcirm_invpay2go_form_elements(&$form) {
+  $config = CRM_Core_Config::singleton();
+
+  $elements = array(
+    'taxReceiptType' => array('title' => '', 'required' => TRUE),
+    'taxReceiptDeviceType' => array('title' => ''),
+    'taxReceiptDeviceNumber' => array('title' => ''),
+    'taxReceiptDonate' => array('title' => '請選擇發票捐贈單位'),
+    'taxReceiptSerial' => array('title' => '請輸入統一編號'),
+  );
+  foreach($elements as $key => $e) {
+    if(!empty($config->$key) && is_numeric($config->$key)) {
+      $field = new CRM_Core_DAO_CustomField();
+      $field->id = $config->$key;
+      if ($field->find(TRUE)) {
+        $elements[$key]['field_id'] = $config->$key;
+        $elements[$key]['field'] = $field;
+        $title = $e['title'] ? $e['title'] : $field->label;
+        $required = !empty($e['required']) ? TRUE : FALSE;
+        CRM_Core_BAO_CustomField::addQuickFormElement($form, $key, $field->id, FALSE, $required, FALSE, $title);
+        $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}</div></div>';
+      }
+    }
+  }
+  return $elements;
 }
 
 function _civicrm_invpay2go_get_field_info($contribution_id) {
