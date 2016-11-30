@@ -172,8 +172,14 @@ function civicrm_allpay_civicrm_validate($form_name, &$form){
  * Implementation of hook_civicrm_prepareInvoice()
  */
 function civicrm_allpay_civicrm_prepareInvoice($contribution_id, &$tplParams){
-  module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
-  $tplParams = civicrm_allpay_notify_generate($contribution_id, FALSE);
+  $sql = "SELECT pp.payment_processor_type FROM civicrm_contribution c
+    INNER JOIN civicrm_payment_processor pp ON c.payment_processor_id = pp.id
+    WHERE c.id = $contribution_id";
+  $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
+  if(preg_match('/ALLPAY/', $payment_process_type)){
+    module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+    $tplParams = civicrm_allpay_notify_generate($contribution_id, FALSE);
+  }
 }
 
 function civicrm_allpay_error(){

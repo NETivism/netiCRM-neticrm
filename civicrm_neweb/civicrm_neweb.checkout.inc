@@ -122,6 +122,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
     "OrderURL"       => $notify_url,
     "ReturnURL"      => $return_url,
     "op"             => "AcceptPayment",
+    "iphonepage"     => 1,
     "#action"        => $payment_processor['url_site'],
     "#paymentProcessor" => $payment_processor,
   );
