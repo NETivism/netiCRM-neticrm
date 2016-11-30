@@ -74,7 +74,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         }
         $js = '
         jQuery(document).ready(function($){
-          $("input[name=payment_processor]").live("click", function(){
+          $(document).on("click", "input[name=payment_processor]", function(){
             if($(this).val() == 0){
               $("input[name=civicrm_instrument_id]").val("0");
             }
@@ -84,7 +84,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               }, 400);
             }
           });
-          $("input[name=civicrm_instrument_id_dummy]").live("click", function(){
+          $(document).on("click", "input[name=civicrm_instrument_id_dummy]",  function(){
             $("input[name=civicrm_instrument_id]").val($(this).val());
           });
           '.$default.'
