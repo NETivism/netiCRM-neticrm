@@ -49,22 +49,27 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
   }
 
   function main($component = 'contribute', $instrument){
-    // get the contribution and contact ids from the GET params
-    civicrm_spgateway_record($ids['contribution'], $this->_post);
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
-    $input = _civicrm_spgateway_post_decode($this->_post);
     $this->getIds($ids, $component);
-    $input['component'] = $component;
-    $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
-    $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
     if(empty($ids['contributionRecur'])){
       // we will save record later if this is recurring
       $recur = FALSE;
     }
     else{
       $recur = TRUE;
+      $ppid = $ids['paymentProcessor'];
+      $is_test = CRM_Core_DAO::singleValueQuery("SELECT is_test FROM civicrm_payment_processor WHERE id = $ppid");
+      $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
+      $this->_post = _civicrm_spgateway_recur_decrypt($this->_post['Period'],$payment_processors);
     }
+
+    $input = _civicrm_spgateway_post_decode($this->_post);
+    // get the contribution and contact ids from the GET params
+    civicrm_spgateway_record($ids['contribution'], $this->_post);
+    $input['component'] = $component;
+    $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
+    $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
 
     // now, retrieve full object by validateData, or false fallback
     if ( ! $this->validateData( $input, $ids, $objects ) ) {
@@ -75,7 +80,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     self::$_payment_processor =& $objects['paymentProcessor'];
     self::$_input = $input;
 
-    if($objects['contribution']->contribution_status_id == 1 && empty($this->_get['is_recur'])){
+    if($objects['contribution']->contribution_status_id == 1 && empty($input['AlreadyTimes'])){
       // already completed, skip
       return '1|OK';
     }
@@ -121,26 +126,25 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $ids['contributionPage'] = CRM_Utils_Array::value('cpid', $this->_get);
       $ids['related_contact'] = CRM_Utils_Array::value('rid', $this->_get);
       $ids['onbehalf_dupe_alert'] = CRM_Utils_Array::value('onbehalf_dupe_alert', $this->_get);
+      $ids['paymentProcessor'] = CRM_Utils_Array::value('ppid', $this->_get);
     }
   }
 
   function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
-    $valid_value = array();
-
+    $valid_value = array(
+      'MerchantOrderNo' => $input['MerchantOrderNo']
+    );
     if($ids['contributionRecur']){
-      $valid_value = array(
-        'MerchantOrderNo' => $input['MerOrderNo'],
-        'Amt' => $input['PeriodAmt'],
-        'CheckCode' => $input['AuthCode'],
-      );
+      if(!empty($valid_value['AuthAmt'])){
+        $valid_value['Amt'] = $input['PeriodAmt'];
+      }else{
+        $valid_value['AuthAmt'] = $input['PeriodAmt'];
+      }
     }else{
-      $valid_value = array(
-        'MerchantOrderNo' => $input['MerchantOrderNo'],
-        'Amt' => $input['Amt'],
-        'CheckCode' => $input['CheckCode'],
-      );
+      $valid_value['Amt'] = $input['Amt'];
+      $valid_value['CheckCode'] = $input['CheckCode'];
     }
     
     // check contribution id matches
@@ -151,21 +155,16 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     } 
 
     // check amount
-    $amount = $valid_value['Amt'] ? $valid_value['Amt'] : $valid_value['Amount'];
     if ( round($contribution->total_amount) != $amount && $input['Status'] == 'SUCCESS' ) {
-      watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$valid_value['Amt']}" );
-      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['Gwsr']} : {$valid_value['Amt']}")."\n";
+      watchdog("civicrm_spgateway", "Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}" );
+      $note .= ts("Failuare: Amount values dont match between database and IPN request. {$contribution->trxn_id}-{$input['AlreadyTimes']} : {$valid_value['Amt']}")."\n";
       $pass = FALSE;
     }
 
     // spgateway validation
     // only validate this when not test.
     if(!empty($valid_value['CheckCode'])){
-      if($ids['contributionRecur']){
-        $check_code = _civicrm_spgateway_recur_decrypt($valid_value['CheckCode'], self::$_payment_processor);
-      }else{
-        $check_code = _civicrm_spgateway_checkcode($input, self::$_payment_processor);
-      }
+      $check_code = _civicrm_spgateway_checkcode($input, self::$_payment_processor);
       if(strtolower($valid_value['CheckCode']) != strtolower($check_code)) {
         $note .= ts("Failuare: CheckCode not match. Contact system admin.")."\n";
         watchdog("civicrm_spgateway", "Failuare: CheckCode not match. Should be '{$check_code}', but '{$input['CheckCode']}' displayed.");
@@ -187,12 +186,8 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       // 1 - completed
 
       // not the first time (PeriodReturnURL)
-      if($this->_get['is_recur']){
-        if(empty($input['Gwsr'])){
-          $trxn_id = _civicrm_spgateway_recur_trxn($input['MerchantOrderNo']);
-        }else{
-          $trxn_id = _civicrm_spgateway_recur_trxn($input['MerchantOrderNo'], $input['Gwsr']);
-        }
+      if(!empty($input['AlreadyTimes'])){
+        $trxn_id = _civicrm_spgateway_recur_trxn($input['MerchantOrderNo'], $input['AlreadyTimes']);
         $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
         if($input['Status'] != 'SUCCESS'){
           $contribution->contribution_status_id = 4; // Failed
@@ -212,7 +207,11 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         // is first time
         if($input['Status'] == 'SUCCESS'){
           $params['id'] = $recur->id;
-          $params['start_date'] = date('YmdHis', strtotime($input['PayTime']));
+          if(empty($this->_get['crid'])){
+            $params['start_date'] = date('YmdHis', strtotime($input['PayTime']));
+          }else{
+            $params['start_date'] = date('YmdHis', strtotime($input['AuthTime']));
+          }
           $params['contribution_status_id'] = 5; // from pending to processing
           $params['modified_date'] = date('YmdHis');
           CRM_Contribute_BAO_ContributionRecur::add($params, $null);
