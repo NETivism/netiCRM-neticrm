@@ -191,13 +191,13 @@
               error.appendTo($(element).parent());
             }
             else if (element.is(":radio")) {
-              var $c = element.parent();
+              var $c = element.closest('.content');
               $c.find("label.error").remove();
               error.css({"color":"#E55","padding-left":"10px","display":"block"});
               $c.prepend(error);
             }
             else if (element.is(":checkbox")) {
-              var $c = element.parents('div.ckbox:first');
+              var $c = element.closest('.content');
               $c.find("label.error").remove();
               error.css({"color":"#E55","padding-left":"10px","display":"block"});
               $c.prepend(error);
