@@ -230,16 +230,6 @@
           $("#"+formid+" input.required:visible:not([type=checkbox]):not(.ignore-required)").each(function(){
             $(this).rules("add", {required:true });
           });
-          $("#"+formid+" input.required:visible:not([type=checkbox]):not(.ignore-required)").blur(function(){
-            var currentForm = $(this).closest('form');
-            if($(this).hasClass("hasDatepicker")){
-              setTimeout(function(){
-                currentForm.valid();
-              },300);
-            }else{
-              currentForm.valid();
-            }
-          });
 
           var $ckbox = $("#"+formid+" div.ckbox");
           $ckbox.each(function(){
