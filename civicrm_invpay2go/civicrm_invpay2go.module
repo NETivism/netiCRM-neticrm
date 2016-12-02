@@ -59,10 +59,21 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
   switch ($form_name) {
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Contribution_Confirm':
+    case 'CRM_Event_Form_Registration_Confirm':
       if ($form->controller->_print != 4) {
-        $elements = _civcirm_invpay2go_form_elements($form);
-        $form->_invpay2goElements = $elements;
-        drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+        $taxTypes = CRM_Contribute_PseudoConstant::contributionType(NULL, 'is_taxreceipt');
+        if (strstr($form_name, 'CRM_Event_Form_Registration_')) {
+          $pageType = $form->_values['event']['contribution_type_id'];
+        }
+        else{
+          $pageType = $form->_values['contribution_type_id'];
+        }
+        if (!empty($pageType) && isset($taxTypes[$pageType])) {
+          $elements = _civcirm_invpay2go_form_elements($form_name, $form);
+          $form->_invpay2goElements = $elements;
+          drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+        }
       }
       break;
   }
@@ -71,7 +82,9 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
 function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$object){
   $allowed = array(
     'CRM/Event/Form/Registration/Register.tpl',
-    'CRM/Contribute/Form/Contribution/Main.tpl'
+    'CRM/Contribute/Form/Contribution/Main.tpl',
+    'CRM/Event/Form/Registration/Confirm.tpl',
+    'CRM/Contribute/Form/Contribution/Confirm.tpl',
   );
   if (in_array($tpl, $allowed) && $object->controller->_print != 4 && !empty($object->_invpay2goElements))  {
     require_once 'CRM/Core/Smarty/resources/String.php';
@@ -90,17 +103,59 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
  * Implement hook_civicrm_validate
  */
 function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$form) {
-
+  // TODO: implement validation types
 }
 
 /**
- * Implement hook_civicrm_validate
+ * Implement hook_civicrm_postProcess
  */
 function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
-
+  switch ($form_name) {
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+      $submitted = $form->exportValues();
+      if (isset($submitted['taxReceiptType'])) {
+        $invpay2goElements = array();
+        foreach ($submitted as $key => $value) {
+          if (strstr($key, 'taxReceipt')) {
+            $invpay2goElements[$key] = $value;
+          }
+        }
+        if (!empty($invpay2goElements)) {
+          $form->set('invpay2goElements', $invpay2goElements);
+        }
+      }
+      break;
+    case 'CRM_Contribute_Form_Contribution_Confirm':
+    case 'CRM_Event_Form_Registration_Confirm':
+      $config = CRM_Core_Config::singleton();
+      $submitted = $form->exportValues();
+      if ($form_name == 'CRM_Event_Form_Registration_Confirm') {
+        $contributionId = $form->getParam('contributionID');
+      }
+      elseif($form_name == 'CRM_Contribute_Form_Contribution_Confirm') {
+//        $contributionId = $params['contributionID'];
+      }
+      if (isset($submitted['taxReceiptType']) && !empty($contributionId)) {
+        $customValues = array();
+        foreach ($submitted as $key => $value) {
+          if (strstr($key, 'taxReceipt')) {
+            if(!empty($config->$key) && is_numeric($config->$key)) {
+              $customId = $config->$key;
+              $customValues['custom_'.$customId] = $value;
+            }
+          }
+        }
+        if (!empty($customValues)) {
+          $customValues['entityID'] = $contributionId;
+          CRM_Core_BAO_CustomValueTable::setValues($customValues);
+        }
+      }
+      break;
+  }
 }
 
-function _civcirm_invpay2go_form_elements(&$form) {
+function _civcirm_invpay2go_form_elements($form_name, &$form) {
   $config = CRM_Core_Config::singleton();
 
   $elements = array(
@@ -110,6 +165,7 @@ function _civcirm_invpay2go_form_elements(&$form) {
     'taxReceiptDonate' => array('title' => '請選擇發票捐贈單位'),
     'taxReceiptSerial' => array('title' => '請輸入統一編號'),
   );
+  $invpay2goElements = $form->get('invpay2goElements');
   foreach($elements as $key => $e) {
     if(!empty($config->$key) && is_numeric($config->$key)) {
       $field = new CRM_Core_DAO_CustomField();
@@ -121,9 +177,18 @@ function _civcirm_invpay2go_form_elements(&$form) {
         $required = !empty($e['required']) ? TRUE : FALSE;
         CRM_Core_BAO_CustomField::addQuickFormElement($form, $key, $field->id, FALSE, $required, FALSE, $title);
         $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}</div></div>';
+
+        if (preg_match('/Confirm$/i', $form_name)) {
+          if (empty($invpay2goElements[$key]) && $invpay2goElements[$key] !== '0') {
+            unset($elements[$key]['string_tpl']);
+          }
+          $element = $form->getElement($key);
+          $element->freeze();
+        }
       }
     }
   }
+  $form->setDefaults($invpay2goElements);  
   return $elements;
 }
 
