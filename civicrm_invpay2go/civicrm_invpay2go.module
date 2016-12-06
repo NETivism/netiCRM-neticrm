@@ -104,6 +104,44 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
  */
 function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$form) {
   // TODO: implement validation types
+  $errors = array();
+  switch ($form_name) {
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+      if (isset($fields['taxReceiptType']) && !empty($form->_invpay2goElements)) {
+        $elements = $form->_invpay2goElements;
+        switch($fields['taxReceiptType']) {
+          case 'elec':
+            if ($fields['taxReceiptDeviceType'] == '2') {
+              // nothing
+            }
+            elseif ($fields['taxReceiptDeviceType'] == '0' || $fields['taxReceiptDeviceType'] == 1) {
+              if (empty($fields['taxReceiptDeviceNumber'])) {
+                $errors['taxReceiptDeviceNumber'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptDeviceNumber']['title']));
+              }
+            }
+            else {
+              $errors['taxReceiptDeviceType'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptDeviceType']['title']));
+            }
+            break;
+          case 'donate':
+            if (empty($fields['taxReceiptDonate'])) {
+              $errors['taxReceiptDonate'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptDonate']['title']));
+            }
+            break;
+        }
+        if (isset($_POST['serialCheckbox']) && $_POST['serialCheckbox'] == 'on') {
+          if (empty($fields['taxReceiptSerial'])) {
+            $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptSerial']['title']));
+          }
+          elseif (!preg_match('/\d{8}/', $fields['taxReceiptSerial'])) {
+            $errors['taxReceiptSerial'] = $elements['taxReceiptSerial']['title'].' - '.ts('Enter numbers only, no spaces or dashes.');
+          }
+        }
+      }
+      break;
+  }
+  return $errors;
 }
 
 /**
@@ -131,10 +169,10 @@ function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
       $config = CRM_Core_Config::singleton();
       $submitted = $form->exportValues();
       if ($form_name == 'CRM_Event_Form_Registration_Confirm') {
-        $contributionId = $form->getParam('contributionID');
+        $contributionId = $form->_params['contributionID'];
       }
       elseif($form_name == 'CRM_Contribute_Form_Contribution_Confirm') {
-//        $contributionId = $params['contributionID'];
+        $contributionId = $form->_params['contributionID'];
       }
       if (isset($submitted['taxReceiptType']) && !empty($contributionId)) {
         $customValues = array();
@@ -175,7 +213,31 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
         $elements[$key]['field'] = $field;
         $title = $e['title'] ? $e['title'] : $field->label;
         $required = !empty($e['required']) ? TRUE : FALSE;
-        CRM_Core_BAO_CustomField::addQuickFormElement($form, $key, $field->id, FALSE, $required, FALSE, $title);
+        if ($key == 'taxReceiptDonate') {
+          $npos = array();
+          $list = explode("\n", $config->taxReceiptDonateSelect);
+          foreach($list as $position => $text){
+            if (preg_match('/(.*)\|(.*)/', $text, $matches)) {
+              $number = $matches[1];
+              $npo_name = $matches[2];
+            }
+            if (!empty($number)) {
+              $npos[$number] = $number.' - '.$npo_name;
+            }
+          }
+          if (!empty($npos)) {
+            $npos = array( '' => ts('-- select --')) + $npos;
+            $form->add('select', $key, $title, $npos, $required);
+            if (count($npos) == 1) {
+              $element = $form->getElement($key);
+              $element->freeze();
+              $invpay2goElements[$key] = key($npos);
+            }
+          }
+        }
+        else {
+          CRM_Core_BAO_CustomField::addQuickFormElement($form, $key, $field->id, FALSE, $required, FALSE, $title);
+        }
         $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}</div></div>';
 
         if (preg_match('/Confirm$/i', $form_name)) {
@@ -188,7 +250,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
       }
     }
   }
-  $form->setDefaults($invpay2goElements);  
+  $form->setDefaults($invpay2goElements);
   return $elements;
 }
 

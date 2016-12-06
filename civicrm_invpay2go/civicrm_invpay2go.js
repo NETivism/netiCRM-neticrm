@@ -44,18 +44,18 @@ $(document).ready(function(){
     if ($taxReceiptType.length) {
       switch ($taxReceiptType.val()) {
         case 'elec':
-          hideEle($('input[name=taxReceiptDonate]'));
+          hideEle($('[name=taxReceiptDonate]'));
           showEle($('input[name=taxReceiptDeviceType]'));
           break;
         case 'donate':
-          showEle($('input[name=taxReceiptDonate]'));
+          showEle($('[name=taxReceiptDonate]'));
           triggerDeviceType();
           hideEle($('input[name=taxReceiptDeviceType]'));
           break;
       }
     }
     else {
-      hideEle($('input[name=taxReceiptDonate]'));
+      hideEle($('[name=taxReceiptDonate]'));
       hideEle($('input[name=taxReceiptDeviceType]'));
       hideEle($('input[name=taxReceiptDeviceNumber]'));
     }
@@ -81,7 +81,7 @@ $(document).ready(function(){
   triggerReceiptType();
 
   // something really initial actions
-  var serialCheckbox = mdFormElement('checkbox', '我要填寫統一編號', {'id': 'serialCheckbox'});
+  var serialCheckbox = mdFormElement('checkbox', '我要填寫統一編號', {'id': 'serialCheckbox', 'name':'serialCheckbox', 'value':'on'});
   $('.taxReceiptSerial-section .content').append('<div class="description">同意由組織進行折讓單處理的訊息說明</div>');
   $('.taxReceiptSerial-section').before('<div class="crm-section crm-secation-serialCheckbox"><div class="content">' + serialCheckbox + '</div></div>');
   $('#serialCheckbox').click(function(){
