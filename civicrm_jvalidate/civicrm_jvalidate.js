@@ -175,6 +175,9 @@
           var inputs = $(this).parents(".crm-section:first").find(":input:first:visible:not([type=checkbox])");
           inputs.addClass("required");
 
+          var select = $(this).parents(".crm-section:first").find("select:visible");
+          select.addClass("required");
+
           var checkboxes = $(this).parents(".crm-section:first").find(":input[type=checkbox]:visible:not(.ignore-required)");
           checkboxes.parents("div.content:first").addClass("ckbox");
 
