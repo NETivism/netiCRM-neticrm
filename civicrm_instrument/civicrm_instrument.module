@@ -89,7 +89,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $("input[name=civicrm_instrument_id]").val($(this).val());
             });
           }
-          else {
+          else if($.isFunction("live")){
             $("input[name=payment_processor]").live("click", function(){
               if($(this).val() == 0){
                 $("input[name=civicrm_instrument_id]").val("0");
