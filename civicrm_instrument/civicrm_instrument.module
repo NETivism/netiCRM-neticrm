@@ -74,7 +74,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         }
         $js = '
         jQuery(document).ready(function($){
-          if ($.isFunction("on")) {
+          if ($.isFunction($(document).on)) {
             $(document).on("click", "input[name=payment_processor]", function(){
               if($(this).val() == 0){
                 $("input[name=civicrm_instrument_id]").val("0");
@@ -89,7 +89,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $("input[name=civicrm_instrument_id]").val($(this).val());
             });
           }
-          else if($.isFunction("live")){
+          else if($.isFunction($(document).live)){
             $("input[name=payment_processor]").live("click", function(){
               if($(this).val() == 0){
                 $("input[name=civicrm_instrument_id]").val("0");
