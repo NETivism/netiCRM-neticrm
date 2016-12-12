@@ -134,10 +134,12 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       'MerchantOrderNo' => $input['MerchantOrderNo']
     );
     if($ids['contributionRecur']){
-      if(!empty($valid_value['AuthAmt'])){
-        $valid_value['Amt'] = $input['PeriodAmt'];
+      if(!empty($input['AuthAmt'])){
+        // above second period
+        $valid_value['Amt'] = $input['AuthAmt'];
       }else{
-        $valid_value['AuthAmt'] = $input['PeriodAmt'];
+        // first period
+        $valid_value['Amt'] = $input['PeriodAmt'];
       }
     }else{
       $valid_value['Amt'] = $input['Amt'];
@@ -204,11 +206,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         // is first time
         if($input['Status'] == 'SUCCESS'){
           $params['id'] = $recur->id;
-          if(empty($this->_get['crid'])){
-            $params['start_date'] = date('YmdHis', strtotime($input['PayTime']));
-          }else{
-            $params['start_date'] = date('YmdHis', strtotime($input['AuthTime']));
-          }
+          $params['start_date'] = date('YmdHis', strtotime($input['AuthTime']));
           $params['contribution_status_id'] = 5; // from pending to processing
           $params['modified_date'] = date('YmdHis');
           CRM_Contribute_BAO_ContributionRecur::add($params, $null);
