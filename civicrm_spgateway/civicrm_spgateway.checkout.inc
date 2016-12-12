@@ -176,7 +176,6 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       'ProdDesc' => $itemDescription,
       'PeriodAmt' => $amount,
       'PeriodStartType' => 2,
-      'NotifyURL' => $notify_url,
       'ReturnURL' => $thankyou_url,
       'PaymentInfo' => 'N',
       'OrderInfo' => 'N',

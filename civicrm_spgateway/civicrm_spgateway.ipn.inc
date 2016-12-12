@@ -89,7 +89,15 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       if( $this->validateOthers($input, $ids, $objects, $transaction, $note) ){
         $contribution =& $objects['contribution'];
         if(empty($contribution->receive_date)){
-          $contribution->receive_date = $input['PayTime'] ? date('YmdHis', strtotime($input['PayTime'])) : date('YmdHis');
+          if(!empty($input['PayTime'])){
+            $contribution->receive_date = date('YmdHis', strtotime($input['PayTime']));
+          }elseif(!empty($input['AuthTime'])){
+            $contribution->receive_date = date('YmdHis', strtotime($input['AuthTime']));
+          }elseif(!empty($input['AuthDate'])){
+            $contribution->receive_date = date('YmdHis', strtotime($input['AuthDate']));
+          }else{
+            $contribution->receive_date = date('YmdHis');
+          }
         }
 
         // assign trxn_id before complete transaction
@@ -130,9 +138,12 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
   function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
-    $valid_value = array(
-      'MerchantOrderNo' => $input['MerchantOrderNo']
-    );
+    $valid_value = array();
+    if(!empty($input['MerchantOrderNo'])){
+      $valid_value['MerchantOrderNo'] = $input['MerchantOrderNo'];
+    }else{
+      $valid_value['MerchantOrderNo'] = $input['MerOrderNo'];
+    }
     if($ids['contributionRecur']){
       if(!empty($input['AuthAmt'])){
         // above second period
@@ -186,8 +197,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
 
       // not the first time (PeriodReturnURL)
       if(!empty($input['AlreadyTimes'])){
-        $trxn_id = _civicrm_spgateway_recur_trxn($input['MerchantOrderNo'], $input['AlreadyTimes']);
-        $local_succ_times = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution WHERE contribution_recur_id = %1 AND contribution_status_id = 1", array(1 => array($recur->id, 'Integer')));
+        $trxn_id = $input['OrderNo'];
         if($input['Status'] != 'SUCCESS'){
           $contribution->contribution_status_id = 4; // Failed
           $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
@@ -237,7 +247,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       unset($c->invoice_id);
       unset($c->receipt_id);
       $c->trxn_id = $trxn_id;
-      $time = strtotime(self::$_input['ProcessDate']);
+      $time = strtotime(self::$_input['AuthDate']);
       $c->receive_date = date('YmdHis', $time);
       $c->created_date = date('YmdHis');
       $c->save();
