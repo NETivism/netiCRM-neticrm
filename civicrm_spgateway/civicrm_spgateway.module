@@ -76,16 +76,17 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       $status = $msg = NULL;
       $params = array();
+      $return_params = _civicrm_spgateway_post_decode($form->_submitValues['JSONData']);
       // Credit card have result immediately
-      if(isset($form->_submitValues) && !empty($form->_submitValues['MerchantTradeNo'])){
-        $params['trxn_id'] = $form->_submitValues['MerchantTradeNo'];
-        if(!empty($form->_submitValues['RtnCode'])){
-          if($form->_submitValues['RtnCode'] == 1){ // success
+      if(isset($form->_submitValues) && !empty($return_params['MerchantOrderNo'])){
+        $params['trxn_id'] = $return_params['MerchantOrderNo'];
+        if(!empty($return_params['RespondCode'])){
+          if($return_params['RespondCode'] == '00'){ // success
             // check contribution if have same result
             $contrib_params = array('trxn_id' => $params['trxn_id']);
             $contrib_values = $contrib_ids = array();
             CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
-            if(!empty($contrib_values['id']) && $contrib_values['contribution_status_id'] != 1 && strstr($form->_submitValues['PaymentType'], 'Credit')){
+            if(!empty($contrib_values['id']) && $contrib_values['contribution_status_id'] != 1 && strstr($return_params['PaymentType'], 'Credit')){
               // trigger ipn success
               module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
               $ids = CRM_Contribute_BAO_Contribution::buildIds($contrib_values['id']);
@@ -105,7 +106,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             }
           }
           else {
-            $msg = _civicrm_spgateway_error_msg($form->_submitValues['RtnCode']);
+            $msg = _civicrm_spgateway_error_msg($return_params['RtnCode']);
             $status = 4;
           }
         }
