@@ -129,14 +129,14 @@ function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$for
               $errors['taxReceiptDonate'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptDonate']['title']));
             }
             break;
-        }
-        if (isset($_POST['serialCheckbox']) && $_POST['serialCheckbox'] == 'on') {
-          if (empty($fields['taxReceiptSerial'])) {
-            $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptSerial']['title']));
-          }
-          elseif (!preg_match('/\d{8}/', $fields['taxReceiptSerial'])) {
-            $errors['taxReceiptSerial'] = $elements['taxReceiptSerial']['title'].' - '.ts('Enter numbers only, no spaces or dashes.');
-          }
+          case 'company':
+            if (empty($fields['taxReceiptSerial'])) {
+              $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $elements['taxReceiptSerial']['title']));
+            }
+            elseif (!preg_match('/\d{8}/', $fields['taxReceiptSerial'])) {
+              $errors['taxReceiptSerial'] = $elements['taxReceiptSerial']['title'].' - '.ts('Enter numbers only, no spaces or dashes.');
+            }
+            break;
         }
       }
       break;
