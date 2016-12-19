@@ -70,6 +70,12 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
           $pageType = $form->_values['contribution_type_id'];
         }
         if (!empty($pageType) && isset($taxTypes[$pageType])) {
+          $pageArray = array(
+            'id' => $pageType,
+            'name' => $taxTypes[$pageType],
+          );
+          $form->set('invpay2goPage', $pageArray);
+          $form->_invpay2goPage = $pageArray;
           $elements = _civcirm_invpay2go_form_elements($form_name, $form);
           $form->_invpay2goElements = $elements;
           drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
@@ -202,6 +208,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
     'taxReceiptDeviceNumber' => array('title' => ''),
     'taxReceiptDonate' => array('title' => '請選擇發票捐贈單位'),
     'taxReceiptSerial' => array('title' => '請輸入統一編號'),
+    'taxReceiptItem' => array('title' => '發票品項'),
   );
   $invpay2goElements = $form->get('invpay2goElements');
   foreach($elements as $key => $e) {
@@ -234,6 +241,10 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
               $invpay2goElements[$key] = key($npos);
             }
           }
+        }
+        elseif($key == 'taxReceiptItem') {
+          $taxReceiptItemDefault = !empty($field->default_value) ? $field->default_value : $form->_invpay2goPage['name'];
+          $form->add('hidden', 'taxReceiptItem', $taxReceiptItemDefault);
         }
         else {
           CRM_Core_BAO_CustomField::addQuickFormElement($form, $key, $field->id, FALSE, $required, FALSE, $title);
@@ -287,10 +298,15 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
   civicrm_initialize();
 
   $types = CRM_Contribute_PseudoConstant::contributionType();
-  $type = $types[$contribution['contribution_status_id']];
+  $type = $types[$contribution['contribution_type_id']];
+  $item_name = $field_info['taxReceiptItem']['value'];
+  $tax_rate = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_ContributionType', $contribution['contribution_type_id'], 'tax_rate');
+  if (empty($tax_rate)) {
+    $tax_rate = 0;
+  }
+
   $b2b = !empty($field_info['taxReceiptSerial']['value']) && is_numeric($field_info['taxReceiptSerial']['value']) ? $field_info['taxReceiptSerial']['value'] : FALSE;
   $total_amt = round($contribution['total_amount']);
-  $tax_rate = 5;
   $amt = $total_amount / ((100 + $tax_rate)/100);
   $tax_amt = $total_amt - $amt;
   $params =  array(
@@ -306,7 +322,7 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'CarrierType' => (!$b2b && !empty($field_info['taxReceiptDeviceType'])) ? $field_info['taxReceiptDeviceType']['value'] : '', // Category=B2C - 0,1,2, no lovecode
     'LoveCode' => (!$b2b && !empty($field_info['taxReceiptDonate']['value'])) ? $field_info['taxReceiptDonate']['value'] : '', // only b2c
     'TaxType' => '1', // TODO what type of tax, read document
-    'TaxRate' => $tax_rate, // TODO what rate of tax, read document
+    'TaxRate' => $tax_rate,
     'CustomsClearance' => '', // only taxtype = 2, TODO base on tax type, read doc
     'Amt' => $amt, // total amount
     'AmtSales' => '', // TODO base on tax type 9, do not implement
@@ -314,14 +330,15 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'AmtFree' => '', // TODO base on tax type 9, do not implement
     'TaxAmt' => $tax_amt,
     'TotalAmt' => $total_amt,
-    'ItemName' => $type, // TODO
-    'ItemCount' => '1', // TODO
-    'ItemUnit' => '人', // TODO
+    'ItemName' => $item_name,
+    'ItemCount' => '1',
+    'ItemUnit' => '*',
     'ItemPrice' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
     'ItemAmt' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
     'ItemTaxType' => '', // TODO do not implement
-    'Comment' => truncate_utf8($contribution['source'], 30), // TODO meaningful comment
+    'Comment' => truncate_utf8($contribution['source'], 30),
   );
+  dpm($params);
 
   // Carrier Num
   if (!$b2b && isset($params['CarrierType'])) {
