@@ -210,6 +210,15 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
           unset($objects['contribution']);
           civicrm_spgateway_record($c->id, $this->_post);
           $objects['contribution'] = $c;
+          if($input['AlreadyTimes'] == $input['TotalTimes']){
+            $recur_param = array(
+              'id' => $ids['contributionRecur'],
+              'modified_date' => date('YmdHis'),
+              'end_date' => date('YmdHis'),
+              'contribution_status_id' => 1, // completed
+            );
+            CRM_Contribute_BAO_ContributionRecur::add($recur_param, $null);
+          }
         }
       }
       else{
