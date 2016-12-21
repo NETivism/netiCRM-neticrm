@@ -74,19 +74,36 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         }
         $js = '
         jQuery(document).ready(function($){
-          $(document).on("click", "input[name=payment_processor]", function(){
-            if($(this).val() == 0){
-              $("input[name=civicrm_instrument_id]").val("0");
-            }
-            else{
-              setTimeout(function(){
-              $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
-              }, 400);
-            }
-          });
-          $(document).on("click", "input[name=civicrm_instrument_id_dummy]",  function(){
-            $("input[name=civicrm_instrument_id]").val($(this).val());
-          });
+          if ($.isFunction($(document).on)) {
+            $(document).on("click", "input[name=payment_processor]", function(){
+              if($(this).val() == 0){
+                $("input[name=civicrm_instrument_id]").val("0");
+              }
+              else{
+                setTimeout(function(){
+                $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
+                }, 400);
+              }
+            });
+            $(document).on("click", "input[name=civicrm_instrument_id_dummy]",  function(){
+              $("input[name=civicrm_instrument_id]").val($(this).val());
+            });
+          }
+          else if($.isFunction($(document).live)){
+            $("input[name=payment_processor]").live("click", function(){
+              if($(this).val() == 0){
+                $("input[name=civicrm_instrument_id]").val("0");
+              }
+              else{
+                setTimeout(function(){
+                $("input[name=civicrm_instrument_id_dummy]:eq(0)").click();
+                }, 400);
+              }
+            });
+            $("input[name=civicrm_instrument_id_dummy]").live("click", function(){
+              $("input[name=civicrm_instrument_id]").val($(this).val());
+            });
+          }
           '.$default.'
         });
 ';
