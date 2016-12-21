@@ -124,14 +124,14 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
-        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         break;
       case 'BARCODE':
         $args['BARCODE'] = 1;
         $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
-        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         break;
       case 'CVS':
         $args['CVS'] = 1;
@@ -139,7 +139,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
           $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
           $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         }
-        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         // $args['Desc_1'] = '';
         // $args['Desc_2'] = '';
         // $args['Desc_3'] = '';
@@ -150,8 +150,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         break;
       case 'WebATM':
         $args['WEBATM'] = 1;
-        $args['CustomerURL'] = $thankyou_url;
-        $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        $args['ReturnURL'] = $thankyou_url;
         break;
       case 'Credit':
         $args['CREDIT'] = 1;

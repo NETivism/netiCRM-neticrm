@@ -21,13 +21,6 @@ function civicrm_spgateway_menu(){
       'weight' => 0,
       'file' => 'civicrm_spgateway.ipn.inc',
     ),
-    'spgateway/record/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_spgateway_record',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
   );
 }
 
@@ -66,7 +59,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       $params = array();
       $return_params = _civicrm_spgateway_post_decode($form->_submitValues['JSONData']);
       // Credit card have result immediately
-      if(isset($form->_submitValues) && !empty($return_params['MerchantOrderNo'])){
+      if(isset($form->_submitValues) && !empty($return_params['RespondCode'])){
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
         if(!empty($return_params['RespondCode'])){
           if($return_params['RespondCode'] == '00'){ // success
@@ -102,15 +95,14 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       // non-direct payment
       else {
+        $saved_params = $form->controller->get('params');
         if(!empty($_POST)){
-          $saved_params = $form->controller->get('params');
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
           civicrm_spgateway_record($contrib_values['id'], $_POST);
         }
 
-        $saved_params = $form->controller->get('params');
         if(!empty($saved_params['trxn_id'])){
           $params['trxn_id'] = $saved_params['trxn_id'];
 
@@ -228,7 +220,7 @@ function _civicrm_spgateway_vars2str($post){
 
 function civicrm_spgateway_record($cid, $data = null){
   if(is_numeric($cid)){
-    $billing_notify = FALSE;
+    $billing_notify = TRUE;
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
