@@ -292,6 +292,8 @@ function _civicrm_spgateway_checkcode(&$args, $payment_processor){
 function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
+  _civicrm_spgateway_checkKeyIV($key);
+  _civicrm_spgateway_checkKeyIV($iv);
   $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, _civicrm_spgateway_addpadding($str), MCRYPT_MODE_CBC, $iv)));
   return $str;
 }
@@ -299,6 +301,8 @@ function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
 function _civicrm_spgateway_recur_decrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
+  _civicrm_spgateway_checkKeyIV($key);
+  _civicrm_spgateway_checkKeyIV($iv);
   $str = _civicrm_spgateway_strippadding(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, hex2bin($str), MCRYPT_MODE_CBC, $iv));
   return $str;
 }
@@ -345,9 +349,11 @@ function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = arra
     switch ($k) {
       case 'HashIV':
         $v = $payment_processor['signature'];
+        _civicrm_spgateway_checkKeyIV($v);
         break;
       case 'HashKey':
         $v = $payment_processor['password'];
+        _civicrm_spgateway_checkKeyIV($v);
         break;
       default:
         $v = $args[$k];
@@ -374,6 +380,12 @@ function _civicrm_spgateway_recur_trxn($parent, $gwsr){
   }
   else{
     return $parent . '-' . $gwsr;
+  }
+}
+
+function _civicrm_spgateway_checkKeyIV($v){
+  if(empty($v)){
+    CRM_Core_Error::fatal(ts('KEY and IV should have value.'));
   }
 }
 
