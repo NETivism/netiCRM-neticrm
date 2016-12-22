@@ -38,7 +38,7 @@ function civicrm_spgateway_notify_info($cid){
       $return['繳費期限'] = $json['ExpireDate'];
       break;
     case 'CVS':
-      $help = l('» 步驟說明', 'https://www.spgateway.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
+      $help = l('» 步驟說明', 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
       $return['便利商店繳費代碼'] = $json['CodeNo'];
       $return['繳費期限'] = $json['ExpireDate'];
       $return[] = $help;

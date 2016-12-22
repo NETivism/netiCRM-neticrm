@@ -21,13 +21,6 @@ function civicrm_spgateway_menu(){
       'weight' => 0,
       'file' => 'civicrm_spgateway.ipn.inc',
     ),
-    'spgateway/record/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_spgateway_record',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
   );
 }
 
@@ -66,7 +59,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       $params = array();
       $return_params = _civicrm_spgateway_post_decode($form->_submitValues['JSONData']);
       // Credit card have result immediately
-      if(isset($form->_submitValues) && !empty($return_params['MerchantOrderNo'])){
+      if(isset($form->_submitValues) && !empty($return_params['RespondCode'])){
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
         if(!empty($return_params['RespondCode'])){
           if($return_params['RespondCode'] == '00'){ // success
@@ -102,15 +95,14 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       // non-direct payment
       else {
+        $saved_params = $form->controller->get('params');
         if(!empty($_POST)){
-          $saved_params = $form->controller->get('params');
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
           civicrm_spgateway_record($contrib_values['id'], $_POST);
         }
 
-        $saved_params = $form->controller->get('params');
         if(!empty($saved_params['trxn_id'])){
           $params['trxn_id'] = $saved_params['trxn_id'];
 
@@ -162,8 +154,14 @@ function civicrm_spgateway_civicrm_validate($form_name, &$form){
  * Implementation of hook_civicrm_prepareInvoice()
  */
 function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams){
-  module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
-  $tplParams = civicrm_spgateway_notify_generate($contribution_id, FALSE);
+  $sql = "SELECT pp.payment_processor_type FROM civicrm_contribution c
+    INNER JOIN civicrm_payment_processor pp ON c.payment_processor_id = pp.id
+    WHERE c.id = $contribution_id";
+  $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
+  if(preg_match('/SPGATEWAY/', $payment_process_type)){
+    module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
+    $tplParams = civicrm_spgateway_notify_generate($contribution_id, FALSE);
+  }
 }
 
 function civicrm_spgateway_error(){
@@ -222,7 +220,7 @@ function _civicrm_spgateway_vars2str($post){
 
 function civicrm_spgateway_record($cid, $data = null){
   if(is_numeric($cid)){
-    $billing_notify = FALSE;
+    $billing_notify = TRUE;
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
@@ -294,6 +292,8 @@ function _civicrm_spgateway_checkcode(&$args, $payment_processor){
 function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
+  _civicrm_spgateway_checkKeyIV($key);
+  _civicrm_spgateway_checkKeyIV($iv);
   $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, _civicrm_spgateway_addpadding($str), MCRYPT_MODE_CBC, $iv)));
   return $str;
 }
@@ -301,6 +301,8 @@ function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
 function _civicrm_spgateway_recur_decrypt($str, $payment_processor){
   $key = $payment_processor['password'];
   $iv = $payment_processor['signature'];
+  _civicrm_spgateway_checkKeyIV($key);
+  _civicrm_spgateway_checkKeyIV($iv);
   $str = _civicrm_spgateway_strippadding(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, hex2bin($str), MCRYPT_MODE_CBC, $iv));
   return $str;
 }
@@ -347,9 +349,11 @@ function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = arra
     switch ($k) {
       case 'HashIV':
         $v = $payment_processor['signature'];
+        _civicrm_spgateway_checkKeyIV($v);
         break;
       case 'HashKey':
         $v = $payment_processor['password'];
+        _civicrm_spgateway_checkKeyIV($v);
         break;
       default:
         $v = $args[$k];
@@ -376,6 +380,12 @@ function _civicrm_spgateway_recur_trxn($parent, $gwsr){
   }
   else{
     return $parent . '-' . $gwsr;
+  }
+}
+
+function _civicrm_spgateway_checkKeyIV($v){
+  if(empty($v)){
+    CRM_Core_Error::fatal(ts('KEY and IV should have value.'));
   }
 }
 
