@@ -184,3 +184,10 @@ function neticrm_update_update_7216() {
 function neticrm_update_update_7217() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Taiwan is not a province of China - refs #19429
+ */
+function neticrm_update_update_7218() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
