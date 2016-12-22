@@ -180,3 +180,17 @@ function neticrm_update_update_6115() {
 function neticrm_update_update_6116() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add tax receipt column - refs #18992
+ */
+function neticrm_update_update_6117() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Taiwan is not a province of China - refs #19429
+ */
+function neticrm_update_update_6118() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
