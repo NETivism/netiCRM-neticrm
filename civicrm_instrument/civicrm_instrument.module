@@ -49,29 +49,23 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       }
       $active_instruments = _civicrm_instrument_prepare_active($entity_id, $entity_table);
       $all_instruments = _civicrm_instrument_prepare_all();
+      if (!empty($form->_submitValues['civicrm_instrument_id'])) {
+        $default_instrument = $form->_submitValues['civicrm_instrument_id'];
+      }
+      else {
+        $default_instrument = !empty($_POST['civicrm_instrument_id_dummy']) ? $_POST['civicrm_instrument_id_dummy'] : 0;
+      }
 
       // is multiple payment processor?
-
       $type = CRM_Utils_Array::value('type', $_GET);
       $snippet = CRM_Utils_Array::value('snippet', $_GET);
 
       // check if this page is multiple payment processor
       if(!empty($type) && $snippet == 4){
-        print civicrm_instrument_attach_processor($form, $all_instruments, $active_instruments, FALSE);
+        print civicrm_instrument_attach_instrument($form, $all_instruments, $active_instruments, $default_instrument, FALSE);
         return;
       }
       else{
-        if(!empty($form->_submitValues['civicrm_instrument_id'])){
-          $default = 'jQuery("input[name=civicrm_instrument_id_dummy][value='.$form->_submitValues['civicrm_instrument_id'].']").click();';
-        }
-        else{
-          $default = '
-            setTimeout(function(){
-            if(jQuery("input[name=civicrm_instrument_id_dummy]").length == 1){
-              jQuery("input[name=civicrm_instrument_id_dummy]").click();
-            }}, 300);
-          ';
-        }
         $js = '
         jQuery(document).ready(function($){
           if ($.isFunction($(document).on)) {
@@ -104,7 +98,6 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $("input[name=civicrm_instrument_id]").val($(this).val());
             });
           }
-          '.$default.'
         });
 ';
         drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
@@ -235,7 +228,7 @@ function _civicrm_instrument_js_admin($options, $entity_table){
 /**
  * Javascript generate helper function for page
  */
-function _civicrm_instrument_js_page($radios, &$form){
+function _civicrm_instrument_js_page($radios, &$form, $default_instrument = 0){
   if($_POST['qfKey'] && count($radios) > 1 && !$_POST['civicrm_instrument_id']){
     $error = TRUE;
     $error_str = "<span class='crm-error'>".ts('%1 is a required field.', array( 1 => ts("Payment Instrument")))."</span>";
@@ -250,16 +243,17 @@ function _civicrm_instrument_js_page($radios, &$form){
 
   $output .= "<div class='content'>";
   $key = '_'.$form->controller->_name.'_container';
-  $submitted_instrument_id = $_POST['civicrm_instrument_id'] ? $_POST['civicrm_instrument_id'] : $_SESSION[$key]['values']['Main']['civicrm_instrument_id'] ? $_SESSION[$key]['values']['Main']['civicrm_instrument_id'] : $_SESSION[$key]['values']['Register']['civicrm_instrument_id'];
-
-  foreach($radios as $value => $radio){
+  if (empty($default_instrument)) {
+    $default_instrument = key($radios);
+  }
+  foreach($radios as $rid => $radio){
     $c++;
     if($c != 1){
       $error_str = '';
     }
-    $checked = $value == $submitted_instrument_id ? "checked='checked'" : '';
+    $checked = ($rid == $default_instrument) ? "checked='checked'" : '';
     $radio['description'] = str_replace(array("\n","\r"), array('',''), $radio['description']);
-    $output .= "<div class='civicrm-instrument-dummy'><label class='crm-form-elem crm-form-radio md-elem md-radio' for='civicrm-instrument-dummy-".$value."'><input id='civicrm-instrument-dummy-".$value."' type='radio' name='civicrm_instrument_id_dummy' value='".$value."' class='form-radio md-radio-input required' $checked /><span class='elem-label md-radio-label'>".$radio['label']."</span></label>$error_str<div class='hover-item'>".$radio['description']."</div></div>";
+    $output .= "<div class='civicrm-instrument-dummy'><label class='crm-form-elem crm-form-radio md-elem md-radio' for='civicrm-instrument-dummy-".$rid."'><input id='civicrm-instrument-dummy-".$rid."' type='radio' name='civicrm_instrument_id_dummy' value='".$rid."' class='form-radio md-radio-input required' $checked /><span class='elem-label md-radio-label'>".$radio['label']."</span></label>$error_str<div class='hover-item'>".$radio['description']."</div></div>";
   }
   $output .= '</div>';
   $output .= "<div class='clear'></div>";
@@ -341,25 +335,29 @@ function civicrm_instrument_by_name($name, $field = NULL){
   }
 }
 
-function civicrm_instrument_attach_processor($form, &$all_instruments, &$active_instruments, $js = TRUE){
+function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active_instruments, $default_instrument = 0, $js = FALSE){
   $radios = _civicrm_instrument_radios($form->_paymentProcessor['payment_processor_type'], $all_instruments, $active_instruments);
 
   // we have real active instruments in radios array
   if(!empty($radios)){
     if(count($radios) && $js){
       // attach by js
-      drupal_add_js(_civicrm_instrument_js_page($radios, $form), 'inline');
+      drupal_add_js(_civicrm_instrument_js_page($radios, $form, $default_instrument), 'inline');
     }
     else{
       // attach by html
       if(count($radios) == 1){
-          $rid = key($radios);
-          $r = reset($radios);
-          $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+        $rid = key($radios);
+        $r = reset($radios);
+        $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
       }
       else{
+        if (empty($default_instrument)) {
+          $default_instrument = key($radios);
+        }
         foreach($radios as $rid => $r){
-          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $checked = ($rid == $default_instrument) ? 'checked="checked"' : '';
+          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required" '.$checked.'><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
       }
       $label = ts('Payment Instrument');
