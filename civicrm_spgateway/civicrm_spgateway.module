@@ -115,6 +115,9 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             $civicrm_instrument_id = $saved_params['civicrm_instrument_id'];
           }
           $display = civicrm_spgateway_notify_display($info, $civicrm_instrument_id);
+          if(!empty($contrib_values['id'])){
+            civicrm_spgateway_notify_generate($contrib_values['id'], TRUE); // send mail
+          }
           $form->assign('payment_instrument', $display); 
 
           // add result type
@@ -220,7 +223,6 @@ function _civicrm_spgateway_vars2str($post){
 
 function civicrm_spgateway_record($cid, $data = null){
   if(is_numeric($cid)){
-    $billing_notify = TRUE;
     if(empty($data) && !empty($_POST)){
       $data = $_POST;
     }
@@ -247,10 +249,6 @@ function civicrm_spgateway_record($cid, $data = null){
     }
     else{
       drupal_write_record('civicrm_contribution_spgateway', $record);
-    }
-    if($billing_notify){
-      module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
-      civicrm_spgateway_notify_generate($cid, TRUE); // send mail
     }
   }
 }
