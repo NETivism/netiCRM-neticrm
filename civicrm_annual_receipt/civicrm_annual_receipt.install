@@ -142,15 +142,32 @@ function civicrm_annual_receipt_uninstall(){
 function civicrm_annual_receipt_update_7202(){
   civicrm_initialize();
   $html = _civicrm_annual_receipt_tpl();
-  $params = array(
-    'id' => variable_get('civicrm_annual_receipt_default_tpl_id', 0),
-    'msg_html' => $html,
-  );
-  if (!empty($params['id'])) {
-    CRM_Core_BAO_MessageTemplates::add($params);
+  $default_id = variable_get('civicrm_annual_receipt_default_tpl_id', 0);
+  $reserved_id = variable_get('civicrm_annual_receipt_reserved_tpl_id', 0);
+  $dao = CRM_Core_DAO::executeQuery("
+    SELECT diverted.id, orig.id orig_id
+     FROM civicrm_msg_template diverted JOIN civicrm_msg_template orig ON (
+     diverted.id = $default_id AND
+     orig.id = $reserved_id AND
+     orig.is_reserved = 1 AND (
+     diverted.msg_subject != orig.msg_subject OR
+     diverted.msg_text    != orig.msg_text    OR
+     diverted.msg_html    != orig.msg_html
+     )
+   )
+  ");
+  $dao->fetch();
+  if (empty($dao->id)) {
+    $params = array(
+      'id' => $default_id,
+      'msg_html' => $html,
+    );
+    if (!empty($params['id'])) {
+      CRM_Core_BAO_MessageTemplates::add($params);
+    }
   }
   $params = array(
-    'id' => variable_get('civicrm_annual_receipt_reserved_tpl_id', 0),
+    'id' => $reserved_id,
     'msg_html' => $html,
   );
   if (!empty($params['id'])) {
