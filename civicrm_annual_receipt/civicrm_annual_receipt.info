@@ -4,4 +4,4 @@ dependencies[] = civicrm
 dependencies[] = neticrm_preset
 package = NetiCRM
 core = 7.x
-version = 7.x-2.1
+version = 7.x-2.2
