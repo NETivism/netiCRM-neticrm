@@ -161,6 +161,7 @@ function civicrm_annual_receipt_update_7202(){
     $params = array(
       'id' => $default_id,
       'msg_html' => $html,
+      'is_active' => 1,
     );
     if (!empty($params['id'])) {
       CRM_Core_BAO_MessageTemplates::add($params);
@@ -169,6 +170,7 @@ function civicrm_annual_receipt_update_7202(){
   $params = array(
     'id' => $reserved_id,
     'msg_html' => $html,
+    'is_active' => 0,
   );
   if (!empty($params['id'])) {
     CRM_Core_BAO_MessageTemplates::add($params);
