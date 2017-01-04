@@ -2,6 +2,7 @@
 
 // define('SPGATEWAY_EXPIRE_DAY', 7);
 CONST SPGATEWAY_EXPIRE_DAY = 7;
+CONST SPGATEWAY_MAX_EXPIRE_DAY = 180;
 CONST SPGATEWAY_RESPONSE_TYPE = 'JSON';
 CONST SPGATEWAY_MPG_VERSION = '1.2';
 CONST SPGATEWAY_RECUR_VERSION = '1.0';
@@ -88,12 +89,14 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     $values =& $_SESSION['CiviCRM'][$form_key]['values'];
   }
 
-  // max 7 days of expire
+  // max 180 days of expire
   if (!empty($values['expiration_time']) && $values['expiration_time'] < 24) {
-    $values['expiration_time'] = 24;
+    $values['expiration_day'] = 1;
   }
-  if (!empty($values['expiration_time']) && $values['expiration_time'] > 24 * SPGATEWAY_EXPIRE_DAY ) {
-    $values['expiration_time'] = 24 * SPGATEWAY_EXPIRE_DAY;
+  elseif (!empty($values['expiration_time']) && $values['expiration_time'] > 24 * SPGATEWAY_MAX_EXPIRE_DAY ) {
+    $values['expiration_day'] = SPGATEWAY_MAX_EXPIRE_DAY;
+  }elseif(!empty($values['expiration_time'])){
+    $values['expiration_day'] = ceil($values['expiration_time']/24);
   }
 
   // building vars
@@ -121,22 +124,22 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     switch($instrument_code){
       case 'ATM':
         $args['VACC'] = 1;
-        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
+        $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
         // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         break;
       case 'BARCODE':
         $args['BARCODE'] = 1;
-        $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
+        $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
         $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         $args['CustomerURL'] = $thankyou_url;
         // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
         break;
       case 'CVS':
         $args['CVS'] = 1;
-        if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
-          $day = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : SPGATEWAY_EXPIRE_DAY;
+        if($instrument_code == 'CVS' && !empty($values['expiration_day'])) {
+          $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
           $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
         }
         // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));

@@ -90,5 +90,6 @@ function civicrm_spgateway_notify_display_barcode($info){
     }
   }
   $output .= '<p><label>繳費期限:</label> <span>'.$info['#expire'].'</span></p>';
+  $output .= '<p><span style="font-size: 9px;">備註：完成繳費後，商店約需3~4個工作天確認繳費成功。</span></p>';
   return $output;
 }
