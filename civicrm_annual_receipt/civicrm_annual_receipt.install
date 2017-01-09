@@ -21,11 +21,12 @@ function civicrm_annual_receipt_install() {
   );
   if(variable_get('civicrm_annual_receipt_option_id', 0)){
     $option_id = variable_get('civicrm_annual_receipt_option_id', 0);
+    $action = CRM_Core_Action::UPDATE;
   }
   else{
     $option_id = NULL;
+    $action = CRM_Core_Action::ADD;
   }
-  $action = CRM_Core_Action::ADD;
   $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
   variable_set('civicrm_annual_receipt_option_id', $option->id);
 
