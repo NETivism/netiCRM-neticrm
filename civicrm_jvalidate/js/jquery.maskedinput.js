@@ -4,6 +4,7 @@
   Licensed under the MIT license (http://digitalbush.com/projects/masked-input-plugin/#license)
   Version: 1.3.1
 */
+
 (function($) {
   function getPasteEvent() {
     var el = document.createElement('input'),
@@ -68,6 +69,7 @@ $.fn.extend({
   },
   amask: function(amask, settings) {
     var input,
+      inputWrapper,
       defs,
       tests,
       partialPosition,
@@ -78,6 +80,12 @@ $.fn.extend({
       keyBackAndroid,
       preventDoubleInput = 0,
       isIME;
+
+    var jvalidateSetting = Drupal.settings.jvalidate;
+    var imeCompositionEnabled = false;
+    var imeKeydownEnabled = false;
+    var imeNotifyMsg = jvalidateSetting.imeNotify;
+    var isFirefox = typeof InstallTrigger !== 'undefined';
 
     if (!amask && this.length > 0) {
       input = $(this[0]);
@@ -110,6 +118,7 @@ $.fn.extend({
 
     return this.trigger("unmask").each(function() {
       var input = $(this),
+        inputWrapper = input.closest(".crm-form-elem"),
         buffer = $.map(
         amask.split(""),
         function(c, i) {
@@ -193,6 +202,8 @@ $.fn.extend({
         pos = input.caret();
         keyBackAndroid = pos.end;
 
+        var specialkeys = [8, 9, 18, 20, 27, 32, 33, 34, 35, 36, 37, 38, 39, 40, 45, 46];
+
         //backspace, delete, and escape get special treatment
         if (k === 8 || k === 46 || (iPhone && k === 127)) {
           pos = input.caret();
@@ -213,9 +224,26 @@ $.fn.extend({
           e.preventDefault();
         } else if (k == 229) { // ime
           isIME = true;
-          if (!android) {
+          imeKeydownEnabled = true;
+        }
+
+        if (k != 229 && specialkeys.indexOf(k) == -1) {
+          imeKeydownEnabled = false;
+        }
+
+        if (imeKeydownEnabled) {
+          addImeNotify(inputWrapper);
+
+          if (!android && (k != 37 && k != 39)) {
             e.preventDefault();
             return;
+          }
+        }
+        else {
+          removeImeNotify(inputWrapper);
+
+          if (imeCompositionEnabled) {
+            imeCompositionEnabled = false;
           }
         }
       }
@@ -343,6 +371,15 @@ $.fn.extend({
           shiftL(pos.begin, pos.end);
         }
         keyIsPress = false;
+
+        if (isFirefox) {
+          if (imeCompositionEnabled) {
+            addImeNotify(inputWrapper);
+          }
+          else {
+            removeImeNotify(inputWrapper);
+          }
+        }
       }
 
       function clearBuffer(start, end) {
@@ -396,6 +433,18 @@ $.fn.extend({
         return (partialPosition ? i : firstNonMaskPos);
       }
 
+      function addImeNotify(elem) {
+        if (elem.find(".ime-notify").length == 0) {
+          elem.append("<div class='messages warning ime-notify'>" + imeNotifyMsg + "</div>");
+        }
+      }
+
+      function removeImeNotify(elem) {
+        if (elem.find(".ime-notify").length > 0) {
+          elem.find(".ime-notify").remove();
+        }
+      }
+
       input.data($.amask.dataName,function(){
         return $.map(buffer, function(c, i) {
           return tests[i]&&c!=settings.placeholder ? c : null;
@@ -408,6 +457,9 @@ $.fn.extend({
           input
             .unbind(".amask")
             .removeData($.amask.dataName);
+        })
+        .bind("compositionstart.amask", function() {
+          imeCompositionEnabled = true;
         })
         .bind("focus.amask", function() {
           clearTimeout(caretTimeoutId);
@@ -428,8 +480,11 @@ $.fn.extend({
         })
         .bind("blur.amask", function() {
           checkVal();
-          if (input.val() != focusText)
+          if (input.val() != focusText) {
             input.change();
+          }
+
+          removeImeNotify(inputWrapper);
         })
         .bind("keydown.amask", keydownEvent)
         .bind("keypress.amask", keypressEvent)
