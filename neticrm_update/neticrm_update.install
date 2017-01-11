@@ -194,3 +194,10 @@ function neticrm_update_update_6117() {
 function neticrm_update_update_6118() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Correct some receipt word - refs #19522, #19171
+ */
+function neticrm_update_update_6119() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
