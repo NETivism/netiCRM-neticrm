@@ -379,9 +379,11 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         cj(document).ajaxComplete(function(event, xhr, settings){
           var url = settings.url;
           if(url.match("/civicrm/ajax/jqState")){
+            var reg_country_no = /_id=country-' .$k. '/;
             if(url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
               $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
-            }else if(url.match(/_id=country-(\d)+/)[1] == "' .$k. '"){
+            }else if(reg_country_no.test(url)){
+
               $("#'.$field['areaName'][$k]['name'].'").val("");
               $("#'.$field['zipName'][$k]['key'].'").val("");
             }
