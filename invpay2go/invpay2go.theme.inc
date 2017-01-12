@@ -10,7 +10,4 @@ function template_preprocess_invpay2go(&$vars) {
   $month = date('n', $invoice_time);
   $monthstr = $month%2 === 0 ? sprintf('%2d-%2d', $month-1, $month) : sprintf('%2d-%2d', $month, $month+1);
   $receipt->ChineseMonth = $year . '年'. $monthstr . '月';
-
-  // site name
-  $receipt->SiteName = variable_get('site_name', '');
 }

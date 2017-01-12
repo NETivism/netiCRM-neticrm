@@ -86,20 +86,16 @@ function invpay2go_api_search($params, $api_params, $is_test) {
 
 function _invpay2go_api_params(&$api_params, $is_test){
   if (!empty($api_params['pid'])) {
-    $secret = db_select('invpay2go', 'inv')
-      ->fields('inv')
-      ->condition('pid', $api_params['pid'], '=')
-      ->execute()
-      ->fetchAssoc();
+    $merchant = invpay2go_merchant_load($api_params['pid']);
     if ($is_test) {
-      $api_params['merchantId'] = $secret['merchantid_test'];
-      $api_params['key'] = $secret['hashkey_test'];
-      $api_params['iv'] = $secret['hashiv_test'];
+      $api_params['merchantId'] = $merchant['merchantid_test'];
+      $api_params['key'] = $merchant['hashkey_test'];
+      $api_params['iv'] = $merchant['hashiv_test'];
     }
     else {
-      $api_params['merchantId'] = $secret['merchantid'];
-      $api_params['key'] = $secret['hashkey'];
-      $api_params['iv'] = $secret['hashiv'];
+      $api_params['merchantId'] = $merchant['merchantid'];
+      $api_params['key'] = $merchant['hashkey'];
+      $api_params['iv'] = $merchant['hashiv'];
     }
   }
 }
@@ -110,7 +106,7 @@ function _invpay2go_api_params(&$api_params, $is_test){
  * @param string $order_number
  * @param string $invoice_number
  */
-function invpay2go_api_get($order_number = NULL, $invoice_number = NULL){
+function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search = TRUE){
   module_load_include('inc', 'invpay2go', 'invpay2go.lib');
   if ($order_number) {
     $record = Pay2goInvoice::getRecord($order_number);
@@ -119,6 +115,21 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL){
     $record = Pay2goInvoice::getRecord(NULL, $invoice_number);
   }
   if ($record) {
+    if (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt)) {
+      $totalAmt = $record['issue_response']->Result->TotalAmt;
+      $search_params = array(
+        'MerchantOrderNo' => $order_number,
+        'SearchType' => 1,
+        'TotalAmt' => $totalAmt,
+        'DisplayFlag' => 0,
+      );
+
+      $api_params = array(
+        'pid' => $record['pid'],
+        'apiType' => 'invoice_search',
+      );
+      $search = invpay2go_api_search($search_params, $api_params, $record['is_test']);
+    }
     return $record;
   }
   return FALSE;
@@ -144,12 +155,17 @@ function invpay2go_api_fields($apitype){
   return Pay2goInvoice::fields($apitype);
 }
 
-function invpay2go_default_pid() {
-  $result = db_select('invpay2go', 'inv')
-    ->fields('inv')
-    ->execute()
-    ->fetchAssoc();
-  return $result['pid'];
+function invpay2go_merchant_load($pid = NULL, $fields = array()) {
+  $select = db_select('invpay2go', 'inv');
+  if (empty($fields)) {
+    $fields = array();
+  }
+  $select->fields('inv', $fields);
+  if ($pid) {
+    $select->condition('pid', $pid, '=');
+  }
+  $result = $select->execute()->fetchAssoc();
+  return $result;
 }
 
 function invpay2go_load_phpqrcode() {

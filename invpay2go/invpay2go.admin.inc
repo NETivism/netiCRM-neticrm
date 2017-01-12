@@ -49,6 +49,8 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
       }
       else{
         $fields = array(
+          'title' => $invoice_setting['title'],
+          'serial' => $invoice_setting['serial'],
           'merchantid' => $invoice_setting['merchantid'],
           'hashkey' => $invoice_setting['hashkey'],
           'hashiv' => $invoice_setting['hashiv'],
@@ -66,6 +68,8 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
       if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test']))
       db_insert('invpay2go')
         ->fields(array(
+          'title' => $invoice_setting['title'],
+          'serial' => $invoice_setting['serial'],
           'merchantid' => $invoice_setting['merchantid'],
           'hashkey' => $invoice_setting['hashkey'],
           'hashiv' => $invoice_setting['hashiv'],
@@ -83,6 +87,18 @@ function _invpay2go_admin_settings_form($pid, $default){
   $form = array(
     '#type' => 'fieldset',
     '#title' => 'Pay2go Settings'. ': '. $pid,
+  );
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Title',
+    '#default_value' => $default['title'],
+    '#size' => 64,
+  );
+  $form['serial'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Serial Number',
+    '#default_value' => $default['serial'],
+    '#size' => 20,
   );
   $form['merchantid'] = array(
     '#type' => 'textfield',

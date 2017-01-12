@@ -41,12 +41,12 @@ function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_resu
 
       $contribution = (array) $object;
       $params = _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info);
-      $pid = invpay2go_default_pid();
+      $merchant = invpay2go_merchant_load();
       $api_params = array(
         'apiType' => 'invoice_issue',
-        'pid' => $pid,
+        'pid' => $merchant['pid'],
       );
-      $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
+      $req_result = invpay2go_api_run($params, $api_params, $merchant['is_test']);
     }
   }
 }
@@ -307,8 +307,9 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
 
   $b2b = !empty($field_info['taxReceiptSerial']['value']) && is_numeric($field_info['taxReceiptSerial']['value']) ? $field_info['taxReceiptSerial']['value'] : FALSE;
   $total_amt = round($contribution['total_amount']);
-  $amt = $total_amount / ((100 + $tax_rate)/100);
-  $tax_amt = $total_amt - $amt;
+  $amt = $total_amt / ((100 + $tax_rate)/100);
+  $tax_amt = round($total_amt - $amt);
+  $amt = $total_amt - $tax_amt;
   $params =  array(
     'MerchantOrderNo' => $contribution['trxn_id'],
     'TransNum' => '', // if pay2go, provide
@@ -324,7 +325,7 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'TaxType' => '1', // TODO what type of tax, read document
     'TaxRate' => $tax_rate,
     'CustomsClearance' => '', // only taxtype = 2, TODO base on tax type, read doc
-    'Amt' => $amt, // total amount
+    'Amt' => $amt, // non-tax amount
     'AmtSales' => '', // TODO base on tax type 9, do not implement
     'AmtZero' => '', // TODO base on tax type 9, do not implement
     'AmtFree' => '', // TODO base on tax type 9, do not implement

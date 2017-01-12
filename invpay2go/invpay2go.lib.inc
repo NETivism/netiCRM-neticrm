@@ -122,6 +122,7 @@ class Pay2goInvoice {
     $record = array(
       'order_number' => $this->orderNumber,
       'pid' => $this->pid,
+      'is_test' => $this->isTest,
     );
     if (isset($data->Result->InvoiceNumber)) {
       $record['invoice_number'] = $data->Result->InvoiceNumber;
@@ -281,6 +282,24 @@ class Pay2goInvoice {
   }
 
   /**
+   * Helper function to get full array
+   */
+  static public function getInfo($object){
+    $info = array();
+    if (!empty($object['issue_response']->Result)) {
+      $info = (array) $object['issue_response']->Result;
+    }
+    if (!empty($object['search_response']->Result)) {
+      $result = (array) $object['search_response']->Result;
+      $result['ItemDetail'] = json_decode($result['ItemDetail']);
+      $info = array_merge($info, $result);
+    }
+    $merchant = invpay2go_merchant_load($object['pid'], array('title', 'serial'));
+    $info = array_merge($info, $merchant);
+    return $info;
+  }
+
+  /**
    * Helper function for write record
    * @param string $orderNumber
    *   orderNumber identifier
@@ -320,14 +339,7 @@ class Pay2goInvoice {
     if (is_string($object)) {
       $object = self::getRecord($object);
     }
-    $info = array();
-    if (!empty($object['issue_response']->Result)) {
-      $info = (array) $object['issue_response']->Result;
-    }
-    if (!empty($object['search_response']->Result)) {
-      $result = (array) $object['search_response']->Result;
-      $info = array_merge($info, $result);
-    }
+    $info = self::getInfo($object);
     if (!empty($info['QRcodeL'])) {
       $info['QRcodeLimg'] = invpay2go_api_qrcode($info['QRcodeL']);
     }

@@ -11,6 +11,18 @@ function invpay2go_schema(){
         'type' => 'serial',
         'not null' => TRUE,
       ),
+      'title' => array(
+        'description' => 'Title',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'serial' => array(
+        'description' => 'Serial number',
+        'type' => 'varchar',
+        'length' => '20',
+        'not null' => FALSE,
+      ),
       'merchantid' => array(
         'description' => 'Merchant Id',
         'type' => 'varchar',
@@ -117,4 +129,34 @@ function invpay2go_install() {
  */
 function invpay2go_uninstall() {
 
+}
+
+/**
+ * Add required field for 2 tables.
+ */
+function invpay2go_update_7101() {
+  $field = array(
+    'description' => 'Title',
+    'type' => 'varchar',
+    'length' => '64',
+    'not null' => FALSE,
+  );
+  db_add_field('invpay2go', 'title', $field);
+
+  $field = array(
+    'description' => 'Serial number',
+    'type' => 'varchar',
+    'length' => '20',
+    'not null' => FALSE,
+  );
+  db_add_field('invpay2go', 'serial', $field);
+
+  $field = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'Is test record or not',
+  );
+  db_add_field('invpay2go_invoice', 'is_test', $field);
 }
