@@ -320,12 +320,12 @@ function esunbank_barcode($serial){
   $bar->barcode_bar_thick = 3;
   $bar->barcode_bar_thin = 1;
   $bar->barcode_height = 80;
-  ob_start();
-  $bar->draw();
-  $barcode = ob_get_contents();
-  ob_end_clean();
-  
-  $src = 'data:image/png;base64,'. base64_encode($barcode);
+
+  $dir = 'esunbarcode';
+  $encoding = 'CODE39';
+  $file = file_create_path($dir).'/e-'.$serial.'-'.strtolower($encoding).'.png';
+  $bar->draw($file);
+  $src = url($file, array('absolute' => TRUE));
   return $src;
 }
 
