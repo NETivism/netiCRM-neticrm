@@ -41,17 +41,12 @@ function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_resu
 
       $contribution = (array) $object;
       $params = _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info);
-      dpm($params);
       $pid = invpay2go_default_pid();
       $api_params = array(
         'apiType' => 'invoice_issue',
         'pid' => $pid,
       );
       $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
-      dpm($req_result);
-    }
-    else {
-      dpm($exists);
     }
   }
 }

@@ -26,6 +26,8 @@ echo $receipt['SiteName'];
   <div>
     <div>隨機碼：<?php print $receipt['RandomNum']; ?></div>
     <div>總計：＄<?php print $receipt['TotalAmt']; ?></div>
-
+    <?php if ($receipt['Barcode']) { ?><div><img src="<?php print $receipt['Barcode']; ?>" /></div><?php } ?>
+    <?php if ($receipt['QRcodeLimg']) { ?><div><img src="<?php print $receipt['QRcodeLimg']; ?>" /></div><?php } ?>
+    <?php if ($receipt['QRcodeRimg']) { ?><div><img src="<?php print $receipt['QRcodeRimg']; ?>" /></div><?php } ?>
   </div>
 </div>

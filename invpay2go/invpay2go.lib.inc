@@ -328,6 +328,20 @@ class Pay2goInvoice {
       $result = (array) $object['search_response']->Result;
       $info = array_merge($info, $result);
     }
+    if (!empty($info['QRcodeL'])) {
+      $info['QRcodeLimg'] = invpay2go_api_qrcode($info['QRcodeL']);
+    }
+    if (!empty($info['QRcodeR'])) {
+      $info['QRcodeRimg'] = invpay2go_api_qrcode($info['QRcodeR']);
+    }
+    if (!empty($info['CreateTime']) && !empty($info['InvoiceNumber']) && !empty($info['RandomNum'])) {
+      $create = strtotime($info['CreateTime']);
+      $cyear = (int) date('Y', $create); 
+      $cyear -= 1911;
+      $cmonth = date('m', $create);
+      $info['BarcodeCode'] = $cyear.$cmonth.$info['InvoiceNumber'].$info['RandomNum'];
+      $info['Barcode'] = invpay2go_api_barcode($info['BarcodeCode']);
+    }
     if (!empty($info['InvoiceNumber'])) {
       $print = theme('invpay2go', array('receipt' => $info));
     }
