@@ -129,10 +129,10 @@ function template_preprocess_esunbank_invoice(&$variables){
     $variables['vars']['due_date'] = date('Y/m/d', $variables['vars']['timestamp']);
   }
   foreach($variables['vars']['barcode_store'] as $k => $v){
-    $variables['vars']['barcode_store'][$k] = '<img src="'.url($v, array('absolute' => TRUE)).'" />';
+    $variables['vars']['barcode_store'][$k] = '<img src="'.$v.'" style="max-height:40px" />';
   }
   foreach($variables['vars']['barcode_postoffice'] as $k => $v){
-    $variables['vars']['barcode_postoffice'][$k] = '<img src="'.url($v, array('absolute' => TRUE)).'" />';
+    $variables['vars']['barcode_postoffice'][$k] = '<img src="'.$v.'" style="max-height: 40px" />';
   }
   $variables['contact_info'] = variable_get('esunbank_contact_info', '');
   $variables['receipt_info'] = variable_get('esunbank_receipt_info', '');
