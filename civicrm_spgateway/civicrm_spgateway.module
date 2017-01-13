@@ -58,6 +58,9 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       $status = $msg = NULL;
       $params = array();
       $return_params = _civicrm_spgateway_post_decode($form->_submitValues['JSONData']);
+      if(!empty($form->_submitValues['Period']) && empty($return_params)){
+        $return_params = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($form->_submitValues['Period'], $form->_paymentProcessor));
+      }
       // Credit card have result immediately
       if(isset($form->_submitValues) && !empty($return_params['RespondCode'])){
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
@@ -66,7 +69,15 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             // check contribution if have same result
             $contrib_params = array('trxn_id' => $params['trxn_id']);
             $contrib_values = $contrib_ids = array();
-            CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
+            $contribution = CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
+            if(!empty($return_params['PeriodAmt'])){
+              // first contribution of recurring, update trxn_id.
+              $contribution->trxn_id = $params['trxn_id'] . "_1";
+              $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
+              $contribution->receive_date = date('YmdHis', strtotime($contribution->receive_date));
+              $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
+              $contribution->save();
+            }
             if(!empty($contrib_values['id']) && $contrib_values['contribution_status_id'] != 1 && strstr($return_params['PaymentType'], 'Credit')){
               // trigger ipn success
               module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
