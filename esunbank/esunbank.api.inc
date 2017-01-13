@@ -315,19 +315,18 @@ function esunbank_barcode($serial){
     module_load_include('inc', 'esunbank', 'barcode39');
   }
 
-  $dir = 'esunbarcode';
-  $ext = 'gif';
-  $encoding = 'CODE39';
-  $file = file_create_path($dir).'/e-'.$serial.'-'.strtolower($encoding).'.'.$ext;
-
   $bar = new Barcode39($serial);
   $bar->barcode_text = false;
   $bar->barcode_bar_thick = 3;
   $bar->barcode_bar_thin = 1;
-  $bar->barcode_height = 40;
-  $bar->draw($file);
+  $bar->barcode_height = 80;
 
-  return $file;
+  $dir = 'esunbarcode';
+  $encoding = 'CODE39';
+  $file = file_create_path($dir).'/e-'.$serial.'-'.strtolower($encoding).'.png';
+  $bar->draw($file);
+  $src = url($file, array('absolute' => TRUE));
+  return $src;
 }
 
 

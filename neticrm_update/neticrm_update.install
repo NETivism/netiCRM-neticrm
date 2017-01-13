@@ -201,3 +201,10 @@ function neticrm_update_update_6118() {
 function neticrm_update_update_6119() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change receipt word to payment notification, #18236
+ */
+function neticrm_update_update_6120() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

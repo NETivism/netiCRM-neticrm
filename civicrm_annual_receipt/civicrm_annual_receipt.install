@@ -226,7 +226,7 @@ function _civicrm_annual_receipt_tpl() {
       </tr>
       {/foreach}
     </table>
-    <div class="annual-total align-right">總額： {$info.total}</div>
+    <div class="annual-total align-right">總金額： {$info.total}</div>
   </div>
   <div class="receipt-signature">
     <table>
