@@ -18,17 +18,32 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
         $exists['receipt_print'] = $html;
       }
       $tax_receipt = $exists;
+      $tax_receipt['module'] = 'civicrm_invpay2go';
     }
   }
 }
 
 /**
- * Implement hook_civicrm_createTaxReceipt
+ * Implement hook_civicrm_validateTaxReceipt
+
  */
-function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_result, &$object) {
+function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
+  if (!empty($receipt) && $receipt['module'] == 'civicrm_invpay2go') {
+    if(isset($receipt['issue_response']->Status) && $receipt['issue_response']->Status == 'SUCCESS') {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function to create tax receipt
+ */
+function civicrm_invpay2go_create_taxreceipt($contribution_id, &$req_result, &$object) {
   if (!empty($object->trxn_id)) {
     $exists = invpay2go_api_get($object->trxn_id);
-    if (empty($exists)) {
+    $is_valid = civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, $exists);
+    if (!$is_valid) {
       $field_info = _civicrm_invpay2go_get_field_info($contribution_id);
       $contact_params = array(
         'id' => $object->contact_id,
@@ -46,7 +61,7 @@ function civicrm_invpay2go_civicrm_createTaxReceipt($contribution_id, &$req_resu
         'apiType' => 'invoice_issue',
         'pid' => $merchant['pid'],
       );
-      $req_result = invpay2go_api_run($params, $api_params, $merchant['is_test']);
+      $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
     }
   }
 }
@@ -146,6 +161,8 @@ function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$for
         }
       }
       break;
+    case 'CRM_Contribute_Form_TaxReceipt':
+      break;
   }
   return $errors;
 }
@@ -194,6 +211,21 @@ function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
           $customValues['entityID'] = $contributionId;
           CRM_Core_BAO_CustomValueTable::setValues($customValues);
         }
+      }
+      break;
+    case 'CRM_Contribute_Form_TaxReceipt':
+      if (!empty($form->_id)) {
+        $contribution = new CRM_Contribute_DAO_Contribution();
+        $contribution->id = $form->_id;
+        if($contribution->find(TRUE)) {
+          $result = array();
+          civicrm_invpay2go_create_taxreceipt($form->_id, $result, $contribution);
+          if (!empty($result)) {
+            CRM_Core_Session::setStatus(ts('Successuful created tax receipt.'));
+          }
+        }
+        $query = "reset=1&action=update&id={$form->_id}&cid={$contribution->contact_id}&context=search";
+        CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/contribute/taxreceipt', $query));
       }
       break;
   }
