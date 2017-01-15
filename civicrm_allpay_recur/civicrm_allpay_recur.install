@@ -1,0 +1,57 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function civicrm_allpay_recur_install() {
+  civicrm_initialize();
+  module_load_include('inc', 'civicrm_allpay_recur', 'civicrm_allpay_recur.utils');
+  $group = _civicrm_allpay_recur_custom_group('allpay_recur', '歐付寶手動定期扣款', 'Contact');
+
+  if(!empty($group['id'])){
+    variable_set('civicrm_allpay_recur_gid', $group['id']);
+    $fields = array();
+    $fields['allpay_yn'] = _civicrm_allpay_recur_custom_field('allpay_yn', '為歐付寶付款人', 'Boolean', 'Radio', $group['id'], 0);
+    $fields['allpay_cardno'] = _civicrm_allpay_recur_custom_field('allpay_cardno', '信用卡卡號', 'String', 'Text', $group['id']);
+    $fields['allpay_amount'] = _civicrm_allpay_recur_custom_field('allpay_amount', '金額', 'Money', 'Text', $group['id']);
+    $fields['allpay_duedate'] = _civicrm_allpay_recur_custom_field('allpay_duedate', '信用卡到期月年', 'Date', 'Select Date', $group['id']);
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET start_date_years = 10, end_date_years = 20, date_format = 'mm/yy' WHERE id = ".$fields['allpay_duedate']['id']);
+
+    $option_values = array();
+    $weight = 1;
+    $status = CRM_Contribute_PseudoConstant::contributionStatus();
+    foreach($status as $sid => $s){
+      $option_values[] = array('label' => $s, 'value' => $sid, 'is_active' => 1, 'weight' => $weight);
+      $weight++;
+    }
+    $fields['allpay_status'] = _civicrm_allpay_recur_custom_field('allpay_status', '定期狀態', 'String', 'Select', $group['id'], NULL, $option_values);
+    $fields_var = array();
+    foreach($fields as $k => $v){
+      $fields_var[$k] = $v['id'];
+    }
+    variable_set('civicrm_allpay_recur_fid', $fields_var);
+  }
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function civicrm_allpay_recur_uninstall(){
+  civicrm_initialize();
+  $fields = variable_get('civicrm_allpay_recur_fid', array());
+  foreach($fields as $k => $v){
+    $params = array(
+      'id' => $v, 
+      'version' => 3,
+    );
+    civicrm_api('custom_field', 'delete', $params);
+  }
+  $gid = variable_get('civicrm_allpay_recur_gid', array());
+  $params = array(
+    'id' => $gid, 
+    'version' => 3,
+  );
+  civicrm_api('custom_group', 'delete', $params);
+  variable_del('civicrm_allpay_recur_fid');
+  variable_del('civicrm_allpay_recur_gid');
+}

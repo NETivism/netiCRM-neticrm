@@ -1,0 +1,6 @@
+name = Allpay manually recurring
+description = Allpay manually recurring functions for civicrm
+package = NetiCRM Payment Method
+dependencies[] = civicrm
+dependencies[] = civicrm_allpay
+core = 6.x

@@ -1,0 +1,165 @@
+<?php
+
+/**
+ * Implementation of hook_perm
+ */
+function civicrm_allpay_recur_perm(){
+  return array('export allpay card number', 'import allpay contribution');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function civicrm_allpay_recur_menu(){
+  return array(
+    'civicrm/allpay_recur_import' => array(
+      'title' => '歐付寶定期定額匯入',
+      'access arguments' => array('import allpay contribution'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('civicrm_allpay_recur_import_form'),
+      'type' => MENU_CALLBACK,
+      'file' => 'civicrm_allpay_recur.import.inc',
+    )
+  );
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function civicrm_allpay_recur_theme(){
+  return array(
+    'civicrm_allpay_recur_mapping_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'civicrm_allpay_recur.import.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_civicrm_pre
+ */
+function civicrm_allpay_recur_civicrm_pre($op, $objectName, $id, &$params){
+  $allowed = array('Individual', 'Organization', 'Household');
+  if(($op == 'create' || $op == 'edit') && in_array($objectName, $allowed)){
+    $fields = variable_get('civicrm_allpay_recur_fid', array());
+    $cardno_field = 'custom_'.$fields['allpay_cardno'];
+    foreach($params as $k => $v){
+      if(strstr($k, $cardno_field)){
+        $cardno_field = $k;
+        break;
+      }  
+    }
+    if(is_string($params[$cardno_field]) && !strstr($params[$cardno_field], '$')){
+      $cardno = preg_replace('[^0-9]', '', $params[$cardno_field]);
+      $params[$cardno_field] = _civicrm_allpay_recur_encrypt_cardno($cardno);
+    }
+  }
+}
+
+
+/**
+ * Implementation of hook_civicrm_alterTemplateVars
+ */
+function civicrm_allpay_recur_civicrm_alterTemplateVars($resourceName, &$vars){
+  // wild resource
+  if($resourceName == 'CRM/common/drupal.tpl' && $_GET['q'] == 'civicrm/contact/view' && !empty($_GET['cid'])){
+    $gid = variable_get('civicrm_allpay_recur_gid', 0);
+    $fields = variable_get('civicrm_allpay_recur_fid', array());
+    if(!empty($vars['viewCustomData']) && !empty($vars['viewCustomData'][$gid])){
+      $fields_tpl = $vars['viewCustomData'][$gid];
+      $idx = key($fields_tpl);
+      $fields_tpl =& $vars['viewCustomData'][$gid][$idx];
+      if(!empty($fields_tpl['fields'][$fields['allpay_cardno']]['field_value'])){
+        _civicrm_allpay_recur_decrypt_cardno($fields_tpl['fields'][$fields['allpay_cardno']]['field_value']);
+      }
+      if(!empty($fields_tpl['fields'][$fields['allpay_duedate']]['field_value'])){
+        _civicrm_allpay_recur_format_duedate($fields_tpl['fields'][$fields['allpay_duedate']]['field_value'], 'm/Y');
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_init
+ */
+function civicrm_allpay_recur_init(){
+  if(strstr($_GET['q'], 'civicrm/contact/search')){
+    // hack for export task to include current dir
+    $include_path = drupal_get_path('module', 'civicrm_allpay_recur') . PATH_SEPARATOR . get_include_path();
+    set_include_path($include_path);
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_searchTasks
+ */
+function civicrm_allpay_recur_civicrm_searchTasks($objectType, &$tasks){
+  if($objectType == 'contact' && user_access('export allpay card number')){
+    $tasks[] = array(
+      'title' => '匯出歐付寶定期捐款手動請款',
+      'result' => false,
+      // hack for without underline to include current dir
+      'class' => 'civicrmAllpayRecurExportTask',
+    );
+  }
+}
+function civicrm_allpay_recur_civicrm_alterTemplateFile($formName, &$form, $context, &$tplName) {
+  $template =& CRM_Core_Smarty::singleton();
+  if(is_array($template->template_dir)){
+    $template->template_dir[] = drupal_get_path('module', 'civicrm_allpay_recur');
+  }
+}
+
+function _civicrm_allpay_recur_encrypt_cardno(&$value){
+  $cardno = $value;
+  $cardno = preg_replace('/[^0-9]/', '', $cardno);
+  $cardno = CRM_Utils_Crypt::encrypt($cardno);
+  $value = $cardno.'$'.substr($value, -4);
+  return $value;
+}
+
+function _civicrm_allpay_recur_decrypt_cardno(&$value, $mask = TRUE){
+  if($mask){
+    $cardno = '****-****-****-'.substr($value, strpos($value, '$')+1);
+    $value = $cardno;
+    return $cardno;
+  }
+  else{
+    $cardno = substr($value, 0, strpos($value, '$'));
+    $cardno = CRM_Utils_Crypt::decrypt($cardno);
+    $digits = str_split($cardno, 4);
+    $cardno = implode('-', $digits);
+    $value = $cardno;
+    return $cardno;
+  }
+}
+
+function _civicrm_allpay_recur_format_duedate(&$value, $format = 'm/y'){
+  $duedate = date($format, strtotime($value));
+  $value  = $duedate;
+  return $duedate;
+}
+
+function _civicrm_allpay_recur_cardno_contact($cardno){
+  $encrypt_card = _civicrm_allpay_recur_encrypt_cardno($cardno);
+  $fields = variable_get('civicrm_allpay_recur_fid', array());
+  $params = array(
+    'version' => 3,
+    'custom_'.$fields['allpay_cardno'] => $encrypt_card,
+    'return.contact_id' => 1,
+  );
+  $result = civicrm_api('Contact', 'get', $params);
+  return $result['values'];
+}
+
+function _civicrm_allpay_export_header(){
+  return array(
+    'item' => '刷卡項目',
+    'installment' => '分期期數',
+    'allpay_amount' => '刷卡金額',
+    'name' => '持卡人姓名',
+    'allpay_cardno' => '信用卡卡號',
+    'allpay_duedate' => '有效年月',
+    'digit' => '信用卡背面末三碼',
+  );
+}
