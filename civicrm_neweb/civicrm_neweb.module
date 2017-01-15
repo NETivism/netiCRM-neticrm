@@ -78,6 +78,8 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
         // non-direct payment
         $saved_params = $form->controller->get('params');
         if(!empty($saved_params['trxn_id']) && !empty($saved_params['returnvalue']) && $saved_params['returnvalue'] == 1){
+          $params['trxn_id'] = $saved_params['trxn_id'];
+
           // build notify billing info
           module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
           $info = civicrm_neweb_notify_bytrxn($saved_params['trxn_id']);
@@ -144,15 +146,22 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
  * Implementation of hook_civicrm_prepareInvoice()
  */
 function civicrm_neweb_civicrm_prepareInvoice($contribution_id, &$tplParams){
-  module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
-  global $is_returnable;
-  if(!isset($is_returnable)){
-    $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
-    $is_returnable = CRM_Core_DAO::singleValueQuery($sql);
-    $is_returnable = isset($is_returnable)?1:0;
-  }
-  if($is_returnable == 1){
-    $tplParams = civicrm_neweb_notify_generate($contribution_id, FALSE);
+  $sql = "SELECT pp.payment_processor_type FROM civicrm_contribution c
+    INNER JOIN civicrm_payment_processor pp ON c.payment_processor_id = pp.id
+    WHERE c.id = $contribution_id";
+  $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
+
+  if($payment_process_type == 'Neweb'){
+    module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.notify');
+    global $is_returnable;
+    if(!isset($is_returnable)){
+      $sql = "SHOW COLUMNS FROM civicrm_contribution_neweb LIKE 'return_data'";
+      $is_returnable = CRM_Core_DAO::singleValueQuery($sql);
+      $is_returnable = isset($is_returnable)?1:0;
+    }
+    if($is_returnable == 1){
+      $tplParams = civicrm_neweb_notify_generate($contribution_id, FALSE);
+    }
   }
 }
 
