@@ -324,9 +324,11 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
 
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
-    watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
+    watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);
+    $send = variable_get('civicrm_neweb_send_sftp_notify', true);
+
     global $sended_sftp_notice_mail;
-    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass)){ 
+    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass) && $send){
       // send email To User1
       $time = REQUEST_TIME;
       $user = user_load(1);
