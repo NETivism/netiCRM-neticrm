@@ -695,9 +695,11 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
   $p = new CRM_Core_BAO_PaymentProcessor();
   if($is_test){
     $payment_processor = $p->getPayment($pid,'test');
+    $is_test = 1;
   }
   else{
     $payment_processor = $p->getPayment($pid,'live');
+    $is_test = 0;
   }
 
   if(empty($payment_processor)){
@@ -715,7 +717,7 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
     }
   }
   $instrument_str = implode(',', $instrument_id);
-  $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_status_id = 2 AND payment_instrument_id IN ($instrument_str) AND is_test = $is_test ORDER BY id DESC");
+  $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_status_id = 2 AND payment_instrument_id IN ($instrument_str) AND is_test = $is_test AND payment_processor_id = $pid ORDER BY id DESC");
   while($dao->fetch()){
     $post = $input = $objects = $ids = $result = array();
 
@@ -747,10 +749,10 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
 
     // fetch result and object
     $result = civicrm_neweb_postdata($post, $payment_processor);
-    $created = isset($result['timecreated']) ? strtotime($result['timecreated']) : '';
-    if($created){
-      // two week
-      $overdue = $now - $created > 86400 * 14 ? TRUE : FALSE;
+    $created = isset($result['timecreated']) ? strtotime($result['timecreated']) : strtotime($c->created_date);
+    if ($created){
+      // 4 weeks
+      $overdue = $now - $created > 86400 * variable_get('civicrm_neweb_expired_day', 28) ? TRUE : FALSE;
     }
     else{
       $overdue = $created = FALSE;
@@ -786,23 +788,23 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
       elseif(!$result['status'] && $result['rc'] == 0 && $overdue) {
-        // cancel contribution over 2 week
+        // cancel contribution over 4 weeks
         $input['reasonCode'] = ts('Overdue');
         $input['trxn_id'] = $c->trxn_id;
         $input['payment_instrument_id'] = $c->payment_instrument_id;
         $ipn->cancelled($objects, $transaction);
         $note .= ts("Canceled").": ".ts('Overdue')."\n";
-        $note .= "Over 14 days doesn't have payment from {$result['timecreated']}\n";
+        $note .= "Over ".variable_get('civicrm_neweb_expired_day', 28)." days doesn't have payment from {$result['timecreated']}\n";
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
-      elseif($result['rc'] == 0 && count($result) == 2 && is_numeric($c->trxn_id)){
-        // not found on neweb, cancel
+      elseif($result['rc'] == 0 && count($result) == 2 && !empty($c->trxn_id) && $overdue){
+        // not found on neweb and over 4 weeks
         $input['reasonCode'] = ts('Overdue');
         $input['trxn_id'] = $c->trxn_id;
         $input['payment_instrument_id'] = $c->payment_instrument_id;
         $ipn->cancelled($objects, $transaction);
         $note .= ts("Canceled").": ".ts('Overdue')."\n";
-        $note .= "Can't found this order in neweb, but have transaction number. Expire dummy contribution record\n";
+        $note .= "Order number not found in neweb.\n";
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
       elseif($result['rc']){

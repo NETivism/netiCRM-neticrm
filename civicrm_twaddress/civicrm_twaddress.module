@@ -334,7 +334,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $random_id = mt_rand(1000, 9999);
     $count++;
     $select_id = "twaddr-area-{$k}-{$random_id}";
-    $insert = "<select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
+    $insert = "<div class='crm-form-elem crm-form-select md-elem md-select md-select-single'><select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select></div>";
 
     $js = '
     jQuery(function($){
@@ -407,7 +407,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         $("[for="+address_info.countyName+"].error").remove();
         $("[for="+address_info.zipName+"].error").remove();
         if(!$("#"+select_id).length){
-          var select = "<select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select>";
+          var select = "<div class=\'crm-form-elem crm-form-select md-elem md-select md-select-single\'><select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select></div>";
           $(select).insertAfter("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']");
         }else if($("#"+select_id).css("display") == "none"){
           $("#"+select_id).show();
@@ -417,7 +417,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
           var v = $(this).val();
           $("input[name=\'" + address_info.areaField + "\']").val(v);
         });
-        $("input[name=\'" + address_info.zipName + "\']").addClass("readonly post-code");
+        $("input[name=\'" + address_info.zipName + "\']").addClass("readonly post-code").wrap("<div class=\'crm-form-elem crm-form-textfield md-elem md-textfield crm-form-readonly crm-form-post-code\'></div>");
 
         $form.twzipcode(address_info);
       }
