@@ -290,6 +290,9 @@ function civicrm_allpay_record($cid, $data = null){
       if($billing_notify){
         module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
         civicrm_allpay_notify_generate($cid, TRUE); // send mail
+
+        // return allpay successful received notify
+        echo "1|OK";
       }
     }
   }

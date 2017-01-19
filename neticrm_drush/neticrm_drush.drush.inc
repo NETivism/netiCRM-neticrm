@@ -125,6 +125,7 @@ function drush_neticrm_rebuild_menu(){
   civicrm_initialize();
   CRM_Core_Menu::store();
   CRM_Core_BAO_Navigation::resetNavigation();
+  drush_log("CRM menu rebuilt", "ok");
 }
 
 function drush_neticrm_set_domain(){
@@ -135,6 +136,7 @@ function drush_neticrm_set_domain(){
     civicrm_initialize();
     module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
     _neticrm_preset_domain_info();
+    drush_log("netiCRM domain setted", "ok");
   }
 }
 
@@ -144,6 +146,7 @@ function drush_neticrm_welcome_mail(){
     $op = 'register_no_approval_required';
     // Send an email.
     _user_mail_notify($op, $account);
+    drush_log("netiCRM welcome mail sent", "ok");
   }
 }
 
@@ -152,6 +155,7 @@ function drush_neticrm_clear_cache(){
   $config = CRM_Core_Config::singleton();
   $config->clearDBCache();
   $config->cleanup(1);
+  drush_log("netiCRM cache cleared", "ok");
 }
 
 
