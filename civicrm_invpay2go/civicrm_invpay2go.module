@@ -45,8 +45,8 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
 function civicrm_invpay2go_create_taxreceipt($contribution_id, &$req_result, &$object) {
   if (!empty($object->trxn_id)) {
     $exists = invpay2go_api_get($object->trxn_id);
-    $is_valid = civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, $exists);
-    if (!$is_valid) {
+    $valid = civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, $exists);
+    if ($valid['success'] === FALSE) {
       $field_info = _civicrm_invpay2go_get_field_info($contribution_id);
       $contact_params = array(
         'id' => $object->contact_id,
@@ -368,7 +368,7 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'TotalAmt' => $total_amt,
     'ItemName' => $item_name,
     'ItemCount' => '1',
-    'ItemUnit' => '*',
+    'ItemUnit' => 'x',
     'ItemPrice' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
     'ItemAmt' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
     'ItemTaxType' => '', // TODO do not implement
