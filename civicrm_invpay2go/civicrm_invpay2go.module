@@ -96,7 +96,9 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
           $form->_invpay2goPage = $pageArray;
           $elements = _civcirm_invpay2go_form_elements($form_name, $form);
           $form->_invpay2goElements = $elements;
-          drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+          if (!strstr('Confirm', $form_name)) {
+            drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+          }
         }
       }
       break;
