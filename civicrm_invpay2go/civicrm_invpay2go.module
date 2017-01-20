@@ -308,7 +308,7 @@ function _civicrm_invpay2go_get_field_info($contribution_id) {
   $custom_fields = CRM_Core_BAO_CustomField::getFields('Contribution');
   $display = array();
   foreach($config as $key => $v){
-    if (strstr($key, 'taxReceipt') && !empty($custom_values[$v])) {
+    if (strstr($key, 'taxReceipt')) {
       $label = $custom_fields[$v]['label'];
       $value = $custom_values[$v];
       if (!empty($custom_fields[$v]['option_group_id'])) {
@@ -355,7 +355,7 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'BuyerUBN' => $b2b ? $b2b : '',
     'BuyerAddress' => '', // not provided
     'BuyerEmail' => $contact['email'],
-    'CarrierType' => (!$b2b && !empty($field_info['taxReceiptDeviceType'])) ? $field_info['taxReceiptDeviceType']['value'] : '', // Category=B2C - 0,1,2, no lovecode
+    'CarrierType' => (!$b2b) ? $field_info['taxReceiptDeviceType']['value'] : '', // Category=B2C - 0,1,2, no lovecode
     'LoveCode' => (!$b2b && !empty($field_info['taxReceiptDonate']['value'])) ? $field_info['taxReceiptDonate']['value'] : '', // only b2c
     'TaxType' => '1', // TODO what type of tax, read document
     'TaxRate' => $tax_rate,
