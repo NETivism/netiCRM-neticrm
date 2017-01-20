@@ -30,10 +30,13 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
 function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
   if (!empty($receipt) && $receipt['module'] == 'civicrm_invpay2go') {
     if(isset($receipt['issue_response']->Status) && $receipt['issue_response']->Status == 'SUCCESS') {
-      return TRUE;
+      return array('success' => TRUE);
+    }
+    else {
+      drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
     }
   }
-  return FALSE;
+  return array('success' => FALSE);
 }
 
 /**

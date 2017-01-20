@@ -31,8 +31,12 @@ $(document).ready(function(){
     if ($taxReceiptDeviceType.length) {
       switch ($taxReceiptDeviceType.val()) {
         case '0':
+          showEle($('input[name=taxReceiptDeviceNumber]'));
+          $('input[name=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機號碼');
+          break;
         case '1':
           showEle($('input[name=taxReceiptDeviceNumber]'));
+          $('input[name=taxReceiptDeviceNumber]').prop('placeholder', '請輸入身分證字號');
           break;
         case '2':
           hideEle($('input[name=taxReceiptDeviceNumber]'));
