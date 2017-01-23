@@ -310,7 +310,7 @@ function _civicrm_invpay2go_get_field_info($contribution_id) {
   $custom_fields = CRM_Core_BAO_CustomField::getFields('Contribution');
   $display = array();
   foreach($config as $key => $v){
-    if (strstr($key, 'taxReceipt')) {
+    if (strstr($key, 'taxReceipt') && !empty($custom_fields[$v]['label'])) {
       $label = $custom_fields[$v]['label'];
       $value = $custom_values[$v];
       if (!empty($custom_fields[$v]['option_group_id'])) {
