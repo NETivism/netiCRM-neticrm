@@ -32,7 +32,6 @@
             $image = self::image($frame, $pixelPerPoint, $outerFrame, $back_color, $fore_color);
 
             if ($filename === false) {
-                Header("Content-type: image/png");
                 ImagePng($image);
             } else {
                 if($saveandprint===TRUE){
@@ -53,7 +52,6 @@
             $image = self::image($frame, $pixelPerPoint, $outerFrame);
 
             if ($filename === false) {
-                Header("Content-type: image/jpeg");
                 ImageJpeg($image, null, $q);
             } else {
                 ImageJpeg($image, $filename, $q);
