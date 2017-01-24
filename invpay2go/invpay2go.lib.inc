@@ -5,7 +5,6 @@ class Pay2goInvoice {
   CONST INVPAY2GO_TEST = 'https://cinv.pay2go.com';
   CONST INVPAY2GO_PROD = 'https://inv.pay2go.com';
   CONST RESPONSE_TYPE = 'JSON';
-  CONST VERSION = '1.3';
 
   public $isTest = 0;
   public $status = 0;
@@ -21,14 +20,20 @@ class Pay2goInvoice {
   protected $hashIv;
 
   public $apiType;
+
+  // api type => version
   protected $apiTypes = array(
-    'invoice_issue' => 1,
-    'invoice_touch_issue' => 1,
-    'invoice_search' => 1,
+    'invoice_issue' => '1.4',
+    'invoice_touch_issue' => '1.0',
+    'invoice_search' => '1.1',
     // not supportted api types
     'invoice_invalid' => 0,
     'allowance_issue' => 0,
     'allowance_touch_issue' => 0,
+  );
+
+  protected $apiVersions = array(
+  
   );
 
   /**
@@ -105,7 +110,7 @@ class Pay2goInvoice {
 
     // force version and RespondType
     $postData['RespondType'] = self::RESPONSE_TYPE;
-    $postData['Version'] = empty($postData['Version']) ? self::VERSION : $postData['Version'];
+    $postData['Version'] = empty($postData['Version']) ? $this->apiTypes[$this->apiType] : $postData['Version'];
     $postData['TimeStamp'] = (string) time();
 
     $postStr = http_build_query($postData);
