@@ -221,13 +221,12 @@ function checkForm(){
       _civicrm_twaddress_grouping_js();
     }
 
-    if(!empty($_GET['snippet'])){
+    if(!empty($_GET['snippet']) && $_GET['block'] == 'Address'){
       reset($form->_fields);
-      $first = key($form->_fields);
       $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
       $js = implode("\n", $js);
-      $js = '<script type="text/javascript" src="'.base_path().$path.'/twzipcode.js"></script><script type="text/javascript">'.$js.'</script>';
-      $form->_fields[$first]['groupHelpPre'] = $js;
+      $js = '<script type="text/javascript">'.$js.'</script>';
+      print($js);
     }
     else{
       _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
