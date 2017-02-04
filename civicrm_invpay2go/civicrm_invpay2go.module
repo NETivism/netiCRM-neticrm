@@ -65,6 +65,7 @@ function civicrm_invpay2go_create_taxreceipt($contribution_id, &$req_result, &$o
         'pid' => $merchant['pid'],
       );
       $req_result = invpay2go_api_run($params, $api_params, $object->is_test);
+      dpm($req_result);
     }
   }
 }
@@ -375,7 +376,6 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
     'ItemAmt' => $b2b ? $amt : $total_amt, // B2B->no tax, B2C->include tax
     'ItemTaxType' => '', // TODO do not implement
     'Comment' => truncate_utf8($contribution['source'], 30),
-    'PrintFlag' => 'Y',
   );
 
   // Carrier Num
@@ -389,14 +389,12 @@ function _civicrm_invpay2go_prepare_params($contact, $contribution, $field_info)
   }
 
   // PrintFlag
-  /*
-  $params['PrintFlag'] = 'Y';
+  $params['PrintFlag'] = 'N';
   if ($b2b) {
     $params['PrintFlag'] = 'Y';
   }
   elseif (!$b2b && $params['CarrierType'] === '' && empty($params['LoveCode'])) {
     $params['PrintFlag'] = 'Y';
   }
-  */
   return $params;
 }
