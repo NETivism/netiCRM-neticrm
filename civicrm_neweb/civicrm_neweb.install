@@ -393,3 +393,20 @@ function civicrm_neweb_update_6114(){
   ));
   return $ret;
 }
+
+/**
+ * Update translations
+ */
+function civicrm_neweb_update_6115(){
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+  $module_root = drupal_get_path('module', 'civicrm_neweb');
+  // make a new $file object
+  $file = new stdClass();
+  $file->filename = 'zh-hant.po';
+  $file->filepath = $module_root . '/translations/' . $file->filename;
+  $file->filemime = 'application/octet-stream';
+  // import the .po-file, use OVERWRITE, with KEEP only new translations are imported
+  $success = _locale_import_po($file, 'zh-hant', LOCALE_IMPORT_OVERWRITE, 'default');
+  $ret[] = array('success' => $success, 'query' => 'Reload '. $module_name .' translation file for '. $language .' language');
+  return $ret;
+}
