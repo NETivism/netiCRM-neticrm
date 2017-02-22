@@ -57,13 +57,17 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       civicrm_spgateway_record($ids['contribution'], $this->_post);
     }
     else{
-      // we will save record later if this is recurring
       $recur = TRUE;
       $ppid = $ids['paymentProcessor'];
       $is_test = CRM_Core_DAO::singleValueQuery("SELECT is_test FROM civicrm_payment_processor WHERE id = $ppid");
       $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
       $this->_post = _civicrm_spgateway_recur_decrypt($this->_post['Period'],$payment_processors);
       $input = _civicrm_spgateway_post_decode($this->_post);
+      // we will save record later if this is recurring after second times.
+      if(empty($input['AlreadyTimes'])){
+        // First time recurring
+        civicrm_spgateway_record($ids['contribution'], $this->_post);
+      }
     }
     $input['component'] = $component;
     $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
