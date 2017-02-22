@@ -50,10 +50,10 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     require_once 'CRM/Utils/Request.php';
     $objects = $ids = $input = array();
     $this->getIds($ids, $component);
-    $input = _civicrm_spgateway_post_decode($this->_post);
     if(empty($ids['contributionRecur'])){
       $recur = FALSE;
       // get the contribution and contact ids from the GET params
+      $input = _civicrm_spgateway_post_decode($this->_post);
       civicrm_spgateway_record($ids['contribution'], $this->_post);
     }
     else{
@@ -63,6 +63,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $is_test = CRM_Core_DAO::singleValueQuery("SELECT is_test FROM civicrm_payment_processor WHERE id = $ppid");
       $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
       $this->_post = _civicrm_spgateway_recur_decrypt($this->_post['Period'],$payment_processors);
+      $input = _civicrm_spgateway_post_decode($this->_post);
     }
     $input['component'] = $component;
     $qfKey = CRM_Utils_Array::value('qfKey', $this->_get);
