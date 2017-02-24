@@ -205,3 +205,10 @@ function neticrm_update_update_7219() {
 function neticrm_update_update_7220() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update database for failed recurring, refs #14971
+ */
+function neticrm_update_update_7221() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
