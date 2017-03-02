@@ -3,84 +3,95 @@ $(document).ready(function(){
   var showEle = function(obj) {
     if (obj.length) {
       var section = obj.closest('.crm-section');
+      if (!section.length) {
+        section = obj.closest('tr.custom_field-row');
+      }
       var label = section.find('.label label');
       var marker = label.find('.crm-marker');
       if (!marker.length) {
         label.append('<span class="crm-marker">*</span>');
       }
       section.show();
-      obj.rules('add', {required: true});
+      if (typeof obj.rules !== 'undefined') {
+        obj.rules('add', {required: true});
+      }
     }
   }
   var hideEle = function(obj) {
     if (obj.length) {
       var section = obj.closest('.crm-section');
+      if (!section.length) {
+        section = obj.closest('tr.custom_field-row');
+      }
       section.hide();
       if(obj.prop('type') === 'radio') {
         obj.prop('checked', false);
       }
       else {
-        obj.val('');
+        // obj.val('');
+        // prevent clear user input data
       }
-      obj.rules('remove');
+      if (typeof obj.rules !== 'undefined') {
+        obj.rules('remove');
+      }
     }
   }
 
   var triggerDeviceType = function() {
-    var $taxReceiptDeviceType = $('input[name=taxReceiptDeviceType]:checked');
+    var $taxReceiptDeviceType = $('input[data-invpay2go=taxReceiptDeviceType]:checked');
     if ($taxReceiptDeviceType.length) {
       switch ($taxReceiptDeviceType.val()) {
         case '0':
-          showEle($('input[name=taxReceiptDeviceNumber]'));
-          $('input[name=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機號碼');
+          showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機號碼');
           break;
         case '1':
-          showEle($('input[name=taxReceiptDeviceNumber]'));
-          $('input[name=taxReceiptDeviceNumber]').prop('placeholder', '請輸入身分證字號');
+          showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入身分證字號');
           break;
         case '2':
-          hideEle($('input[name=taxReceiptDeviceNumber]'));
+          hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
           break;
       }
     }
     else {
-      hideEle($('input[name=taxReceiptDeviceNumber]'));
+      hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
     }
   }
   var triggerReceiptType = function(){
-    var $taxReceiptType = $('input[name=taxReceiptType]:checked');
+    var $taxReceiptType = $('input[data-invpay2go=taxReceiptType]:checked');
     if ($taxReceiptType.length) {
       switch ($taxReceiptType.val()) {
         case 'elec':
-          hideEle($('[name=taxReceiptDonate]'));
-          hideEle($('input[name=taxReceiptSerial]'));
-          showEle($('input[name=taxReceiptDeviceType]'));
+          hideEle($('[data-invpay2go=taxReceiptDonate]'));
+          hideEle($('input[data-invpay2go=taxReceiptSerial]'));
+          showEle($('input[data-invpay2go=taxReceiptDeviceType]'));
           break;
         case 'donate':
-          hideEle($('input[name=taxReceiptSerial]'));
-          hideEle($('input[name=taxReceiptDeviceType]'));
-          showEle($('[name=taxReceiptDonate]'));
+          hideEle($('input[data-invpay2go=taxReceiptSerial]'));
+          hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
+          showEle($('[data-invpay2go=taxReceiptDonate]'));
           triggerDeviceType();
           break;
         case 'company':
-          hideEle($('input[name=taxReceiptDeviceType]'));
-          hideEle($('[name=taxReceiptDonate]'));
-          showEle($('[name=taxReceiptSerial]'));
+          hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
+          hideEle($('[data-invpay2go=taxReceiptDonate]'));
+          showEle($('[data-invpay2go=taxReceiptSerial]'));
           break;
       }
     }
     else {
-      hideEle($('[name=taxReceiptDonate]'));
-      hideEle($('input[name=taxReceiptDeviceType]'));
-      hideEle($('input[name=taxReceiptDeviceNumber]'));
-      hideEle($('input[name=taxReceiptSerial]'));
+      hideEle($('[data-invpay2go=taxReceiptDonate]'));
+      hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
+      hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
+      hideEle($('input[data-invpay2go=taxReceiptSerial]'));
     }
     triggerDeviceType();
   }
-  $('input[name=taxReceiptType]').click(function(){
+  $(document).on('click', 'input[data-invpay2go=taxReceiptType]', function(){
     triggerReceiptType();
   });
-  $('input[name=taxReceiptDeviceType]').click(function(){
+  $(document).on('click', 'input[data-invpay2go=taxReceiptDeviceType]', function(){
     triggerDeviceType();
   });
   
