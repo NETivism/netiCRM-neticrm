@@ -50,10 +50,11 @@ function civicrm_esunbank_cron(){
   // fetch ftp
   // every one hour, we check a system path for esunbank payment
   $last = variable_get("civicrm_esunbank_cron", 0);
+  $sftp_dir = variable_get("civicrm_esunbank_sftp_dir", file_directory_path().'/private');
 
   if($now - $last >= 86399){
-    $dir = file_directory_temp().'/esunbank';
-    $dir2 = file_directory_temp().'/esunbank_processed';
+    $dir = $sftp_dir.'/esunbank';
+    $dir2 = $sftp_dir.'/esunbank_processed';
     if(file_check_directory($dir, FILE_CREATE_DIRECTORY) && file_check_directory($dir2, FILE_CREATE_DIRECTORY)){
       module_load_include('inc', 'civicrm_esunbank', 'civicrm_esunbank.ipn');
       // start trying process ftp data
