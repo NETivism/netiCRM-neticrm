@@ -9,7 +9,7 @@ function _neticrm_update_update_7222() {
   // Check data_type 
   $sql = "SELECT `data_type` FROM `civicrm_custom_field` WHERE `civicrm_custom_field`.`name` = 'shi_fou_xu_yao_shou_ju';";
   $data_type = CRM_Core_DAO::singleValueQuery($sql);
-  if($data_type = 'String'){
+  if($data_type == 'String'){
     return false;
   }
 
