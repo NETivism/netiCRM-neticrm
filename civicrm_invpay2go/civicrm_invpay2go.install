@@ -7,10 +7,15 @@ function civicrm_invpay2go_install() {
   module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
 
   civicrm_initialize();
-  $group = _civicrm_demo_create_custom_group('taxreceipt_info', '發票資訊');
+  $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+  if (empty($group_id)) {
+    $group = _civicrm_demo_create_custom_group('taxreceipt_info', '發票資訊');
+    $group_id = $group['id'];
+  }
 
   // custom fields
-  if(!empty($group['id'])){
+  if(!empty($group_id)){
+    variable_set('civicrm_invpay2go_invoice_group', $group_id);
     $fields = array();
     // radio
     $type_options = array(
@@ -18,20 +23,21 @@ function civicrm_invpay2go_install() {
       'donate' => array('label' => '捐發票', 'value' => 'donate', 'is_active' => 1, 'weight' => 2),
       'company' => array('label' => '公司戶發票', 'value' => 'company', 'is_active' => 1, 'weight' => 3),
     );
-    $fields['taxreceipt_type'] = _civicrm_demo_create_custom_field('taxreceipt_type', '索取發票類型', 'String', 'Radio', $group['id'], NULL, $type_options);
+    $fields['taxreceipt_type'] = _civicrm_demo_create_custom_field('taxreceipt_type', '索取發票類型', 'String', 'Radio', $group_id, NULL, $type_options);
     $device_type_options = array(
       'member' => array('label' => '會員載具', 'value' => '2', 'is_active' => 1, 'weight' => 1),
       'cellphone' => array('label' => '手機載具', 'value' => '0', 'is_active' => 1, 'weight' => 2),
       'identifier' => array('label' => '身份證字號', 'value' => '1', 'is_active' => 1, 'weight' => 3),
     );
-    $fields['taxreceipt_device_type'] = _civicrm_demo_create_custom_field('taxreceipt_device_type', '電子發票載具', 'String', 'Radio', $group['id'], NULL, $device_type_options);
+    $fields['taxreceipt_device_type'] = _civicrm_demo_create_custom_field('taxreceipt_device_type', '電子發票載具', 'String', 'Radio', $group_id, NULL, $device_type_options);
 
     // text
-    $fields['taxreceipt_device_number'] = _civicrm_demo_create_custom_field('taxreceipt_device_number', '自訂載具編號', 'String', 'Text', $group['id']);
-    $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group['id']);
-    $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group['id']);
-    $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group['id']);
-    $fields['taxreceipt_item'] = _civicrm_demo_create_custom_field('taxreceipt_item', '發票品項', 'String', 'Text', $group['id']);
+    $fields['taxreceipt_device_number'] = _civicrm_demo_create_custom_field('taxreceipt_device_number', '自訂載具編號', 'String', 'Text', $group_id);
+    $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group_id);
+    $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group_id);
+    $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group_id);
+    $fields['taxreceipt_item'] = _civicrm_demo_create_custom_field('taxreceipt_item', '發票品項', 'String', 'Text', $group_id);
+    $fields['taxreceipt_paper'] = _civicrm_demo_create_custom_field('taxreceipt_paper', '印出紙本發票', 'Boolean', 'Radio', $group_id, 0);
   }
 
   // set config
@@ -43,8 +49,39 @@ function civicrm_invpay2go_install() {
     'taxReceiptSerial' => $fields['taxreceipt_serial']['id'],
     'taxReceiptNumber' => $fields['taxreceipt_number']['id'],
     'taxReceiptItem' => $fields['taxreceipt_item']['id'],
+    'taxReceiptPaper' => $fields['taxreceipt_paper']['id'],
   );
   CRM_Core_BAO_ConfigSetting::add($params);
+}
+
+/**
+ * Add paper receipt option to custom field. #18992
+ */
+function civicrm_invpay2go_update_7001() {
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  if ($config->taxReceiptType) {
+    $params = array(
+      'id' => $config->taxReceiptType,
+    );
+    $field_type = array();
+    CRM_Core_BAO_CustomField::retrieve($params, $field_type);
+    if (!empty($field_type['custom_group_id'])) {
+      $group_id = $field_type['custom_group_id'];
+      variable_set('civicrm_invpay2go_invoice_group', $group_id);
+
+      module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+      $field_paper = _civicrm_demo_create_custom_field('taxreceipt_paper', '印出紙本發票', 'Boolean', 'Radio', $group_id, 0);
+      if (!empty($field_paper['id'])) {
+        $params = array(
+          'taxReceiptPaper' => $field_paper['id'],
+        );
+        CRM_Core_BAO_ConfigSetting::add($params);
+        return 'Success add new crm custom field for civicrm_invpay2go';
+      }
+    }
+  }
+  throw new DrupalUpdateException('No exists tax receipt custom group or add field error. Abort.');
 }
 
 /**
