@@ -212,3 +212,10 @@ function neticrm_update_update_7220() {
 function neticrm_update_update_7221() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Transfer receipt yes or no field contain more option
+ */
+function neticrm_update_update_7222() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
