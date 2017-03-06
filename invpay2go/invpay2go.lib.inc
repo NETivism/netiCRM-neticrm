@@ -141,10 +141,10 @@ class Pay2goInvoice {
       $this->checkResult = $checkResult;
     }
     $this->status = 0;
-    if ($verifyResponse && $this->checkResult && $data->status == 'SUCCESS') {
+    if ($verifyResponse && $this->checkResult && $data->Status == 'SUCCESS') {
       $this->status = 1;
     }
-    elseif ($data->status == 'SUCCESS') {
+    elseif ($data->Status == 'SUCCESS') {
       $this->status = 1;
     }
 
