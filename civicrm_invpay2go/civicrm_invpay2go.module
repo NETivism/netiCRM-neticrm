@@ -203,6 +203,14 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
         }
       }
       break;
+    case 'CRM_Contribute_Form_TaxReceipt':
+      if (!empty($form->_tplParams['taxReceiptFields']['taxReceiptType'])) {
+        $default = array('tax_receipt_paper' => 1);
+        $form->setDefaults($default);
+        $element = $form->getElement('tax_receipt_paper');
+        $element->freeze();
+      }
+      break;
   }
 }
 
@@ -244,8 +252,6 @@ function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$for
         }
         $errors = array_merge($errors, _civcirm_invpay2go_params_validation($elements));
       }
-      break;
-    case 'CRM_Contribute_Form_TaxReceipt':
       break;
   }
   return $errors;
