@@ -42,11 +42,11 @@ function civicrm_allpay_install() {
   civicrm_initialize( );
 
   // new payment processor - credit card (allowed recurring)
-  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '歐付寶信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."', NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."', NULL, 4, 1, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '綠界信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."', NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."', NULL, 4, 1, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment processor - others (not allowed recurring)
-  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAYX', '歐付寶非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', NULL, NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', NULL, NULL, 4, 0, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAYX', '綠界非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', NULL, NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', NULL, NULL, 4, 0, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment instrument
@@ -177,5 +177,16 @@ function civicrm_allpay_update_7104() {
   url_api = REPLACE(url_api, 'allpay.com', 'ecpay.com'), 
   url_recur = REPLACE(url_recur, 'allpay.com', 'ecpay.com') 
   WHERE url_site LIKE '%allpay.com%'";
+  CRM_Core_DAO::executeQuery($sql);
+}
+
+/**
+ * Update allpay to ecpay. refs #18766
+ */
+function civicrm_allpay_update_7105() {
+  civicrm_initialize( );
+  $sql = "UPDATE civicrm_payment_processor_type SET 
+  title = REPLACE(title, '歐付寶', '綠界')
+  WHERE title LIKE '%歐付寶%'";
   CRM_Core_DAO::executeQuery($sql);
 }
