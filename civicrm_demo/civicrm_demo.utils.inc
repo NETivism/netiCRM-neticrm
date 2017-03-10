@@ -292,7 +292,9 @@ function civicrm_demo_create_custom_profile(){
     if(!empty($copy->id) && $copy->id != $uf_group_name_addr['id']){
       $copy->title = '捐款基本資料';
       $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '帳單'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%' AND uf_group_id = $copy->id");
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '收據'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%' AND uf_group_id = $copy->id");
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '收據寄送地址' WHERE label LIKE '縣市（收據）' AND uf_group_id = $copy->id");
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '街道地址' WHERE label LIKE '街道地址（收據）' AND uf_group_id = $copy->id");
       CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET is_active = 0 WHERE label LIKE '國家%' AND uf_group_id = $copy->id");
       CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 1 WHERE label LIKE '姓氏%' AND uf_group_id = $copy->id");
       CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 2 WHERE label LIKE '名字%' AND uf_group_id = $copy->id");
