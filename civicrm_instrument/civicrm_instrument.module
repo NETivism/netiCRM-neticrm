@@ -145,6 +145,27 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
           );
         }
       }
+    // contribution page settings
+    case 'CRM_Contribute_Form_ContributionPage_Amount':
+    case 'CRM_Event_Form_ManageEvent_Fee':
+      if (!empty($fields['is_monetary']) && !empty($fields['payment_processor'])) {
+        if (empty($form->_submitValues['payment_instrument'])) {
+          $js = 'cj(document).ready(function($) {
+  var requiredInstrument = "'.ts('%1 is a required field.', array(1 => ts('Payment Instrument'))).'";
+  if ($("#crm-container label[for=payment_instrument]").length) {
+    var $instrumentLabel = $("#crm-container label[for=payment_instrument]");
+    $instrumentLabel.addClass("crm-error crm-error-label");
+    var $errMsg = $("<span>" + requiredInstrument + "</span>");
+    $errMsg.addClass("crm-error");
+    $("#crm-container .instrument-wrapper label:nth(0)").after($errMsg);
+  }
+});';
+          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+          return array(
+            'payment_instrument' => ts('%1 is a required field.', array(1 => ts('Payment Instrument'))),
+          );
+        }
+      }
       break;
   }
 }
