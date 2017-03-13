@@ -27,6 +27,6 @@ function _neticrm_update_update_7222() {
   $sql = "INSERT INTO `civicrm_option_group` (`id`, `name`, `label`, `description`, `is_reserved`, `is_active`) VALUES (NULL,'shi_fou_xu_yao_shou_ju_$time', '是否需要收據', '是否需要收據', NULL, '1');";
   CRM_Core_DAO::executeQuery($sql);
 
-  $sql = "INSERT INTO `civicrm_option_value` (`id`, `option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`,`weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `domain_id`, `visibility_id`) VALUES (NULL,'$new_og_id', '不要（無抵稅需求/不用寄給我收據）', '0', 'no', NULL, NULL, '0', '0', NULL, '0', '0', '1', NULL, NULL, NULL), (NULL, '$new_og_id', '需要（請寄給我紙本收據（年寄））', '1', 'yes', NULL, NULL, '0', '1', NULL, '0', '0', '1', NULL, NULL, NULL), (NULL, '$new_og_id', '需要（不用寄給我/請幫我在隔年五月上傳至國稅局）', '2', 'yes_upload', NULL, NULL, '0', '2', NULL, '0', '0', '0', NULL, NULL, NULL);";
+  $sql = "INSERT INTO `civicrm_option_value` (`id`, `option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`,`weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `domain_id`, `visibility_id`) VALUES (NULL,'$new_og_id', '不要（無抵稅需求/不用寄給我收據）', '0', 'no', NULL, NULL, '0', '0', NULL, '0', '0', '1', NULL, NULL, NULL), (NULL, '$new_og_id', '需要（請寄給我紙本收據）', '1', 'yes', NULL, NULL, '0', '1', NULL, '0', '0', '1', NULL, NULL, NULL), (NULL, '$new_og_id', '需要（不用寄給我/請幫我在隔年五月上傳至國稅局）', '2', 'yes_upload', NULL, NULL, '0', '2', NULL, '0', '0', '0', NULL, NULL, NULL);";
   CRM_Core_DAO::executeQuery($sql);
 }
