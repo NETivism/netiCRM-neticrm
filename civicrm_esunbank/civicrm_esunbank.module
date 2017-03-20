@@ -52,7 +52,7 @@ function civicrm_esunbank_cron(){
   $last = variable_get("civicrm_esunbank_cron", 0);
   $sftp_dir = variable_get("civicrm_esunbank_sftp_dir", file_directory_path().'/private/esunbank');
 
-  if($now - $last >= 86399){
+  if($now - $last >= 7200){
     $dir = $sftp_dir;
     $dir2 = $sftp_dir.'_processed';
     if(file_check_directory($dir, FILE_CREATE_DIRECTORY) && file_check_directory($dir2, FILE_CREATE_DIRECTORY)){
@@ -96,17 +96,16 @@ function civicrm_esunbank_process_file($path){
       $post = array('Data' => $data);
       $results = civicrm_esunbank_ipn($post, TRUE);
 
-      // file move, we can't use drupal file_move because it's only move to drupal
-      if (copy($path, $dest)) {
-        unlink($path);
-      }
-
       if($results === FALSE){
         // empty results
       }
       else{
         watchdog('civicrm_esunbank', var_export($results, true));
       }
+    }
+    // file move, we can't use drupal file_move because it's only move to drupal
+    if (copy($path, $dest)) {
+      unlink($path);
     }
   }
 }
