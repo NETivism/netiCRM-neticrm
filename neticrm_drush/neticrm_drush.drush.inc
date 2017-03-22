@@ -97,7 +97,24 @@ function drush_neticrm_schedule_job($function = NULL){
     $force = drush_get_option('force', FALSE);
     $last = $jobs[$function]['last'];
     $frequency = $jobs[$function]['frequency'];
-    if($force || $now - $last > $frequency){
+
+    $hour = 0;
+    $min_hour = 0;
+    $max_hour = 24;
+    if (!empty($jobs[$function]['hour'])) {
+      $hour = $jobs[$function]['hour'];
+    }
+    if ($hour) {
+      preg_match('/(\d)+-?(\d+)?/', $hour, $matches);
+      if (count($matches) > 2 && $matches[2] > $matches[1]) {
+        $min_hour = $matches[1];
+        $max_hour = $matches[2];
+      }
+      else {
+        $min_hour = $matches[1];
+      }
+    }
+    if($force || ($now - $last > $frequency && date('G') >= $min_hour && date('G') <= $max_hour)){
       _neticrm_drush_init();
       require_once($function_file);
       $function();
@@ -201,6 +218,13 @@ function _drush_neticrm_schedule_default(){
     'run_participant_processor' => array(
       'frequency' => 3600,
       'last' => 0, // unix timestamp
+    ),
+
+    // process report 
+    'run_civireport_mail' => array(
+      'frequency' => 86399,
+      'last' => 0, // unix timestamp
+      'hour' => '6-8',
     ),
   );
 }
