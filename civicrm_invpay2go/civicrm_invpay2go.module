@@ -200,12 +200,15 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
       break;
     case 'CRM_Contribute_Form_TaxReceipt':
       if (!empty($form->_tplParams['taxReceiptFields']['taxReceiptType']) && isset($form->_elementIndex['tax_receipt_paper'])) {
-        $default = array('tax_receipt_paper' => 1);
-        $form->setDefaults($default);
         if ($form->_tplParams['taxReceiptFields']['taxReceiptType']['value'] == 'company') {
+          $default = array('tax_receipt_paper' => 1);
           $element = $form->getElement('tax_receipt_paper');
           $element->freeze();
         }
+        else {
+          $default = array('tax_receipt_paper' => 0);
+        }
+        $form->setDefaults($default);
       }
       break;
   }
