@@ -221,8 +221,9 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     if($input['RtnCode'] != 1 && $pass){
       $response_code = $input['RtnCode'];
       $response_msg = $input['RtnMsg'];
-      $note .= "Failed $response_code: $response_msg";
-      $this->failed( $objects, $transaction );
+      $failed_reason = $response_msg.' ('.ts('Error Code:').$response_code.')';
+      $note .= $failed_reason;
+      $this->failed($objects, $transaction, $failed_reason);
       $pass = FALSE;
     }
 
