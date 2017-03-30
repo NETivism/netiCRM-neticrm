@@ -229,3 +229,10 @@ function neticrm_update_update_6122() {
 function neticrm_update_update_6123() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Move receive date to cancel date of failed contribution. refs #19459
+ */
+function neticrm_update_update_6124() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
