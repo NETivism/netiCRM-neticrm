@@ -222,3 +222,10 @@ function neticrm_update_update_6121() {
 function neticrm_update_update_6122() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change receipt subject if no payment required, refs #19810
+ */
+function neticrm_update_update_6123() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
