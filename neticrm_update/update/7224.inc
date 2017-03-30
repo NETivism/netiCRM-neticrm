@@ -8,4 +8,5 @@ function _neticrm_update_update_7224() {
   $sql = "UPDATE civicrm_contribution c INNER JOIN civicrm_note n ON c.id = n.entity_id AND n.entity_table = 'civicrm_contribution' SET c.cancel_date = c.receive_date, c.cancel_reason = n.note WHERE c.contribution_status_id = 4 AND c.receive_date IS NOT NULL AND c.cancel_date IS NULL AND c.contribution_recur_id IS NOT NULL";
   CRM_Core_DAO::executeQuery($sql);
 
+  return 'Successful update recurring contribution cancel date.';
 }
