@@ -236,3 +236,10 @@ function neticrm_update_update_6123() {
 function neticrm_update_update_6124() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change is_recur type of contribution page. refs #18981
+ */
+function neticrm_update_update_6125() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
