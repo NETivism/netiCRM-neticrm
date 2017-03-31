@@ -355,7 +355,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     if( !empty($field['country'][$k])){
       $js .= '
       if( $("form#'.$form_name.' select[name=\''.$field['country'][$k]['name'].'\']").length ){
-            $("select[name='.$field['country'][$k]['name'].']").change(function(){
+            $("select[name=\''.$field['country'][$k]['name'].'\']").change(function(){
               if($(this).val() == "1208"){
                 applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
               }else{
@@ -464,7 +464,7 @@ function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
         var areaname = $("select[name*=\''.$field['areaName'][$k]['key'].'\']").attr("name");
         var countyname = $("select[name*=\''.$field['countyName'][$k]['key'].'\']").attr("name");
 
-        $("form[name='.$form_name.']").twzipcode({
+        $("form[name=\''.$form_name.'\']").twzipcode({
           zipName:zipname,
           countyName:countyname,
           areaName:areaname,
