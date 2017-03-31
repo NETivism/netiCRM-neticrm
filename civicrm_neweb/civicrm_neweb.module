@@ -114,6 +114,37 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
   }
 }
 
+
+/**
+ * Implementation of hook_validate()
+ */
+function civicrm_neweb_civicrm_validate($formName, &$fields, &$files, &$form){
+  $error = array();
+  switch($formName){
+    case 'CRM_Contribute_Form_Contribution_Main':
+      if($fields['frequency_unit']== 'year' && $form->_paymentProcessor['payment_processor_type'] == 'Neweb'){
+        $error['frequency_unit'] = t("Please select 'month' in frequency unit field when payment processor is Neweb.");
+      }
+      break;
+    case 'CRM_Contribute_Form_ContributionPage_Amount':
+      if($fields['recur_frequency_unit']['year'] == 1 ){
+        $pps = $fields['payment_processor'];
+        foreach ($pps as $pp_id => $is_active) {
+          if($is_active){
+            $sql = "SELECT pp.payment_processor_type FROM civicrm_payment_processor pp WHERE pp.id = $pp_id";
+            $pp_type = CRM_Core_DAO::singleValueQuery($sql);
+            if($pp_type == 'Neweb'){
+                $error['recur_frequency_unit'] = t("Please select 'month' in frequency unit field when payment processor is Neweb.");
+              break;
+            }
+          }
+        }
+      }
+      break;
+  }
+  return $error;
+}
+
 /**
  * Implementation of hook_postProcess()
  */

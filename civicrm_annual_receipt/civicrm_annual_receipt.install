@@ -178,7 +178,7 @@ function civicrm_annual_receipt_update_6102(){
   if (!empty($params['id'])) {
     CRM_Core_BAO_MessageTemplates::add($params);
   }
-  return 'Successful update annual receipt.';
+  return array('success' => FALSE, 'query' => 'Successful update annual receipt.');
 }
 
 function _civicrm_annual_receipt_tpl() {

@@ -36,6 +36,15 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_rebuild_menu',
   );
+
+  /* Clear civicrm cache */
+  $items['neticrm-clear-cache'] = array(
+    'description' => 'Clear civicrm cache table',
+    'examples' => array(
+      'drush neticrm-clear-cache',
+    ),
+    'callback' => 'drush_neticrm_clear_cache',
+  );
   return $items;
 }
 
@@ -100,6 +109,14 @@ function drush_neticrm_rebuild_menu(){
   civicrm_initialize();
   CRM_Core_Menu::store();
   CRM_Core_BAO_Navigation::resetNavigation();
+}
+
+function drush_neticrm_clear_cache(){
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  $config->clearDBCache();
+  $config->cleanup(1);
+  drush_log("netiCRM cache cleared", "ok");
 }
 
 /**

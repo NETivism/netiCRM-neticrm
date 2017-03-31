@@ -59,9 +59,11 @@ function civicrm_esunbank_ipn($post = NULL, $slient = NULL){
       // after all script processed, we always output OK for esunbank https
       else{
         print 'OK';
+        CRM_Utils_System::civiExit();
       }
     }
   }
+  CRM_Utils_System::civiExit();
   return FALSE;
 }
 
