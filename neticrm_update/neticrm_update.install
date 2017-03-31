@@ -219,3 +219,24 @@ function neticrm_update_update_7221() {
 function neticrm_update_update_7222() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change receipt subject if no payment required, refs #19810
+ */
+function neticrm_update_update_7223() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Move receive date to cancel date of failed contribution. refs #19459
+ */
+function neticrm_update_update_7224() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Change is_recur type of contribution page. refs #18981
+ */
+function neticrm_update_update_7225() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

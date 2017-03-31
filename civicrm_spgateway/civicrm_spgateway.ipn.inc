@@ -246,8 +246,9 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     if($input['Status'] != 'SUCCESS' && $pass){
       $response_code = $input['Status'];
       $response_msg = $input['RtnMsg'];
-      $note .= "Failed $response_code: $response_msg";
-      $this->failed( $objects, $transaction );
+      $failed_reason = $response_msg. ' ('.ts('Error Code:'). $response_code.')';
+      $note .= $failed_reason;
+      $this->failed($objects, $transaction, $failed_reason);
       $pass = FALSE;
     }
 

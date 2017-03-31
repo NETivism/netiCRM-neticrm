@@ -410,7 +410,7 @@ function civicrm_neweb_update_7204(){
 /**
  * Update translations
  */
-function civicrm_neweb_update_7205(){
+function civicrm_neweb_update_7206(){
   require_once DRUPAL_ROOT . '/includes/locale.inc';
   $module_root = drupal_get_path('module', 'civicrm_neweb');
   // make a new $file object
