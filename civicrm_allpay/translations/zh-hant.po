@@ -86,3 +86,6 @@ msgstr "玉山儲值消費交易失敗"
 
 msgid "Error when processing your payment."
 msgstr "您的付款發生錯誤"
+
+msgid "Please login your payment processor system to check problem."
+msgstr "因金流單位並未回傳失敗原因，請去綠界/歐付寶金流後台確認。"

@@ -639,7 +639,7 @@ function _civicrm_allpay_error_msg($code){
     '10200052' => 'MerchantTradeNo Error.',
     '10200073' => 'CheckMacValue Error',
     '10200124' => 'TopUpUsedESUN Trade Error',
-    'uncertain' => 'Go check in https://vendor.ecpay.com.tw/',
+    'uncertain' => 'Please login your payment processor system to check problem.',
   );
   if(!empty($msg[$code])){
     return t($msg[$code]);
