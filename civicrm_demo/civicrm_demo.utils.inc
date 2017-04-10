@@ -185,7 +185,117 @@ function civicrm_demo_process_contribution($vars){
       civicrm_api('Contribution', 'create', $params);
     }
   }
+}
 
+function civicrm_demo_process_membership($vars){
+  civicrm_initialize();
+  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
+  $domain_id = CRM_Core_Config::domainID();
+
+  // check if any organization contact exists
+	$params = array(
+		'contact_type' => 'Organization',
+		'options.limit' => 1,
+		'version' => 3,
+	);
+	$results = civicrm_api('Contact', 'get', $params);
+
+  // create organization for membership
+  $org_id = 0;
+  if (empty($results['id'])) {
+    $params = array( 
+		  'version' => 3,
+		);
+    $organization_name = $results['values'][$results['id']]['name'];
+    if ($organization_name) {
+      $params = array(
+        'contact_type' => 'Organization',
+        'organization_name' => $organization_name,
+        'version' => 3,
+      );
+      $org = civicrm_api('Contact', 'create', $params);
+      if (!empty($org['id'])) {
+        $org_id = $org['id'];
+      }
+    }
+  }
+  else {
+    $org_id = $results['id'];
+  }
+
+  if ($org_id) {
+    $types = CRM_Contribute_PseudoConstant::contributionType();
+    $contribution_type_id = array_search(ts('Member Dues'), $types);
+    if (empty($contribution_type_id)) {
+      $contribution_type_id = key($types);
+    }
+    $params = array(
+      'version' => 3,
+    );
+    $membership_type = civicrm_api('membership_type', 'get', $params);
+    if (!empty($membership_type['count'])) {
+      foreach($membership_type['values'] as $mem_type) {
+        if($mem_type['id']) {
+          $membership_type_id = $mem_type['id'];
+          break;
+        }
+      }
+    }
+    else {
+      $params = array( 
+        'name' => '一般會員',
+        'description' => '由系統建立的一般會員類型示範',
+        'member_of_contact_id' => $org_id,
+        'contribution_type_id' => $contribution_type_id,
+        'financial_type_id' => $contribution_type_id,
+        'domain_id' => $domain_id,
+        'minimum_fee' => '1000',
+        'duration_unit' => 'year',
+        'duration_interval' => '1',
+        'period_type' => 'fixed',
+        'visibility' => 'public',
+        'is_active' => 1,
+        'version' => 3,
+      );
+
+      $membership_type = civicrm_api('membership_type', 'create', $params);
+      if (!empty($membership_type['id'])) {
+        $membership_type_id = $membership_type['id'];
+      }
+    }
+  }
+
+  // only create demo membership when sample data needed
+  if ($membership_type_id && variable_get('civicrm_demo_sample_data', 0)) {
+		$membership_limit = $vars['limit']; // total limit this batch
+    $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    $membership_count = 0;
+    while($dao->fetch()){
+      $membership_count++;
+      $start_year = (int) date('Y');
+      $start_year -= mt_rand(0, 5);
+      $end_year = $start_year + mt_rand(1, 3);
+
+      $params = array(
+        'contact_id' => $dao->id,
+        'membership_type_id' => $membership_type_id,
+        'join_date' => $start_year.'-01-01',
+        'start_date' => $start_year.'-01-01',
+        'end_date' => $end_year.'-12-31',
+        'source' => '示範用途',
+        'is_test' => $is_test,
+        'version' => 3,
+      );
+      $mem = civicrm_api('membership','create', $params);
+      if ($mem['id']) {
+        $membership_count++;
+      }
+      if ($membership_count > $membership_limit) {
+        break;
+      }
+    }
+  }
 }
 
 function civicrm_demo_create_contribution_page($payment_processor_type){

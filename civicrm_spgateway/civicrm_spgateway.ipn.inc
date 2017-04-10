@@ -260,12 +260,13 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $c = clone $contrib;
       unset($c->id);
       unset($c->receive_date);
+      unset($c->cancel_date);
+      unset($c->cancel_reason);
       unset($c->invoice_id);
       unset($c->receipt_id);
       $c->contribution_status_id = 2;
       $c->trxn_id = $trxn_id;
       $time = strtotime(self::$_input['AuthDate']);
-      $c->receive_date = date('YmdHis', $time);
       $c->created_date = date('YmdHis');
       $c->save();
       CRM_Contribute_BAO_ContributionRecur::syncContribute($rid, $c->id);

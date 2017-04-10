@@ -190,3 +190,18 @@ function civicrm_allpay_update_7105() {
   WHERE title LIKE '%歐付寶%'";
   CRM_Core_DAO::executeQuery($sql);
 }
+
+/**
+ * Update translation. refs #19459
+ */
+function civicrm_allpay_update_7106() {
+  if(module_exists('neticrm_update')){
+    module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+    $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_allpay').'/translations/');
+    foreach($files as $f){
+      $filename = basename($f);
+      $langcode = substr($filename, 0, strpos($filename, '.'));
+      neticrm_update_import_po($f, $langcode);
+    }
+  }
+}

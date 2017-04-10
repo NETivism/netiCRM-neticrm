@@ -219,6 +219,10 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       
     // process fail response
     if($input['RtnCode'] != 1 && $pass){
+      if (!empty($input['ProcessDate'])) {
+        $time = strtotime($input['ProcessDate']);
+        $objects['contribution']->cancel_date = date('YmdHis', $time);
+      }
       $response_code = $input['RtnCode'];
       $response_msg = $input['RtnMsg'];
       $failed_reason = $response_msg.' ('.ts('Error Code:').$response_code.')';
@@ -241,13 +245,6 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       unset($c->receipt_id);
       $c->contribution_status_id = 2;
       $c->trxn_id = $trxn_id;
-      $time = strtotime(self::$_input['ProcessDate']);
-      if ($contrib->contribution_status_id == 1) {
-        $c->receive_date = date('YmdHis', $time);
-      }
-      else {
-        $c->cancel_date = date('YmdHis', $time);
-      }
       $c->created_date = date('YmdHis');
       $c->save();
       CRM_Contribute_BAO_ContributionRecur::syncContribute($rid, $c->id);
