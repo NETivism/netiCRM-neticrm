@@ -225,6 +225,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       }
       $response_code = $input['RtnCode'];
       $response_msg = $input['RtnMsg'];
+      $response_msg .= "\n"._civicrm_allpay_error_msg($response_code);
       $failed_reason = $response_msg.' ('.ts('Error Code:').$response_code.')';
       $note .= $failed_reason;
       $this->failed($objects, $transaction, $failed_reason);

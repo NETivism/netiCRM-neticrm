@@ -240,3 +240,10 @@ function neticrm_update_update_7224() {
 function neticrm_update_update_7225() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Enable ienomore modules. refs #16489
+ */
+function neticrm_update_update_7226() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
