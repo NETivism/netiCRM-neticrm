@@ -163,7 +163,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     
     // check contribution id matches
-    if ( $contribution->trxn_id != $valid_value['MerchantOrderNo'] ) {
+    if ( !strstr($contribution->trxn_id, $valid_value['MerchantOrderNo']) ) {
       watchdog("civicrm_spgateway", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']} " );
       $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']}")."\n";
       $pass = FALSE;
@@ -245,7 +245,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     // process fail response
     if($input['Status'] != 'SUCCESS' && $pass){
       $response_code = $input['Status'];
-      $response_msg = $input['RtnMsg'];
+      $response_msg = $input['Message']."\n"._civicrm_spgateway_error_msg($response_code);
       $failed_reason = $response_msg. ' ('.ts('Error Code:'). $response_code.')';
       $note .= $failed_reason;
       $this->failed($objects, $transaction, $failed_reason);
