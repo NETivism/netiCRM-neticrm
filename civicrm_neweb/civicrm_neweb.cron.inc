@@ -316,8 +316,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution =& $contrib;
           unset($contribution->id);
           unset($contribution->receive_date);
-          unset($c->cancel_date);
-          unset($c->cancel_reason);
+          unset($contribution->cancel_date);
+          unset($contribution->cancel_reason);
           unset($contribution->trxn_id);
           unset($contribution->invoice_id);
           unset($contribution->receipt_id);
