@@ -219,10 +219,16 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       
     // process fail response
     if($input['RtnCode'] != 1 && $pass){
+      if (!empty($input['ProcessDate'])) {
+        $time = strtotime($input['ProcessDate']);
+        $objects['contribution']->cancel_date = date('YmdHis', $time);
+      }
       $response_code = $input['RtnCode'];
       $response_msg = $input['RtnMsg'];
-      $note .= "Failed $response_code: $response_msg";
-      $this->failed( $objects, $transaction );
+      $response_msg .= "\n"._civicrm_allpay_error_msg($response_code);
+      $failed_reason = $response_msg.' ('.ts('Error Code:').$response_code.')';
+      $note .= $failed_reason;
+      $this->failed($objects, $transaction, $failed_reason);
       $pass = FALSE;
     }
 
@@ -234,12 +240,12 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       $c = clone $contrib;
       unset($c->id);
       unset($c->receive_date);
+      unset($c->cancel_date);
+      unset($c->cancel_reason);
       unset($c->invoice_id);
       unset($c->receipt_id);
       $c->contribution_status_id = 2;
       $c->trxn_id = $trxn_id;
-      $time = strtotime(self::$_input['ProcessDate']);
-      $c->receive_date = date('YmdHis', $time);
       $c->created_date = date('YmdHis');
       $c->save();
       CRM_Contribute_BAO_ContributionRecur::syncContribute($rid, $c->id);
