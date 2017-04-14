@@ -121,7 +121,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
       }
       else{
         $contribution_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution c WHERE c.contribution_recur_id = {$recur->id} ORDER BY c.id ASC");
-        $contrib =& new CRM_Contribute_DAO_Contribution();
+        $contrib = new CRM_Contribute_DAO_Contribution();
         $contrib->id = $contribution_id;
         $sql = "UPDATE civicrm_contribution_neweb_recur SET response=$now WHERE recur_id = {$recur->id}";
         CRM_Core_DAO::executeQuery($sql);
@@ -265,7 +265,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       }
       $qvar = array(1 => array($t['REFNUMBER'], 'Integer'));
       $contribution_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution c WHERE c.contribution_recur_id = %1 ORDER BY c.id ASC", $qvar);
-      $contrib =& new CRM_Contribute_DAO_Contribution();
+      $contrib = new CRM_Contribute_DAO_Contribution();
       $contrib->id = $contribution_id;
       if ( !$contrib->find( true ) ) { 
         $error = "Can't not find the first contribution id here";
@@ -317,10 +317,12 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution =& $contrib;
           unset($contribution->id);
           unset($contribution->receive_date);
+          unset($contribution->cancel_date);
+          unset($contribution->cancel_reason);
           unset($contribution->trxn_id);
           unset($contribution->invoice_id);
           unset($contribution->receipt_id);
-          $contribution->receive_date = date('YmdHis', $now);
+          $contribution->contribution_status_id = 2;
           $contribution->created_date = date('YmdHis', $now);
 
           // If the find trxn_id == 'ORGORDERNUMBER' but recur_id isn't correct.
@@ -377,6 +379,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         // Check the response
         // Status: Complete
         if( ($t['PRC'] == 0 && $t['SRC'] == 0) || ($t['PRC'] == '11' && $t['SRC'] == '205') ){
+          $objects['contribution']->receive_date = date('YmdHis', $now);
           $IPN->completeTransaction( $input, $ids, $objects, $transaction, true);
           $cycle = $recur->cycle + 1;
           $sql = "UPDATE civicrm_contribution_neweb_recur SET contributions = $now, cycle = $cycle WHERE recur_id = $recur->id";
@@ -741,7 +744,7 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
 
     // initialize objects and ids
     $note = '';
-    $c =& new CRM_Contribute_DAO_Contribution();
+    $c = new CRM_Contribute_DAO_Contribution();
     $c->id = $dao->id;
     $c->find(true);
     $ids['contact'] = $c->contact_id;
@@ -759,7 +762,7 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
     }
 
     $transaction = new CRM_Core_Transaction();
-    $ipn =& new CRM_Core_Payment_BaseIPN();
+    $ipn = new CRM_Core_Payment_BaseIPN();
 
     if($ipn->validateData($input, $ids, $objects, TRUE, $pid) && $result){
       // check result
@@ -808,7 +811,7 @@ function civicrm_neweb_process_ezpay($is_test, $now, $pid){
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
       elseif($result['rc']){
-        // FIXME to see if cancel contribution
+        // FIXME to see if go failed contribution
         $note .= ts("Error").": ".$result['rc']."/".$result['rc2']."\n";
         _civicrm_neweb_addnote($note, $c->id, $c->contact_id);
       }
