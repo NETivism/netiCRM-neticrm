@@ -88,7 +88,15 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       if( $this->validateOthers($input, $ids, $objects, $transaction, $note) ){
         $contribution =& $objects['contribution'];
         if(empty($contribution->receive_date)){
-          $contribution->receive_date = $input['PaymentDate'] ? date('YmdHis', strtotime($input['PaymentDate'])) : date('YmdHis');
+          if (!empty($input['PaymentDate'])) {
+            $contribution->receive_date = date('YmdHis', strtotime($input['PaymentDate']));
+          }
+          elseif (!empty($input['ProcessDate'])) {
+            $contribution->receive_date = date('YmdHis', strtotime($input['ProcessDate']));
+          }
+          else {
+            $contribution->receive_date = date('YmdHis');
+          }
         }
 
         // assign trxn_id before complete transaction

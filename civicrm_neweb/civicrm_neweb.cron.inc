@@ -388,7 +388,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         // Status: failed, cancel. We don't have retry mechnism.
         else{
           $err = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
-          $IPN->failed($objects, $transaction);
+          $IPN->failed($objects, $transaction, $err);
           // TODO: record failed reason 
         }
         CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
