@@ -364,7 +364,7 @@ function civicrm_demo_create_custom_profile(){
       'yes' => array('label' => '需要（請寄給我紙本收據）', 'value' => '1', 'is_active' => 1, 'weight' => 2),
       'yes_upload' => array('label' => '需要（不用寄給我/請幫我在隔年五月上傳至國稅局）', 'value' => '2', 'is_active' => 0, 'weight' => 3),
     );
-    $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'String', 'Radio', $group['id'], 1, $options);
+    $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'String', 'Radio', $group['id'], 1, $options, 1);
     $fields['receipt_title'] = _civicrm_demo_create_custom_field('receipt_title', '收據抬頭', 'String', 'Text', $group['id']);
     $fields['receipt_serial'] = _civicrm_demo_create_custom_field('receipt_serial', '收據編號', 'String', 'Text', $group['id']);
     $fields['receipt_donor_credit'] = _civicrm_demo_create_custom_field('receipt_donor_credit', '捐款徵信名稱', 'String', 'Text', $group['id']);
@@ -785,7 +785,7 @@ function _civicrm_demo_create_custom_group($name, $title){
   return $custom_group;
 }
 
-function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL, $options = NULL){
+function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL, $options = NULL, $options_per_line = NULL){
   $params = array(
     'label' => $title,
     'version' => 3,
@@ -807,6 +807,7 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
     );
     if (!empty($options)) {
       $params['option_values'] = $options; 
+      $params['options_per_line'] = $options_per_line;
     }
     if(!is_null($default)){
       $params['default_value'] = $default;
