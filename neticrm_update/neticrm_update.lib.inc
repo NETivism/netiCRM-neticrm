@@ -5,18 +5,24 @@
  * This will populate the locales_target table in the database
  * with the strings from the PO file.
  *
+ * @param $poFile string full path to .po file or module name
  * @param $langcode string (e.g. fr, de, it)
- * @param $poFile string full path to .po file
  * @param $mode const LOCALE_IMPORT_OVERWRITE (overwrite existing translations) or LOCALE_IMPORT_KEEP (only import new strings)
  * @param $group string Text group to import PO file into (eg. 'default' for interface translations)
  * @param $add_language_options array optional parameters for locale_add_language (name, native, direction, domain, prefix, enabled, default)
  * @return bool success
  */
 function neticrm_update_import_po($pofile, $langcode, $mode = LOCALE_IMPORT_OVERWRITE, $group = 'default') {
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+  if (module_exists($pofile)) {
+		$uri = drupal_get_path("module", $module)."/translations/$langcode.po"; 
+  }
+  else {
+    $uri = $pofile;
+  }
+  
   $file = new stdClass;
-  $file->filepath = $pofile;
-  $file->filename = basename($pofile);
-  $file->uri = $file->filepath;
+  $file->uri = $uri;
   return _locale_import_po($file, $langcode, $mode, $group);
 }
  
