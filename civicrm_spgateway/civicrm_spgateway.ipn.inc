@@ -163,7 +163,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     
     // check contribution id matches
-    if ( !strstr($contribution->trxn_id, $valid_value['MerchantOrderNo']) ) {
+    if ( !strstr($contribution->trxn_id, $valid_value['MerchantOrderNo'])) {
       watchdog("civicrm_spgateway", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']} " );
       $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$valid_value['MerchantOrderNo']}")."\n";
       $pass = FALSE;
