@@ -22,7 +22,9 @@ function neticrm_update_import_po($pofile, $langcode, $mode = LOCALE_IMPORT_OVER
   }
   
   $file = new stdClass;
+  $file->filepath = $uri;
   $file->uri = $uri;
+  $file->filename = basename($uri);
   return _locale_import_po($file, $langcode, $mode, $group);
 }
  
