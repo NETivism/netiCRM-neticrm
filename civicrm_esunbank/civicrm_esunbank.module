@@ -86,7 +86,10 @@ function civicrm_esunbank_process_file($path){
   // not today file
   $today = (date('Y')-1911).date('md');
   if(file_exists($path) && !strstr($path, $today) && $num_files <= 5){
-    $dest = str_replace('/esunbank/', '/esunbank_processed/', $path);
+    $sftp_dir = variable_get("civicrm_esunbank_sftp_dir", file_directory_path().'/private/esunbank');
+    $dir = $sftp_dir;
+    $dir2 = $sftp_dir.'_processed';
+    $dest = $dir2.'/'.basename($path);
     $data = file_get_contents($path);
     if (substr($data, 0,3) == pack("CCC",0xef,0xbb,0xbf)) {
       $data = substr($data, 3);
