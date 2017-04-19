@@ -208,3 +208,11 @@ function neticrm_update_update_6119() {
 function neticrm_update_update_6120() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update receipt message. refs #19627
+ */
+function neticrm_update_update_6127() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
