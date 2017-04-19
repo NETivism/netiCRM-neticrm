@@ -247,3 +247,10 @@ function neticrm_update_update_7225() {
 function neticrm_update_update_7226() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update receipt message. refs #19627
+ */
+function neticrm_update_update_7227() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
