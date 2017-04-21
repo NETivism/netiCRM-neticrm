@@ -20,6 +20,8 @@ function invpay2go_admin_settings() {
   }
   $pid++;
   $form['container'][$pid] = _invpay2go_admin_settings_form($pid, array());
+  $form['container'][$pid]['#collapsible'] = TRUE;
+  $form['container'][$pid]['#collapsed'] = TRUE;
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => 'Submit',
@@ -86,59 +88,60 @@ function _invpay2go_admin_settings_form($pid, $default){
   $form = array();
   $form = array(
     '#type' => 'fieldset',
-    '#title' => 'Pay2go Settings'. ': '. $pid,
+    '#title' => t('Pay2go Settings'). ': '. $pid,
+    '#collapsible' => TRUE,
   );
   $form['title'] = array(
     '#type' => 'textfield',
-    '#title' => 'Title',
+    '#title' => t('Invoice Title'),
     '#default_value' => $default['title'],
     '#size' => 64,
   );
   $form['serial'] = array(
     '#type' => 'textfield',
-    '#title' => 'Serial Number',
+    '#title' => t('Serial Number'),
     '#default_value' => $default['serial'],
     '#size' => 20,
   );
   $form['merchantid'] = array(
     '#type' => 'textfield',
-    '#title' => 'Merchant ID',
+    '#title' => t('Merchant ID'),
     '#default_value' => $default['merchantid'],
     '#size' => 20,
   );
   $form['hashkey'] = array(
     '#type' => 'textfield',
-    '#title' => 'Hash Key',
+    '#title' => t('Hash Key'),
     '#default_value' => $default['hashkey'],
     '#size' => 20,
   );
   $form['hashiv'] = array(
     '#type' => 'textfield',
-    '#title' => 'Hash IV',
+    '#title' => t('Hash IV'),
     '#default_value' => $default['hashiv'],
     '#size' => 20,
   );
   $form['merchantid_test'] = array(
     '#type' => 'textfield',
-    '#title' => 'Test Merchant ID',
+    '#title' => t('Merchant ID').' ('.t('Test').')',
     '#default_value' => $default['merchantid_test'],
     '#size' => 20,
   );
   $form['hashkey_test'] = array(
     '#type' => 'textfield',
-    '#title' => 'Test Hash Key',
+    '#title' => t('Hash Key').' ('.t('Test').')',
     '#default_value' => $default['hashkey_test'],
     '#size' => 20,
   );
   $form['hashiv_test'] = array(
     '#type' => 'textfield',
-    '#title' => 'Test Hash IV',
+    '#title' => t('Hash IV').' ('.t('Test').')',
     '#default_value' => $default['hashiv_test'],
     '#size' => 20,
   );
   $form['delete'] = array(
     '#type' => 'checkbox',
-    '#title' => 'Delete',
+    '#title' => t('Delete'),
     '#default_value' => 0,
   );
   return $form;
