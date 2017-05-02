@@ -96,7 +96,6 @@ $(document).ready(function(){
   });
   
   // init all
-  $('.taxReceiptSerial-section .content').append('<div class="description">同意由組織進行折讓單處理的訊息說明</div>');
   triggerReceiptType();
 });
 }(jQuery));

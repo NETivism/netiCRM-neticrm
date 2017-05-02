@@ -229,6 +229,7 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
       $html = $smarty->fetch($field['string_tpl']);
       $replace .= $html;
     }
+    $replace = '<fieldset id="tax-invoice-fieldset" class="crm-group tax-invoice-group"><legend>發票開立</legend>'.$replace.'</fieldset>';
     $replace = '<!--invpay2go-separator--><div id="invpay2go-section">'.$replace.'</div>';
     $content = str_replace('<!--payment-separator-->', $replace.'<!--payment-separator-->', $content);
   }
@@ -326,8 +327,8 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
     'taxReceiptType' => array('title' => '', 'required' => TRUE),
     'taxReceiptDeviceType' => array('title' => ''),
     'taxReceiptDeviceNumber' => array('title' => ''),
-    'taxReceiptDonate' => array('title' => '請選擇發票捐贈單位'),
-    'taxReceiptSerial' => array('title' => '請輸入統一編號'),
+    'taxReceiptDonate' => array('title' => '發票捐贈單位'),
+    'taxReceiptSerial' => array('title' => '統一編號', 'placeholder' => '請輸入8碼公司統一編號'),
     'taxReceiptItem' => array('title' => '發票品項'),
   );
   $invpay2goElements = $form->get('invpay2goElements');
@@ -352,15 +353,10 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
               $npos[$number] = $number.' - '.$npo_name;
             }
           }
-          if (!empty($npos)) {
-            $npos = array( '' => ts('-- select --')) + $npos;
-            $form->add('select', $key, $title, $npos, $required);
-            if (count($npos) == 1) {
-              $element = $form->getElement($key);
-              $element->freeze();
-              $invpay2goElements[$key] = key($npos);
-            }
+          if (empty($npos)) {
+            $npos = array( 0 => '請到發票設定輸入一個捐贈單位');
           }
+          $form->add('select', $key, $title, $npos, $required);
         }
         elseif($key == 'taxReceiptItem') {
           $taxReceiptItemDefault = !empty($field->default_value) ? $field->default_value : $form->_invpay2goPage['name'];
@@ -371,14 +367,18 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
         }
         $element = $form->getElement($key);
         if ($element->_type == 'group') {
-          foreach($element->_elements as $e) {
-            $e->setAttribute('data-invpay2go', $key);
+          foreach($element->_elements as $ele) {
+            $ele->setAttribute('data-invpay2go', $key);
           }
         }
         else {
           $element->setAttribute('data-invpay2go', $key);
+          if (!empty($e['placeholder'])) {
+            $element->setAttribute('placeholder', $e['placeholder']);
+          }
         }
-        $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}</div></div>';
+        $desc = !empty($field->help_post) ? '<div class="description">'.$field->help_post.'</div>' : '';
+        $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}'.$desc.'</div></div>';
 
         if (preg_match('/Confirm$/i', $form_name)) {
           if (empty($invpay2goElements[$key]) && $invpay2goElements[$key] !== '0') {
