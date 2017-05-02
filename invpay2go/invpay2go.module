@@ -1,0 +1,218 @@
+<?php
+
+/**
+ * Implementation of hook_menu
+ */
+function invpay2go_menu() {
+  return array(
+    'admin/settings/invpay2go' => array(
+      'title' => 'Pay2go Invoice configuration',
+      'description' => 'Config secret information pay2go invoice provide.',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('invpay2go_admin_settings'),
+      'access arguments' => array('administer site configuration'),
+      'file' => 'invpay2go.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_theme
+ */
+function invpay2go_theme($existing, $type, $theme, $path) {
+  return array(
+    'invpay2go' => array(
+      'template' => 'invpay2go',
+      'variables' => array(
+        'receipt' => NULL,
+      ),
+      'file' => 'invpay2go.theme.inc'
+    ),
+  );
+}
+
+/**
+ * Run api query
+ *
+ * @param array $params
+ *   An associative array of additional options
+ *   api type which needs call, read documnet for full params
+ * @param array $api_params
+ *   An associative array of additional options
+ *   - 'apiType': required, specify api type to call for.
+ *   - 'pid': if specify, you don't needs following parameter
+ *   - 'merchantId': merchant id from pay2go
+ *   - 'key': from pay2go
+ *   - 'iv': from pay2go
+ * @param bool $is_test
+ *   A boolean indicate if this api call test or not.
+ * @param bool $extra
+ *   Fetch extra info from api search
+ */
+function invpay2go_api_run($params, $api_params, $is_test, $extra = TRUE){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  _invpay2go_api_params($api_params, $is_test);
+  $req = new Pay2goInvoice($api_params, $is_test);
+  $data = $req->request($params);
+
+  if ($req->status && $extra) {
+    $search_params = array(
+      'MerchantOrderNo' => $params['MerchantOrderNo'],
+      'SearchType' => 1,
+      'TotalAmt' => $params['TotalAmt'],
+      'DisplayFlag' => 0,
+    );
+    $api_params['apiType'] = 'invoice_search';
+    $search = invpay2go_api_search($search_params, $api_params, $is_test);
+    if ($search->status) {
+      $req->response[$search->recordField] = $search->response[$search->recordField];
+    }
+  }
+  $req->requestParams = $params;
+  return $req;
+}
+
+function invpay2go_api_search($params, $api_params, $is_test) {
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  _invpay2go_api_params($api_params, $is_test);
+  $search = new Pay2goInvoice($api_params, $is_test);
+
+  // hack for different version
+  $params['Version'] = '1.1';
+  $search->request($params);
+  return $search;
+}
+
+function _invpay2go_api_params(&$api_params, $is_test){
+  if (!empty($api_params['pid'])) {
+    $merchant = invpay2go_merchant_load($api_params['pid']);
+    if ($is_test) {
+      $api_params['merchantId'] = $merchant['merchantid_test'];
+      $api_params['key'] = $merchant['hashkey_test'];
+      $api_params['iv'] = $merchant['hashiv_test'];
+    }
+    else {
+      $api_params['merchantId'] = $merchant['merchantid'];
+      $api_params['key'] = $merchant['hashkey'];
+      $api_params['iv'] = $merchant['hashiv'];
+    }
+  }
+}
+
+/**
+ * Get exists result from database
+ *
+ * @param string $order_number
+ * @param string $invoice_number
+ */
+function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search = TRUE){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  if ($order_number) {
+    $record = Pay2goInvoice::getRecord($order_number);
+  }
+  elseif ($invoice_number) {
+    $record = Pay2goInvoice::getRecord(NULL, $invoice_number);
+  }
+  if ($record) {
+    if (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt)) {
+      $totalAmt = $record['issue_response']->Result->TotalAmt;
+      $search_params = array(
+        'MerchantOrderNo' => $order_number,
+        'SearchType' => 1,
+        'TotalAmt' => $totalAmt,
+        'DisplayFlag' => 0,
+      );
+
+      $api_params = array(
+        'pid' => $record['pid'],
+        'apiType' => 'invoice_search',
+      );
+      $search = invpay2go_api_search($search_params, $api_params, $record['is_test']);
+    }
+    return $record;
+  }
+  return FALSE;
+}
+
+/**
+ * Helper function for printing tax receipt
+ * @param mix $object
+ *   object must have InvoiceNumber to print
+ *   If it's string, get receipt info from db
+ *   If it's object, check invoice number
+ * @return string
+ *   Return printing html with inline css style prepared for printing
+ */
+function invpay2go_api_print(&$object){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  invpay2go_load_phpqrcode();
+  return Pay2goInvoice::printReceipt($object);
+}
+
+function invpay2go_api_fields($apitype){
+  module_load_include('inc', 'invpay2go', 'invpay2go.lib');
+  return Pay2goInvoice::fields($apitype);
+}
+
+function invpay2go_merchant_load($pid = NULL, $fields = array()) {
+  if (empty($fields)) {
+    $select_fields = '*';
+  }
+  else {
+    $select_fields = implode(', ', $fields);
+  }
+  if ($pid && is_numeric($pid)) {
+    $where = ' pid = '.$pid;
+  }
+  else {
+    $where = ' 1';
+  }
+  $query = db_query("SELECT $select_fields FROM {invpay2go} WHERE $where");
+  $result = db_fetch_array($query);
+  return $result;
+}
+
+function invpay2go_load_phpqrcode() {
+  $path = 'sites/all/libraries/phpqrcode';
+  if (module_exists('libraries')) {
+    $path = libraries_get_path('phpqrcode');
+  }
+  if (!is_dir($path)) {
+    $path = drupal_get_path('module', 'invpay2go').'/phpqrcode';
+  }
+
+  // Includes the ARC2 library if it exists.
+  if (!empty($path) && file_exists($path. '/qrlib.php')) {
+    include_once $path. '/qrlib.php';
+  }
+}
+
+function invpay2go_api_qrcode($string) {
+  ob_start();
+  echo QRcode::png($string, FALSE, QR_ECLEVEL_L, 4);
+  $img = ob_get_contents();
+  ob_end_clean();
+  $src = 'data:image/png;base64,'.base64_encode($img);
+  return $src;
+}
+
+function invpay2go_api_barcode($string) {
+  if(module_exists('civicrm')){
+    civicrm_initialize();
+    require_once('barcode/barcode39.inc');
+  
+    
+    $bar = new Barcode39($string);
+    $bar->barcode_text = false;
+    $bar->barcode_bar_thick = 3;
+    $bar->barcode_bar_thin = 1;
+    $bar->barcode_height = 40;
+    ob_start();
+    $bar->draw();
+		$barcode = ob_get_contents();
+		ob_end_clean();
+    $src = 'data:image/png;base64,'.base64_encode($barcode);
+		return $src;
+  }
+  return FALSE;
+}
