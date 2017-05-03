@@ -36,7 +36,7 @@ function civicrm_invpay2go_install() {
     $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group_id);
     $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group_id);
     CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET help_post = %1 WHERE id = %2", array(
-      1 => array('三聯式發票將會直接寄出電子檔案到您的信箱，不再寄送電子發票。', 'String'),
+      1 => array('三聯式發票將會直接寄出電子檔案到您的信箱，不再郵寄紙本列印之電子發票。', 'String'),
       2 => array($fields['taxreceipt_serial']['id'], 'Integer'),
     ));
     $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group_id);
