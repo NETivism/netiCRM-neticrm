@@ -6,6 +6,7 @@
 function civicrm_demo_install() {
   include_once "civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
+  civicrm_initialize();
   
   if(variable_get('civicrm_demo_sample_data', 0)) {
     $vars['limit'] = 20;
@@ -16,14 +17,24 @@ function civicrm_demo_install() {
 
     $vars['limit'] = 50;
     civicrm_demo_process_contribution($vars);
+    civicrm_demo_create_custom_profile();
   }
   else{
-    $vars['limit'] = 5;
-    civicrm_demo_process_event($vars);
+    $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
+    if (!$have_event) { 
+      $vars['limit'] = 5;
+      civicrm_demo_process_event($vars);
+    } 
 
-    $vars['limit'] = 1;
-    civicrm_demo_process_contribution($vars);
+    $have_page = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution_page");
+    if (!$have_page) { 
+      $vars['limit'] = 1;
+      civicrm_demo_process_contribution($vars);
+    } 
+
+    $have_custom_field = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_custom_group WHERE name = 'shou_ju_zi_xun'");
+    if (!$have_custom_field) { 
+      civicrm_demo_create_custom_profile();
+    }
   }
-
-  civicrm_demo_create_custom_profile();
 }
