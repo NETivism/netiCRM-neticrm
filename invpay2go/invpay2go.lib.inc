@@ -271,12 +271,14 @@ class Pay2goInvoice {
       foreach($record as $key => $r){
         if (strstr($key, 'response')) {
           $json = json_decode($r);
-          foreach ($json as $k => $v) {
-            if($k == 'Result' && !empty($v)) {
-              $json->Result = json_decode($v);
+          if ($json) {
+            foreach ($json as $k => $v) {
+              if($k == 'Result' && !empty($v)) {
+                $json->Result = json_decode($v);
+              }
             }
+            $return[$key] = $json;
           }
-          $return[$key] = $json;
         }
         else{
           $return[$key] = $r;
