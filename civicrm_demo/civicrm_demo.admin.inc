@@ -1,5 +1,4 @@
 <?php
-module_load_include('inc', 'civicrm_demo', 'civicrm_demo.admin');
 module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
 
 function civicrm_demo_settings(){
