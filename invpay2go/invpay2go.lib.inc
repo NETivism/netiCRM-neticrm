@@ -113,14 +113,14 @@ class Pay2goInvoice {
     $postData['Version'] = empty($postData['Version']) ? $this->apiTypes[$this->apiType] : $postData['Version'];
     $postData['TimeStamp'] = (string) time();
 
-    $postStr = http_build_query($postData);
+    $postStr = http_build_query($postData, '', '&');
     $encryptedPostData = self::encrypt($postStr, $this->hashKey, $this->hashIv);
 
     $transactionData = array(
       'MerchantID_' => $this->merchantId,
       'PostData_' => $encryptedPostData,
     );
-    $transactionDataStr = http_build_query($transactionData);
+    $transactionDataStr = http_build_query($transactionData, '', '&');
     $resp = self::curlPost($this->apiUrl($this->apiType), $transactionDataStr);
     $data = self::parseResponse($this->apiType, $resp);
 
@@ -392,7 +392,7 @@ class Pay2goInvoice {
     $code = $result['CheckCode'];
     unset($result['CheckCode']);
     ksort($result);
-    $check = http_build_query($result);
+    $check = http_build_query($result, '', '&');
     $check = 'HashIV='.$iv.'&'.$check.'&HashKey='.$key;
     $check = strtoupper(hash("sha256", $check));
     if ($check === $code) {
