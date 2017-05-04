@@ -115,14 +115,14 @@ class Pay2goInvoice {
     $postData['Version'] = empty($postData['Version']) ? $this->apiTypes[$this->apiType] : $postData['Version'];
     $postData['TimeStamp'] = (string) time();
 
-    $postStr = http_build_query($postData);
+    $postStr = http_build_query($postData, '', '&');
     $encryptedPostData = self::encrypt($postStr, $this->hashKey, $this->hashIv);
 
     $transactionData = array(
       'MerchantID_' => $this->merchantId,
       'PostData_' => $encryptedPostData,
     );
-    $transactionDataStr = http_build_query($transactionData);
+    $transactionDataStr = http_build_query($transactionData, '', '&');
     $resp = self::curlPost($this->apiUrl($this->apiType), $transactionDataStr);
     $data = self::parseResponse($this->apiType, $resp);
 
@@ -275,12 +275,14 @@ class Pay2goInvoice {
       foreach($record as $key => $r){
         if (strstr($key, 'response')) {
           $json = json_decode($r);
-          foreach ($json as $k => $v) {
-            if($k == 'Result' && !empty($v)) {
-              $json->Result = json_decode($v);
+          if ($json) {
+            foreach ($json as $k => $v) {
+              if($k == 'Result' && !empty($v)) {
+                $json->Result = json_decode($v);
+              }
             }
+            $return[$key] = $json;
           }
-          $return[$key] = $json;
         }
         else{
           $return[$key] = $r;
@@ -323,7 +325,8 @@ class Pay2goInvoice {
    */
   static public function writeRecord($orderNumber = null, $record){
     if(!empty($orderNumber)) {
-      $exists = db_result(db_query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = '%s'", $orderNumber));
+      $query = db_query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = '%s'", $orderNumber);
+      $exists = db_fetch_object($query);
     }
     if(!empty($exists->order_number)){
       $record['order_number'] = $exists->order_number;
@@ -396,7 +399,7 @@ class Pay2goInvoice {
     $code = $result['CheckCode'];
     unset($result['CheckCode']);
     ksort($result);
-    $check = http_build_query($result);
+    $check = http_build_query($result, '', '&');
     $check = 'HashIV='.$iv.'&'.$check.'&HashKey='.$key;
     $check = strtoupper(hash("sha256", $check));
     if ($check === $code) {
