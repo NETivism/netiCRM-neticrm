@@ -367,7 +367,7 @@ class Pay2goInvoice {
       $info['Barcode'] = invpay2go_api_barcode($info['BarcodeCode']);
     }
     if (!empty($info['InvoiceNumber'])) {
-      $print = theme('invpay2go', array('receipt' => $info));
+      $print = theme('invpay2go', $info);
     }
     return $print;
   }
