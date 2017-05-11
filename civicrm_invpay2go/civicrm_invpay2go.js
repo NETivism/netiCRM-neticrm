@@ -11,6 +11,18 @@ $(document).ready(function(){
       if (!marker.length) {
         label.append('<span class="crm-marker">*</span>');
       }
+      if (obj.prop('tagName').toLowerCase() == 'select')  {
+        var choosed = 0;
+        obj.find('option').each(function() {
+          if (!$(this).val()) {
+            $(this).hide();
+          }
+          else if(!choosed) {
+            $(obj).val($(this).val());
+            choosed = 1;
+          }
+        });
+      }
       section.show();
       if (typeof obj.rules !== 'undefined') {
         obj.rules('add', {required: true});
@@ -26,6 +38,10 @@ $(document).ready(function(){
       section.hide();
       if(obj.prop('type') === 'radio') {
         obj.prop('checked', false);
+      }
+      else if (obj.prop('tagName').toLowerCase() == 'select')  {
+        obj.find('option').show();
+        $(obj).val('');
       }
       else {
         // obj.val('');
