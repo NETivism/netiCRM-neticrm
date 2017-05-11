@@ -8,6 +8,10 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
   if (!empty($object->trxn_id)) {
     $exists = invpay2go_api_get($object->trxn_id);
     $field_info = _civicrm_invpay2go_get_field_info($contribution_id);
+
+    // remove unused field in current selection
+    _civcirm_invpay2go_params_validation($field_info, $remove_unused = TRUE);
+
     $tpl_params['taxReceiptFields'] = $field_info;
     if ($exists) {
       if (!empty($exists['issue_response'])) {
@@ -530,7 +534,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   return array_merge($params, $conditional_params);
 }
 
-function _civcirm_invpay2go_params_validation($fields){
+function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
   $errors = array();
   switch($fields['taxReceiptType']['value']) {
     case 'elec':
@@ -545,10 +549,19 @@ function _civcirm_invpay2go_params_validation($fields){
       else {
         $errors['taxReceiptDeviceType'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptDeviceType']['title']));
       }
+      if ($remove_unused) {
+        unset($fields['taxReceiptDonate']);
+        unset($fields['taxReceiptSerial']);
+      }
       break;
     case 'donate':
       if (empty($fields['taxReceiptDonate']['value'])) {
         $errors['taxReceiptDonate'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptDonate']['title']));
+      }
+      if ($remove_unused) {
+        unset($fields['taxReceiptDeviceType']);
+        unset($fields['taxReceiptDeviceNumber']);
+        unset($fields['taxReceiptSerial']);
       }
       break;
     case 'company':
@@ -557,6 +570,11 @@ function _civcirm_invpay2go_params_validation($fields){
       }
       elseif (!preg_match('/\d{8}/', $fields['taxReceiptSerial']['value'])) {
         $errors['taxReceiptSerial'] = $fields['taxReceiptSerial']['title'].' - '.ts('Enter numbers only, no spaces or dashes.');
+      }
+      if ($remove_unused) {
+        unset($fields['taxReceiptDeviceType']);
+        unset($fields['taxReceiptDeviceNumber']);
+        unset($fields['taxReceiptDonate']);
       }
       break;
   }
