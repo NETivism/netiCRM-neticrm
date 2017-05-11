@@ -96,6 +96,11 @@ $(document).ready(function(){
   });
   
   // init all
-  triggerReceiptType();
+  var checkExist = setInterval(function() {
+    if ($('input[data-invpay2go=taxReceiptType]').length) {
+      triggerReceiptType();
+      clearInterval(checkExist);
+    }
+  }, 500);
 });
 }(cj));
