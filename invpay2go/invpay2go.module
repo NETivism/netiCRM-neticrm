@@ -204,9 +204,9 @@ function invpay2go_api_barcode($string) {
     
     $bar = new Barcode39($string);
     $bar->barcode_text = false;
-    $bar->barcode_bar_thick = 3;
+    $bar->barcode_bar_thick = 2;
     $bar->barcode_bar_thin = 1;
-    $bar->barcode_height = 40;
+    $bar->barcode_height = 50;
     ob_start();
     $bar->draw();
 		$barcode = ob_get_contents();
