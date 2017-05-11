@@ -284,7 +284,7 @@ function civicrm_neweb_update_6109(){
       // skip first
       if(!$k) continue;
       // fix following
-      $c =& new CRM_Contribute_DAO_Contribution();
+      $c = new CRM_Contribute_DAO_Contribution();
       $c->id = $id;
       $c->find(true);
       // clear duplicate
@@ -394,16 +394,20 @@ function civicrm_neweb_update_7203(){
  * Add new column to contribution_neweb for non-sync instrument msg. refs #16908
  */
 function civicrm_neweb_update_7204(){
-  db_add_field('civicrm_contribution_neweb', 'post_data', array(
-    'description' => 'Transaction response object from neweb.',
-    'type' => 'blob',
-    'not null' => FALSE,
-  ));
-  db_add_field('civicrm_contribution_neweb', 'return_data', array(
-    'description' => 'Transaction response object from neweb.',
-    'type' => 'blob',
-    'not null' => FALSE,
-  ));
+  if (!db_field_exists('civicrm_contribution_neweb', 'post_data')) {
+    db_add_field('civicrm_contribution_neweb', 'post_data', array(
+      'description' => 'Transaction response object from neweb.',
+      'type' => 'blob',
+      'not null' => FALSE,
+    ));
+  }
+  if (!db_field_exists('civicrm_contribution_neweb', 'return_data')) {
+    db_add_field('civicrm_contribution_neweb', 'return_data', array(
+      'description' => 'Transaction response object from neweb.',
+      'type' => 'blob',
+      'not null' => FALSE,
+    ));
+  }
   return $ret;
 }
 
