@@ -790,6 +790,7 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
     'label' => $title,
     'version' => 3,
   );
+  $last_weight = CRM_Core_DAO::singleValueQuery("SELECT weight FROM civicrm_custom_field WHERE custom_group_id = $group_id ORDER BY weight DESC");
   $field = civicrm_api('custom_field', 'get', $params);
   if(empty($field['id'])){
     $params = array(
@@ -799,7 +800,7 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
       'data_type' => $data_type,
       'html_type' => $html_type,
       'default_value' => '',
-      'weight' => 1,
+      'weight' => !empty($last_weight) ? $last_weight + 1 : 1,
       'is_required' => 0,
       'is_searchable' => 1,
       'is_active' => 1,
