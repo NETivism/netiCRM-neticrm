@@ -88,6 +88,10 @@ function civicrm_invpay2go_create_taxreceipt($contribution_id, &$req_result, &$o
 
       $contribution = (array) $object;
       $params = _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info, $force_paper);
+      // it's something wrong when no params
+      if (empty($params)) {
+        return;
+      }
       $merchant = invpay2go_merchant_load();
       $api_params = array(
         'apiType' => 'invoice_issue',
@@ -431,6 +435,7 @@ function _civicrm_invpay2go_get_field_info($contribution_id) {
       $display[$key] = array(
         'field_id' => $v,
         'label' => $label,
+        'title' => $label,
         'value' => $value,
         'value_label' => $value_label,
       );
