@@ -587,6 +587,10 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
         unset($fields['taxReceiptDonate']);
       }
       break;
+    // fallback error
+    default:
+      $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptType']['title']));
+      break;
   }
   return $errors;
 }
