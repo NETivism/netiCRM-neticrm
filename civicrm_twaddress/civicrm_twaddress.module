@@ -209,6 +209,22 @@ function checkForm(){
       $override['country'][$key]['default'] = $default;
     }
   }
+
+  $allow_load_js = array(
+    'CRM_Contribute_Form_Contribution',
+    'CRM_Event_Form_Participant',
+    'CRM_Member_Form_Membership',
+    'CRM_Grant_Form_Grant',
+    'CRM_Contact_Form_Edit_Address',
+    'CRM_Case_Form_Activity_OpenCase',
+    'CRM_Pledge_Form_Pledge',
+  );
+
+  if(in_array($formName, $allow_load_js)){
+    $path = drupal_get_path("module",'civicrm_twaddress');
+    drupal_add_js($path."/twzipcode.js");
+    $add = 1;
+  }
   
   if(count($override)>=3 && $enable){
     if(!$add){
@@ -218,10 +234,14 @@ function checkForm(){
     }
 
     if(arg(1) == 'contribute' || arg(1) == 'event'){
-      _civicrm_twaddress_grouping_js();
+      $js = _civicrm_twaddress_grouping_js();
     }
 
-    if(!empty($_GET['snippet']) && $_GET['block'] == 'Address'){
+    if(!empty($_GET['snippet']) && arg(1) == 'profile' && arg(2) == 'create'){
+      $is_popup = true;
+    }
+
+    if( (!empty($_GET['snippet']) && $_GET['block'] == 'Address' ) || $is_popup){
       reset($form->_fields);
       $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
       $js = implode("\n", $js);
@@ -325,6 +345,8 @@ function _civicrm_twaddress_grouping_js(){
     });
   ';
   drupal_add_js($js , 'inline');
+
+  return $js;
 }
 
 function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
