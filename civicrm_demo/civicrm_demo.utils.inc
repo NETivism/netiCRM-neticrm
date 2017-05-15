@@ -376,7 +376,7 @@ function civicrm_demo_create_custom_profile(){
     $uf_fields['receipt_yn'] = _civicrm_demo_create_uf_field('是否需要收據', 'Contribution', 'custom_'.$fields['receipt_yn']['id'], $uf_group['id'], TRUE);
     $uf_fields['receipt_title'] = _civicrm_demo_create_uf_field('收據抬頭', 'Contribution', 'custom_'.$fields['receipt_title']['id'], $uf_group['id']);
     $uf_fields['receipt_serial'] = _civicrm_demo_create_uf_field('報稅憑證', 'Contribution', 'custom_'.$fields['receipt_serial']['id'], $uf_group['id']);
-    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id']);
+    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id'], TRUE);
     CRM_Core_BAO_UFGroup::updateGroupTypes($uf_group['id'], array('Contribution'));
   }
 
