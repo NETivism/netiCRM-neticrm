@@ -250,3 +250,10 @@ function neticrm_update_update_6125() {
 function neticrm_update_update_6126() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update receipt field label. refs #20195
+ */
+function neticrm_update_update_6128() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
