@@ -18,8 +18,8 @@ function _neticrm_update_update_7230() {
 }
 
 function _neticrm_update_update_7230_helper($name) {
-  $sql = "SELECT id, label, value FROM civicrm_option_value WHERE option_group_id IN (SELECT id FROM `civicrm_option_group` WHERE name = 'addressee') ORDER BY value ASC";
-  $dao = CRM_Core_DAO::executeQuery($sql);
+  $sql = "SELECT id, label, value FROM civicrm_option_value WHERE option_group_id IN (SELECT id FROM `civicrm_option_group` WHERE name = %1) ORDER BY value ASC";
+  $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($name, 'String')));
   $result = array();
   while ($dao->fetch()) {
     $result[$dao->label][] = $dao->id;
