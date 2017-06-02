@@ -269,3 +269,10 @@ function neticrm_update_update_7229() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Update wrong greeting config. refs #20138
+ */
+function neticrm_update_update_7230() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
