@@ -84,19 +84,23 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   $order = civicrm_twaddress_order();
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
-    if(strstr($name, 'state_province')){
+    if(strstr($name, 'state_province') || !empty($e->_attributes['state/province'])){
       $element = $form->getElement($name);
       $options = civicrm_twaddress_extract($element->_options);
-      $a = 0;
       foreach($order as $k => $v){
-        if($k == 0) continue;
-        unset($element->_options[$k]);
-        if(isset($options[$v])){
-          $a++;
-          $element->_options[$a] = $options[$v];
+        // if option is '-- select --', skip to next.
+        if($options[$v]['attr']['value'] == '') continue;
+        $option = $options[$v];
+        if(isset($option)){
+          // remove origin option in _options
+          $key = array_search($option, $element->_options);
+          unset($element->_options[$key]);
+          // put ordered option at the tail of _options
+          $element->_options[] = $option;
         }
       }
-      break;
+      // let index in _options is order in 0,1,2....
+      $element->_options = array_values($element->_options);
     }
   }
 
@@ -233,8 +237,8 @@ function checkForm(){
   }
 }
 
-function civicrm_twaddress_extract($options){
-  foreach($options as $o){
+function civicrm_twaddress_extract(&$options){
+  foreach($options as &$o){
     $return[$o['text']] = $o;
   }
   return $return;
