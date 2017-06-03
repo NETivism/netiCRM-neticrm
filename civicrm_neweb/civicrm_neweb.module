@@ -371,13 +371,14 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
         $data = file_get_contents($local);
         $success = $sftp->put($remote, $data);
         if(empty($success)){
-          _civicrm_neweb_mail_error_log_notify('Failed to Download File.', $host, $is_test);
-        }else if($success == -1){
-          _civicrm_neweb_mail_error_log_notify('File is exists but not.', $host, $is_test);
+          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't upload file. File : $remote", $host, $is_test);
         }
         break;
       case 'get':
         $success = $sftp->get($remote, $local);
+        if(empty($success)){
+          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't download file. File : $remote", $host, $is_test);
+        }
         if(file_exists($local)){
           $success = file_get_contents($local);
         }
@@ -385,6 +386,9 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
       case 'list':
       default:
         $success = $sftp->rawlist($remote);
+        if(empty($success)){
+          _civicrm_neweb_mail_error_log_notify('Failed to Get List in civicrm_neweb_recur_sync().', $host, $is_test);
+        }
         break;
     }
   }
