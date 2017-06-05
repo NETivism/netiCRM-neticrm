@@ -105,9 +105,12 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
         );
         $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
         $ftp['pid'] = $pid;
+        $description = '填入藍新提供的金流說明文件中，伺服器 IP 或網址，<br>不要「sftp://」和斜線等字';
+        $ftp['ftp_host_description'] = $description;
         _civicrm_neweb_js_payment($ftp, 0);
         $ftp_test = variable_get('civicrm_neweb_ftp_test_'.$pid_test, $default);
         $ftp_test['test_pid'] = $pid_test;
+        $ftp_test['ftp_host_description'] = $description;
         _civicrm_neweb_js_payment($ftp_test, 1);
       }
       break;
@@ -298,6 +301,12 @@ cj(document).ready(function(){
     $o.find("input").val(def[i]);
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
     $($o).insertAfter(main);
+    var name = i+"_description";
+    if(def[name]){
+      var description = def[name];
+      o = $o;
+      $o.find(".crm-form-elem").append("<div class=\"description\">"+description+"</div>");
+    }
     $o = $(\'<input type="hidden" name="'.$test.'pid" value="\'+def.'.$test.'pid+\'">\');
     $o.insertAfter(main);
   }
@@ -357,30 +366,22 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
 
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
-    watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);
-    $send = variable_get('civicrm_neweb_send_sftp_notify', true);
-
-    global $sended_sftp_notice_mail;
-    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass) && $send){
-      // send email To User1
-      $time = time();
-      $user = user_load(array('uid' => '1'));
-      $params = array(
-        'host' => $host,
-        // 'pid' => $pid,
-        );
-      drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
-      $sended_sftp_notice_mail = true;
-    }
+    _civicrm_neweb_mail_error_log_notify('Unable to login SFTP.', $host, $is_test);
   }
   else{
     switch($mode){
       case 'put':
         $data = file_get_contents($local);
         $success = $sftp->put($remote, $data);
+        if(empty($success)){
+          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't upload file. File : $remote", $host, $is_test);
+        }
         break;
       case 'get':
         $success = $sftp->get($remote, $local);
+        if(empty($success)){
+          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't download file. File : $remote", $host, $is_test);
+        }
         if(file_exists($local)){
           $success = file_get_contents($local);
         }
@@ -388,6 +389,9 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
       case 'list':
       default:
         $success = $sftp->rawlist($remote);
+        if(empty($success)){
+          _civicrm_neweb_mail_error_log_notify('Failed to Get List in civicrm_neweb_recur_sync().', $host, $is_test);
+        }
         break;
     }
   }
@@ -436,13 +440,41 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
   return $ret;
 }
 
+function _civicrm_neweb_mail_error_log_notify($message, $host, $is_test){
+  watchdog('civicrm_neweb', $message . " host: {$host} ", WATCHDOG_ERROR);
+  $send = variable_get('civicrm_neweb_send_sftp_notify', true);
+
+  global $sended_sftp_notice_mail;
+  if(!$sended_sftp_notice_mail && !$is_test && $send){
+    // send email To User1
+    $time = REQUEST_TIME;
+    $user = user_load(1);
+    $params = array(
+      'host' => $host,
+      'message' => $message,
+      // 'pid' => $pid,
+      );
+    drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
+    $sended_sftp_notice_mail = true;
+  }
+}
+
+
 /**
  * Implements hook_mail().
  */
 function civicrm_neweb_mail($key, &$message, $params) {
   global $base_url;
+  switch ($params['message']) {
+    case 'Unable to login SFTP.':
+      $cause = t('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
+      break;
+    default:
+      $cause = t($params['message']);
+      break;
+  }
   $message['subject'] = variable_get('site_name', "Default site name") . t(' neweb sftp setting is error.');
-  $message['body'][] = t('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
+  $message['body'][] = $cause;
   $message['body'][] = t('Host information : ') . $params['host'];
   $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : ') . $base_url . "/civicrm/admin/paymentProcessor?reset=1&action=browse";
 }
