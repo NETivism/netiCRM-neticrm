@@ -440,9 +440,12 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
 function _civicrm_neweb_mail_error_log_notify($message, $host, $is_test){
   watchdog('civicrm_neweb', $message . " host: {$host} ", WATCHDOG_ERROR);
   $send = variable_get('civicrm_neweb_send_sftp_notify', true);
+  $last_notify_time = variable_get('civicrm_neweb_send_sftp_last_notify_time', 0);
+  $current_time = time();
 
   global $sended_sftp_notice_mail;
-  if(!$sended_sftp_notice_mail && !$is_test && $send){
+  if(!$sended_sftp_notice_mail && !$is_test && $send && ($current_time - $last_notify_time >= 6 * 3600)){
+    variable_set('civicrm_neweb_send_sftp_last_notify_time', $current_time);
     // send email To User1
     $time = REQUEST_TIME;
     $user = user_load(1);
