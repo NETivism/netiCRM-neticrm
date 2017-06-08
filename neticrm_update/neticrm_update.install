@@ -278,4 +278,3 @@ function neticrm_update_update_6129() {
 function neticrm_update_update_6130() {
   return neticrm_update_load_include(__FUNCTION__);
 }
->>>>>>> 6.x-develop
