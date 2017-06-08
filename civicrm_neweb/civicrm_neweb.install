@@ -48,6 +48,21 @@ function civicrm_neweb_schema(){
         'length' => '6',
         'not null' => FALSE,
       ),
+      'data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'post_data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
+      'return_data' => array(
+        'description' => 'Whole response object from neweb.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      ),
     ),
     'primary key' => array('cid'),
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
@@ -270,7 +285,7 @@ function civicrm_neweb_update_6109(){
       // skip first
       if(!$k) continue;
       // fix following
-      $c =& new CRM_Contribute_DAO_Contribution();
+      $c = new CRM_Contribute_DAO_Contribution();
       $c->id = $id;
       $c->find(true);
       // clear duplicate
@@ -391,5 +406,22 @@ function civicrm_neweb_update_6114(){
     'type' => 'blob',
     'not null' => FALSE,
   ));
+  return $ret;
+}
+
+/**
+ * Update translations
+ */
+function civicrm_neweb_update_6115(){
+  require_once DRUPAL_ROOT . '/includes/locale.inc';
+  $module_root = drupal_get_path('module', 'civicrm_neweb');
+  // make a new $file object
+  $file = new stdClass();
+  $file->filename = 'zh-hant.po';
+  $file->filepath = $module_root . '/translations/' . $file->filename;
+  $file->filemime = 'application/octet-stream';
+  // import the .po-file, use OVERWRITE, with KEEP only new translations are imported
+  $success = _locale_import_po($file, 'zh-hant', LOCALE_IMPORT_OVERWRITE, 'default');
+  $ret[] = array('success' => $success, 'query' => 'Reload '. $module_name .' translation file for '. $language .' language');
   return $ret;
 }

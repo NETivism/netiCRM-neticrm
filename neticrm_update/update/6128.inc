@@ -1,0 +1,17 @@
+<?php
+/**
+ * @file
+ * This file should be civicrm compliant.
+ */
+function _neticrm_update_update_6128() {
+  $sql = "SELECT f.id FROM `civicrm_custom_field` f INNER JOIN civicrm_custom_group g ON f.custom_group_id = g.id WHERE f.label = '收據編號' AND f.name = 'shou_ju_bian_hao' AND g.name LIKE TRIM('shou_ju_zi_xun')";
+  $custom_field_id = CRM_Core_DAO::singleValueQuery($sql);
+  $a = CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET label = '報稅憑證' WHERE id = %1", array(1 => array($custom_field_id, 'Integer')));
+  $b = CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '報稅憑證' WHERE field_name = %1 AND label = '收據編號'", array(1 => array('custom_'.$custom_field_id, 'String')));
+  if ($a && $b) {
+    return 'Successful update receipt field label';
+  }
+  else {
+    return 'No exists receipt field label for update';
+  }
+}

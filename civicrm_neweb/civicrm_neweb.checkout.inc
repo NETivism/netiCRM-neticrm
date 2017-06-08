@@ -1,6 +1,6 @@
 <?php
 
-function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_processor){
+function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_processor, $is_test = 0){
   // to see what instrument for neweb
   $neweb_instrument_id = $params['civicrm_instrument_id'];
   $instrument_name  = civicrm_instrument_by_id($neweb_instrument_id, 'name');
@@ -11,6 +11,8 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $record = array('cid' => $params['contributionID'], 'created' => time());
   drupal_write_record("civicrm_contribution_neweb", $record);
 
+  $trxn_id = _civicrm_neweb_trxn_id($params['contributionID'], $is_test, $params['is_recur']);
+  $params['trxn_id'] = $trxn_id;
   $is_pay_later = TRUE;
   switch($instrument_code){
     case 'Credit Card':
@@ -37,7 +39,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     $contrib_values['is_pay_later'] = $is_pay_later;
   }
   $contrib_values['payment_processor_id'] = $payment_processor['id'];
-  $contrib_values['trxn_id'] = $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'];
+  $contrib_values['trxn_id'] = $trxn_id;
   $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 
   // Inject in quickform sessions
@@ -101,7 +103,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
 }
 
 function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_instrument){
-  $civi_base_url = CRM_Utils_System::currentPath();;
+  $civi_base_url = CRM_Utils_System::currentPath();
   $cancel_url = CRM_Utils_System::url($civi_base_url,"_qf_Confirm_display=true&qfKey={$params['qfKey']}",false, null, false );
   $return_url = CRM_Utils_System::url($civi_base_url,"_qf_ThankYou_display=1&qfKey={$params['qfKey']}",true, null, false );
 
@@ -114,7 +116,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
 
   $neweb_params = array(
     "MerchantNumber" => $payment_processor['user_name'],
-    "OrderNumber"    => $params['is_recur'] ? $params['contributionID'] + 990000000  : $params['contributionID'],
+    "OrderNumber"    => $params['trxn_id'],
     "Amount"         => $amount,
     "OrgOrderNumber" => $params['contributionID'],
     "ApproveFlag"    => 1,
@@ -138,7 +140,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
 
 function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_instrument){
   require_once 'CRM/Contact/DAO/Contact.php';
-  $contact =& new CRM_Contact_DAO_Contact( );
+  $contact = new CRM_Contact_DAO_Contact( );
   $contact->id = $params['contact'];
   $contact->find(true);
 

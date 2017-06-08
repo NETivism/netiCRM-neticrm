@@ -113,16 +113,18 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $checksum = md5($input['MerchantNumber'].$input['OrderNumber'].$input['PRC'].$input['SRC'].$signature.$input['Amount']);
       if($checksum != $input['CheckSum']){
         CRM_Core_Error::debug_log_message( "Checksum Error" );
-        $note .= ts("Failuare: Transaction number and system response number doesn't match. Please contact us for further assistant.")."\n";
-        $this->failed( $objects, $transaction );
+        $error = ts("Failuare: Transaction number and system response number doesn't match. Please contact us for further assistant.");
+        $note .= $error."\n";
+        $this->failed( $objects, $transaction, $error);
         $failed = true;
       }
 
       if($input['PRC'] || $input['SRC']){
         $error = civicrm_neweb_response($input['PRC'], $input['SRC'], $input['BankResponseCode'], 'detail');
-        $note .= implode("\n",$error);
-        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']})\n";
-        $this->failed( $objects, $transaction );
+        $error_code = ts('Error Code:')."PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']}";
+        $failed_reason = implode("\n", $error) . "\n" . $error_code;
+        $note .= $failed_reason;
+        $this->failed($objects, $transaction, $failed_reason);
         $failed = true;
       }
       $this->addNote($note, $contribution);
@@ -216,17 +218,19 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $signature = $objects['paymentProcessor']['signature'];
       $checksum = md5($input['MerchantNumber'].$input['OrderNumber'].$input['PRC'].$input['SRC'].$signature.$input['Amount']);
       if($checksum != $input['CheckSum']){
-        CRM_Core_Error::debug_log_message( "Checksum Error" );
-        $note .= ts("Failuare: Transaction number and system response number doesn't match. Please contact us for further assistant.")."\n";
-        $this->failed( $objects, $transaction );
+        CRM_Core_Error::debug_log_message("Checksum Error");
+        $failed_reason = ts("Failuare: Transaction number and system response number doesn't match. Please contact us for further assistant.");
+        $note .= $failed_reason."\n";
+        $this->failed($objects, $transaction, $failed_reason);
         $failed = true;
       }
 
       if($input['PRC'] || $input['SRC']){
         $error = civicrm_neweb_response($input['PRC'], $input['SRC'], $input['BankResponseCode'], 'detail');
-        $note .= implode("\n",$error);
-        $note .= " (Error code: PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BRC']})\n";
-        $this->failed( $objects, $transaction );
+        $error_code = ts('Error Code:')."PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']}";
+        $failed_reason = implode("\n", $error) . "\n" . $error_code;
+        $note .= $failed_reason;
+        $this->failed($objects, $transaction, $failed_reason);
         $failed = true;
       }
 
@@ -261,7 +265,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
       require_once("civicrm_neweb.cron.inc");
 
-      $c =& new CRM_Contribute_DAO_Contribution();
+      $c = new CRM_Contribute_DAO_Contribution();
       $c->id = $result['ordernumber'];
       $c->find(true);
 
@@ -278,7 +282,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
 
       $transaction = new CRM_Core_Transaction();
-      $ipn =& new CRM_Core_Payment_BaseIPN();
+      $ipn = new CRM_Core_Payment_BaseIPN();
       if($ipn->validateData($input, $ids, $objects, TRUE, $pid)){
 
         // after validate, start to complete some transaction
@@ -307,7 +311,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $note .= ts("Tel").": ".$result['tel']."\n";
         $note .= ts("Hash").": ".$result['hash']."\n";
         $note .= ts("Completed");
-        $this->addNote($note, $c); 
+        $this->addNote($note, $c);
       }else{
         $note .= ts("Error").": ".ts("Validate Error")."\n";
         $this->addNote($note, $c);

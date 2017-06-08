@@ -84,19 +84,23 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   $order = civicrm_twaddress_order();
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
-    if(strstr($name, 'state_province')){
+    if(strstr($name, 'state_province') || !empty($e->_attributes['state/province'])){
       $element = $form->getElement($name);
       $options = civicrm_twaddress_extract($element->_options);
-      $a = 0;
       foreach($order as $k => $v){
-        if($k == 0) continue;
-        unset($element->_options[$k]);
-        if(isset($options[$v])){
-          $a++;
-          $element->_options[$a] = $options[$v];
+        // if option is '-- select --', skip to next.
+        if($options[$v]['attr']['value'] == '') continue;
+        $option = $options[$v];
+        if(isset($option)){
+          // remove origin option in _options
+          $key = array_search($option, $element->_options);
+          unset($element->_options[$key]);
+          // put ordered option at the tail of _options
+          $element->_options[] = $option;
         }
       }
-      break;
+      // let index in _options is order in 0,1,2....
+      $element->_options = array_values($element->_options);
     }
   }
 
@@ -220,13 +224,12 @@ function checkForm(){
       _civicrm_twaddress_grouping_js();
     }
 
-    if(!empty($_GET['snippet']) && !empty($form->_fields)){
+    if(!empty($_GET['snippet']) && $_GET['block'] == 'Address'){
       reset($form->_fields);
-      $first = key($form->_fields);
       $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
       $js = implode("\n", $js);
-      $js = '<script type="text/javascript" src="'.base_path().$path.'/twzipcode.js"></script><script type="text/javascript">'.$js.'</script>';
-      $form->_fields[$first]['groupHelpPre'] = $js;
+      $js = '<script type="text/javascript">'.$js.'</script>';
+      print($js);
     }
     else{
       _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
@@ -234,8 +237,8 @@ function checkForm(){
   }
 }
 
-function civicrm_twaddress_extract($options){
-  foreach($options as $o){
+function civicrm_twaddress_extract(&$options){
+  foreach($options as &$o){
     $return[$o['text']] = $o;
   }
   return $return;

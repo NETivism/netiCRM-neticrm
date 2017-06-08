@@ -135,6 +135,27 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
           );
         }
       }
+    // contribution page settings
+    case 'CRM_Contribute_Form_ContributionPage_Amount':
+    case 'CRM_Event_Form_ManageEvent_Fee':
+      if (!empty($fields['is_monetary']) && !empty($fields['payment_processor'])) {
+        if (empty($form->_submitValues['payment_instrument'])) {
+          $js = 'cj(document).ready(function($) {
+  var requiredInstrument = "'.ts('%1 is a required field.', array(1 => ts('Payment Instrument'))).'";
+  if ($("#crm-container label[for=payment_instrument]").length) {
+    var $instrumentLabel = $("#crm-container label[for=payment_instrument]");
+    $instrumentLabel.addClass("crm-error crm-error-label");
+    var $errMsg = $("<span>" + requiredInstrument + "</span>");
+    $errMsg.addClass("crm-error");
+    $("#crm-container .instrument-wrapper label:nth(0)").after($errMsg);
+  }
+});';
+          drupal_add_js($js, 'inline');
+          return array(
+            'payment_instrument' => ts('%1 is a required field.', array(1 => ts('Payment Instrument'))),
+          );
+        }
+      }
       break;
   }
 }
@@ -211,7 +232,7 @@ function _civicrm_instrument_js_admin($options, $entity_table){
   $o .= '</div></td>';
   $o .= '</tr></table></td></tr>';
   return '
-  $(document).ready(function(){
+  cj(document).ready(function(){
     $("#crm-container .'.$css_id.'").after("'.$o.'");
   });';
 }
@@ -251,7 +272,7 @@ function _civicrm_instrument_js_page($radios, &$form, $default_instrument = 0){
   $output .= "<div class='clear'></div>";
   $output .= '</div>';
   return '
-$(document).ready(function(){
+cj(document).ready(function(){
   $("#crm-container form[name=Main] #intro_text").after("'.$output.'");
   $("#crm-container form[name=Register] #priceset").after("'.$output.'");
 

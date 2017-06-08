@@ -210,9 +210,72 @@ function neticrm_update_update_6120() {
 }
 
 /**
+ * Update database for failed recurring, refs #14971
+ */
+function neticrm_update_update_6121() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Transfer receipt yes or no field contain more option, refs #18692
+ */
+function neticrm_update_update_6122() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Change receipt subject if no payment required, refs #19810
+ */
+function neticrm_update_update_6123() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Move receive date to cancel date of failed contribution. refs #19459
+ */
+function neticrm_update_update_6124() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Change is_recur type of contribution page. refs #18981
+ */
+function neticrm_update_update_6125() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Enable ienomore modules. refs #16489
+ */
+function neticrm_update_update_6126() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
  * Update receipt message. refs #19627
  */
 function neticrm_update_update_6127() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Update receipt field label. refs #20195
+ */
+function neticrm_update_update_6128() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update county name. refs #20236
+ */
+function neticrm_update_update_6129() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update wrong greeting config. refs #20138
+ */
+function neticrm_update_update_6130() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+>>>>>>> 6.x-develop

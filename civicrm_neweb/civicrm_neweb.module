@@ -297,11 +297,10 @@ cj(document).ready(function(){
     $o.find("input").attr("name", test+i).val("");
     $o.find("input").val(def[i]);
     $o.removeClass().addClass("crm-paymentProcessor-form-block-"+test+i);
-    cj($o).insertAfter(main);
+    $($o).insertAfter(main);
+    $o = $(\'<input type="hidden" name="'.$test.'pid" value="\'+def.'.$test.'pid+\'">\');
+    $o.insertAfter(main);
   }
-
-  $o = $(\'<input type="hidden" name="'.$test.'pid" value="\'+def.'.$test.'pid+\'">\');
-  $o.insertAfter(main);
 });  
 ';
   drupal_add_js($js, 'inline', 'footer');
@@ -358,9 +357,11 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
 
   $sftp = new Net_SFTP($host);
   if (!$sftp->login($user, $pass)) {
-    watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
+    watchdog('civicrm_neweb', "Unable to login SFTP. host: {$host} , user: {$user}", WATCHDOG_ERROR);
+    $send = variable_get('civicrm_neweb_send_sftp_notify', true);
+
     global $sended_sftp_notice_mail;
-    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass)){ 
+    if(!$sended_sftp_notice_mail && !$is_test && !empty($user) && !empty($pass) && $send){
       // send email To User1
       $time = time();
       $user = user_load(array('uid' => '1'));
@@ -439,11 +440,11 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
  * Implements hook_mail().
  */
 function civicrm_neweb_mail($key, &$message, $params) {
+  global $base_url;
   $message['subject'] = variable_get('site_name', "Default site name") . t(' neweb sftp setting is error.');
   $message['body'][] = t('There are some errors about connecting to neweb sftp, Please check the payment processor settings.');
   $message['body'][] = t('Host information : ') . $params['host'];
-  $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : {your domain}')."/civicrm/admin/paymentProcessor?reset=1&action=browse";
-
+  $message['body'][] = t('More information please checked the configurations of the site. You can modify it by this path : ') . $base_url . "/civicrm/admin/paymentProcessor?reset=1&action=browse";
 }
 
 /**
@@ -516,6 +517,20 @@ function _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterd
   }
 }
 
+function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
+  $trxn_id = $is_recur ? $id + 990000000  : $id;
+
+  // prepare for hook
+  $data = array(
+    'module' => 'civicrm_neweb',
+    'is_test' => $is_test,
+    'trxn_id' => $trxn_id,
+    'id' => $id,
+  );
+  drupal_alter('civicrm_trxn_id', $data);
+  return $data['trxn_id'];
+}
+
 function _civicrm_neweb_end_date_calculate(&$recur){
   if($recur->installments == 1){
     // status 1 is 'completed'
@@ -576,7 +591,7 @@ function _civicrm_neweb_recur_trxn($parent, $merchant){
 
 function _civicrm_neweb_cancel_recuring_message(){
   $html = "<h3>藍新金流提醒 : 點選「取消」後不會立刻生效，要注意兩天內的定期定額狀態變化。</h3>
-  <p>「取消」一筆定期定額後，會發現其從正常 =>待處理，但多出了「取消日期」。<br>
+  <p>「取消」一筆定期定額後，會發現其從進行中 => 待處理，但多出了「取消日期」。<br>
 後續仍需確認其狀態「待處理」，是否在兩天內變成了「已取消」，此時才正式確認其定期定額成功取消了。</p>
 <h4>狀態說明 : </h4>
 <ul><li>「進行中」表示會依據每月的扣款日期正常扣款</li>

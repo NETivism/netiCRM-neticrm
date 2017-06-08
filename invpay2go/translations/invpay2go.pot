@@ -1,0 +1,66 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  invpay2go.admin.inc: n/a
+#  invpay2go.module: n/a
+#  invpay2go.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2017-04-21 17:02+0800\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: invpay2go.admin.inc:91
+msgid "Pay2go Settings"
+msgstr ""
+
+#: invpay2go.admin.inc:95
+msgid "Invoice Title"
+msgstr ""
+
+#: invpay2go.admin.inc:101
+msgid "Serial Number"
+msgstr ""
+
+#: invpay2go.admin.inc:107;125
+msgid "Merchant ID"
+msgstr ""
+
+#: invpay2go.admin.inc:113;131
+msgid "Hash Key"
+msgstr ""
+
+#: invpay2go.admin.inc:119;137
+msgid "Hash IV"
+msgstr ""
+
+#: invpay2go.admin.inc:125;131;137
+msgid "Test"
+msgstr ""
+
+#: invpay2go.module:9
+msgid "Pay2go Invoice configuration"
+msgstr ""
+
+#: invpay2go.module:10
+msgid "Config secret information pay2go invoice provide."
+msgstr ""
+
+#: invpay2go.info:0
+msgid "Pay2Go Invoice API"
+msgstr ""
+
+#: invpay2go.info:0
+msgid "Pay2Go Invoice API functions, this module only provide helper functions, and dependence from other module."
+msgstr ""
+

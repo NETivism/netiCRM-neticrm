@@ -34,6 +34,5 @@ msgstr "目前的sftp主機設置："
 msgid "More information please checked the configurations of the site. You can modify it by this path : {your domain}"
 msgstr "更多資訊請進入你的網站設定頁檢查。網址：{你的網域}"
 
-
 msgid "Please select 'month' in frequency unit field when payment processor is Neweb."
 msgstr "當金流使用藍新時，定期定額頻率請選擇「每月」"
