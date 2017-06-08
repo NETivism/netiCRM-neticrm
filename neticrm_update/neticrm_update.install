@@ -256,7 +256,7 @@ function neticrm_update_update_7227() {
 }
 
 /**
- * Update receipt field label. refs #20195
+ * Update receipt field label. refs #20195, #20424
  */
 function neticrm_update_update_7228() {
   return neticrm_update_load_include(__FUNCTION__);
