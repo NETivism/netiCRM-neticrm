@@ -84,7 +84,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   $order = civicrm_twaddress_order();
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
-    if(strstr($name, 'state_province') || !empty($e->_attributes['state/province'])){
+    if(strstr($name, 'state_province') || !empty($e->_attributes['state-province'])){
       $element = $form->getElement($name);
       $options = civicrm_twaddress_extract($element->_options);
       foreach($order as $k => $v){
