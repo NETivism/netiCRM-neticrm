@@ -167,6 +167,10 @@ function checkForm(){
   $enable = TRUE;
   $override = array();
   $form_name = $form->_attributes['name'];
+  // For user edit -> profile edit page, Dynamic panel.
+  if($form_name == 'Dynamic'){
+    $form_name = 'user-profile-form';
+  }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
