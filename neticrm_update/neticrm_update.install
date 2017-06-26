@@ -276,3 +276,10 @@ function neticrm_update_update_7230() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Update custom search title from description to label, refs #19180
+ */
+function neticrm_update_update_7231() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
