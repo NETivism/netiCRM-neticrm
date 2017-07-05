@@ -86,6 +86,7 @@ $.fn.extend({
     var imeKeydownEnabled = false;
     var imeNotifyMsg = jvalidateSetting.imeNotify;
     var isFirefox = typeof InstallTrigger !== 'undefined';
+    var isPasteEvent = false;
 
     if (!amask && this.length > 0) {
       input = $(this[0]);
@@ -327,8 +328,13 @@ $.fn.extend({
         if (p < len) {
           if (android) {
             if(pos.end+1 > keyBackAndroid) {
-              k = getKeyCode(this.value, pos.end+1);
-              c = String.fromCharCode(k);
+              if (!isPasteEvent) {
+                k = getKeyCode(this.value, pos.end+1);
+                c = String.fromCharCode(k);
+              }
+              else {
+                pasteALL(currentInput, pos);
+              }
             }
             else {
               // backspace handling of android
@@ -350,20 +356,26 @@ $.fn.extend({
             }
           }
           else {
-            k = getKeyCode(this.value, pos.end+1);
-            c = String.fromCharCode(k);
+            if (!isPasteEvent) {
+              k = getKeyCode(this.value, pos.end+1);
+              c = String.fromCharCode(k);
+            }
+            else {
+              pasteALL(currentInput, pos);
+            }
           }
 
-          if (tests[p].test(c)) {
-            shiftR(p);
+          if (!isPasteEvent) {
+            if (tests[p].test(c)) {
+              shiftR(p);
+              buffer[p] = c;
+              writeBuffer();
+              next = seekNext(p);
+              input.caret(next);
 
-            buffer[p] = c;
-            writeBuffer();
-            next = seekNext(p);
-            input.caret(next);
-
-            if (settings.completed && next >= len) {
-              settings.completed.call(input);
+              if (settings.completed && next >= len) {
+                settings.completed.call(input);
+              }
             }
           }
         }
@@ -378,6 +390,34 @@ $.fn.extend({
           }
           else {
             removeImeNotify(inputWrapper);
+          }
+        }
+      }
+
+      function pasteALL(val, pos) {
+        var k, c, p, l;
+
+        if (pos.begin == pos.end) {
+          l = Number(pos.end) + 1;
+
+          for (var i = 0; i < l; i++) {
+            k = getKeyCode(val, i + 1);
+            c = String.fromCharCode(k);
+            p = seekNext(i - 1);
+
+            if (p < len) {
+              if (tests[p].test(c)) {
+                shiftR(p);
+                buffer[p] = c;
+                writeBuffer();
+                next = seekNext(p);
+                input.caret(next);
+
+                if (settings.completed && next >= len) {
+                  settings.completed.call(input);
+                }
+              }
+            }
           }
         }
       }
@@ -423,10 +463,8 @@ $.fn.extend({
         }
         if (allow) {
           writeBuffer();
-        } else if (lastMatch + 1 < partialPosition) {
-          input.val("");
-          clearBuffer(0, len);
-        } else {
+        }
+        else {
           writeBuffer();
           input.val(input.val().substring(0, lastMatch + 1));
         }
@@ -490,6 +528,8 @@ $.fn.extend({
         .bind("keypress.amask", keypressEvent)
         .bind("input", keyInput)
         .bind(pasteEventName, function() {
+          isPasteEvent = true;
+
           setTimeout(function() { 
             var pos=checkVal(true);
             input.caret(pos); 
