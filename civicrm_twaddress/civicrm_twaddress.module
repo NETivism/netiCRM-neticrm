@@ -81,26 +81,25 @@ function _civicrm_twaddress_is_addr_field($name, &$obj, &$override){
 function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   static $add;
   // whatever, reorder. 
-  $order = civicrm_twaddress_order();
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'state_province') || !empty($e->_attributes['state-province'])){
       $element = $form->getElement($name);
       $options = civicrm_twaddress_extract($element->_options);
-      foreach($order as $k => $v){
-        // if option is '-- select --', skip to next.
-        if($options[$v]['attr']['value'] == '') continue;
-        $option = $options[$v];
-        if(isset($option)){
-          // remove origin option in _options
-          $key = array_search($option, $element->_options);
-          unset($element->_options[$key]);
-          // put ordered option at the tail of _options
-          $element->_options[] = $option;
+
+      $optgrp = FALSE;
+      foreach ($element->_options as $o => $opt) {
+        if (!empty($opt['options'])) {
+          // reorder sub dir
+          $optgrp = TRUE;
+          $neworder = _civicrm_twaddress_reorder($opt['options']);
+          $element->_options[$o]['options'] = $neworder;
         }
       }
-      // let index in _options is order in 0,1,2....
-      $element->_options = array_values($element->_options);
+      if (!$optgrp) {
+        $neworder = _civicrm_twaddress_reorder($element->_options);
+        $element->_options = $neworder;
+      }
     }
   }
 
@@ -557,4 +556,24 @@ function _civicrm_twaddress_get_province_id($name){
     "高雄市"=> "5220",
   );
   return $arr[$name];
+}
+
+function _civicrm_twaddress_reorder($options) {
+  $order = civicrm_twaddress_order();
+  $neworder = array();
+
+  foreach($order as $k => $v){
+    // if option is '-- select --', skip to next.
+    if(empty($options[$v]['attr']['value'])) continue;
+    if(!empty($options[$v])){
+      $opt = $options[$v];
+      $neworder[$v] = $opt;
+    }
+  }
+  if (empty($neworder)) {
+    return $options;
+  }
+  else {
+    return $neworder;
+  }
 }
