@@ -278,3 +278,10 @@ function neticrm_update_update_6130() {
 function neticrm_update_update_6131() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update event notification email message. refs #20460
+ */
+function neticrm_update_update_6132() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
