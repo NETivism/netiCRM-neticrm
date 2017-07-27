@@ -325,9 +325,9 @@ function civicrm_allpay_recur_sync($days = array()){
     }
   }
 
-  $query = "SELECT (SELECT c.id FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS exists_cid, r.* FROM civicrm_contribution_recur r
+  $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
-  ORDER BY exists_cid, r.create_date ASC";
+  ORDER BY r.create_date ASC";
   foreach($days as $d){
     watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
     $query_params = array(
@@ -337,7 +337,7 @@ function civicrm_allpay_recur_sync($days = array()){
     );
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
-      if(empty($result->exists_cid)){
+      if(empty($result->contribution_count)){
         // check if is next day of expect recurring
         civicrm_allpay_recur_check($result->id);
         usleep(300000); // sleep 0.3 second
