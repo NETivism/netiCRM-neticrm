@@ -11,28 +11,29 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       if($entity_id){
         $entity_table = $form_name == 'CRM_Contribute_Form_ContributionPage_Amount' ? 'civicrm_contribution_page' : 'civicrm_event';
 //civicrm_contribution_page
-        $payment_instruments = CRM_Core_DAO::singleValueQuery("SELECT payment_instruments FROM civicrm_instrument WHERE entity_id = {$entity_id} AND entity_table = '{$entity_table}'");
-        $payment_instruments = unserialize($payment_instruments);
+        $saved_instruments = CRM_Core_DAO::singleValueQuery("SELECT payment_instruments FROM civicrm_instrument WHERE entity_id = {$entity_id} AND entity_table = '{$entity_table}'");
+        $saved_instruments = unserialize($saved_instruments);
+        $default_instruments = array(
+          'payment_instrument' => $saved_instruments,
+        );
         $gid = variable_get('civicrm_instrument_gid', 0);
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 ORDER BY weight ASC");
+
         while($option->fetch()){
           $checkbox_name = _civicrm_instrument_form_name($option->name);
-          $label = $option->is_reserved ? $option->label." [".ts('Payment Processor')."]*" : $option->label;
-          $options[$checkbox_name] = array(
-            'default' => !empty($payment_instruments[$checkbox_name]) ? 1: 0,
-            'label' => $label,
-            'reserved' => $option->is_reserved ? 1 : 0,
-          );
+          $options[$option->label] = $checkbox_name;
         }
-        drupal_add_js(_civicrm_instrument_js_admin($options, $entity_table), array('type' => 'inline', 'scope' => 'footer'));
+        $form->addCheckBox('payment_instrument', ts('Payment Instrument'), $options);
+        $form->setDefaults($default_instruments);
 
         // Make payment proccessor relative to recur form display.
+        /*
         $query = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE is_recur = 1");
         while($query->fetch()){
           $processor[$query->id] = $query->id;
         }
         _civicrm_instrument_js_contritweak($processor);
-
+        */
       }
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
@@ -147,24 +148,56 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
       }
     // contribution page settings
     case 'CRM_Contribute_Form_ContributionPage_Amount':
+      $errors = array();
+      if (!empty($fields['is_recur'])) {
+        $js_settings = array(
+          'required_credit_card' => '',
+          'is_recur_only' => '',
+        );
+        if (empty($fields['payment_instrument']['credit_card'])) {
+          $problem = ts("Recurring Contribution").": ".ts('%1 is a required field.', array(1 => ts('Credit Card')));
+          $js_settings['required_credit_card'] = $problem;
+          $errors['payment_instrument_credit_card'] = $problem;
+        }
+        if (!empty($fields['is_recur_only'])) {
+          $problem = ts('You cannot set up a recurring contribution if you are not paying online by credit card.');
+          foreach ($fields['payment_instrument'] as $k => $v) {
+            if ($k != 'credit_card') {
+              $js_settings['is_recur_only'] = $problem;
+              $errors['payment_instrument_is_recur_only'] = $problem;
+              break;
+            }
+          }
+        }
+        drupal_add_js(array('civicrm_instrument' => $js_settings), 'setting');
+        if (!empty($errors)) {
+          $js = 'cj(document).ready(function($){
+    if ($("#crm-container label[for^=payment_instrument]").length) {
+      $("#crm-container label[for^=payment_instrument]").each(function(){
+        if ($(this).attr("for") == "payment_instrument[credit_card]") {
+          $(this).append("<span class=\'crm-error crm-error-instrument\'>"+Drupal.settings.civicrm_instrument.required_credit_card+"</span>");
+        }
+        else {
+          if (Drupal.settings.civicrm_instrument.is_recur_only && $(this).find("input").attr("checked")) {
+            $(this).append("<span class=\'crm-error crm-error-instrument\'>"+Drupal.settings.civicrm_instrument.is_recur_only+"</span>");
+          }
+        }
+        $(this).closest("td").children(".crm-error").remove();
+      });
+    }
+  });';
+          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        }
+      }
+      // continue validate with fee
     case 'CRM_Event_Form_ManageEvent_Fee':
       if (!empty($fields['is_monetary']) && !empty($fields['payment_processor'])) {
-        if (empty($form->_submitValues['payment_instrument'])) {
-          $js = 'cj(document).ready(function($) {
-  var requiredInstrument = "'.ts('%1 is a required field.', array(1 => ts('Payment Instrument'))).'";
-  if ($("#crm-container label[for=payment_instrument]").length) {
-    var $instrumentLabel = $("#crm-container label[for=payment_instrument]");
-    $instrumentLabel.addClass("crm-error crm-error-label");
-    var $errMsg = $("<span>" + requiredInstrument + "</span>");
-    $errMsg.addClass("crm-error");
-    $("#crm-container .instrument-wrapper label:nth(0)").after($errMsg);
-  }
-});';
-          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
-          return array(
-            'payment_instrument' => ts('%1 is a required field.', array(1 => ts('Payment Instrument'))),
-          );
+        if (empty($fields['payment_instrument'])) {
+          $errors['payment_instrument_required'] = ts('%1 is a required field.', array(1 => ts('Payment Instrument')));
         }
+      }
+      if (!empty($errors)) {
+        return array('payment_instrument' => implode('<br>', $errors));
       }
       break;
   }
@@ -215,36 +248,6 @@ function civicrm_instrument_civicrm_copy( $objectName, &$object ){
   }
 }
 
-/**
- * Payment instrument admin javascript
- *
- * Provide payment instrument optoins for contribution and
- * event page administration.
- */
-function _civicrm_instrument_js_admin($options, $entity_table){
-  switch($entity_table){
-    case 'civicrm_contribution_page':
-      $css_id = 'crm-contribution-contributionpage-amount-form-block-payment_processor';
-      break;
-    case 'civicrm_event':
-      $css_id = 'crm-event-manage-fee-form-block-payment_processor';
-      break;
-  }
-  $o = "<tr><td></td><td><table><tr>";
-  $o .= "<th scope='row' class='label'><label for='payment_instrument'>".ts('Payment Instrument').'</label></th>';
-  $o .= "<td><div class='content'>";
-  foreach($options as $k => $v){
-    $checked = $v['default'] ? 'checked=checked' : '';
-    $reserved = $v['reserved'] ? ' reserved' : '';
-    $o .= "<div class='instrument-wrapper{$reserved}'><label><input type='checkbox' name='payment_instrument[{$k}]' value='1' class='form-checkbox' $checked />".$v['label']."</label></div>";
-  }
-  $o .= '</div></td>';
-  $o .= '</tr></table></td></tr>';
-  return '
-  cj(document).ready(function($){
-    $("#crm-container .'.$css_id.'").after("'.$o.'");
-  });';
-}
 /**
  * Javascript generate helper function for page
  */
