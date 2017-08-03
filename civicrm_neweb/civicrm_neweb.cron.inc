@@ -249,6 +249,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
       gc_enable();
     }
     foreach($trans as $k => $t){
+      $err = '';
       if(empty($t) || $k <= $line_counter) continue;
       $times_counter++;
       if($times_counter > $times_limit){
@@ -299,13 +300,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
               $sql = "UPDATE civicrm_contribution_neweb_recur SET contributions = $now, cycle = $cycle WHERE recur_id = $recur->id";
               CRM_Core_DAO::executeQuery($sql);
             }
-            else{
-              $err = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
-              // TODO: record failed reason 
-            }
             CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
-            $arr_error = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
-            _civicrm_neweb_addnote(implode("\n", $arr_error), $contribution->id, $contribution->contact_id);
             continue; // skip recurring transaction when specifix transaction id exists.
           }
         }
@@ -341,9 +336,8 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
           $contribution->save();
         }
 
-        $arr_error = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
-        _civicrm_neweb_addnote(implode("\n", $arr_error), $contribution->id, $contribution->contact_id);
-
+        $responseDetail = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
+        _civicrm_neweb_addnote(implode("\n", $responseDetail), $contribution->id, $contribution->contact_id);
         // now we have correct contribution object. procceed.
         // submit recurring items by ipn functions
         $input = $ids = array();
@@ -388,7 +382,9 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
         // Status: failed, cancel. We don't have retry mechnism.
         else{
           $err = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
-          $IPN->failed($objects, $transaction, $err);
+          $error_code = ts('Error Code:')."PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']}";
+          $failed_reason = implode("\n", $err) . "\n" . $error_code;
+          $IPN->failed($objects, $transaction, $failed_reason);
           // TODO: record failed reason 
         }
         CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
