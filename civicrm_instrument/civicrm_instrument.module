@@ -478,20 +478,26 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     foreach($enabled_instruments as $name => $i){
       if($name == 'Convenient Store'){
         $i['description'].='若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
-        print("<style>
-        @media only screen and (max-width: 768px) {
-          [for='civicrm-instrument-dummy-11']+.hover-item {
-            color: red;
-            font-size: 13px;
+        print('<script>
+          function show_allpay_msg(){
+            $option = jQuery("[for=civicrm-instrument-dummy-11]");
+            console.log($option);
+            if($option.children("#civicrm-instrument-dummy-11").prop("checked")){
+              $option.next(".hover-item").show();
+            }else{
+              $option.next(".hover-item").hide();
+            }
           }
+          show_allpay_msg();
+
+          jQuery(".civicrm-instrument-dummy input").change(show_allpay_msg);
+        </script>
+        <style>
+        [for="civicrm-instrument-dummy-11"]+.hover-item {
+          color: red;
+          font-size: 13px;
         }
-        @media only screen and (min-width: 769px) {
-          [for='civicrm-instrument-dummy-11']+.hover-item {
-            display: none;
-            font-size: 13px;
-          }
-        }
-        </style>");
+        </style>');
       }
       $radio_name = _civicrm_instrument_form_name($name);
       if(!empty($active_instruments[$radio_name])){
