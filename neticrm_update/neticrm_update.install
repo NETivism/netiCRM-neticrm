@@ -297,3 +297,10 @@ function neticrm_update_update_7233() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Extend url field length. refs #20983
+ */
+function neticrm_update_update_7234() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
