@@ -11,5 +11,8 @@ function _neticrm_update_update_7235() {
     $alter_query = "ALTER TABLE `civicrm_event` ADD `allow_cancel_by_link` tinyint(4) NULL COMMENT 'If true, allow participant cancel event by link in confirm mail.' AFTER `bcc_confirm`";
     CRM_Core_DAO::executeQuery($alter_query);
   }
+
+  neticrm_update_update_7232();
+
   return 'Add allow_cancel_by_link column to civicrm_event success';
 }
