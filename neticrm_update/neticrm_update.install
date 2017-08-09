@@ -283,11 +283,17 @@ function neticrm_update_update_7231() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
-
 /**
  * Update event notification email message. refs #20460
  */
 function neticrm_update_update_7232() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update event notification email message. refs #20146
+ */
+function neticrm_update_update_7233() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
