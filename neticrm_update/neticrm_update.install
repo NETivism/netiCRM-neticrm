@@ -304,3 +304,10 @@ function neticrm_update_update_7234() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Add allow_cancel_by_link column to civicrm_event. refs #20460
+ */
+function neticrm_update_update_7235() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
