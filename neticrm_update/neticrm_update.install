@@ -291,7 +291,7 @@ function neticrm_update_update_7232() {
 }
 
 /**
- * Update event notification email message. refs #20146
+ * Correct is_billing flag of civicrm address. refs #20146
  */
 function neticrm_update_update_7233() {
   return neticrm_update_load_include(__FUNCTION__);
