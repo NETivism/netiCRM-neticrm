@@ -13,7 +13,7 @@ function _neticrm_update_update_6132() {
   // 取得目前預設的 $msg_workflow_id, $msg_html
   $msg_title = '活動 - 登記確認與收據（在線）';
   $params = array(1 => array($msg_title, 'String'));
-  $msg_workflow_id = CRM_Core_DAO::singleValueQuery("SELECT workflow_id FROM civicrm_msg_template WHERE msg_title = '活動 - 登記確認與收據（在線）' AND is_reserved = 1", $params);
+  $msg_workflow_id = CRM_Core_DAO::singleValueQuery("SELECT workflow_id FROM civicrm_msg_template WHERE msg_title = %1 AND is_reserved = 1", $params);
 
   print("msg_workflow_id : $msg_workflow_id\n");
 

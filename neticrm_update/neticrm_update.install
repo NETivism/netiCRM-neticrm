@@ -299,3 +299,10 @@ function neticrm_update_update_6133() {
 function neticrm_update_update_6134() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add allow_cancel_by_link column to civicrm_event. refs #20460
+ */
+function neticrm_update_update_6135() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
