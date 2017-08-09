@@ -287,9 +287,15 @@ function neticrm_update_update_6132() {
 }
 
 /**
- * Update event notification email message. refs #20146
+ * Correct is_billing flag of civicrm address. refs #20146
  */
 function neticrm_update_update_6133() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Extend url field length. refs #20983
+ */
+function neticrm_update_update_6134() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
