@@ -321,15 +321,10 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'thankyou_title' => '謝謝你的支持',
     'receipt_from_email' => 'demo@demo.neticrm.tw',
   );
-  if (variable_get('civicrm_demo_sample_data', 0)) {
-    $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
-    $params['payment_processor'] = $processors;
-  }
-  else {
-    $params['is_pay_later'] = 1; 
-    $params['pay_later_text'] = '請設定您的金流服務';
-    $params['pay_later_receipt'] = '選擇金流服務商完成設定，即可提供正式的線上付款工具。';
-  }
+  $params['is_pay_later'] = 1; 
+  $params['pay_later_text'] = '請設定您的金流服務';
+  $params['pay_later_receipt'] = '選擇金流服務商完成設定，即可提供正式的線上付款工具。';
+
   $result = civicrm_api('ContributionPage', 'create', $params);
   if(!empty($result['id'])){
     $contribution_page_id = $result['id'];
