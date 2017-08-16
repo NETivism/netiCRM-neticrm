@@ -252,6 +252,13 @@ function neticrm_update_update_6126() {
 }
 
 /**
+ * Update receipt message. refs #19627
+ */
+function neticrm_update_update_6127() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
  * Update receipt field label. refs #20195, #20424
  */
 function neticrm_update_update_6128() {
