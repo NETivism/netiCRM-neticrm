@@ -376,11 +376,11 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
         break;
       case 'get':
         $success = $sftp->get($remote, $local);
-        if(empty($success)){
-          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't download file. File : $remote", $host, $is_test);
-        }
+        // Attention : Althought it success, $success may be false;
         if(file_exists($local)){
           $success = file_get_contents($local);
+        }else{
+          _civicrm_neweb_mail_error_log_notify("SFTP logined. Can't download file. File : $remote", $host, $is_test);
         }
         break;
       case 'list':
