@@ -428,6 +428,36 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       unset($enabled_instruments['Credit Card']);
     }
     foreach($enabled_instruments as $name => $i){
+      if($name == 'Convenient Store'){
+        $i['description'].='若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
+        $js = 'function show_allpay_msg(){
+            $option = jQuery("[for=civicrm-instrument-dummy-11]");
+            if($option.children("#civicrm-instrument-dummy-11").is(":checked")){
+              $option.next(".hover-item").show();
+            }else{
+              $option.next(".hover-item").hide();
+            }
+          }
+          jQuery(function(){
+            show_allpay_msg();
+            jQuery(".civicrm-instrument-dummy input").change(show_allpay_msg);
+          })';
+        $css = '
+        [for="civicrm-instrument-dummy-11"]+.hover-item {
+          color: red;
+          font-size: 13px;
+        }';
+        $snippet = CRM_Utils_Array::value('snippet', $_GET);
+        if($snippet == 4){
+          print("
+            <script>
+            $js
+            </script>
+            <style>
+            $css
+            </style>");
+        }
+      }
       $radio_name = _civicrm_instrument_form_name($name);
       if($active_instruments[$radio_name]){
         $radios[$i['value']] = array(
