@@ -416,17 +416,14 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
           if($order->gwsr == $o->gwsr){
             continue;
           }
-          $hash = substr(md5(implode('', (array)$o)), 0, 8);
-          if($o->RtnCode == 1){
-            if (empty($o->gwsr)) {
+          $noid = _civicrm_allpay_noid_hash($o);
+          if (!empty($noid)) {
+            if($o->RtnCode == 1 && empty($o->gwsr)){
               continue; // skip, not normal
             }
-            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $o->gwsr);
+            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $noid);
+            $orders[$trxn_id] = $o;
           }
-          else{
-            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $hash);
-          }
-          $orders[$trxn_id] = $o;
         }
         // remove exists records
         while($result->fetch()){
@@ -434,9 +431,9 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
         }
         // real record to add
         if(!empty($orders)){
-          foreach($orders as $o){
+          foreach($orders as $trxn_id => $o){
             $get = $post = $ids = array();
-            $hash = substr(md5(implode('', (array)$o)), 0, 8);
+            list($main_trxn, $noid) = explode('-', $trxn_id);
             $ids = CRM_Contribute_BAO_Contribution::buildIds($first_contrib_id);
             $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
             parse_str($query, $get);
@@ -450,7 +447,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
               'Frequency' => $order->Frequency,
               'ExecTimes' => $order->ExecTimes,
               'Amount' => !empty($o->amount) ? $o->amount : $order->amount,
-              'Gwsr' => $o->RtnCode == 1 ? $o->gwsr : $hash,
+              'Gwsr' => $noid,
               'ProcessDate' => $o->process_date,
               'AuthCode' => !empty($o->auth_code) ? $o->auth_code : '',
               'FirstAuthAmount' => $order->PeriodAmount,
@@ -649,5 +646,31 @@ function _civicrm_allpay_error_msg($code){
   }
   else{
     return t('Error when processing your payment.');
+  }
+}
+
+function _civicrm_allpay_noid_hash($o){
+  // check database for this
+  $lookup = array(
+    1 => array('%ProcessDate":"'.str_replace('/', '\\\\\\\\', $o->process_date).'"%', 'String'),
+  );
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT cid FROM civicrm_contribution_allpay WHERE data LIKE %1", $lookup);
+  if ($cid) {
+    $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE id = %1", array(1 => array($cid, 'Integer')));
+    list($main_trxn, $noid) = explode('-', $trxn_id);
+    if ($noid) {
+      return $noid;
+    }
+    else {
+      return;
+    }
+  }
+  elseif (!empty($o->process_date)) {
+    if (!empty($o->gwsr)) {
+      return $o->gwsr;
+    }
+    else {
+      return substr(md5(implode('', (array)$o)), 0, 8);
+    }
   }
 }
