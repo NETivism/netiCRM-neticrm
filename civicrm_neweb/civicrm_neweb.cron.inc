@@ -194,7 +194,7 @@ function civicrm_neweb_process_response($is_test, $now = NULL, $pid){
   }
 }
 
-function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
+function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_update = FALSE){
   $now = $now ? $now : time();
   civicrm_initialize();
   require_once "CRM/Core/DAO.php";
@@ -286,23 +286,12 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid){
 
         // If the contribution is belong to correct recuring, and same contribution id, Then update receive data. 
         if(!empty($dao->id)){
+          if(!$force_update){
+            continue; // skip recurring transaction when specifix transaction id exists.
+          }
           $contribution = new CRM_Contribute_DAO_Contribution();
           $contribution->id = $dao->id;
           $contribution->find(true);
-          $contribution->receive_date = date('YmdHis', $now);
-          $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
-          $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
-          $contribution->save();
-
-          if($contribution->contribution_status_id == 1){
-            if( ($t['PRC'] == 0 && $t['SRC'] == 0) || ($t['PRC'] == '11' && $t['SRC'] == '205') ){
-              $cycle = $recur->cycle + 1;
-              $sql = "UPDATE civicrm_contribution_neweb_recur SET contributions = $now, cycle = $cycle WHERE recur_id = $recur->id";
-              CRM_Core_DAO::executeQuery($sql);
-            }
-            CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
-            continue; // skip recurring transaction when specifix transaction id exists.
-          }
         }
         else{
           // Doesn't find same contribution.
