@@ -129,8 +129,16 @@ $(".custom_post-group fieldset").children().each(checkForm);
 
 function checkForm(){
     var c = $(this).attr("class");
+    if (typeof c !== "string") {
+      return;
+    }
     for (var i = 0; i < arrChecked.length; i++) {
-      if(c.match(arrChecked[i]))return; 
+      if (typeof arrChecked[i] === "string" && typeof c === "string") {
+        var re = new RegExp(arrChecked[i], "g");
+        if(c.match(re)) {
+          return;
+        }
+      }
     }
     // arrType = [];
     arrFieldType = ["state_province-","postal_code-","city-"];
