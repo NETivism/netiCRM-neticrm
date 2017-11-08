@@ -31,11 +31,25 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
  */
 function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
   $success = _civicrm_invpay2go_check_success($receipt);
+  $config = CRM_Core_Config::singleton();
   if ($success) {
     return array('success' => TRUE);
   }
   elseif (!$success && !empty($receipt['issue_response']->Message)) {
     drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+  }
+  elseif ($config->taxReceiptNumber) {
+    $params = array(
+      'entityID' => $contribution_id,
+      'entityType' => 'Contribution',
+    );
+    $result = CRM_Core_BAO_CustomValueTable::getValues($params);
+    if ($result['custom_'.$config->taxReceiptNumber]) {
+      return array(
+        'success' => 'not sure', 
+        'reason' => 'Exists invoice number',
+      );
+    }
   }
   return array('success' => FALSE);
 }
