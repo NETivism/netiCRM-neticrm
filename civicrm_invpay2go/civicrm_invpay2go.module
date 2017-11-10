@@ -614,7 +614,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
   return $errors;
 }
 
-function _civicrm_invpay2go_trxn_id($trxn_id, $contribution_id) {
+function _civicrm_invpay2go_trxn_id($trxn_id, $contribution_id = NULL) {
   if (empty($trxn_id)) {
     return 'invoice'.sprintf('%08d', $contribution_id);
   }
