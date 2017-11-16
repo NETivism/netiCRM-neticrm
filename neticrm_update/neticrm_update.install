@@ -320,3 +320,10 @@ function neticrm_update_update_6135() {
 function neticrm_update_update_6136() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Expand length of external identifier. refs #21286
+ */
+function neticrm_update_update_6137() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
