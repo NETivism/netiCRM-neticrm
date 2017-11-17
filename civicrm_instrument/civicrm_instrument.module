@@ -106,8 +106,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
       if(isset($fields['payment_processor']) && $fields['payment_processor'] !== '0' && $processor_type != 'ESUNBANK' && $processor_type != 'NCCC'){
         if( empty($fields['civicrm_instrument_id']) && isset($fields['civicrm_instrument_id_dummy'])){
           return array(
-            'civicrm_instrument_id_dummy' => ts('This field is required.'),
-            'payment_processor' => ts('This field is required.'),
+            'payment_processor' => ts('%1 is a required field.', array(1 => ts('Payment Processor'))),
           );
         }
 
@@ -129,11 +128,11 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
         $radios = _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments);
         if (!isset($radios[$fields['civicrm_instrument_id']])) {
           return array(
-            'civicrm_instrument_id_dummy' => ts('This field is required.'),
-            'payment_processor' => ts('This field is required.'),
+            'payment_processor' => ts('%1 is a required field.', array(1 => ts('Payment Instruments'))),
           );
         }
       }
+      break;
     // contribution page settings
     case 'CRM_Contribute_Form_ContributionPage_Amount':
       $errors = array();
@@ -260,6 +259,10 @@ function _civicrm_instrument_js_page($radios, &$form, $default_instrument = 0){
     $default_instrument = key($radios);
   }
   foreach($radios as $rid => $radio){
+    if (module_exists('civicrm_field_i18n')) {
+      $radio['description'] = civicrm_field_i18n_t($radio['description']);
+      $radio['label'] = civicrm_field_i18n_t($radio['label']);
+    }
     $c++;
     if($c != 1){
       $error_str = '';
@@ -325,6 +328,10 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
       if(count($radios) == 1){
         $rid = key($radios);
         $r = reset($radios);
+        if (module_exists('civicrm_field_i18n')) {
+          $r['description'] = civicrm_field_i18n_t($r['description']);
+          $r['label'] = civicrm_field_i18n_t($r['label']);
+        }
         $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
       }
       else{
@@ -332,6 +339,10 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
           $default_instrument = key($radios);
         }
         foreach($radios as $rid => $r){
+          if (module_exists('civicrm_field_i18n')) {
+            $r['description'] = civicrm_field_i18n_t($r['description']);
+            $r['label'] = civicrm_field_i18n_t($r['label']);
+          }
           $checked = ($rid == $default_instrument) ? 'checked="checked"' : '';
           $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required" '.$checked.'><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
@@ -429,6 +440,36 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       unset($enabled_instruments['Credit Card']);
     }
     foreach($enabled_instruments as $name => $i){
+      if($name == 'Convenient Store'){
+        $i['description'].='若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
+        $js = 'function show_allpay_msg(){
+            $option = jQuery("[for=civicrm-instrument-dummy-11]");
+            if($option.children("#civicrm-instrument-dummy-11").is(":checked")){
+              $option.next(".hover-item").show();
+            }else{
+              $option.next(".hover-item").hide();
+            }
+          }
+          jQuery(function(){
+            show_allpay_msg();
+            jQuery(".civicrm-instrument-dummy input").change(show_allpay_msg);
+          })';
+        $css = '
+        [for="civicrm-instrument-dummy-11"]+.hover-item {
+          color: red;
+          font-size: 13px;
+        }';
+        $snippet = CRM_Utils_Array::value('snippet', $_GET);
+        if($snippet == 4){
+          print("
+            <script>
+            $js
+            </script>
+            <style>
+            $css
+            </style>");
+        }
+      }
       $radio_name = _civicrm_instrument_form_name($name);
       if($active_instruments[$radio_name]){
         $radios[$i['value']] = array(

@@ -157,5 +157,6 @@ function civicrm_field_i18n_t($text){
 }
 
 function civicrm_field_i18n_test($text){
-  return preg_replace('/[^a-zA-Z0-9\/_|+ .-?!<>\n\t\s]+/', '', $text);
+  // prevent translate chinese.
+  return preg_replace('/[^a-zA-Z0-9\/_,\'|+ .-?!<>\n\t\s()-]+/', '', $text);
 }

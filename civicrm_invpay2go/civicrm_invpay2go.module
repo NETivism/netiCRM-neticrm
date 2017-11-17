@@ -5,8 +5,16 @@
  */
 function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_params, &$tax_receipt, &$object) {
   // check if exists
+  $statuses = CRM_Contribute_PseudoConstant::contributionStatus();
+  $types = CRM_Contribute_PseudoConstant::contributionType();
   $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($object->trxn_id));
-  $field_info = _civicrm_invpay2go_get_field_info($contribution_id);
+  $fields = _civicrm_invpay2go_get_field_info($contribution_id);
+  $field_info['contributionId'] = array('label' => ts('ID'), 'value_label' => '<a href="'.  CRM_Utils_System::url('civicrm/contact/view/contribution', "reset=1&action=view&cid=$object->contact_id&id=$object->id").'" target="_blank">'.$object->id.'</a>');
+  $field_info['totalAmount'] = array('label' => ts('Total Amount'), 'value_label' => $object->total_amount);
+  $field_info['contributionStatus'] = array('label' => ts('Contribution Status'), 'value_label' => $statuses[$object->contribution_status_id]);
+  $field_info['contributionType'] = array('label' => ts('Contribution Type'), 'value_label' => $types[$object->contribution_type_id]);
+  $field_info['source'] = array('label' => ts('Source'), 'value_label' => $object->source);
+  $field_info += $fields;
 
   // remove unused field in current selection
   _civcirm_invpay2go_params_validation($field_info, $remove_unused = TRUE);
@@ -31,11 +39,40 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
  */
 function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
   $success = _civicrm_invpay2go_check_success($receipt);
+  $config = CRM_Core_Config::singleton();
   if ($success) {
     return array('success' => TRUE);
   }
   elseif (!$success && !empty($receipt['issue_response']->Message)) {
     drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+  }
+  elseif (!$success && $config->taxReceiptNumber) {
+    $contribution = new CRM_Contribute_DAO_Contribution();
+    $contribution->id = $contribution_id;
+    if ($contribution->find(TRUE)) {
+      if ($contribution->contribution_status_id == 2 || $contribution->contribution_status_id == 1) {
+        if ($contribution->contribution_status_id == 2) {
+          drupal_set_message('注意：本項費用還未完成繳費', 'warning');
+        }
+      }
+      else {
+        return array(
+          'success' => 'not sure', 
+          'reason' => 'Contribution status not valid (failed, or cancelled)',
+        );
+      }
+    }
+    $params = array(
+      'entityID' => $contribution_id,
+      'entityType' => 'Contribution',
+    );
+    $result = CRM_Core_BAO_CustomValueTable::getValues($params);
+    if ($result['custom_'.$config->taxReceiptNumber]) {
+      return array(
+        'success' => 'not sure', 
+        'reason' => 'Exists invoice number',
+      );
+    }
   }
   return array('success' => FALSE);
 }
@@ -600,7 +637,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
   return $errors;
 }
 
-function _civicrm_invpay2go_trxn_id($trxn_id, $contribution_id) {
+function _civicrm_invpay2go_trxn_id($trxn_id, $contribution_id = NULL) {
   if (empty($trxn_id)) {
     return 'invoice'.sprintf('%08d', $contribution_id);
   }
