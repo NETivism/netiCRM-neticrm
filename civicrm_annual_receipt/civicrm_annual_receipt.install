@@ -82,9 +82,9 @@ function civicrm_annual_receipt_install() {
   if(empty($custom_obj)){
     // create custom search
     $params = array(
-      'label' => 'CRM_Contact_Form_Search_Custom_AnnualReceipt',
+      'label' => '產生年度收據',
       'name' => 'CRM_Contact_Form_Search_Custom_AnnualReceipt',
-      'description' => '產生年度收據',
+      'description' => '',
       'is_active' => 1,
     );
     $group_params = array('name' => 'custom_search');
