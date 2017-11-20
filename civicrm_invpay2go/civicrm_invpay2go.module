@@ -7,9 +7,19 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
   // check if exists
   $statuses = CRM_Contribute_PseudoConstant::contributionStatus();
   $types = CRM_Contribute_PseudoConstant::contributionType();
-  $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($object->trxn_id));
+  if ($_GET['sync'] == 'force') {
+    $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($object->trxn_id), NULL, 'force');
+    $redirect = str_replace('sync=force', '', $_SERVER['REQUEST_URI']);
+    $redirect = trim($redirect, '&');
+    drupal_set_message('同步成功。已完成同步本張發票的最新資訊。');
+    CRM_Utils_System::redirect($redirect);
+    return;
+  }
+  else {
+    $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($object->trxn_id));
+  }
   $fields = _civicrm_invpay2go_get_field_info($contribution_id);
-  $field_info['contributionId'] = array('label' => ts('ID'), 'value_label' => '<a href="'.  CRM_Utils_System::url('civicrm/contact/view/contribution', "reset=1&action=view&cid=$object->contact_id&id=$object->id").'" target="_blank">'.$object->id.'</a>');
+  $field_info['contributionId'] = array('label' => ts('ID'), 'value_label' => $object->id .' (<a href="'.  CRM_Utils_System::url('civicrm/contact/view/contribution', "reset=1&action=view&cid=$object->contact_id&id=$object->id").'">'.ts('view').'</a>)');
   $field_info['totalAmount'] = array('label' => ts('Total Amount'), 'value_label' => $object->total_amount);
   $field_info['contributionStatus'] = array('label' => ts('Contribution Status'), 'value_label' => $statuses[$object->contribution_status_id]);
   $field_info['contributionType'] = array('label' => ts('Contribution Type'), 'value_label' => $types[$object->contribution_type_id]);
@@ -23,10 +33,27 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
   if ($exists) {
     if (!empty($exists['issue_response'])) {
       $html = invpay2go_api_print($exists);
-      $exists['receipt_info'] = $exists['issue_response']->Result;
-      $exists['receipt_status'] = $exists['issue_response']->Status == 'SUCCESS' ? 1 : 0;
+      $update_link = '';
+      if (!empty($exists['search_response']->Result->InvoiceStatus)) {
+        $status = $exists['search_response']->Result->InvoiceStatus;
+        $update_link = ' (<a href="'.trim($_SERVER['REQUEST_URI'], '&').'&sync=force'.'">點此同步</a>)';
+      }
+      if ($status == 1) {
+        $exists['receipt_print'] = $html;
+      }
+      $exists['receipt_result'] = $exists['issue_response']->Result;
+      $exists['receipt_status'] = $exists['issue_response']->Status == 'SUCCESS' ? $status : 0;
       $exists['receipt_message'] = $exists['issue_response']->Message;
-      $exists['receipt_print'] = $html;
+      $mapping = _civicrm_invpay2go_field_info_mapping();
+      foreach($mapping as $k => $v) {
+        if ($k == 'InvoiceStatus') {
+          $exists['receipt_info'][$mapping['InvoiceStatus']] = $status == 1 ? '已開立' : ($status == 2 ? '<span class="font-red">已作廢</span>' : '等待同步');
+          $exists['receipt_info'][$mapping['InvoiceStatus']] .= $update_link;
+        }
+        if (!empty($exists['issue_response']->Result->$k)) {
+          $exists['receipt_info'][$v] = $exists['issue_response']->Result->$k;
+        }
+      }
     }
     $tax_receipt = $exists;
     $tax_receipt['module'] = 'civicrm_invpay2go';
@@ -38,15 +65,35 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
 
  */
 function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
-  $success = _civicrm_invpay2go_check_success($receipt);
   $config = CRM_Core_Config::singleton();
-  if ($success) {
-    return array('success' => TRUE);
+  $success = _civicrm_invpay2go_check_success($receipt);
+
+  // failed (作廢)
+  if (!$success && $receipt['receipt_status'] == 2) {
+  dpm(1);
+    return array(
+      'create' => FALSE, 
+      'print' => FALSE,
+    );
   }
-  elseif (!$success && !empty($receipt['issue_response']->Message)) {
-    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+
+  // failed (已存在發票號碼)
+  if (!$success && empty($receipt)) {
+    $params = array(
+      'entityID' => $contribution_id,
+      'entityType' => 'Contribution',
+    );
+    $result = CRM_Core_BAO_CustomValueTable::getValues($params);
+    if (!empty($result['custom_'.$config->taxReceiptNumber])) {
+      return array(
+        'create' => FALSE, // exists invoice number
+        'print' => FALSE, // no any invoice record in Pay2go
+      );
+    }
   }
-  elseif (!$success && $config->taxReceiptNumber) {
+
+  // check status
+  if (!$success) {
     $contribution = new CRM_Contribute_DAO_Contribution();
     $contribution->id = $contribution_id;
     if ($contribution->find(TRUE)) {
@@ -54,33 +101,37 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
         if ($contribution->contribution_status_id == 2) {
           drupal_set_message('注意：本項費用還未完成繳費', 'warning');
         }
+        return array('create' => TRUE);
       }
       else {
         return array(
-          'success' => 'not sure', 
-          'reason' => 'Contribution status not valid (failed, or cancelled)',
+          'create' => FALSE, // should be create when contribution status 
+          'print' => FALSE, // wrong contribution status code
         );
       }
     }
-    $params = array(
-      'entityID' => $contribution_id,
-      'entityType' => 'Contribution',
-    );
-    $result = CRM_Core_BAO_CustomValueTable::getValues($params);
-    if ($result['custom_'.$config->taxReceiptNumber]) {
-      return array(
-        'success' => 'not sure', 
-        'reason' => 'Exists invoice number',
-      );
-    }
   }
-  return array('success' => FALSE);
+
+  // check first attempt response
+  if (!$success && !empty($receipt['issue_response']->Message)) {
+    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+
+    return array('create' => TRUE);
+  }
+
+  // the only thing we can print.
+  if($success) {
+    return array('print' => TRUE);
+  }
+	return array();
 }
 
 function _civicrm_invpay2go_check_success(&$receipt){
   if (!empty($receipt) && $receipt['module'] == 'civicrm_invpay2go') {
     if(isset($receipt['issue_response']->Status) && $receipt['issue_response']->Status == 'SUCCESS') {
-      return TRUE;
+      if ($receipt['receipt_status'] != 2) { // not 作廢
+        return TRUE;
+      }
     }
   }
   return FALSE;
@@ -408,6 +459,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
     'taxReceiptDeviceNumber' => array('title' => ''),
     'taxReceiptDonate' => array('title' => '發票捐贈單位'),
     'taxReceiptSerial' => array('title' => '統一編號', 'placeholder' => '請輸入8碼公司統一編號'),
+    'taxReceiptAgree' => array('title' => '同意事項'),
     'taxReceiptItem' => array('title' => '發票品項'),
   );
   $invpay2goElements = $form->get('invpay2goElements');
@@ -627,6 +679,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
       if ($remove_unused) {
         unset($fields['taxReceiptDonate']);
         unset($fields['taxReceiptSerial']);
+        unset($fields['taxReceiptAgree']);
       }
       break;
     case 'donate':
@@ -637,6 +690,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
         unset($fields['taxReceiptDeviceType']);
         unset($fields['taxReceiptDeviceNumber']);
         unset($fields['taxReceiptSerial']);
+        unset($fields['taxReceiptAgree']);
       }
       break;
     case 'company':
@@ -667,4 +721,21 @@ function _civicrm_invpay2go_trxn_id($trxn_id, $contribution_id = NULL) {
   else {
     return str_replace(array(' ', '-'), '_', $trxn_id);
   }
+}
+
+function _civicrm_invpay2go_field_info_mapping() {
+  return array(
+    'InvoiceStatus' => '發票狀態',
+    'CreateTime' => '建立時間',
+    'InvoiceNumber' => '發票序號',
+    'TotalAmt' => '發票金額',
+    'RandomNum' => '隨機碼',
+    'MerchantOrderNo' => '交易編號（自訂編號）',
+    'InvoiceTransNo' => '智付寶開立序號',
+    //'BarCode' => '條碼資訊',
+    //'QRcodeL' => 'QR Code資訊（左）',
+    //'QRcodeR' => 'QR Code資訊（右）',
+    'MerchantID' => '商店編號',
+    //'CheckCode' => '系統核對碼',
+  );
 }

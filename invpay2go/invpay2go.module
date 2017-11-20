@@ -114,7 +114,9 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search
     $record = Pay2goInvoice::getRecord(NULL, $invoice_number);
   }
   if ($record) {
-    if (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt)) {
+    if (($search === 'force') || 
+      (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt))
+    ) {
       $totalAmt = $record['issue_response']->Result->TotalAmt;
       $search_params = array(
         'MerchantOrderNo' => $order_number,
