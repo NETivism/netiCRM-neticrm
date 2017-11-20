@@ -191,6 +191,29 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
     // custom fields ajax form when edit contribution
     case 'CRM_Contribute_Form_Contribution':
       $taxTypes = CRM_Contribute_PseudoConstant::contributionType(NULL, 'is_taxreceipt');
+      if (!empty($form->_contactID) && empty($_GET['snippet'])) {
+        $params = array('id' => $form->_contactID);
+        $contactInfo = array();
+        $returnProperities = array('contact_type', 'sic_code');
+        CRM_Core_DAO::commonRetrieve('CRM_Contact_DAO_Contact', $params, $contactInfo, $returnProperities);
+        if ($contactInfo['contact_type'] == 'Organization' && !empty($contactInfo['sic_code'])) {
+          $js = '
+jQuery(document).ready(function($){
+  var interval = window.setInterval(function(){
+    if ($("input[data-invpay2go=taxReceiptSerial]").length) {
+      window.clearInterval(interval);
+      $("input[data-invpay2go=taxReceiptSerial]").after(\'<span class="description">帶入聯絡人統編<a href="#taxReceiptSerial">'.$contactInfo['sic_code'].'</a><span>\');
+      $("a[href$=taxReceiptSerial]").click(function(){
+        var serial = $(this).text();
+        $("input[data-invpay2go=taxReceiptSerial]").val(serial);
+      });
+    }
+  }, 800);
+});
+';
+          drupal_add_js($js, 'inline');
+        }
+      }
       if (!empty($_GET['snippet']) && $_GET['snippet'] == 4) {
         if (isset($_GET['cgcount']) && !empty($_GET['entityID']) && is_numeric($_GET['entityID'])) {
           $contribution = new CRM_Contribute_DAO_Contribution();
