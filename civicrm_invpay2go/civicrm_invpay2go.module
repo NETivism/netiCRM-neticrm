@@ -562,7 +562,11 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   $types = CRM_Contribute_PseudoConstant::contributionType();
   $type = $types[$contribution['contribution_type_id']];
   $item_name = $field_info['taxReceiptItem']['value'];
-  $tax_rate = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_ContributionType', $contribution['contribution_type_id'], 'tax_rate');
+  $params = array('id' => $contribution['contribution_type_id']);
+  $type_detail = array();
+	CRM_Core_DAO::commonRetrieve('CRM_Contribute_DAO_ContributionType', $params, $type_detail);
+  $tax_rate = $type_detail['tax_rate'];
+
   if (empty($tax_rate)) {
     $tax_rate = 0;
   }
@@ -634,6 +638,23 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
       break;
   }
 
+  switch($type_detail) {
+    case -1:
+      $conditional_params['TaxType'] = 3; // tax free
+      $conditional_params['TaxRate'] = 0;
+      break;
+    case 1:
+      if ($tax_rate == 0) {
+        $conditional_params['TaxType'] = 2;
+        $conditional_params['TaxRate'] = 0;
+        $conditional_params['CustomsClearance'] = 1; // 1. 非海關 2. 海關
+      }
+      else {
+        $conditional_params['TaxType'] = 1;
+      }
+      break;
+  }
+
   $params =  array(
     'MerchantOrderNo' => _civicrm_invpay2go_trxn_id($contribution['trxn_id']),
     'TransNum' => '', // if pay2go, provide
@@ -642,9 +663,6 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'BuyerName' => $contact['sort_name'],
     'BuyerAddress' => '', // not provided
     'BuyerEmail' => $contact['email'],
-    'TaxType' => '1', // TODO what type of tax, read document
-    'TaxRate' => $tax_rate,
-    'CustomsClearance' => '', // only taxtype = 2, TODO base on tax type, read doc
     'Amt' => $amt, // non-tax amount
     'AmtSales' => '', // TODO base on tax type 9, do not implement
     'AmtZero' => '', // TODO base on tax type 9, do not implement
