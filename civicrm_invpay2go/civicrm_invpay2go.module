@@ -70,7 +70,6 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
 
   // failed (作廢)
   if (!$success && $receipt['receipt_status'] == 2) {
-  dpm(1);
     return array(
       'create' => FALSE, 
       'print' => FALSE,
@@ -638,7 +637,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
       break;
   }
 
-  switch($type_detail) {
+  switch($type_detail['is_taxreceipt']) {
     case -1:
       $conditional_params['TaxType'] = 3; // tax free
       $conditional_params['TaxRate'] = 0;
