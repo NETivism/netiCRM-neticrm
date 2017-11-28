@@ -48,7 +48,8 @@ $check_query = "SELECT name FROM civicrm_option_group WHERE name = 'sms_api_type
       ('sms_api_type'                  , 'Api Type'                           , 0, 1);";
     CRM_Core_DAO::executeQuery($query);
 
-    $sms_api_type_group_id = "SELECT max(id) sms_api_type_group_id from civicrm_option_group where name = 'sms_api_type';";
+    $query = "SELECT max(id) sms_api_type_group_id from civicrm_option_group where name = 'sms_api_type';";
+    $sms_api_type_group_id = CRM_Core_DAO::singleValueQuery($query);
 
     $insert_query = "INSERT INTO 
        `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`) 
@@ -67,7 +68,8 @@ $check_query = "SELECT name FROM civicrm_option_group WHERE name = 'sms_provider
       `civicrm_option_group` (`name`, `description`, `is_reserved`, `is_active`) VALUES
       ('sms_provider_name'             , 'Sms Provider Internal Name'         , 0, 1);";
     CRM_Core_DAO::executeQuery($query);
-    $sms_provider_name_group_id = "SELECT max(id) sms_provider_name_group_id from civicrm_option_group where name = 'sms_provider_name';";
+    $query = "SELECT max(id) sms_provider_name_group_id from civicrm_option_group where name = 'sms_provider_name';";
+   $sms_provider_name_group_id = CRM_Core_DAO::singleValueQuery($query);
 
     $insert_query = "INSERT INTO 
        `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`) 
