@@ -327,3 +327,10 @@ function neticrm_update_update_6136() {
 function neticrm_update_update_6137() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update db for SMS to use. refs #20991
+ */
+function neticrm_update_update_6138() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
