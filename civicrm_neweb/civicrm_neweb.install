@@ -425,3 +425,10 @@ function civicrm_neweb_update_6115(){
   $ret[] = array('success' => $success, 'query' => 'Reload '. $module_name .' translation file for '. $language .' language');
   return $ret;
 }
+
+/**
+ * Update translations
+ */
+function civicrm_neweb_update_6116(){
+  return civicrm_neweb_update_6115();
+}
