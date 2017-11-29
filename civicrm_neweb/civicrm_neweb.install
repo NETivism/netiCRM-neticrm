@@ -426,3 +426,10 @@ function civicrm_neweb_update_7206(){
   $success = _locale_import_po($file, 'zh-hant', LOCALE_IMPORT_OVERWRITE, 'default');
   return $succes;
 }
+
+/**
+ * Update translations
+ */
+function civicrm_neweb_update_7207(){
+  return civicrm_neweb_update_7206();
+}

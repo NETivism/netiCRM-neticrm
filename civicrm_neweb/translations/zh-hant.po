@@ -36,3 +36,24 @@ msgstr "更多資訊請進入你的網站設定頁檢查。網址：{你的網�
 
 msgid "Please select 'month' in frequency unit field when payment processor is Neweb."
 msgstr "當金流使用藍新時，定期定額頻率請選擇「每月」"
+
+msgid "Convenient Store Code"
+msgstr "便利商店繳費代碼"
+
+msgid "Bank Code"
+msgstr "銀行代碼"
+
+msgid "Account Number"
+msgstr "虛擬帳號"
+
+msgid "Print Invoice"
+msgstr "列印繳費單"
+
+msgid "Payment Deadline"
+msgstr "繳費期限"
+
+msgid "Y/m/d"
+msgstr "Y 年 m 月 d 日"
+
+msgid "Shop Stamp"
+msgstr "代收店舖章"
