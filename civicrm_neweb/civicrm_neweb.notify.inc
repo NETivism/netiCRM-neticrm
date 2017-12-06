@@ -44,12 +44,14 @@ function civicrm_neweb_notify_info($cid){
   if(!empty($info) && $info['rc'] == 0){
     $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
     if(!empty($info['paycode'])){
-      // 超商代碼
-      $return['便利商店繳費代碼'] = $info['paycode'];
+      // 便利商店繳費代碼
+      $return[t('Convenient Store Code')] = $info['paycode'];
     }
     elseif(!empty($info['bankid'])){
-      $return['轉入銀行代碼'] = $info['bankid'];
-      $return['虛擬帳號'] = $info['virtualaccount'];
+      // 銀行代碼
+      $return[t('Bank Code')] = $info['bankid'];
+      // 虛擬帳號
+      $return[t('Account Number')] = $info['virtualaccount'];
     }
     elseif(!empty($info['barcode1'])){
       $barcodepath = $payment_processor['url_api'].'BarcodeGenerator?barcode=';
@@ -58,16 +60,18 @@ function civicrm_neweb_notify_info($cid){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" height="40px" width="'.(strlen($b)*15+30).'px" /></div><div style="font-size:13px;padding-bottom:4px;">'.$b.'</div>';
         // $return['條碼'.($k+1)] = $return['#barcode'.$k];
       }
-      $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
+      // 列印繳費單
+      $return[t('Invoice')] = '<a href="'.$invoice_link.'" target="_blank">» '.t('Print Invoice').'</a>';
       $type = 'BAR';
     }
-
-    $return['繳費期限'] = date('Y 年 m 月 d 日',strtotime((empty($info['duedate']))?$post['duedate']:$info['duedate']));
+    // 繳費期限
+    $return[t('Payment Deadline')] = date(t('Y/m/d'),strtotime((empty($info['duedate']))?$post['duedate']:$info['duedate']));
     
 
     if(!empty($return)){
       $return['#type'] = $type;
-      $return['#expire'] = $return['繳費期限'];
+      // 繳費期限
+      $return['#expire'] = $return[t('Payment Deadline')];
       $return['#invoice'] = $invoice_link;
       return $return;
     }
@@ -96,12 +100,14 @@ function civicrm_neweb_notify_display($info, $payment_instrument_id = NULL){
 }
 
 function civicrm_neweb_notify_display_barcode($info){
-  $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">代收店舖章</div>';
+  // 代收店舖章
+  $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">'.t('Shop Stamp').'</div>';
   foreach($info as $label => $v){
     if(preg_match('/^#barcode/', $label)){
       $output .= '<div style="text-align:center;">'.$v.'</div>';
     }
   }
-  $output .= '<p><label>繳費期限:</label> <span>'.$info['#expire'].'</span></p>';
+  // 繳費期限
+  $output .= '<p><label>'.t('Payment Deadline').':</label> <span>'.$info['#expire'].'</span></p>';
   return $output;
 }
