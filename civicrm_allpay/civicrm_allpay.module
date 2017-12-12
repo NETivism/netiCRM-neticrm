@@ -588,7 +588,16 @@ function _civicrm_allpay_postdata($url, $post_data, $json = TRUE){
   }
   else{
     watchdog('civicrm_allpay', 'Request:'.$url."?".$field_string);
-    watchdog('civicrm_allpay', 'Response:'.$receive);
+
+    if (strlen($receive) > 1000) {
+      $logs = str_split($receive, 1000);
+      foreach($logs as $l) {
+        watchdog('civicrm_allpay', $l);
+      }
+    }
+    else {
+      watchdog('civicrm_allpay', $receive);
+    }
   }
   curl_close($ch);
   if(!empty($receive)){
