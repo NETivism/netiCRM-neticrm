@@ -184,15 +184,15 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
           $contribution->contribution_status_id = 4; // Failed
           $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }
-        elseif($input['RtnCode'] == 1 && $local_succ_times < $input['TotalSuccessTimes']){
+        elseif($input['RtnCode'] == 1){
+          if ($local_succ_times >= $input['TotalSuccessTimes']) {
+            // Possible over charged. Record on the contribtion
+            $local_succ_times++;
+            watchdog('civicrm_allpay', 'Possible over charge, detect from TotalSuccessTimes: '.$input['TotalSuccessTimes']);
+            $note .= "Possible over charge. Will be $local_succ_times successful contributions in CRM, but greenworld only have {$input['TotalSuccessTimes']} success execution.";
+          }
           $contribution->contribution_status_id = 1; // Completed
           $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
-        }
-        else{
-          // possible duplicate notify
-          watchdog('civicrm_allpay', 'Possible duplicate notify, detect from TotalSuccessTimes: '.$input['TotalSuccessTimes']);
-          $note .= "Possible duplicate notify. Already success $local_succ_times, but notify us only {$input['TotalSuccessTimes']} success execution.";
-          $pass = FALSE;
         }
         if(!empty($c)){
           unset($objects['contribution']);
