@@ -18,41 +18,48 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
   if(!empty($tokens['receipt'])){
     $year = date('Y');
     $header = NULL;
-    if(function_exists('ts')){
-      $header = array(
-        ts('Receipt ID'),
-        ts('Contribution Types'),
-        ts('Payment Instrument'),
-        ts('Receipt Date'),
-        ts('Total Amount'),
-      );
-    }
+    $header = array(
+      ts('Receipt ID'),
+      ts('Contribution Types'),
+      ts('Payment Instrument'),
+      ts('Receipt Date'),
+      ts('Total Amount'),
+    );
     $attr = array(
       'cellpadding' => 5,
       'cellspacing' => 0,
       'border' => 0,
       'style' => 'font-size: 13px;',
     );
+    $table = array();
     foreach($cids as $k => $cid){
-      // TODO: theme table need to be modify for d7
+      $records = array();
       if(!empty($tokens['receipt']['thisyear'])){
         $option = array('year' => $year);
-        $record_thisyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
-        if($record_thisyear){
-          $values[$cid]['receipt.thisyear'] = theme('table', $header, $record_thisyear, $attr);
-        }
+        $records['receipt.thisyear'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
       }
       if(!empty($tokens['receipt']['lastyear'])){
         $option = array('year' => $year - 1);
-        $record_lastyear = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
-        if($record_lastyear){
-          $values[$cid]['receipt.lastyear'] = theme('table', $header, $record_lastyear, $attr);
-        }
+        $records['receipt.lastyear'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
       }
       if(!empty($tokens['receipt']['all'])){
-        $record_all = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid);
-        if($record_all){
-          $values[$cid]['receipt.all'] = theme('table', $header, $record_all, $attr);
+        $records['receipt.all'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid);
+      }
+      foreach($records as $type => $row) {
+        $table['rows'] = array();
+        foreach($row as $key => $col) {
+          if (!empty($col)) {
+            $table['rows'][] = array(
+              $col['receipt_id'],
+              $col['contribution_type'],
+              $col['instrument'],
+              $col['receipt_date'],
+              $col['total_amount'],
+            );
+          }
+        }
+        if(!empty($table['rows'])){
+          $values[$cid][$type] = theme('table', $header, $table['rows'], $attr);
         }
       }
     }
