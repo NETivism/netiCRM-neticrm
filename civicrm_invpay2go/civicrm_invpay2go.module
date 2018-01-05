@@ -664,11 +664,11 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   }
 
   switch($type_detail['is_taxreceipt']) {
-    case -1:
+    case '-1':
       $conditional_params['TaxType'] = 3; // tax free
       $conditional_params['TaxRate'] = 0;
       break;
-    case 1:
+    case '1':
       if ($tax_rate == 0) {
         $conditional_params['TaxType'] = 2;
         $conditional_params['TaxRate'] = 0;
@@ -676,6 +676,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
       }
       else {
         $conditional_params['TaxType'] = 1;
+        $conditional_params['TaxRate'] = $tax_rate;
       }
       break;
   }
