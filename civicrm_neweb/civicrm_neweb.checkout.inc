@@ -137,7 +137,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
 
 function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_instrument){
   require_once 'CRM/Contact/DAO/Contact.php';
-  $contact =& new CRM_Contact_DAO_Contact( );
+  $contact = new CRM_Contact_DAO_Contact( );
   $contact->id = $params['contact'];
   $contact->find(true);
 
@@ -155,13 +155,12 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
   $post['paymenttype'] = $neweb_instrument;
   $post['paytitle'] = truncate_utf8($params['item_name'], 12);
   $post['bankid'] = '007';
-  if($component == 'event' ){
-    require_once 'CRM/Core/DAO.php';
-    $eventID = $params['eventID'];
-    $sql = "SELECT expiration_time FROM civicrm_event WHERE id = $eventID";
-    $expiration_time = CRM_Core_DAO::singleValueQuery($sql);
+  if (!empty($params['payment_expired_timestamp'])) {
+    $post['duedate'] = date('Ymd', $params['payment_expired_timestamp']);
   }
-  $post['duedate'] = empty($expiration_time) ? date('Ymd', time()+86400*7) : date('Ymd', strtotime('+'.$expiration_time.' hours'));
+  else {
+    $post['duedate'] = date('Ymd', CRM_Core_Payment::calcExpirationDate(0));
+  }
   if($neweb_instrument == 'CS'){
     $post['payname'] = $params['last_name']." ".$params['first_name'];
     if($params['phone']){
