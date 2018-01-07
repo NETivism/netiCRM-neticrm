@@ -18,6 +18,7 @@ CONST SPGATEWAY_RECUR_VERSION = '1.0';
  * @param $payment_processor 
  */
 function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_processor, $is_test){
+// echo  date('Y-m-d H:i:s', $vars['payment_expired_timestamp']);
   // once they enter here, we will check SESSION
   // to see what instrument for newweb
   $instrument_id = $vars['civicrm_instrument_id'];
@@ -68,7 +69,14 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
     _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
   }
   CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
-  print _civicrm_spgateway_form_redirect($arguments, $payment_processor);
+  // making redirect form
+  $alter = array(
+    'module' => 'civicrm_spgateway',
+    'billing_mode' => $payment_processor['billing_mode'],
+    'params' => $arguments,
+  );
+  drupal_alter('civicrm_checkout_params', $alter);
+  print _civicrm_spgateway_form_redirect($alter['params'], $payment_processor);
   // move things to CiviCRM cache as needed
   CRM_Utils_System::civiExit();
 }
@@ -90,13 +98,20 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   }
 
   // max 180 days of expire
-  if (!empty($values['expiration_time']) && $values['expiration_time'] < 24) {
+  if (!empty($vars['payment_expired_timestamp'])) {
+    $hours = ($vars['payment_expired_timestamp'] - time()) / 3600;
+  }
+  else {
+    $hours = (CRM_Core_Payment::calcExpirationDate(0) - time()) / 3600;
+  }
+  if ($hours < 24) {
     $values['expiration_day'] = 1;
   }
-  elseif (!empty($values['expiration_time']) && $values['expiration_time'] > 24 * SPGATEWAY_MAX_EXPIRE_DAY ) {
+  elseif ($hours > 24 * SPGATEWAY_MAX_EXPIRE_DAY ) {
     $values['expiration_day'] = SPGATEWAY_MAX_EXPIRE_DAY;
-  }elseif(!empty($values['expiration_time'])){
-    $values['expiration_day'] = ceil($values['expiration_time']/24);
+  }
+  elseif(!empty($hours)){
+    $values['expiration_day'] = ceil($hours/24);
   }
 
   // building vars
