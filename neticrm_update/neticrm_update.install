@@ -331,3 +331,10 @@ function neticrm_update_update_7237() {
 function neticrm_update_update_7238() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update message template for event confirmation invitation. refs #22026
+ */
+function neticrm_update_update_7239() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
