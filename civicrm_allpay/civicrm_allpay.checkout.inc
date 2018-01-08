@@ -111,11 +111,12 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
   );
 
   // max 7 days of expire
+  $baseTime = time() + 86400; // because not include today
   if (!empty($vars['payment_expired_timestamp'])) {
-    $hours = ($vars['payment_expired_timestamp'] - time()) / 3600;
+    $hours = ($vars['payment_expired_timestamp'] - $baseTime) / 3600;
   }
   else {
-    $hours = (CRM_Core_Payment::calcExpirationDate(0) - time()) / 3600;
+    $hours = (CRM_Core_Payment::calcExpirationDate(0) - $baseTime) / 3600;
   }
   if ($hours < 24) {
     $hours = 24;
