@@ -35,12 +35,12 @@ function civicrm_spgateway_notify_info($cid){
     case 'VACC':
       $return['繳費銀行代碼'] = $json['BankCode'];
       $return['繳費虛擬帳號'] = $json['CodeNo'];
-      $return['繳費期限'] = $json['ExpireDate'];
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
     case 'CVS':
       $help = l('» 步驟說明', 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
       $return['便利商店繳費代碼'] = $json['CodeNo'];
-      $return['繳費期限'] = $json['ExpireDate'];
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
       $return[] = $help;
       break;
     case 'BARCODE':
@@ -50,12 +50,12 @@ function civicrm_spgateway_notify_info($cid){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
       }
       $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
-      $return['繳費期限'] = $json['ExpireDate'];
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
   }
   if(!empty($return)){
     $return['#type'] = $type;
-    $return['#expire'] = $json['ExpireDate'];
+    $return['#expire'] = $json['ExpireDate'].' '.$json['ExpireTime'];
     $return['#invoice'] = $invoice_link;
     return $return;
   }
