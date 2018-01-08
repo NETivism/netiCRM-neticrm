@@ -28,7 +28,7 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
     $attr = array(
       'cellpadding' => 5,
       'cellspacing' => 0,
-      'border' => 0,
+      'border' => 1,
       'style' => 'font-size: 13px;',
     );
     $table = array(
