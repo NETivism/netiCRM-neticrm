@@ -18,15 +18,15 @@ function civicrm_statistics_fetch($debug = false){
           $rows = civicrm_statistics_query("SELECT a.state_province_id idx, count(a.id) counting FROM civicrm_address a INNER JOIN civicrm_contact c ON c.id = a.contact_id WHERE a.state_province_id IS NOT NULL AND c.is_deleted != 1 group by a.state_province_id");
           break;
         case 'ccb.a':
-          $rows = CRM_Core_DAO::singleValueQuery("SELECT SUM(total_amount) FROM civicrm_contribution WHERE contribution_status_id = 1 AND is_test != 1");
+          $rows = CRM_Core_DAO::singleValueQuery("SELECT SUM(cc.total_amount) FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL");
           $rows = (int) $rows;
           break;
         case 'ccb.h':
-          $rows = civicrm_statistics_query("SELECT HOUR(receive_date) idx, count(id) counting, round(sum(total_amount)) as summ, round(avg(total_amount)) as avgg FROM civicrm_contribution WHERE contribution_status_id = 1 AND receive_date > '1990-01-01 00:00:00' AND is_test != 1 AND EXTRACT(HOUR_SECOND FROM receive_date) != '000000' group by HOUR(receive_date)");
+          $rows = civicrm_statistics_query("SELECT HOUR(cf.receive_date) idx, count(cf.id) counting, round(sum(cf.total_amount)) as summ, round(avg(cf.total_amount)) as avgg FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL GROUP BY cc.contribution_recur_id ) cf GROUP BY HOUR(cf.receive_date)");
           civicrm_statistics_normalize($rows, 24);
           break;
         case 'ccb.w':
-          $rows = civicrm_statistics_query("SELECT WEEKDAY(receive_date) idx, count(id) counting, round(sum(total_amount)) as summ, round(avg(total_amount)) as avgg FROM civicrm_contribution WHERE contribution_status_id = 1 AND receive_date > '1990-01-01 00:00:00' AND is_test != 1 AND EXTRACT(HOUR_SECOND FROM receive_date) != '000000' group by WEEKDAY(receive_date)");
+          $rows = civicrm_statistics_query("SELECT WEEKDAY(cf.receive_date) idx, count(cf.id) counting, round(sum(cf.total_amount)) as summ, round(avg(cf.total_amount)) as avgg FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL GROUP BY cc.contribution_recur_id ) cf GROUP BY WEEKDAY(cf.receive_date)");
           civicrm_statistics_normalize($rows, 7);
           break;
         case 'ccb.r':
@@ -45,7 +45,7 @@ function civicrm_statistics_fetch($debug = false){
           end idx,
           total_amount
           from civicrm_contribution
-          where contribution_status_id = 1 AND is_test != 1
+          where contribution_status_id = 1 AND is_test != 1 AND payment_processor_id IS NOT NULL
           ) t
           group by t.idx
           ");
@@ -379,7 +379,7 @@ ON base_year.contact_id = last_year.contact_id
 
         $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
         foreach(array($base_year, $last_year) as $y) {
-          $sql = "SELECT MONTH(cc.receive_date) as `month`, SUM(total_amount) as `sum` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY MONTH(cc.receive_date) ORDER BY MONTH(cc.receive_date)";
+          $sql = "SELECT MONTH(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL AND %start AND %end UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id ) cf GROUP BY MONTH(cf.receive_date) ORDER BY MONTH(cf.receive_date)";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
           while($query->fetch()) {
@@ -444,7 +444,7 @@ ON base_year.contact_id = last_year.contact_id
         civicrm_statistics_annual_query_result($result, $params);
         break;
       case 'trend_contribution':
-        $sql = 'SELECT HOUR(receive_date) as hour, SUM(cc.total_amount) as `sum` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY HOUR(receive_date)';
+        $sql = "SELECT HOUR(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL AND %start AND %end UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id ) cf GROUP BY HOUR(cf.receive_date) ORDER BY HOUR(cf.receive_date)";
         $params = array(
           'name' => $table,
           'sql' => $sql,
@@ -455,7 +455,7 @@ ON base_year.contact_id = last_year.contact_id
         );
         civicrm_statistics_annual_query_result($result, $params);
 
-        $sql = 'SELECT WEEKDAY(receive_date) as week, SUM(cc.total_amount) as `sum` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY WEEKDAY(receive_date)';
+        $sql = "SELECT WEEKDAY(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL AND %start AND %end UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id ) cf GROUP BY WEEKDAY(cf.receive_date) ORDER BY WEEKDAY(cf.receive_date)";
         $params = array(
           'name' => $table,
           'sql' => $sql,
