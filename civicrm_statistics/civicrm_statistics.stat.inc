@@ -311,7 +311,8 @@ ON base_year.contact_id = last_year.contact_id
         $second = CRM_Core_DAO::singleValueQuery($sql);
         $sql = "SELECT COUNT(*) FROM $table WHERE contact_id_last IS NOT NULL AND contact_id_base IS NOT NULL AND recur_base IS NOT NULL AND recur_last IS NOT NULL AND recur_base = recur_last"; // same recur first and second year
         $recurring = CRM_Core_DAO::singleValueQuery($sql);
-        $result[$table] = ($second - $recurring) / $first;
+        $result[$table.'_'.$base_year] = ($second - $recurring);
+        $result[$table.'_'.$last_year] = $first;
         break;
 
       case 'contribution_leveling':
@@ -341,10 +342,10 @@ ON base_year.contact_id = last_year.contact_id
       case 'contribution_recur':
         $params = array(
           'name' => $table,
-          'sql' => "SELECT SUM(total_amount) as `sum`, AVG(total_amount) as `avg` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND %start AND %end",
+          'sql' => "SELECT SUM(total_amount) as `sum`, count(*) as `count` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND %start AND %end",
           'years' => array($base_year, $last_year),
           'table' => $t,
-          'fields' => array('sum', 'avg'),
+          'fields' => array('sum', 'count'),
         );
         civicrm_statistics_annual_query_result($result, $params);
 
@@ -360,22 +361,21 @@ ON base_year.contact_id = last_year.contact_id
       case 'contribution_online':
         $params = array(
           'name' => $table,
-          'sql' => "SELECT AVG(ccc.total_amount) as nonrecur_avg FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end) ccc",
+          'sql' => "SELECT SUM(ccc.total_amount) as nonrecur_sum, COUNT(*) as nonrecur_count FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end) ccc",
           'years' => array($base_year, $last_year),
           'table' => $t,
-          'fields' => array('nonrecur_avg'),
+          'fields' => array('nonrecur_sum', 'nonrecur_count'),
         );
         civicrm_statistics_annual_query_result($result, $params);
 
         $params = array(
           'name' => $table,
-          'sql' => "SELECT AVG(ccc.total_amount) as recur_avg FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id) ccc",
+          'sql' => "SELECT SUM(ccc.total_amount) as recur_sum, COUNT(*) as recur_count FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id) ccc",
           'years' => array($base_year, $last_year),
           'table' => $t,
-          'fields' => array('recur_avg'),
+          'fields' => array('recur_sum', 'recur_count'),
         );
         civicrm_statistics_annual_query_result($result, $params);
-
 
         $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
         foreach(array($base_year, $last_year) as $y) {
