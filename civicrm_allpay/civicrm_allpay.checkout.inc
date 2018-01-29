@@ -130,6 +130,7 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     case 'CVS':
       if($instrument_code == 'CVS' && !empty($hours)) {
         $args['StoreExpireDate'] = ceil($hours/24) > 7 ? 7 : ceil($hours/24);
+        $args['StoreExpireDate'] = $args['StoreExpireDate']*60; // transform to minutes
       }
       $args['Desc_1'] = '';
       $args['Desc_2'] = '';
