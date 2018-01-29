@@ -164,7 +164,12 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
     $sql = "SELECT expiration_time FROM civicrm_event WHERE id = $eventID";
     $expiration_time = CRM_Core_DAO::singleValueQuery($sql);
   }
-  $post['duedate'] = empty($expiration_time) ? date('Ymd', time()+86400*7) : date('Ymd', strtotime('+'.$expiration_time.' hours'));
+  if (!empty($params['payment_expired_timestamp'])) { 
+    $post['duedate'] = date('Ymd', $params['payment_expired_timestamp']);
+  }
+  else {
+    $post['duedate'] = date('Ymd', CRM_Core_Payment::calcExpirationDate(0));
+  }
   if($neweb_instrument == 'CS'){
     $post['payname'] = $params['last_name']." ".$params['first_name'];
     if($params['phone']){

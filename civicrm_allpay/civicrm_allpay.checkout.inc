@@ -112,14 +112,27 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
     'DeviceSource' => '',
   );
 
+  // max 7 days of expire
+  $baseTime = time() + 86400; // because not include today
+  if (!empty($vars['payment_expired_timestamp'])) {
+    $hours = ($vars['payment_expired_timestamp'] - $baseTime) / 3600;
+  }
+  else {
+    $hours = (CRM_Core_Payment::calcExpirationDate(0) - $baseTime) / 3600;
+  }
+  if ($hours < 24) {
+    $hours = 24;
+  }
+
   switch($instrument_code){
     case 'ATM':
-      $args['ExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['ExpireDate'] = ceil($hours/24) > 60 ? 60 : ceil($hours/24);
     case 'BARCODE':
-      $args['StoreExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
+      $args['StoreExpireDate'] = ceil($hours/24) > 7 ? 7 : ceil($hours/24);
     case 'CVS':
-      if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
-        $args['StoreExpireDate'] = $values['expiration_time'] * 60;
+      if($instrument_code == 'CVS' && !empty($hours)) {
+        $args['StoreExpireDate'] = ceil($hours/24) > 7 ? 7 : ceil($hours/24);
+        $args['StoreExpireDate'] = $args['StoreExpireDate']*60; // transform to minutes
       }
       $args['Desc_1'] = '';
       $args['Desc_2'] = '';

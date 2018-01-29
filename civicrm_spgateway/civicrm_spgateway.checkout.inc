@@ -1,6 +1,8 @@
 <?php
 
 define('SPGATEWAY_EXPIRE_DAY', 7);
+define('SPGATEWAY_MAX_EXPIRE_DAY', 180);
+
 
 /**
  * Checkout functions
@@ -82,11 +84,21 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   }
 
   // max 7 days of expire
-  if (!empty($values['expiration_time']) && $values['expiration_time'] < 24) {
-    $values['expiration_time'] = 24;
+  $baseTime = time() + 86400; // because not include today
+  if (!empty($vars['payment_expired_timestamp'])) {
+    $hours = ($vars['payment_expired_timestamp'] - $baseTime) / 3600;
   }
-  if (!empty($values['expiration_time']) && $values['expiration_time'] > 24*7 ) {
-    $values['expiration_time'] = 24*7;
+  else {
+    $hours = (CRM_Core_Payment::calcExpirationDate(0) - $baseTime) / 3600;
+  }
+  if ($hours < 24) {
+    $values['expiration_day'] = 1;
+  }
+  elseif ($hours > 24 * SPGATEWAY_MAX_EXPIRE_DAY ) {
+    $values['expiration_day'] = SPGATEWAY_MAX_EXPIRE_DAY;
+  }
+  elseif(!empty($hours)){
+    $values['expiration_day'] = ceil($hours/24);
   }
 
   // building vars
