@@ -338,3 +338,10 @@ function neticrm_update_update_7238() {
 function neticrm_update_update_7239() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Update receipt template for upload stamp image. refs #19461
+ */
+function neticrm_update_update_7240() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
