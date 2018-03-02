@@ -560,5 +560,21 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
 
+  if($processor_type == 'Mobile'){
+    $mobile_instruments = array('GooglePay', 'ApplePay');
+    foreach ($mobile_instruments as $name) {
+      $radio_name = _civicrm_instrument_form_name($name);
+      if(!empty($active_instruments[$radio_name])){
+        $i = $all_instruments[$name];
+        $radios[$i['value']] = array(
+          'form_name'=> $radio_name,
+          'name'=> $name,
+          'label' => $i['label'],
+          'description' => $i['description'],
+        );
+      }
+    }
+  }
+
   return $radios;
 }
