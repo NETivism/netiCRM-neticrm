@@ -243,8 +243,7 @@
           $ckbox.find("input:checkbox").click(function(){
             var $p = $(this).parents("div.ckbox:first");
             $p.find("label.error").remove();
-            var currentForm = $(this).closest('form');
-            currentForm.valid();
+            $(this).valid();
           });
           $("#"+formid+" input[name*=url]").each(function(){
             $(this).rules("add", {required:false,url:true});
