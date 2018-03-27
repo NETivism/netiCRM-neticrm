@@ -345,3 +345,10 @@ function neticrm_update_update_7239() {
 function neticrm_update_update_7240() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ *mailing advanced search. refs #22543
+ */
+function neticrm_update_update_7241() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
