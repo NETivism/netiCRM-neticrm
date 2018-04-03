@@ -63,6 +63,11 @@ function civicrm_neweb_schema(){
         'type' => 'blob',
         'not null' => FALSE,
       ),
+      'post_data_transact' => array(
+        'description' => 'Record transact post cmd data.',
+        'type' => 'blob',
+        'not null' => FALSE,
+      )
     ),
     'primary key' => array('cid'),
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
@@ -432,4 +437,19 @@ function civicrm_neweb_update_7206(){
  */
 function civicrm_neweb_update_7207(){
   return civicrm_neweb_update_7206();
+}
+
+
+/**
+ * refs #21929 . add post data field on db for applepay transact.
+*/
+function civicrm_neweb_update_7208(){
+  if (!db_field_exists('civicrm_contribution_neweb', 'post_data_transact')) {
+    db_add_field('civicrm_contribution_neweb', 'post_data_transact', array(
+      'description' => 'Record transact post cmd data.',
+      'type' => 'blob',
+      'not null' => FALSE,
+    ));
+  }
+  return ;
 }
