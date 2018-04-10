@@ -110,7 +110,7 @@ function civicrm_statistics_fetch($debug = false){
   }
 
   if(!empty($stat) && !$debug){
-    variable_set('civicrm_statistics_run', $_SERVER['REQUEST_TIME']);
+    variable_set('civicrm_statistics_run', $_SERVER['REQUEST_TIME'] + 300*mt_rand(2, 20));
     variable_set('civicrm_statistics', $stat);
   }
   elseif($debug){
