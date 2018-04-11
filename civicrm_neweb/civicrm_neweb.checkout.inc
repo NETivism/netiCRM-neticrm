@@ -291,7 +291,7 @@ function print_redirect(){
 ';
 }
 
-function civicrm_neweb_get_mobile_params(){
+function _civicrm_neweb_get_mobile_params(){
   $params = array(
     'session_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/sessions',
     'transact_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
