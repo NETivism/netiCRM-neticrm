@@ -355,3 +355,10 @@ function neticrm_update_update_6140() {
 function neticrm_update_update_6141() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add Mobile processor options. refs #21929
+ */
+function neticrm_update_update_6142() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
