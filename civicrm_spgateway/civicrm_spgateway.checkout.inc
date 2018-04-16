@@ -1,8 +1,11 @@
 <?php
 
-define('SPGATEWAY_EXPIRE_DAY', 7);
-define('SPGATEWAY_MAX_EXPIRE_DAY', 180);
-
+// define('SPGATEWAY_EXPIRE_DAY', 7);
+CONST SPGATEWAY_EXPIRE_DAY = 7;
+CONST SPGATEWAY_MAX_EXPIRE_DAY = 180;
+CONST SPGATEWAY_RESPONSE_TYPE = 'JSON';
+CONST SPGATEWAY_MPG_VERSION = '1.2';
+CONST SPGATEWAY_RECUR_VERSION = '1.0';
 
 /**
  * Checkout functions
@@ -61,8 +64,18 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   $vars['trxn_id'] = $contribution->trxn_id;
 
   $arguments = _civicrm_spgateway_order($vars, $component, $payment_processor, $instrument_code, $form_key);
-  _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
-  print _civicrm_spgateway_form_redirect($arguments, $payment_processor);
+  if(!$contrib_values['is_recur']){
+    _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
+  }
+  CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
+  // making redirect form
+  $alter = array(
+    'module' => 'civicrm_spgateway',
+    'billing_mode' => $payment_processor['billing_mode'],
+    'params' => $arguments,
+  );
+  drupal_alter('civicrm_checkout_params', $alter);
+  print _civicrm_spgateway_form_redirect($alter['params'], $payment_processor);
   // move things to CiviCRM cache as needed
   CRM_Utils_System::civiExit();
 }
@@ -83,7 +96,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     $values =& $_SESSION['CiviCRM'][$form_key]['values'];
   }
 
-  // max 7 days of expire
+  // max 180 days of expire
   $baseTime = time() + 86400; // because not include today
   if (!empty($vars['payment_expired_timestamp'])) {
     $hours = ($vars['payment_expired_timestamp'] - $baseTime) / 3600;
@@ -104,104 +117,119 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   // building vars
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
-  $args = array(
-    'MerchantID' => $payment_processor['user_name'],
-    'MerchantTradeNo' => $vars['trxn_id'],
-    'MerchantTradeDate' => date('Y/m/d H:i:s'),
-    'PaymentType' => 'aio',
-    'TotalAmount' => $amount,
-    'TradeDesc' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['description']),
-    'ItemName' => preg_replace('~[^\p{L}\p{N}]++~u', ' ', $vars['item_name']),
-    'ReturnURL' => $notify_url."&qfKey=".$vars['qfKey'],
-    'ChoosePayment' => $instrument_code,
-    #'CheckMacValue' => '', // add in civicrm_spgateway_checkmacvalue
-    'ClientBackURL' => $thankyou_url,
-    'ItemURL' => '',
-    'Remark' => '',
-    'ChooseSubPayment' => '',
-    'OrderResultURL' => $thankyou_url,
-    'NeedExtraPaidInfo' => 'Y',
-    'DeviceSource' => '',
-  );
+  $itemDescription = $vars['description'];
+  $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
+  $itemDescription .= ':'.$vars['amount'];
 
-  switch($instrument_code){
-    case 'ATM':
-      $args['ExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
-    case 'BARCODE':
-      $args['StoreExpireDate'] = !empty($values['expiration_time']) ? ceil($values['expiration_time']/24) : 7;
-    case 'CVS':
-      if($instrument_code == 'CVS' && !empty($values['expiration_time'])) {
-        $args['StoreExpireDate'] = $values['expiration_time'] * 60;
-      }
-      $args['Desc_1'] = '';
-      $args['Desc_2'] = '';
-      $args['Desc_3'] = '';
-      $args['Desc_4'] = '';
+  if(!$vars['is_recur']){
+    $args = array(
+      'MerchantID' => $payment_processor['user_name'],
+      'RespondType' => SPGATEWAY_RESPONSE_TYPE,
+      'TimeStamp' => time(),
+      'Version' => SPGATEWAY_MPG_VERSION,
+      'Amt' => $amount,
+      'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+      'Email' => $vars['email-5'],
+      'LoginType' => '0',
+      'ItemDesc' => $itemDescription,
+      'MerchantOrderNo' => $vars['trxn_id'],
+      '#url' => $payment_processor['url_site'],
+    );
 
-      #ATM / CVS / BARCODE
-      $args['PaymentInfoURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
-      break;
-    case 'Alipay':
-      $params = array(
-        'version' => 3,
-        'id' => $vars['contactID'],
-        'return.sort_name' => 1,
-        'return.phone' => 1,
-      );
-      $result = civicrm_api('contact', 'get', $params);
-      if(!empty($result['count'])){
-        $phone = $result['values'][$result['id']]['phone'];
-        $name = $result['values'][$result['id']]['sort_name'];
-      }
-      $args['AlipayItemName'] = $vars['item_name'];
-      $args['AlipayItemCounts'] = 1;
-      $args['AlipayItemPrice'] = $amount;
-      $args['Email'] = $vars['email-5'];
-      $args['PhoneNo'] = $phone;
-      $args['UserName'] = $name;
-      break;
-    /*
-    case 'Tenpay':
-      $args['ExpireTime'] = '';
-      break;
-     */
-    case 'WebATM':
-      break;
-    case 'Credit':
-      if($vars['is_recur']){
-        $args['PeriodAmount'] = $amount;
-        $period = strtoupper($vars['frequency_unit'][0]);
-        $args['PeriodType'] = $vars['frequency_unit'] == 'week' ? 'D' : $period;
+    switch($instrument_code){
+      case 'ATM':
+        $args['VACC'] = 1;
+        $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
+        $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+        $args['CustomerURL'] = $thankyou_url;
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        break;
+      case 'BARCODE':
+        $args['BARCODE'] = 1;
+        $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
+        $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+        $args['CustomerURL'] = $thankyou_url;
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        break;
+      case 'CVS':
+        $args['CVS'] = 1;
+        if($instrument_code == 'CVS' && !empty($values['expiration_day'])) {
+          $day = !empty($values['expiration_day']) ? $values['expiration_day'] : SPGATEWAY_EXPIRE_DAY;
+          $args['ExpireDate'] = date('Ymd',strtotime("+$day day"));
+        }
+        // $args['ReturnURL'] = url('spgateway/record/'.$vars['contributionID'], array('absolute' => true));
+        // $args['Desc_1'] = '';
+        // $args['Desc_2'] = '';
+        // $args['Desc_3'] = '';
+        // $args['Desc_4'] = '';
 
-        if($vars['frequency_unit'] == 'month'){
-          $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
-        }
-        elseif($vars['frequency_unit'] == 'week'){
-          $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
-        }
-        elseif($vars['frequency_unit'] == 'day'){
-          $frequency_interval = $vars['frequency_interval'] > 365 ? 365 : $vars['frequency_interval'];
-        }
-        elseif($vars['frequency_unit'] == 'year'){
-          $frequency_interval = 1;
-        }
-        if(empty($frequency_interval)){
-          $frequency_interval = 1;
-        }
-        $args['Frequency'] = $frequency_interval;
-        if($vars['frequency_unit'] == 'year'){
-          $args['ExecTimes'] = empty($vars['installments']) ? 9 : $vars['installments'];
-        }else{
-          $args['ExecTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
-        }
-        $args['PeriodReturnURL'] = $notify_url.'&is_recur=1';
-      }
-      if($language->language == 'en'){
-        $args['Language'] = 'ENG';
-      }
-      # Recurring
-      break;
+        #ATM / CVS / BARCODE
+        $args['CustomerURL'] = $thankyou_url;
+        break;
+      case 'WebATM':
+        $args['WEBATM'] = 1;
+        $args['ReturnURL'] = $thankyou_url;
+        break;
+      case 'Credit':
+        $args['CREDIT'] = 1;
+        $args['ReturnURL'] = $thankyou_url;
+        break;
+    }
+
+    if($language->language == 'en'){
+      $args['LangType'] = 'en';
+    }
+  }else{
+    $data = array(
+      'MerchantID' => $payment_processor['user_name'],
+      'RespondType' => SPGATEWAY_RESPONSE_TYPE,
+      'TimeStamp' => time(),
+      'Version' => SPGATEWAY_RECUR_VERSION,
+      'Amt' => $amount,
+      'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+      'PayerEmail' => $vars['email-5'],
+      'LoginType' => '0',
+      'MerOrderNo' => $vars['trxn_id'],
+      'ProdDesc' => $itemDescription,
+      'PeriodAmt' => $amount,
+      'PeriodStartType' => 2,
+      'ReturnURL' => $thankyou_url,
+      'PaymentInfo' => 'N',
+      'OrderInfo' => 'N',
+    );
+    $period = strtoupper($vars['frequency_unit'][0]);
+
+    if($vars['frequency_unit'] == 'month'){
+      $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
+      $data['PeriodType'] = 'M';
+      $data['PeriodPoint'] = date('d');
+    }
+    elseif($vars['frequency_unit'] == 'week'){
+      $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
+      $data['PeriodType'] = 'W';
+    }
+    elseif($vars['frequency_unit'] == 'year'){
+      $frequency_interval = 1;
+      $data['PeriodType'] = 'Y';
+      $data['PeriodPoint'] = date('MD');
+    }
+    if(empty($frequency_interval)){
+      $frequency_interval = 1;
+    }
+    // $data['PeriodTimes'] = $frequency_interval;
+    if($vars['frequency_unit'] == 'year'){
+      $data['PeriodTimes'] = empty($vars['installments']) ? 9 : $vars['installments'];
+    }else{
+      $data['PeriodTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
+    }
+    $str = http_build_query($data);
+    $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
+    $args['PostData_'] = $strPost;
+    $args['MerchantID_'] = $payment_processor['user_name'];
+    $args['#url'] = $payment_processor['url_recur'];
   }
+
+
   return $args ;
 }
 
@@ -213,7 +241,7 @@ function _civicrm_spgateway_form_redirect($redirect_vars, $payment_processor){
   $o = "";
 
   $js = 'document.forms.redirect.submit();';
-  $o .= '<form action="'.$payment_processor['url_site'].'" name="redirect" method="post" id="redirect-form">';
+  $o .= '<form action="'.$redirect_vars['#url'].'" name="redirect" method="post" id="redirect-form">';
   foreach($redirect_vars as $k=>$p){
     if($k[0] != '#'){
       $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
@@ -281,3 +309,4 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
     return $url;
   }
 }
+

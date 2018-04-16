@@ -5,7 +5,7 @@ function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
   $info = civicrm_spgateway_notify_info($cid);
   if(!empty($info)){
     $info['display'] = civicrm_spgateway_notify_display($info);
-    if($info['#type'] == 'BAR'){
+    if($info['#type'] == 'BARCODE'){
       $info['has_receipt'] = 1;
       $info['display'] = civicrm_spgateway_notify_display_barcode($info);
     }
@@ -27,40 +27,37 @@ function civicrm_spgateway_notify_bytrxn($trxn_id){
 
 function civicrm_spgateway_notify_info($cid){
   $data = db_result(db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = %d", $cid));
-  $json = json_decode($data, TRUE);
-  if(!empty($json['#info'])){
-    $info =& $json['#info'];
-    $type = substr($info['PaymentType'], 0, 3);
-    $return = array();
-    $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
-    switch($type){
-      case 'ATM':
-        $return['繳費銀行代碼'] = $info['BankCode'];
-        $return['繳費虛擬帳號'] = $info['vAccount'];
-        $return['繳費期限'] = $info['ExpireDate'];
-        break;
-      case 'CVS':
-        $help = l('» 步驟說明', 'https://www.spgateway.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
-        $return['便利商店繳費代碼'] = $info['PaymentNo'];
-        $return['繳費期限'] = $info['ExpireDate'];
-        $return[] = $help;
-        break;
-      case 'BAR':
-        $barcodepath = 'https://pay.spgateway.com.tw/bank/tcbank/cnt/GenerateBarcode?barcode=';
-        $barcode = array($info['Barcode1'], $info['Barcode2'], $info['Barcode3']);
-        foreach($barcode as $k => $b){
-          $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
-        }
-        $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
-        $return['繳費期限'] = $info['ExpireDate'];
-        break;
-    }
-    if(!empty($return)){
-      $return['#type'] = $type;
-      $return['#expire'] = $info['ExpireDate'];
-      $return['#invoice'] = $invoice_link;
-      return $return;
-    }
+  $json = _civicrm_spgateway_post_decode($data);
+  $type = $json['PaymentType'];
+  $return = array();
+  $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
+  switch($type){
+    case 'VACC':
+      $return['繳費銀行代碼'] = $json['BankCode'];
+      $return['繳費虛擬帳號'] = $json['CodeNo'];
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
+    case 'CVS':
+      $help = l('» 步驟說明', 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
+      $return['便利商店繳費代碼'] = $json['CodeNo'];
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $return[] = $help;
+      break;
+    case 'BARCODE':
+      $barcodepath = 'https://core.spgateway.com/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
+      foreach($barcode as $k => $b){
+        $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
+      }
+      $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
+      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
+  }
+  if(!empty($return)){
+    $return['#type'] = $type;
+    $return['#expire'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+    $return['#invoice'] = $invoice_link;
+    return $return;
   }
 
   // error fallback
@@ -93,5 +90,6 @@ function civicrm_spgateway_notify_display_barcode($info){
     }
   }
   $output .= '<p><label>繳費期限:</label> <span>'.$info['#expire'].'</span></p>';
+  $output .= '<p><span style="font-size: 9px;">備註：完成繳費後，商店約需3~4個工作天確認繳費成功。</span></p>';
   return $output;
 }

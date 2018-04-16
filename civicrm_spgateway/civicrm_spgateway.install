@@ -75,7 +75,6 @@ function civicrm_spgateway_install() {
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
     }
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_option_value SET is_active = 0 WHERE name = 'Convenient Store (FamilyMart)' OR name = 'Convenient Store (7-11 ibon)' OR name = 'UnionPay'");
     CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
   }
 }
@@ -114,65 +113,4 @@ function civicrm_spgateway_disable() {
   require_once "CRM/Core/DAO.php";
   CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'SPGATEWAY%'");
   CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 0 WHERE payment_processor_type LIKE 'SPGATEWAY%'");
-}
-
-/**
- * Update trxn_id format to support spgateway recur(gwsr)
- */
-function civicrm_spgateway_update_6101(){
-  require_once('civicrm_spgateway.module');
-  $ret = array();
-  civicrm_initialize();
-
-  // update trxn_id to parent_id-gwsr_id
-  $query = CRM_Core_DAO::executeQuery("SELECT a.cid, a.data, c.contribution_recur_id, c.trxn_id FROM civicrm_contribution_spgateway a INNER JOIN civicrm_contribution c ON a.cid=c.id WHERE c.contribution_recur_id IS NOT NULL AND c.contribution_recur_id != 0 ORDER BY c.contribution_recur_id,created_date ASC");
-  while($query->fetch()){
-    $data = $trxn_id = NULL;
-    if($query->data){
-      $data = json_decode($query->data);
-      if($data->Gwsr && $data->MerchantTradeNo != $query->cid){
-        $trxn_id = array(1 => array(_civicrm_spgateway_recur_trxn($data->MerchantTradeNo, $data->Gwsr), 'String'));
-        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET trxn_id = %1 WHERE id = $query->cid", $trxn_id);
-      }
-    }
-  }
-
-  return $ret;
-}
-
-/**
- * Update recurring status and translations
- */
-function civicrm_spgateway_update_6102(){
-  civicrm_initialize();
-
-  // update payment processor api url
-  $result = CRM_Core_DAO::executeQuery("SELECT id, is_test FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'SPGATEWAY%'");
-  while($result->fetch()){
-    $base = $result->is_test ? SPGATEWAY_TEST_DOMAIN : SPGATEWAY_REAL_DOMAIN;
-    $update = array(
-      1 => array($base.SPGATEWAY_URL_SITE,'String'),
-      2 => array($base.SPGATEWAY_URL_API,'String'),
-      3 => array($base.SPGATEWAY_URL_RECUR,'String'),
-      9 => array($result->id, 'Integer')
-    );
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET url_site = %1, url_api = %2, url_recur = %3 WHERE id = %9", $update);
-  }
-
-  // update recur status
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
-
-  // update translations
-  if(module_exists('neticrm_update')){
-    module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
-    $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_spgateway').'/translations/');
-    foreach($files as $f){
-      $filename = basename($f);
-      $langcode = substr($filename, 0, strpos($filename, '.'));
-      neticrm_update_import_po($f, $langcode);
-    }
-  }
-  $ret = array();
-  return $ret;
 }
