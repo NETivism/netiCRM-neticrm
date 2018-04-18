@@ -12,12 +12,12 @@
       $("span[rel="+fid+"]").remove();
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("0z99-999999");
+      $(obj).amask("oz99-999999");
     }
     var phone_mask = function(obj){
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("0~-9999999?##########");
+      $(obj).amask("o~-9999999?##########");
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();

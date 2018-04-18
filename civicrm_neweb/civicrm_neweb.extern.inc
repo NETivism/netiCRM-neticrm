@@ -50,19 +50,22 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     function getInput( &$input) {
-      $input['CheckSum'] = CRM_Utils_Array::value('CheckSum', $this->_post);
-      $input['PRC'] = CRM_Utils_Array::value('PRC', $this->_post);
-      $input['SRC'] = CRM_Utils_Array::value('SRC', $this->_post);
-      $input['ApprovalCode'] = CRM_Utils_Array::value('ApprovalCode', $this->_post);
-      $input['BankResponseCode'] = CRM_Utils_Array::value('BankResponseCode', $this->_post);
-      $input['MerchantNumber'] = CRM_Utils_Array::value('MerchantNumber', $this->_post);
-      $input['OrderNumber'] = CRM_Utils_Array::value('OrderNumber', $this->_post);
-      $input['Amount'] = CRM_Utils_Array::value('Amount', $this->_post);
+      foreach ($this->_post as $key => $value) {
+        $post[strtoupper($key)] = $value;
+      }
+      $input['CheckSum'] = CRM_Utils_Array::value('CHECKSUM', $post);
+      $input['PRC'] = CRM_Utils_Array::value('PRC', $post);
+      $input['SRC'] = CRM_Utils_Array::value('SRC', $post);
+      $input['ApprovalCode'] = CRM_Utils_Array::value('APPROVALCODE', $post);
+      $input['BankResponseCode'] = CRM_Utils_Array::value('BANKRESPONSECODE', $post);
+      $input['MerchantNumber'] = CRM_Utils_Array::value('MERCHANTNUMBER', $post);
+      $input['OrderNumber'] = CRM_Utils_Array::value('ORDERNUMBER', $post);
+      $input['Amount'] = CRM_Utils_Array::value('AMOUNT', $post);
       $input['amount'] = $input['Amount'];
-      $input['BatchNumber'] = CRM_Utils_Array::value('BatchNumber', $this->_post);
-      $input['cardnumber'] = CRM_Utils_Array::value('cardnumber', $this->_post);
-      $input['issuebank'] = CRM_Utils_Array::value('issuebank', $this->_post);
-      $input['EngName'] = CRM_Utils_Array::value('EngName', $this->_post);
+      $input['BatchNumber'] = CRM_Utils_Array::value('BATCHNUMBER', $post);
+      $input['cardnumber'] = CRM_Utils_Array::value('CARDNUMBER', $post);
+      $input['issuebank'] = CRM_Utils_Array::value('ISSUEBANK', $post);
+      $input['EngName'] = CRM_Utils_Array::value('ENGNAME', $post);
     }
 
     function addNote($note, &$contribution){

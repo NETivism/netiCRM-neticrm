@@ -66,19 +66,25 @@ function esunbank_api_link(&$vars){
 
 function esunbank_api_serial(&$vars){
   module_load_include('inc', 'esunbank', 'esunbank.api');
-  if(!empty($vars['type'])){
-    $type = '_'.$vars['type'];
+  switch($vars['type']) {
+    case 'price':
+    case 'price_date':
+    case 'price_hour':
+      $type = '_'.$vars['type'];
+      break;
+    default:
+      $vars['type'] = '';
+      $type = '';
+      break;
   }
-  if(function_exists('esunbank_serial'. $type)){
-    $variables = array(
-      $vars['code'],
-      $vars['number'],
-      $vars['length'],
-      $vars['price'],
-      $vars['timestamp'],
-    );
-    $vars['serial'] = call_user_func_array('esunbank_serial'.$type, $variables);
-  }
+  $variables = array(
+    $vars['code'],
+    $vars['number'],
+    $vars['length'],
+    $vars['price'],
+    $vars['timestamp'],
+  );
+  $vars['serial'] = call_user_func_array('esunbank_serial'.$type, $variables);
   return $vars['serial'];
 }
 
