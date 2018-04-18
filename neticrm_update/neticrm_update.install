@@ -359,3 +359,10 @@ function neticrm_update_update_7241() {
 function neticrm_update_update_7242() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add view public CiviMail content in default perm. refs #21514
+ */
+function neticrm_update_update_7243() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
