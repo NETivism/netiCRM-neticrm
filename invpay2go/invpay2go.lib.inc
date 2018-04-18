@@ -97,6 +97,9 @@ class Pay2goInvoice {
         continue;
       }
       else {
+        if ($key == 'ItemName') {
+          $value = truncate_utf8($value, 28);
+        }
         $postData[$key] = $value;
       }
     }
