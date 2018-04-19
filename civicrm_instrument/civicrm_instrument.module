@@ -19,9 +19,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
         $gid = variable_get('civicrm_instrument_gid', 0);
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 ORDER BY weight ASC");
+
+        $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
+        $mobile_instruments = array('ApplePay', 'GooglePay');
+
         while($option->fetch()){
           $checkbox_name = _civicrm_instrument_form_name($option->name);
-          $options[$option->label] = $checkbox_name;
+          if(!in_array($option->name, $mobile_instruments) || $mobile_payment_processor){
+            $options[$option->label] = $checkbox_name;
+          }
         }
         $form->addCheckBox('payment_instrument', ts('Payment Instrument'), $options);
         $form->setDefaults($default_instruments);
