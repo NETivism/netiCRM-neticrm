@@ -369,3 +369,10 @@ function neticrm_update_update_6142() {
 function neticrm_update_update_6143() {
   return neticrm_update_load_include(__FUNCTION__);
 } 
+
+/**
+ * Add new table to track click on pages, refs #22872
+ */
+function neticrm_update_update_6144() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
