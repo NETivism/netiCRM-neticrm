@@ -4,6 +4,7 @@ function _neticrm_update_update_7244(){
   $sql = "
 CREATE TABLE civicrm_track (
 	 session_key varchar(255) NOT NULL COMMENT 'Session of this visit',
+   visit_date datetime NOT NULL   COMMENT 'Date time of this visit',
 	 page_type varchar(64) NOT NULL   COMMENT 'Page type like civicrm_event or civicrm_contribution_page',
 	 page_id int unsigned NOT NULL   COMMENT 'Page id.',
 	 entity_table varchar(64)    COMMENT 'Entity table like civicrm_contribution or civicrm_participant or civicrm_membership',
