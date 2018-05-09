@@ -366,3 +366,10 @@ function neticrm_update_update_7242() {
 function neticrm_update_update_7243() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add new table civicrm_track. refs #22872
+ */
+function neticrm_update_update_7244() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
