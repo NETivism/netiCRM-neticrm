@@ -451,7 +451,10 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         var $form = $("form#'.$form_name.'");
         $("input[name=\'" + address_info.areaField + "\']").parent().show();
         $("select[name=\'" + address_info.areaName + "\']").parent().hide();
-        $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly").unwrap();
+        var $zipName = $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly");
+        if($zipName.parent().hasClass("crm-form-post-code")){
+          $zipName.unwrap();
+        }
 
       }
 
