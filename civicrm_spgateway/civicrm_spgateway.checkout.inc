@@ -212,7 +212,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     elseif($vars['frequency_unit'] == 'year'){
       $frequency_interval = 1;
       $data['PeriodType'] = 'Y';
-      $data['PeriodPoint'] = date('md');
+      $data['PeriodPoint'] = (date('md') == '0229') ? '0228' : date('md');
     }
     if(empty($frequency_interval)){
       $frequency_interval = 1;
