@@ -173,6 +173,14 @@ function checkForm(){
   //
   $enable = TRUE;
   $form_name = $form->_attributes['name'];
+  if($form_name == 'Dynamic'){
+    $is_dynamic = true;
+    if(is_numeric(strpos($_GET['q'], 'user/register'))){
+      $form_name = 'user-register-form';
+    }else{
+      $form_name = 'user-profile-form';
+    }
+  }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
@@ -227,7 +235,7 @@ function checkForm(){
       $add = 1;
     }
 
-    if(arg(1) == 'contribute' || arg(1) == 'event'){
+    if(arg(1) == 'contribute' || arg(1) == 'event' || $is_dynamic){
       _civicrm_twaddress_grouping_js();
     }
 
@@ -304,6 +312,11 @@ function _civicrm_twaddress_grouping_js(){
       var addr_fields = $(".crm-section").filter(function(){
         var classes = $(this).attr("class").split(" ");
         for (var i=0; i<classes.length; i++) {
+          if(classes[i].slice(0,7) == "editrow"){
+            // for user/register page and profile edit page
+            classes[i] = classes[i].substr(8);
+            $(this).addClass(classes[i]);
+          }
           if (classes[i].slice(0,14) == "state_province" || classes[i].slice(0, 4) == "city" || classes[i].slice(0, 11) == "postal_code") {
             var matches = classes[i].match(/\d+|Primary/);
             var rel = "g"+matches[0];
@@ -411,6 +424,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     }
   }
   $js = '
+    (function($){
       applyTWZIPAddress = function(select_id, address_info){
         var $form = $("form#'.$form_name.'");
         $("[for=\'"+address_info.areaField+"\'].error").remove();
@@ -465,6 +479,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
             });
           }
         });
+      })(jQuery);
   ';
 
   if($add_js){

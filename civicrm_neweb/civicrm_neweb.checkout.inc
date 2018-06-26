@@ -299,3 +299,13 @@ function print_redirect(){
 <html>
 ';
 }
+
+function _civicrm_neweb_get_mobile_params(){
+  $params = array(
+    'session_url' => 'https://maple2.neweb.com.tw/NewebPayment2/applepay/sessions',
+    'transact_url' => 'https://maple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
+    'session_url_test' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/sessions',
+    'transact_url_test' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
+  );
+  return $params;
+}

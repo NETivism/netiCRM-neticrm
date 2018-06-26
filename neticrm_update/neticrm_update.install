@@ -313,3 +313,59 @@ function neticrm_update_update_6134() {
 function neticrm_update_update_6135() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add civicrm_sequence table. refs #21105
+ */
+function neticrm_update_update_6136() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Expand length of external identifier. refs #21286
+ */
+function neticrm_update_update_6137() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update db for SMS to use. refs #20991
+ */
+function neticrm_update_update_6138() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update message template for event confirmation invitation. refs #22026
+ */
+function neticrm_update_update_6139() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Update receipt template for upload stamp image. refs #19461
+ */
+function neticrm_update_update_6140() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ *mailing advanced search. refs #22543
+ */
+function neticrm_update_update_6141() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Add Mobile processor options. refs #21929
+ */
+function neticrm_update_update_6142() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**       
+ * Add view public CiviMail content in default perm. refs #21514
+ */   
+function neticrm_update_update_6143() {
+  return neticrm_update_load_include(__FUNCTION__);
+} 
