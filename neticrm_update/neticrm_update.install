@@ -380,3 +380,10 @@ function neticrm_update_update_7244() {
 function neticrm_update_update_7245() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Change varchar to text of bounce_reason field, add bounce pattern. refs #22612
+ */
+function neticrm_update_update_7246() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
