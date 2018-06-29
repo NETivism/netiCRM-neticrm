@@ -373,3 +373,10 @@ function neticrm_update_update_7243() {
 function neticrm_update_update_7244() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add new field of contribution page for goal subscription. refs #18908
+ */
+function neticrm_update_update_7245() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
