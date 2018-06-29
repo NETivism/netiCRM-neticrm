@@ -8,7 +8,7 @@ function _neticrm_update_update_7246(){
   // host or domain name not found
   $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_mailing_bounce_pattern WHERE pattern like 'host or domain name not found'");
   if (!$exists) {
-    $sql = "INTO civicrm_mailing_bounce_pattern (`bounce_type_id`, `pattern`) VALUES (4, 'host or domain name not found')";
+    $sql = "INSERT INTO civicrm_mailing_bounce_pattern (`bounce_type_id`, `pattern`) VALUES (4, 'host or domain name not found')";
     CRM_Core_DAO::executeQuery($sql);
   }
 
