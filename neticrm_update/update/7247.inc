@@ -205,9 +205,6 @@ class CRMCharsetConverter {
 
       $default = '';
       if ($row->Default !== NULL) {
-        dpm($table_name);
-        dpm($row->Default);
-
         $default = 'DEFAULT ' . ($row->Default == "CURRENT_TIMESTAMP" ? "CURRENT_TIMESTAMP" : ":default");
       }
       elseif ($row->Null == 'YES' && $row->Key == '') {
