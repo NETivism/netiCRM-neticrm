@@ -96,13 +96,13 @@ function civicrm_demo_process_event($vars){
     $params2 = array(
       'version' => 3,
       'return.contact_id',
-      'sort' => 'contact_id DESC',
+      'sort' => 'RAND()',
     );
     $contacts = civicrm_api('Contact', 'get', $params2);
 
     // add participants
     $j = 0;
-    $max = 4;
+    $max = $vars['limit_participants'] ? $vars['limit_participants'] : 4;
     foreach($contacts['values'] as $contact){
       $j++;
       if($j > $max) break;
@@ -130,7 +130,7 @@ function civicrm_demo_process_contribution($vars){
     $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
   }
   if(module_exists('civicrm_spgateway')){
-    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
+    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
   }
 
   // query exists contact
