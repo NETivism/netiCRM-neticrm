@@ -2,6 +2,13 @@
 
 function _neticrm_update_update_6147(){
   civicrm_initialize();
+  $sql = "SELECT @@GLOBAL.innodb_file_format;";
+  $value = CRM_Core_DAO::singleValueQuery($sql);
+  if($value == 'Antelope'){
+    CRM_Core_Error::debug_log_message("Database variable 'innodb_file_format' is not 'Barracuda', Stop update.", true);
+    return False;
+  }
+
   $converter = new CRMCharsetConverter($charset, $collation);
   $dao = CRM_Core_DAO::executeQuery("SHOW DATABASES");
   while($dao->fetch()){
