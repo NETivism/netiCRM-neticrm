@@ -67,9 +67,9 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
       }
     }
     else{
-      if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test']))
-      db_insert('invpay2go')
-        ->fields(array(
+      if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
+        db_insert('invpay2go')
+          ->fields(array(
           'title' => $invoice_setting['title'],
           'serial' => $invoice_setting['serial'],
           'merchantid' => $invoice_setting['merchantid'],
@@ -80,6 +80,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           'hashiv_test' => $invoice_setting['hashiv_test'],
         ))
         ->execute();
+      }
     }
   }
 }
