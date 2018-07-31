@@ -437,7 +437,7 @@ function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
       $config = CRM_Core_Config::singleton();
       $submitted = $form->exportValues();
       if ($form_name == 'CRM_Event_Form_Registration_Confirm') {
-        $contributionId = $form->_params['contributionID'];
+        $contributionId = $form->_contributionID;
       }
       elseif($form_name == 'CRM_Contribute_Form_Contribution_Confirm') {
         $contributionId = $form->_params['contributionID'];
