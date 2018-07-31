@@ -42,6 +42,10 @@ function civicrm_invpay2go_install() {
     $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group_id);
     $fields['taxreceipt_item'] = _civicrm_demo_create_custom_field('taxreceipt_item', '發票品項', 'String', 'Text', $group_id);
     $fields['taxreceipt_paper'] = _civicrm_demo_create_custom_field('taxreceipt_paper', '印出紙本發票', 'Boolean', 'Radio', $group_id, 0);
+    $agree_options = array(
+      'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
+    );
+    $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
   }
 
   // set config
@@ -54,6 +58,7 @@ function civicrm_invpay2go_install() {
     'taxReceiptNumber' => $fields['taxreceipt_number']['id'],
     'taxReceiptItem' => $fields['taxreceipt_item']['id'],
     'taxReceiptPaper' => $fields['taxreceipt_paper']['id'],
+    'taxReceiptAgree' => $fields['taxreceipt_agree']['id'],
     'taxReceiptDonateSelect' => '1234|我的組織名稱',
   );
   CRM_Core_BAO_ConfigSetting::add($params);
@@ -82,6 +87,26 @@ function civicrm_invpay2go_update_7001() {
           'taxReceiptPaper' => $field_paper['id'],
         );
         CRM_Core_BAO_ConfigSetting::add($params);
+        return 'Success add new crm custom field for civicrm_invpay2go';
+      }
+    }
+  }
+  throw new DrupalUpdateException('No exists tax receipt custom group or add field error. Abort.');
+}
+
+function civicrm_invpay2go_update_7011() {
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  if (empty($config->taxReceiptAgree)) {
+    module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+    $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+    if ($group_id) {
+      $agree_options = array(
+        'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
+      );
+      $fields = array();
+      $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
+      if ($fields['taxreceipt_agree']['id']) {
         return 'Success add new crm custom field for civicrm_invpay2go';
       }
     }

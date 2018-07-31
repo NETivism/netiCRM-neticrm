@@ -59,7 +59,8 @@ $(document).ready(function(){
       switch ($taxReceiptDeviceType.val()) {
         case '0':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
-          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機號碼');
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機載具條碼');
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').after('<span class="description">(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請條碼</a>)</span>');
           break;
         case '1':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
@@ -80,12 +81,14 @@ $(document).ready(function(){
       switch ($taxReceiptType.val()) {
         case 'elec':
           hideEle($('[data-invpay2go=taxReceiptDonate]'));
+          hideEle($('[data-invpay2go=taxReceiptAgree]'));
           hideEle($('input[data-invpay2go=taxReceiptSerial]'));
           showEle($('input[data-invpay2go=taxReceiptDeviceType]'));
           break;
         case 'donate':
           hideEle($('input[data-invpay2go=taxReceiptSerial]'));
           hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
+          hideEle($('[data-invpay2go=taxReceiptAgree]'));
           showEle($('[data-invpay2go=taxReceiptDonate]'));
           triggerDeviceType();
           break;
@@ -93,11 +96,13 @@ $(document).ready(function(){
           hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
           hideEle($('[data-invpay2go=taxReceiptDonate]'));
           showEle($('[data-invpay2go=taxReceiptSerial]'));
+          showEle($('[data-invpay2go=taxReceiptAgree]'));
           break;
       }
     }
     else {
       hideEle($('[data-invpay2go=taxReceiptDonate]'));
+      hideEle($('[data-invpay2go=taxReceiptAgree]'));
       hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
       hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
       hideEle($('input[data-invpay2go=taxReceiptSerial]'));
@@ -114,9 +119,10 @@ $(document).ready(function(){
   // init all
   var checkExist = setInterval(function() {
     if ($('input[data-invpay2go=taxReceiptType]').length) {
-			triggerReceiptType();
+      triggerReceiptType();
       clearInterval(checkExist);
+      $('input[date-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
     }
-	}, 500);
+  }, 500);
 });
-}(jQuery));
+}(cj));
