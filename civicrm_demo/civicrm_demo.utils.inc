@@ -431,7 +431,7 @@ function civicrm_demo_create_custom_profile(){
 
 function civicrm_demo_create_track($pageType, $pageId){
   $referrerTypes = CRM_Contribute_PseudoConstant::referrerTypes();
-  for($i = 0; $i<100; $i++){
+  for($i = 0; $i<500; $i++){
     $params = array(
       'page_type' => $pageType,
       'page_id' => $pageId,
@@ -439,7 +439,7 @@ function civicrm_demo_create_track($pageType, $pageId){
       'counter' => rand(1, 3),
       'referrer_type' => array_rand($referrerTypes),
       'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
-      'visit_date' => date('Y-m-d H:i:s', time()-86400*$i + 600*mt_rand(1,12)),
+      'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 45) + 600*mt_rand(1,12)),
     );
     CRM_Core_BAO_Track::add($params);
   }
