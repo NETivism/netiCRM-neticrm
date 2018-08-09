@@ -72,6 +72,20 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     CRM_Core_Session::storeSessionObjects();
     exit();
   }else{
+
+    // Set participant status to 'Pending from pay later', Accupied the seat.
+    if($params['participantID']){
+      $pstatus = CRM_Event_PseudoConstant::participantStatus();
+      if($new_pstatus = array_search('Pending from pay later', $pstatus)){
+        CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $params['participantID'], 'status_id', $new_pstatus, 'id');
+        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
+        $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($params['participantID'], 'Integer')));
+        while($dao->fetch()){
+          CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $dao->id, 'status_id', $new_pstatus, 'id');
+        }
+      }
+    }
+
     module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.cron');
     $result = civicrm_neweb_postdata($alter['params'], $payment_processor, $alter['params']['#action']);
 
@@ -293,10 +307,8 @@ function print_redirect(){
 
 function _civicrm_neweb_get_mobile_params(){
   $params = array(
-    'session_url' => 'https://maple2.neweb.com.tw/NewebPayment2/applepay/sessions',
-    'transact_url' => 'https://maple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
-    'session_url_test' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/sessions',
-    'transact_url_test' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
+    'session_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/sessions',
+    'transact_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
   );
   return $params;
 }

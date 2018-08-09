@@ -39,10 +39,20 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   }
   else{
     $is_pay_later = TRUE;
+
+    // Set participant status to 'Pending from pay later', Accupied the seat.
     if($vars['participantID']){
       $pstatus = CRM_Event_PseudoConstant::participantStatus();
       if($new_pstatus = array_search('Pending from pay later', $pstatus)){
         CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $vars['participantID'], 'status_id', $new_pstatus, 'id');
+        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
+        $params = array(
+          1 => array($vars['participantID'], 'Integer'),
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params);
+        while($dao->fetch()){
+          CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $dao->id, 'status_id', $new_pstatus, 'id');
+        }
       }
     }
   }
