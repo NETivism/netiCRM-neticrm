@@ -192,10 +192,10 @@ class Pay2goInvoice {
    */
   public function apiUrl() {
     if ($this->isTest) {
-      return self::INVPAY2GO_TEST . '/API/' . $this->apiType;
+      return self::INVPAY2GO_TEST . '/Api/' . $this->apiType;
     }
     else {
-      return self::INVPAY2GO_PROD. '/API/' . $this->apiType;
+      return self::INVPAY2GO_PROD. '/Api/' . $this->apiType;
     }
   }
 
