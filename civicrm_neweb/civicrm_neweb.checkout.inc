@@ -87,19 +87,36 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
     }
 
     module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.cron');
-    $result = civicrm_neweb_postdata($alter['params'], $payment_processor, $alter['params']['#action']);
+    $result_obj = civicrm_neweb_postdata($alter['params'], $payment_processor, $alter['params']['#action']);
 
-    if(!empty($result)){
-      $sql = "SELECT return_data FROM civicrm_contribution_neweb WHERE cid = {$contribution->id}";
-      $data = CRM_Core_DAO::singleValueQuery($sql);
+    if(!empty($result_obj)){
+      $sql = "SELECT return_data FROM civicrm_contribution_neweb WHERE cid = %1";
+      $vars = array(1 => array($contribution->id, 'Integer'));
+      $data = CRM_Core_DAO::singleValueQuery($sql, $vars);
       if(!empty($data)){
-        $result = json_decode($data);
-        $sql = "UPDATE civicrm_contribution_neweb SET return_data = '$result' WHERE cid = {$contribution->id}";
-        CRM_Core_DAO::executeQuery($sql);
+        $result = $data;
       }else{
-        $result = json_encode($result);
-        $sql = "UPDATE civicrm_contribution_neweb SET return_data = '$result' WHERE cid = {$contribution->id}";
-        CRM_Core_DAO::executeQuery($sql);
+        $result = json_encode($result_obj);
+      }
+      $sql = "UPDATE civicrm_contribution_neweb SET return_data = %1 WHERE cid = %2";
+      $vars = array(
+        1 => array($result, 'String'),
+        2 => array($contribution->id, 'Integer'),
+      );
+      CRM_Core_DAO::executeQuery($sql, $vars);
+
+      // Set expire time
+      // date format is like '20180820'
+      if(!empty($alter['params']['duedate'])){
+        $expire_date = $alter['params']['duedate'].'235959';
+      }
+      if(!empty($expire_date)){
+        $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
+        $vars = array(
+          1 => array( $expire_date, 'String'),
+          2 => array( $contribution->id, 'Integer'),
+        );
+        CRM_Core_DAO::executeQuery($sql, $vars);
       }
 
       require_once("civicrm_neweb.notify.inc");

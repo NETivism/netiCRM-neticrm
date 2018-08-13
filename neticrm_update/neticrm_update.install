@@ -394,3 +394,10 @@ function neticrm_update_update_7246() {
 function neticrm_update_update_7247() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #22714, Add expire date column to contribution , and data from payment processor.
+ */
+function neticrm_update_update_7248() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
