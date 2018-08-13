@@ -119,7 +119,7 @@ $.fn.extend({
 
     return this.trigger("unmask").each(function() {
       var input = $(this),
-        inputWrapper = input.closest(".crm-form-elem"),
+        inputWrapper = input.parents(".crm-form-elem").eq(0),
         buffer = $.map(
         amask.split(""),
         function(c, i) {

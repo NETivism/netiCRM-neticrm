@@ -212,7 +212,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($vars['frequency_unit'] == 'month'){
       $frequency_interval = $vars['frequency_interval'] > 12 ? 12 : $vars['frequency_interval'];
       $data['PeriodType'] = 'M';
-      $data['PeriodPoint'] = date('d');
+      $data['PeriodPoint'] = (date('d') >= 29) ? 28 : date('d');
     }
     elseif($vars['frequency_unit'] == 'week'){
       $frequency_interval = (7 * $vars['frequency_interval']) > 365 ? 365 : ($vars['frequency_interval'] * 7);
@@ -221,7 +221,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     elseif($vars['frequency_unit'] == 'year'){
       $frequency_interval = 1;
       $data['PeriodType'] = 'Y';
-      $data['PeriodPoint'] = date('MD');
+      $data['PeriodPoint'] = (date('md') == '0229') ? '0228' : date('md');
     }
     if(empty($frequency_interval)){
       $frequency_interval = 1;
