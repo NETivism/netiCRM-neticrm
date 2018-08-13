@@ -394,6 +394,6 @@ function neticrm_update_update_6146() {
 /**
  * Modify database chartset and collate to utf8mb4. refs #15256
  */
-function neticrm_update_update_6146() {
+function neticrm_update_update_6147() {
   return neticrm_update_load_include(__FUNCTION__);
 }
