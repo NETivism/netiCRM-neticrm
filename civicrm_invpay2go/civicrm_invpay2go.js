@@ -56,19 +56,21 @@ $(document).ready(function(){
   var triggerDeviceType = function() {
     var $taxReceiptDeviceType = $('input[data-invpay2go=taxReceiptDeviceType]:checked');
     if ($taxReceiptDeviceType.length) {
-      $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('span.description').remove();
+      var $desc = $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-section').find('.description');
       switch ($taxReceiptDeviceType.val()) {
         case '0':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
-          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入手機載具條碼');
-          $('input[data-invpay2go=taxReceiptDeviceNumber]').after('<span class="description">(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請條碼</a>)</span>');
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '/1234567');
+          $desc.html('總長度為8碼字元，第一碼必為『/』，在此<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請條碼</a>');
           break;
         case '1':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
-          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '請輸入身分證字號');
+          $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', 'AA00000000000000');
+          $desc.html('總長度為16碼字元，前兩碼為大寫英文，後14碼為數字0-9');
           break;
         case '2':
           hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
+          $desc.html('');
           break;
       }
     }
