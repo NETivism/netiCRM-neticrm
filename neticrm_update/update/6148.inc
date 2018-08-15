@@ -19,7 +19,7 @@ function _neticrm_update_update_6148() {
   $expire_dates = array();
   if(module_exists('civicrm_allpay')){
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_allpay} WHERE data IS NOT NULL");
-    while($result = db_fetch_obj($query)){
+    while($result = db_fetch_object($query)){
       $data = json_decode($result->data, TRUE);
       if(!empty($data['#info']['ExpireDate'])){
         $expire_date = $data['#info']['ExpireDate'];
@@ -35,7 +35,7 @@ function _neticrm_update_update_6148() {
 
   if(module_exists('civicrm_spgateway')){
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_spgateway} WHERE data IS NOT NULL");
-    while($result = db_fetch_obj($query)){
+    while($result = db_fetch_object($query)){
       $data = _civicrm_spgateway_post_decode($result->data);
       if(!empty($data['ExpireDate'])){
         $expire_date = $data['ExpireDate'].' 23:59:59';
@@ -48,7 +48,7 @@ function _neticrm_update_update_6148() {
 
   if(module_exists('civicrm_neweb')){
     $query = db_query("SELECT post_data, cid FROM {civicrm_contribution_neweb} WHERE post_data IS NOT NULL");
-    while($result = db_fetch_obj($query)){
+    while($result = db_fetch_object($query)){
       $data = json_decode($result->post_data, TRUE);
       if(!empty($data['duedate'])){
         $expire_date = $data['duedate'].'235959';
