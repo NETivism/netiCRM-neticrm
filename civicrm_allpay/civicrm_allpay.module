@@ -294,6 +294,22 @@ function civicrm_allpay_record($cid, $data = null){
         // return allpay successful received notify
         echo "1|OK";
       }
+
+      // Set expire time
+      if(!empty($data['#info']['ExpireDate'])){
+        $expire_date = $data['#info']['ExpireDate'];
+      }
+      if(!empty($data['ExpireDate'])){
+        $expire_date = $data['ExpireDate'];
+      }
+      if(!empty($expire_date)){
+        $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
+        $params = array(
+          1 => array( $expire_date, 'String'),
+          2 => array( $cid, 'Integer'),
+        );
+        CRM_Core_DAO::executeQuery($sql, $params);
+      }
     }
   }
 }
