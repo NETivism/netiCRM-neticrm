@@ -404,3 +404,10 @@ function neticrm_update_update_6147() {
 function neticrm_update_update_6148() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23174, Add last_name and first_name fields to user account page.
+ */
+function neticrm_update_update_6149() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
