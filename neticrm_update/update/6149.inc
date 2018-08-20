@@ -1,6 +1,30 @@
 <?php
 function _neticrm_update_update_6149() {
   civicrm_initialize();
+
+  // Check if user page has profile contains field "first_name", "last_name"
+  $sql = "SELECT f.id FROM civicrm_uf_field f INNER JOIN civicrm_uf_join j ON f.uf_group_id = j.uf_group_id WHERE f.field_name = %1 AND f.is_active = 1 AND j.module = %2;";
+  $fields = array('first_name', 'last_name');
+  $modules = array('User Registration', 'User Account');
+  foreach ($fields as $field_name) {
+    foreach ($modules as $module) {
+      $params = array(
+        1 => array($field_name, 'String'),
+        2 => array($module, 'String'),
+      );
+      $fid = CRM_Core_DAO::singleValueQuery($sql, $params);
+      if(empty($fid)){
+        $need_execute = TRUE;
+        break;
+        break;
+      }
+    }
+  }
+
+  if(empty($need_execute)){
+    return 'user page already has contained field "first_name" and "last_name"';
+  }
+
   $uf_group_id = 1;
   // varify uf_group_id = 1 have first_name and last_name fields;
   $sql = "SELECT id FROM civicrm_uf_field WHERE uf_group_id = 1 AND is_active = 1 AND field_name = 'first_name';";
@@ -30,7 +54,7 @@ function _neticrm_update_update_6149() {
   $_3 = _update_6149_check_add_user_custom_profile($uf_group_id, 'User Account');
   if(!$_1 || !$_2 || !$_3){
     echo "Some error occurs when add uf_join to uf_group.Please check CiviCRM logs";
-    return false
+    return false;
   }
 }
 
