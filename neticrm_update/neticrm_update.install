@@ -408,3 +408,11 @@ function neticrm_update_update_7248() {
 function neticrm_update_update_7249() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23594, Update civcirm_country.
+ */
+function neticrm_update_update_7250() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
