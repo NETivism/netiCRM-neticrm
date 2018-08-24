@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Update locale string to fix ime problem (6.x), refs #23163
+ */
+function civicrm_jvalidate_update_6101() {
+  module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
+  _neticrm_preset_import_po('civicrm_jvalidate');
+}
