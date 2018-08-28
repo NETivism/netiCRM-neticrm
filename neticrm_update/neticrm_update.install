@@ -418,3 +418,10 @@ function neticrm_update_update_6149() {
 function neticrm_update_update_6150() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23679, Add Macao subdivisions.
+ */
+function neticrm_update_update_6151() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
