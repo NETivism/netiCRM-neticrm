@@ -67,6 +67,7 @@ class CRMCharsetConverter {
    */
   public function query($query, array $args = array()) {
     $i = 0;
+    $params = array();
     foreach ($args as $str => $value) {
       $i++;
       $query = str_replace($str, '%'.$i , $query);
