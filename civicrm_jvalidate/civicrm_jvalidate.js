@@ -8,6 +8,9 @@
   $.amask.definitions['#']='[0-9#]';
 
   $.amask.phone_add_validate = function(obj, admin){
+    if ($(obj).val()) {
+      return;
+    }
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
@@ -60,7 +63,7 @@
     var phone = false;
     if(admin){
       var $p = $(obj).parents("tr:first");
-      var $type = $p.find("select[name*='phone_type_id']");
+      var $type = Number($p.find("select[name*='phone_type_id']"));
       if($type.val() == 2){
         mobile = true;
       }
@@ -91,7 +94,7 @@
 
     // phone type change
     $("select[name*='phone_type_id']").change(function(){
-      var type_id = $(this).val();
+      var type_id = Number($(this).val());
       $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
         if(type_id==2){
           mobile_mask(this);

@@ -532,7 +532,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
             $element->setAttribute('placeholder', $e['placeholder']);
           }
         }
-        $desc = !empty($field->help_post) ? '<div class="description">'.$field->help_post.'</div>' : '';
+        $desc = '<div class="description">'.$field->help_post.'</div>';
         $elements[$key]['string_tpl'] = 'string:<div class="crm-section '.$key.'-section"><div class="label">{$form.'.$key.'.label}</div><div class="content">{$form.'.$key.'.html}'.$desc.'</div></div>';
 
         if (preg_match('/Confirm$/i', $form_name)) {
