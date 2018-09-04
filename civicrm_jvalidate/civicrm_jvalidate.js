@@ -63,11 +63,11 @@
     var phone = false;
     if(admin){
       var $p = $(obj).parents("tr:first");
-      var $type = Number($p.find("select[name*='phone_type_id']"));
-      if($type.val() == 2){
+      var type_id = Number($p.find("select[name*='phone_type_id']").val());
+      if(type_id == 2){
         mobile = true;
       }
-      if($type.val() == 1 || $type.val() == 3){
+      if(type_id == 1 || type_id == 3){
         phone = true;
       }
     }
@@ -96,10 +96,10 @@
     $("select[name*='phone_type_id']").change(function(){
       var type_id = Number($(this).val());
       $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-        if(type_id==2){
+        if(type_id == 2){
           mobile_mask(this);
         }
-        else if(type_id==1 || type_id==3){
+        else if(type_id == 1 || type_id == 3){
           phone_mask(this);
         }else{
           $(this).rules('remove');
