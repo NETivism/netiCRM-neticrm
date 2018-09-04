@@ -7,20 +7,21 @@
   $.amask.definitions['#']='[0-9#]';
 
   $.amask.phone_add_validate = function(obj, admin){
-    if ($(obj).val()) {
-      return;
-    }
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("oz99-999999");
+      if (!$(obj).val()) {
+        $(obj).amask("oz99-999999");
+      }
     }
     var phone_mask = function(obj){
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("o~-9999999?##########");
+      if (!$(obj).val()) {
+        $(obj).amask("o~-9999999?##########");
+      }
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
@@ -70,22 +71,44 @@
     }
 
     // phone type change
-    $("select[name*='phone_type_id']").change(function(){
-      var type_id = Number($(this).val());
-      $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-        if(type_id == 2){
-          mobile_mask(this);
-        }
-        else if(type_id == 1 || type_id == 3){
-          phone_mask(this);
-        }else{
-          $(this).rules('remove');
-          $(this).unmask();
-          var fid = $(this).attr("id");
-          $("span[rel="+fid+"]").remove();
-        }
+    if (admin) {
+      $(".contact_information-section").on("change", "select[name*='phone_type_id']", function(){
+        var type_id = Number($(this).val());
+        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
+          $(this).unbind(".amask");
+          $(this).unbind("input");
+          if(type_id == 2){
+            mobile_mask(this);
+          }
+          else if(type_id == 1 || type_id == 3){
+            phone_mask(this);
+          }else{
+            $(this).rules('remove');
+            $(this).unmask();
+            var fid = $(this).attr("id");
+            $("span[rel="+fid+"]").remove();
+          }
+        });
       });
-    });
+    }
+    else {
+      $("select[name*='phone_type_id']").on("change", function(){
+        var type_id = Number($(this).val());
+        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
+          if(type_id == 2){
+            mobile_mask(this);
+          }
+          else if(type_id == 1 || type_id == 3){
+            phone_mask(this);
+          }else{
+            $(this).rules('remove');
+            $(this).unmask();
+            var fid = $(this).attr("id");
+            $("span[rel="+fid+"]").remove();
+          }
+        });
+      });
+    }
   }
 
   $.amask.id_add_validate = function(obj){
