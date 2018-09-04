@@ -7,20 +7,21 @@
   $.amask.definitions['#']='[0-9#]';
 
   $.amask.phone_add_validate = function(obj, admin){
-    if ($(obj).val()) {
-      return;
-    }
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("oz99-999999");
+      if (!$(obj).val()) {
+        $(obj).amask("oz99-999999");
+      }
     }
     var phone_mask = function(obj){
       $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      $(obj).amask("o~-9999999?##########");
+      if (!$(obj).val()) {
+        $(obj).amask("o~-9999999?##########");
+      }
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
@@ -40,11 +41,11 @@
     var phone = false;
     if(admin){
       var $p = $(obj).parents("tr:first");
-      var $type = Number($p.find("select[name*='phone_type_id']"));
-      if($type.val() == 2){
+      var type_id = Number($p.find("select[name*='phone_type_id']").val());
+      if(type_id == 2){
         mobile = true;
       }
-      if($type.val() == 1 || $type.val() == 3){
+      if(type_id == 1 || type_id == 3){
         phone = true;
       }
     }
@@ -70,13 +71,13 @@
     }
 
     // phone type change
-    $("select[name*='phone_type_id']").change(function(){
+    $("select[name*='phone_type_id']").live("change", function(){
       var type_id = Number($(this).val());
       $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-        if(type_id==2){
+        if(type_id == 2){
           mobile_mask(this);
         }
-        else if(type_id==1 || type_id==3){
+        else if(type_id == 1 || type_id == 3){
           phone_mask(this);
         }else{
           $(this).rules('remove');

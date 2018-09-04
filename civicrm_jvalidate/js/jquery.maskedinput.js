@@ -494,6 +494,7 @@ $.fn.extend({
         .one("unmask", function() {
           input
             .unbind(".amask")
+            .unbind("input")
             .removeData($.amask.dataName);
         })
         .bind("compositionstart.amask", function() {
