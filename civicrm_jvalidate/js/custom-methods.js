@@ -37,7 +37,6 @@
       return false;
     }
     return true;
-<<<<<<< HEAD
   }, "請輸入正確的身分證字號!");
 
   $.validator.addMethod("twphone", function(value, element, param) {
