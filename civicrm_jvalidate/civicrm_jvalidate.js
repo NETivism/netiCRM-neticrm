@@ -71,44 +71,22 @@
     }
 
     // phone type change
-    if (admin) {
-      $(".contact_information-section").on("change", "select[name*='phone_type_id']", function(){
-        var type_id = Number($(this).val());
-        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-          $(this).unbind(".amask");
-          $(this).unbind("input");
-          if(type_id == 2){
-            mobile_mask(this);
-          }
-          else if(type_id == 1 || type_id == 3){
-            phone_mask(this);
-          }else{
-            $(this).rules('remove');
-            $(this).unmask();
-            var fid = $(this).attr("id");
-            $("span[rel="+fid+"]").remove();
-          }
-        });
+    $("select[name*='phone_type_id']").live("change", function(){
+      var type_id = Number($(this).val());
+      $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
+        if(type_id == 2){
+          mobile_mask(this);
+        }
+        else if(type_id == 1 || type_id == 3){
+          phone_mask(this);
+        }else{
+          $(this).rules('remove');
+          $(this).unmask();
+          var fid = $(this).attr("id");
+          $("span[rel="+fid+"]").remove();
+        }
       });
-    }
-    else {
-      $("select[name*='phone_type_id']").on("change", function(){
-        var type_id = Number($(this).val());
-        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-          if(type_id == 2){
-            mobile_mask(this);
-          }
-          else if(type_id == 1 || type_id == 3){
-            phone_mask(this);
-          }else{
-            $(this).rules('remove');
-            $(this).unmask();
-            var fid = $(this).attr("id");
-            $("span[rel="+fid+"]").remove();
-          }
-        });
-      });
-    }
+    });
   }
 
   $.amask.id_add_validate = function(obj){
