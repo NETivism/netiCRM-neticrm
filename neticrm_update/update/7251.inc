@@ -1,8 +1,9 @@
 <?php
 function _neticrm_update_update_7251() {
   $subdivisions = array(
-    '01' => 'Municipality of das Ilhas',
-    '02' => 'Municipality of Macau',
+    '01' => 'Macao',
+    '02' => 'Taipa',
+    '03' => 'Coloane',
   );
   foreach ($subdivisions as $abbreviation => $name) {
     _macao_insert_subdivision($name, $abbreviation);
