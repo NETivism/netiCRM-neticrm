@@ -71,7 +71,7 @@
     }
 
     // phone type change
-    $("select[name*='phone_type_id']").live("change", function(){
+    $("select[name*='phone_type_id']").change(function(){
       var type_id = Number($(this).val());
       $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
         if(type_id == 2){
