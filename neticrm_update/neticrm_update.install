@@ -425,3 +425,11 @@ function neticrm_update_update_6150() {
 function neticrm_update_update_6151() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23595, Unsubscribe letter translation update
+ */
+function neticrm_update_update_6152() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
