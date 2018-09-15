@@ -39,9 +39,9 @@ function _neticrm_update_update_7248($force = false) {
   }
 
   if(module_exists('civicrm_spgateway')){
-    $expire_date = NULL;
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_spgateway} WHERE data IS NOT NULL");
     while($result = $query->fetchObject()){
+      $expire_date = NULL;
       $data = _civicrm_spgateway_post_decode($result->data);
       if(!empty($data['ExpireDate'])){
         $expire_date = $data['ExpireDate'].' 23:59:59';
@@ -53,9 +53,9 @@ function _neticrm_update_update_7248($force = false) {
   }
 
   if(module_exists('civicrm_neweb')){
-    $expire_date = NULL;
     $query = db_query("SELECT post_data, cid FROM {civicrm_contribution_neweb} WHERE post_data IS NOT NULL");
     while($result = $query->fetchObject()){
+      $expire_date = NULL;
       $data = json_decode($result->post_data, TRUE);
       if(!empty($data['duedate'])){
         $expire_date = $data['duedate'].'235959';
