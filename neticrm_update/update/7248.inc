@@ -1,5 +1,5 @@
 <?php
-function _neticrm_update_update_7248() {
+function _neticrm_update_update_7248($force = false) {
   civicrm_initialize();
   $exists_expire_date_ids = array();
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution' AND column_name = 'expire_date'";
@@ -9,6 +9,10 @@ function _neticrm_update_update_7248() {
     CRM_Core_DAO::executeQuery($alter_query);
   }else{
     CRM_Core_Error::debug_log_message("'expire_date' is already exist in civicrm_contribution table. Check expire_date value.", true);
+    if($force){
+      $sql = "UPDATE civicrm_contribution SET expire_date = NULL";
+      $dao = CRM_Core_DAO::executeQuery($sql);
+    }
     $sql = "SELECT id FROM civicrm_contribution WHERE expire_date IS NOT NULL";
     $dao = CRM_Core_DAO::executeQuery($sql);
     while($dao->fetch()){
@@ -20,6 +24,7 @@ function _neticrm_update_update_7248() {
   if(module_exists('civicrm_allpay')){
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_allpay} WHERE data IS NOT NULL");
     while($result = $query->fetchObject()){
+      $expire_date = NULL;
       $data = json_decode($result->data, TRUE);
       if(!empty($data['#info']['ExpireDate'])){
         $expire_date = $data['#info']['ExpireDate'];
@@ -34,6 +39,7 @@ function _neticrm_update_update_7248() {
   }
 
   if(module_exists('civicrm_spgateway')){
+    $expire_date = NULL;
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_spgateway} WHERE data IS NOT NULL");
     while($result = $query->fetchObject()){
       $data = _civicrm_spgateway_post_decode($result->data);
@@ -47,6 +53,7 @@ function _neticrm_update_update_7248() {
   }
 
   if(module_exists('civicrm_neweb')){
+    $expire_date = NULL;
     $query = db_query("SELECT post_data, cid FROM {civicrm_contribution_neweb} WHERE post_data IS NOT NULL");
     while($result = $query->fetchObject()){
       $data = json_decode($result->post_data, TRUE);
