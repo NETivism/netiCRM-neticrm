@@ -430,3 +430,9 @@ function neticrm_update_update_7252() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Refs #23819, emergency fix after 3.0
+ */
+function neticrm_update_update_7253() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
