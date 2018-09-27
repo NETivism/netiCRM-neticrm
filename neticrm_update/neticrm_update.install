@@ -436,3 +436,10 @@ function neticrm_update_update_7252() {
 function neticrm_update_update_7253() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23639, add linepay record table for crm
+ */
+function neticrm_update_update_7254() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
