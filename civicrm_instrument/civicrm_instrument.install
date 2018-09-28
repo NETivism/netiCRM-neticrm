@@ -191,3 +191,27 @@ function civicrm_instrument_update_6003(){
     }
   }
 }
+
+/**
+ * Add linepay instrument. Refs #23639.
+ */
+function civicrm_instrument_update_7004(){
+  civicrm_initialize();
+  $payment_instrument = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
+  $payment_instrument = array_keys($payment_instrument);
+
+  $group_params = array('name' => 'payment_instrument');
+  $params = array();
+  $name = 'LinePay';
+  $label = 'Line Pay';
+  if(!in_array($label, $payment_instrument)){
+    $params = array();
+    $params['label'] = 'Line Pay';
+    $params['name'] = 'LinePay';
+    $params['is_active'] = 1;
+    $params['is_reserved'] = 1;
+    $action = CRM_Core_Action::ADD;
+    $option_value_id = 0;
+    CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
+  }
+}
