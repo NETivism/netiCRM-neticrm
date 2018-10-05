@@ -69,6 +69,7 @@ function civicrm_instrument_install() {
     'UnionPay' => '銀聯卡',
     'ApplePay' => 'Apple Pay',
     'GooglePay' => 'Google Pay',
+    'LinePay' => 'Line Pay',
   );
 
   $values = array();
