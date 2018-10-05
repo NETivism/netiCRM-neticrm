@@ -95,7 +95,7 @@ function civicrm_instrument_install() {
   $query = "UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name != 'GW' AND name != 'Neweb' AND name != 'Mobile'";
   CRM_Core_DAO::executeQuery($query);
 
-  $query = "UPDATE civicrm_option_value SET is_reserved = 1 WHERE name IN('ApplePay', 'GooglePay') AND option_group_id = {$gid}";
+  $query = "UPDATE civicrm_option_value SET is_reserved = 1 WHERE name IN('ApplePay', 'GooglePay', 'LinePay') AND option_group_id = {$gid}";
   CRM_Core_DAO::executeQuery($query);
 }
 
