@@ -110,6 +110,35 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $form->addElement('hidden', 'civicrm_instrument_id', reset($active_instruments));
       }
       break;
+    case 'CRM_Admin_Form_PaymentProcessor':
+      if($form->_defaultValues['payment_processor_type'] == 'Mobile'){
+        $options = array();
+        $is_test = array('0' => '', '1' => 'test_');
+        $js = '
+jQuery(document).ready(function($){';
+        foreach ($is_test as $is_test_value => $is_test_str) {
+          $sql = "SELECT id, name, user_name FROM civicrm_payment_processor WHERE class_name IN ('Payment_ALLPAY', 'Payment_SPGATEWAY') AND is_test = $is_test_value GROUP BY user_name;";
+          $dao = CRM_Core_DAO::executeQuery($sql);
+          while($dao->fetch()){
+            $options[$is_test_value][] = "<option value='{$dao->id}'>{$dao->user_name} ({$dao->name})</option>";
+          }
+          $text_div = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield")';
+          $text_field = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield input")';
+          $select_field = '$("#'.$is_test_str.'used_payment_processor_id")';
+          $js .= "
+  {$text_div}.after(\"<div class='crm-form-select'><select name='{$is_test_str}used_payment_processor_id' id='{$is_test_str}used_payment_processor_id' class='form-select required'><option value='0'>".ts('None')." / ".ts('Line Pay Only')."</option>".implode('', $options[$is_test_value])."</select></div>\")
+  {$select_field}.val({$text_field}.val());
+  {$select_field}.change(function(){
+    {$text_field}.val($(this).val());
+  });
+  {$text_div}.hide();";
+        }
+        $js.='
+});
+';
+  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+      }
+      break;
   }
 }
 
