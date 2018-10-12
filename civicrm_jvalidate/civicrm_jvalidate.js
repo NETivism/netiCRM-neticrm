@@ -150,7 +150,7 @@
       $("form input.form-submit[name$='back']").addClass('cancel');
     }
 
-    $("#crm-container form").each(function(){
+    $("#crm-container form, form#user-profile-form, form#user-register-form").each(function(){
       $(".crm-section .label .crm-marker").each(function(){
         if($(this).text() == "*"){
           var inputs = $(this).parents(".crm-section:first").find(":input:visible:first:not([type=checkbox])");
