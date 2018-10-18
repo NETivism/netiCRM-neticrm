@@ -126,7 +126,10 @@ jQuery(document).ready(function($){';
           $text_field = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield input")';
           $select_field = '$("#'.$is_test_str.'used_payment_processor_id")';
           $js .= "
-  {$text_div}.after(\"<div class='crm-form-select'><select name='{$is_test_str}used_payment_processor_id' id='{$is_test_str}used_payment_processor_id' class='form-select required'><option value='0'>".ts('None')." / ".ts('Line Pay Only')."</option>".implode('', $options[$is_test_value])."</select></div>\")
+  if({$text_field}.val() == ''){
+    {$text_field}.val('none');
+  }
+  {$text_div}.after(\"<div class='crm-form-select'><select name='{$is_test_str}used_payment_processor_id' id='{$is_test_str}used_payment_processor_id' class='form-select required'><option value='none'>".ts('None')." / ".ts('Line Pay Only')."</option>".implode('', $options[$is_test_value])."</select></div>\")
   {$select_field}.val({$text_field}.val());
   {$select_field}.change(function(){
     {$text_field}.val($(this).val());
