@@ -446,3 +446,10 @@ function neticrm_update_update_6153() {
 function neticrm_update_update_6154() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/** 
+ * Refs #23918, update old wrong fee level of price item
+ */
+function neticrm_update_update_6155() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
