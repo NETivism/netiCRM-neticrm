@@ -453,3 +453,11 @@ function neticrm_update_update_6154() {
 function neticrm_update_update_6155() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23892, Add `max_value` column to civicrm_price_field table;
+ */
+function neticrm_update_update_6156() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
