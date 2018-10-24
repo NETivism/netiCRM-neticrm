@@ -21,7 +21,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 ORDER BY weight ASC");
 
         $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
-        $mobile_instruments = array('ApplePay', 'GooglePay');
+        $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
 
         while($option->fetch()){
           $checkbox_name = _civicrm_instrument_form_name($option->name);
@@ -96,6 +96,38 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 ';
         drupal_add_js($js, 'inline');
         $form->addElement('hidden', 'civicrm_instrument_id', reset($active_instruments));
+      }
+      break;
+    case 'CRM_Admin_Form_PaymentProcessor':
+      if($form->_defaultValues['payment_processor_type'] == 'Mobile'){
+        $options = array();
+        $is_test = array('0' => '', '1' => 'test_');
+        $js = '
+jQuery(document).ready(function($){';
+        foreach ($is_test as $is_test_value => $is_test_str) {
+          $sql = "SELECT id, name, user_name FROM civicrm_payment_processor WHERE class_name IN ('Payment_ALLPAY', 'Payment_SPGATEWAY') AND is_test = $is_test_value GROUP BY user_name;";
+          $dao = CRM_Core_DAO::executeQuery($sql);
+          while($dao->fetch()){
+            $options[$is_test_value][] = "<option value='{$dao->id}'>{$dao->user_name} ({$dao->name})</option>";
+          }
+          $text_div = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield")';
+          $text_field = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield input")';
+          $select_field = '$("#'.$is_test_str.'used_payment_processor_id")';
+          $js .= "
+  if({$text_field}.val() == ''){
+    {$text_field}.val('none');
+  }
+  {$text_div}.after(\"<div class='crm-form-select'><select name='{$is_test_str}used_payment_processor_id' id='{$is_test_str}used_payment_processor_id' class='form-select required'><option value='none'>".ts('None')." / ".ts('Line Pay Only')."</option>".implode('', $options[$is_test_value])."</select></div>\")
+  {$select_field}.val({$text_field}.val());
+  {$select_field}.change(function(){
+    {$text_field}.val($(this).val());
+  });
+  {$text_div}.hide();";
+        }
+        $js.='
+});
+';
+  drupal_add_js($js, 'inline', 'footer');
       }
       break;
   }
@@ -534,7 +566,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
   }
 
   if($processor_type == 'Mobile'){
-    $mobile_instruments = array('GooglePay', 'ApplePay');
+    $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
     foreach ($mobile_instruments as $name) {
       $radio_name = _civicrm_instrument_form_name($name);
       if(!empty($active_instruments[$radio_name])){
