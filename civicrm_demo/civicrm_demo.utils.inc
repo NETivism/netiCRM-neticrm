@@ -92,9 +92,6 @@ function civicrm_demo_process_event($vars){
     $result = civicrm_api('Event', 'create', $params);
 
     $event_id = $result['id'];
-    if (variable_get('civicrm_demo_sample_data', 0)) {
-      civicrm_demo_create_track('civicrm_event', $event_id);
-    }
 
     $params2 = array(
       'version' => 3,
@@ -135,6 +132,7 @@ function civicrm_demo_process_contribution($vars){
   if(module_exists('civicrm_spgateway')){
     $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
   }
+  $contribution_page_id[3] = civicrm_demo_create_contribution_page('Payment_Mobile');
 
   // query exists contact
   $contrib_per_contact = 5; // limit every contact only have num of contribution.
@@ -324,7 +322,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'thankyou_title' => '謝謝你的支持',
     'receipt_from_email' => 'demo@demo.neticrm.tw',
   );
-  if (variable_get('civicrm_demo_sample_data_ci', 0)) {
+  if (variable_get('civicrm_demo_sample_data', 0)) {
     $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
     $params['payment_processor'] = $processors;
   }
@@ -333,7 +331,6 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     $params['pay_later_text'] = '請設定您的金流服務';
     $params['pay_later_receipt'] = '選擇金流服務商完成設定，即可提供正式的線上付款工具。';
   }
-
   $result = civicrm_api('ContributionPage', 'create', $params);
   if(!empty($result['id'])){
     $contribution_page_id = $result['id'];
@@ -351,9 +348,6 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
   }
   else{
     $contribution_page_id = 1;
-  }
-  if (variable_get('civicrm_demo_sample_data', 0)) {
-    civicrm_demo_create_track('civicrm_contribution_page', $contribution_page_id);
   }
   return $contribution_page_id;
 }
@@ -373,7 +367,7 @@ function civicrm_demo_create_custom_profile(){
     );
     $fields['receipt_yn'] = _civicrm_demo_create_custom_field('receipt_yn', '是否需要收據', 'String', 'Radio', $group['id'], 1, $options, 1);
     $fields['receipt_title'] = _civicrm_demo_create_custom_field('receipt_title', '收據抬頭', 'String', 'Text', $group['id']);
-    $fields['receipt_serial'] = _civicrm_demo_create_custom_field('receipt_serial', '報稅憑證', 'String', 'Text', $group['id']);
+    $fields['receipt_serial'] = _civicrm_demo_create_custom_field('receipt_serial', '收據編號', 'String', 'Text', $group['id']);
     $fields['receipt_donor_credit'] = _civicrm_demo_create_custom_field('receipt_donor_credit', '捐款徵信名稱', 'String', 'Text', $group['id']);
   }
 
@@ -382,8 +376,8 @@ function civicrm_demo_create_custom_profile(){
     $uf_fields = array();
     $uf_fields['receipt_yn'] = _civicrm_demo_create_uf_field('是否需要收據', 'Contribution', 'custom_'.$fields['receipt_yn']['id'], $uf_group['id'], TRUE);
     $uf_fields['receipt_title'] = _civicrm_demo_create_uf_field('收據抬頭', 'Contribution', 'custom_'.$fields['receipt_title']['id'], $uf_group['id']);
-    $uf_fields['receipt_serial'] = _civicrm_demo_create_uf_field('報稅憑證', 'Contribution', 'custom_'.$fields['receipt_serial']['id'], $uf_group['id']);
-    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id'], TRUE);
+    $uf_fields['receipt_serial'] = _civicrm_demo_create_uf_field('收據編號', 'Contribution', 'custom_'.$fields['receipt_serial']['id'], $uf_group['id']);
+    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id']);
     CRM_Core_BAO_UFGroup::updateGroupTypes($uf_group['id'], array('Contribution'));
   }
 
@@ -426,22 +420,6 @@ function civicrm_demo_create_custom_profile(){
 
   foreach($payment_page as $page_id){
     _civicrm_demo_create_uf_join($page_id, $uf_group_pre_id, $uf_group['id']);
-  }
-}
-
-function civicrm_demo_create_track($pageType, $pageId){
-  $referrerTypes = CRM_Contribute_PseudoConstant::referrerTypes();
-  for($i = 0; $i<500; $i++){
-    $params = array(
-      'page_type' => $pageType,
-      'page_id' => $pageId,
-      'session_key' => rand(1, 1000),
-      'counter' => rand(1, 3),
-      'referrer_type' => array_rand($referrerTypes),
-      'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
-      'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 45) + 600*mt_rand(1,12)),
-    );
-    CRM_Core_BAO_Track::add($params);
   }
 }
 

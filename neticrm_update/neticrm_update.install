@@ -436,3 +436,24 @@ function neticrm_update_update_7252() {
 function neticrm_update_update_7253() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #23639, add linepay record table for crm
+ */
+function neticrm_update_update_7254() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #23918, update old wrong fee level of price item
+ */
+function neticrm_update_update_7255() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #23892, Add `max_value` column to civicrm_price_field table;
+ */
+function neticrm_update_update_7256() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
