@@ -164,6 +164,11 @@ class CRMCharsetConverter {
    *   success|failure.
    */
   public function convertTable($table_name, $charset = NULL, $collation = NULL) {
+    $dao = CRM_Core_DAO::executeQuery("SHOW TABLE status like '$table_name'");
+    $dao->fetch();
+    if ($dao->Collation == 'utf8mb4_general_ci') {
+      return TRUE;
+    }
     $this->query("ALTER TABLE " . $table_name . " ROW_FORMAT=DYNAMIC ENGINE=INNODB");
     $sql = "ALTER TABLE " . $table_name . " CHARACTER SET = :charset COLLATE = :collation";
     CRM_Core_Error::debug_log_message('Converting table: ' . $table_name, 1);
@@ -204,6 +209,16 @@ class CRMCharsetConverter {
       if (strpos($row->Collation, 'utf8') !== 0) {
         continue;
       }
+      if (strstr($row->Type, 'varchar')) {
+        // check varchar length
+        if (preg_match('/varchar\s*\(\d+\)/', $row->Type, $matches)) {
+          $length = (int)$matches[1];
+          if ($length > 255) {
+            continue;
+          }
+        }
+      }
+      CRM_Core_Error::debug_log_message("Field info $row->Field $row->Type", 1);
       CRM_Core_Error::debug_log_message('Converting field: ' . $table_name . '.' . $row->Field, 1);
 
       // Detect the BINARY option from hook_schema.
