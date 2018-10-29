@@ -69,7 +69,7 @@ function civicrm_instrument_install() {
     'UnionPay' => '銀聯卡',
     'ApplePay' => 'Apple Pay',
     'GooglePay' => 'Google Pay',
-    'LinePay' => 'Line Pay',
+    'LinePay' => 'LINE Pay',
   );
 
   $values = array();
@@ -204,10 +204,10 @@ function civicrm_instrument_update_7004(){
   $group_params = array('name' => 'payment_instrument');
   $params = array();
   $name = 'LinePay';
-  $label = 'Line Pay';
+  $label = 'LINE Pay';
   if(!in_array($label, $payment_instrument)){
     $params = array();
-    $params['label'] = 'Line Pay';
+    $params['label'] = 'LINE Pay';
     $params['name'] = 'LinePay';
     $params['is_active'] = 1;
     $params['is_reserved'] = 1;
@@ -215,4 +215,12 @@ function civicrm_instrument_update_7004(){
     $option_value_id = 0;
     CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
   }
+}
+
+/**
+ * Correct Payment Instrument refs #23862
+ */
+function civicrm_instrument_update_7005() {
+  civicrm_initialize();
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_option_value SET label = 'LINE Pay' WHERE label LIKE 'Line Pay'");
 }
