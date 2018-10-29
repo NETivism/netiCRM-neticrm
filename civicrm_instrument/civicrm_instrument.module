@@ -368,7 +368,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
         $r = reset($radios);
         if (module_exists('civicrm_field_i18n')) {
           $r['description'] = civicrm_field_i18n_t($r['description']);
-          $r['label'] = civicrm_field_i18n_t($r['label']);
+          $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.civicrm_field_i18n_t($r['label']).'" style="max-height:20px">' : civicrm_field_i18n_t($r['label']);
         }
         $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
       }
@@ -379,7 +379,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
         foreach($radios as $rid => $r){
           if (module_exists('civicrm_field_i18n')) {
             $r['description'] = civicrm_field_i18n_t($r['description']);
-            $r['label'] = civicrm_field_i18n_t($r['label']);
+            $r['label'] = !empty($r['image']) ? '<img src="'.bas_path().$r['image'].'" alt="'.civicrm_field_i18n_t($r['label']).'" style="max-height:20px">' : civicrm_field_i18n_t($r['label']);
           }
           $checked = ($rid == $default_instrument) ? 'checked="checked"' : '';
           $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required" '.$checked.'><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
@@ -567,13 +567,21 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
 
   if($processor_type == 'Mobile'){
     $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
+    $path = drupal_get_path('module', 'civicrm_instrument').'/images/';
     foreach ($mobile_instruments as $name) {
       $radio_name = _civicrm_instrument_form_name($name);
       if(!empty($active_instruments[$radio_name])){
         $i = $all_instruments[$name];
+        if (file_exists($path.$name.'.png')) {
+          $image = $path.$name.'.png';
+        }
+        else {
+          $image = '';
+        }
         $radios[$i['value']] = array(
           'form_name'=> $radio_name,
           'name'=> $name,
+          'image' => $image,
           'label' => $i['label'],
           'description' => $i['description'],
         );
