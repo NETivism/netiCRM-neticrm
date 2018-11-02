@@ -117,6 +117,13 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
     }
   }
 
+  // check first attempt response
+  if (!$success && !empty($receipt['issue_response']->Message)) {
+    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+
+    return array('create' => TRUE);
+  }
+
   // check status
   if (!$success) {
     $contribution = new CRM_Contribute_DAO_Contribution();
@@ -135,13 +142,6 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
         );
       }
     }
-  }
-
-  // check first attempt response
-  if (!$success && !empty($receipt['issue_response']->Message)) {
-    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
-
-    return array('create' => TRUE);
   }
 
   // the only thing we can print.
