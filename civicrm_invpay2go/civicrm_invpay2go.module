@@ -335,6 +335,9 @@ jQuery(document).ready(function($){
             }
             else {
               $element->setAttribute('data-invpay2go', $key);
+              if ($key === 'taxReceiptTitle') {
+                $element->setAttribute('placeholder', '留空即預設聯絡人名稱');
+              }
               if ($success) {
                 $element->freeze();
               }
@@ -687,7 +690,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'TransNum' => '', // if pay2go, provide
     'Status' => '1', // 1 - immediately, 0 - trigger to issue, 3 - datetime to issue
     'CreateStatusTime' => '', // only apply this when Status = 3
-    'BuyerName' => $contact['sort_name'],
+    'BuyerName' => !empty(trim($field_info['taxReceiptTitle']['value'])) ? trim($field_info['taxReceiptTitle']['value']) : $contact['sort_name'],
     'BuyerAddress' => '', // not provided
     'BuyerEmail' => $contact['email'],
     'Amt' => $amt, // non-tax amount
