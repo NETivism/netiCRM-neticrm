@@ -119,7 +119,9 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
 
   // check first attempt response
   if (!$success && !empty($receipt['issue_response']->Message)) {
-    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+    if (!empty($_POST)) {
+      drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+    }
 
     return array('create' => TRUE);
   }
@@ -291,58 +293,57 @@ jQuery(document).ready(function($){
         }
       }
       if (!empty($_GET['snippet']) && $_GET['snippet'] == 4) {
-        if (isset($_GET['cgcount']) && !empty($_GET['entityID']) && is_numeric($_GET['entityID'])) {
-          $contribution = new CRM_Contribute_DAO_Contribution();
-          $contribution->id = $_GET['entityID'];
-          if (!$contribution->find(TRUE)) {
-            return;
+        if (isset($_GET['cgcount'])) {
+          if (!empty($_GET['entityID']) && is_numeric($_GET['entityID'])) {
+            $contribution = new CRM_Contribute_DAO_Contribution();
+            $contribution->id = $_GET['entityID'];
+            if (!$contribution->find(TRUE)) {
+              return;
+            }
+            if (isset($taxTypes[$contribution->contribution_type_id])) {
+              $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($contribution->trxn_id));
+              $exists['module'] = 'civicrm_invpay2go';
+              $success = _civicrm_invpay2go_check_success($exists);
+            }
           }
-          if (isset($taxTypes[$contribution->contribution_type_id])) {
-            $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($contribution->trxn_id));
-            $exists['module'] = 'civicrm_invpay2go';
-            $success = _civicrm_invpay2go_check_success($exists);
-            $config = CRM_Core_Config::singleton();
-            $available = array();
-            foreach($config as $key => $v){
-              if (strstr($key, 'taxReceipt')) {
-                $available[$key] = $v;
+          $config = CRM_Core_Config::singleton();
+          $available = array();
+          foreach($config as $key => $v){
+            if (strstr($key, 'taxReceipt')) {
+              $available[$key] = $v;
+            }
+          }
+          
+          $field_index = array();
+          foreach($form->_elementIndex as $idx => $dontcare) {
+            foreach($available as $key => $custom_id) {
+              if (strstr($idx, 'custom_'.$custom_id)) {
+                $field_index[$key] = $idx;
               }
             }
-            
-            $field_index = array();
-            foreach($form->_elementIndex as $idx => $dontcare) {
-              foreach($available as $key => $custom_id) {
-                if (strstr($idx, 'custom_'.$custom_id)) {
-                  $field_index[$key] = $idx;
-                }
-              }
-            }
+          }
 
-            foreach($field_index as $key => $idx) {
-              $element = $form->getElement($idx);
-              if ($element->_type == 'group') {
-                foreach($element->_elements as $e) {
-                  $e->setAttribute('data-invpay2go', $key);
-                  if ($success || $key == 'taxReceiptPaper') {
-                    $e->freeze();
-                  }
+          foreach($field_index as $key => $idx) {
+            $element = $form->getElement($idx);
+            if ($element->_type == 'group') {
+              foreach($element->_elements as $e) {
+                $e->setAttribute('data-invpay2go', $key);
+                if ($success || $key == 'taxReceiptPaper') {
+                  $e->freeze();
                 }
               }
-              else {
-                $element->setAttribute('data-invpay2go', $key);
-                if ($success) {
-                  $element->freeze();
-                }
+            }
+            else {
+              $element->setAttribute('data-invpay2go', $key);
+              if ($success) {
+                $element->freeze();
               }
             }
           }
         }
       }
       else {
-        $pageType = $form->_values['contribution_type_id'];
-        if (!empty($pageType) && isset($taxTypes[$pageType])) {
-          drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', 'footer');
-        }
+        drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', 'footer');
         if (!empty($form->_values['trxn_id'])) {
           $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($form->_values['trxn_id']));
           if (!empty($exists['order_number'])) {
