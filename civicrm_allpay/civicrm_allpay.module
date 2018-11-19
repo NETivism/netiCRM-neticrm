@@ -303,6 +303,9 @@ function civicrm_allpay_record($cid, $data = null){
         $expire_date = $data['ExpireDate'];
       }
       if(!empty($expire_date)){
+        if (strlen($expire_date) < 11) {
+          $expire_date = str_replace('/', '-', $expire_date).' 23:59:59';
+        }
         $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
         $params = array(
           1 => array( $expire_date, 'String'),
