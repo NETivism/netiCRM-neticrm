@@ -58,7 +58,12 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     else{
       $recur = TRUE;
-      $ppid = $ids['paymentProcessor'];
+      if(!empty($ids['paymentProcessor'])){
+        $ppid = $ids['paymentProcessor'];
+      }else{
+        $sql = 'SELECT payment_processor_id FROM civicrm_contribution WHERE id = %1';
+        $ppid = CRM_Core_DAO::singleValueQuery($sql, array(1 => array($ids['contribution'], 'Integer')));
+      }
       $is_test = CRM_Core_DAO::singleValueQuery("SELECT is_test FROM civicrm_payment_processor WHERE id = $ppid");
       $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
       $this->_post = _civicrm_spgateway_recur_decrypt($this->_post['Period'],$payment_processors);
