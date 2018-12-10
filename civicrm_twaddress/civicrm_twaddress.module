@@ -36,9 +36,7 @@ function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
       }
 
       if(!$add){
-        $path = drupal_get_path("module",'civicrm_twaddress');
-        drupal_add_js($path."/twzipcode.js");
-        $add = 1;
+        $add = _civicrm_twaddress_add_zipcode_js();
       }
       _civicrm_twaddress_webform_js($override, $add_js = TRUE);
     }
@@ -241,19 +239,16 @@ function checkForm(){
   );
 
   if(in_array($formName, $allow_load_js)){
-    $path = drupal_get_path("module",'civicrm_twaddress');
-    drupal_add_js($path."/twzipcode.js");
-    $add = 1;
+    $add = _civicrm_twaddress_add_zipcode_js();
   }
   
   if(count($override)>=3 && $enable){
     if(!$add){
-      $path = drupal_get_path("module",'civicrm_twaddress');
-      drupal_add_js($path."/twzipcode.js");
-      $add = 1;
+      $add = _civicrm_twaddress_add_zipcode_js();
     }
 
-    if(arg(1) == 'contribute' || arg(1) == 'event' || $is_dynamic){
+    global $language;
+    if((arg(1) == 'contribute' || arg(1) == 'event' || $is_dynamic) && ($language->language == 'zh-hant' || empty($language->language))){
       $js = _civicrm_twaddress_grouping_js();
     }
 
@@ -309,6 +304,17 @@ function civicrm_twaddress_order(){
     '連江縣',
     '南海諸島',
   );
+}
+
+function _civicrm_twaddress_add_zipcode_js(){
+  global $language;
+  $setting['language'] = $language->language;
+  drupal_add_js($setting, 'setting');
+
+  $path = drupal_get_path("module",'civicrm_twaddress');
+  drupal_add_js($path."/twzipcode.js");
+  $add = 1;
+  return $add;
 }
 
 function _civicrm_twaddress_key($name){
@@ -403,7 +409,8 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
       $js .= '
       if( $("form#'.$form_name.' select[name=\''.$field['country'][$k]['name'].'\']").length ){
             $("select[name=\''.$field['country'][$k]['name'].'\']").change(function(){
-              if($(this).val() == "1208"){
+              var language = Drupal.settings.language;
+              if($(this).val() == "1208" && (language == "zh-hant" || typeof language == undefined)){
                 applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
               }else{
                 cancelTWZIPAddress("'.$select_id.'",'.$address_info_json.');
