@@ -58,7 +58,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     else{
       $recur = TRUE;
-      if($ids['paymentProcessor']){
+      if(!empty($ids['paymentProcessor'])){
         $ppid = $ids['paymentProcessor'];
       }else{
         $sql = 'SELECT payment_processor_id FROM civicrm_contribution WHERE id = %1';
