@@ -1,6 +1,6 @@
 name = netiCRM update
 description = Update database migration for neticrm branch.
-version = 1.50
+version = 1.57
 dependencies[] = civicrm
 package = netiCRM
 core = 6.x
