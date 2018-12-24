@@ -457,3 +457,10 @@ function neticrm_update_update_7255() {
 function neticrm_update_update_7256() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #24358, Add background image column to contribution page table;
+ */
+function neticrm_update_update_7257() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
