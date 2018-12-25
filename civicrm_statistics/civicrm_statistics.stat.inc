@@ -313,9 +313,61 @@ ON base_year.contact_id = last_year.contact_id
         $recurring = CRM_Core_DAO::singleValueQuery($sql);
         $result[$table.'_'.$base_year] = ($second - $recurring);
         $result[$table.'_'.$last_year] = $first;
+
+        // lifetime
+        $sql = "
+SELECT last_year.contact_id as contact_id_last, base_year.contact_id as contact_id_base, last_year.recur as recur_last, base_year.recur as recur_base
+FROM (SELECT cc.contact_id as contact_id, cc.contribution_recur_id as recur FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND %last_start AND %last_end GROUP BY cc.contact_id, cc.contribution_recur_id) as last_year
+LEFT JOIN
+(SELECT cc.contact_id as contact_id, cc.contribution_recur_id as recur FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND %start AND %end GROUP BY cc.contact_id, cc.contribution_recur_id) as base_year
+ON base_year.contact_id = last_year.contact_id
+";
+        $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_lifetime (INDEX contact_id_last (contact_id_last, contact_id_base)) $sql";
+        $sql = civicrm_statistics_annual_query_modify($t, $base_year, $sql);
+        $sql = civicrm_statistics_annual_query_modify($t, $last_year, $sql, array('%last_start', '%last_end'));
+        $sql = str_replace($last_year.'-01-01 ', '2000-01-01 ', $sql); // change to lifetime
+        CRM_Core_DAO::executeQuery($sql);
+
+        $sql = "SELECT COUNT(*) FROM {$table}_lifetime WHERE contact_id_last IS NOT NULL"; // previous year
+        $previous = CRM_Core_DAO::singleValueQuery($sql);
+        $sql = "SELECT COUNT(*) FROM {$table}_lifetime WHERE contact_id_last IS NOT NULL AND contact_id_base IS NOT NULL"; // first year and second year
+        $second = CRM_Core_DAO::singleValueQuery($sql);
+        $sql = "SELECT COUNT(*) FROM {$table}_lifetime WHERE contact_id_last IS NOT NULL AND contact_id_base IS NOT NULL AND recur_base IS NOT NULL AND recur_last IS NOT NULL AND recur_base = recur_last"; // same recur first and previous year
+        $recurring = CRM_Core_DAO::singleValueQuery($sql);
+        $result[$table.'_lifetime_'.$base_year] = ($second - $recurring);
+        $result[$table.'_lifetime_'.$last_year] = $previous;
+
+        // first time donor percentage
+        $sql = "
+SELECT COUNT(donors.new) as new, COUNT(donors.returned) as returned, (COUNT(donors.new)/COUNT(donors.returned)) as rate FROM (
+  SELECT cc.contact_id AS returned, c.contact_id AS new, cc.contribution_status_id FROM civicrm_contribution cc
+    LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id
+    LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id
+    LEFT JOIN ( SELECT id, contact_id FROM civicrm_contribution GROUP BY contact_id HAVING MIN(receive_date) >= '%min' ) c ON cc.id = c.id
+  WHERE %start AND %end AND cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL
+  GROUP BY cc.contact_id
+) AS donors
+GROUP BY donors.contribution_status_id        
+";
+        $basesql = civicrm_statistics_annual_query_modify($t, $base_year, $sql);
+        $basesql = str_replace('%min', $base_year.'-01-01 00:00:00', $basesql);
+        $query = CRM_Core_DAO::executeQuery($basesql);
+        $query->fetch();
+        $result[$table.'_donor_new_'.$base_year] = $query->new;
+        $result[$table.'_donor_returned_'.$base_year] = $query->returned;
+        $result[$table.'_donor_new_rate_'.$base_year] = $query->rate;
+
+        $lastsql = civicrm_statistics_annual_query_modify($t, $last_year, $sql);
+        $lastsql = str_replace('%min', $last_year.'-01-01 00:00:00', $lastsql);
+        $query = CRM_Core_DAO::executeQuery($lastsql);
+        $query->fetch();
+        $result[$table.'_donor_new_'.$last_year] = $query->new;
+        $result[$table.'_donor_returned_'.$last_year] = $query->returned;
+        $result[$table.'_donor_new_rate_'.$last_year] = $query->rate;
         break;
 
       case 'contribution_leveling':
+        // amount leveling
         foreach(array($base_year, $last_year) as $y) {
           $sql = "SELECT cc.contact_id, SUM(cc.total_amount) as annual_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND %start AND %end GROUP BY cc.contact_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
@@ -335,6 +387,31 @@ ON base_year.contact_id = last_year.contact_id
           $query = CRM_Core_DAO::executeQuery($sql);
           while($query->fetch()) {
             $result[$table.'_'.$y][$query->level] = $query->count;
+          }
+        }
+
+        // leveling by age
+        foreach(array($base_year, $last_year) as $y) {
+          $sql = "SELECT cc.contact_id, YEAR(CURRENT_TIMESTAMP) - YEAR(c.birth_date) - (RIGHT(CURRENT_TIMESTAMP, 5) < RIGHT(c.birth_date, 5)) as age FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND c.birth_date IS NOT NULL AND %start AND %end GROUP BY cc.contact_id";
+          $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
+          $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_age_{$y} (INDEX age (age)) $sql";
+          CRM_Core_DAO::executeQuery($sql);
+          $sql = "
+            SELECT c.age, count(*) as `count` FROM  (
+              SELECT CASE
+              when age between 0 and 20 then 20
+              when age between 20 and 30 then 30
+              when age between 30 and 40 then 40
+              when age between 40 and 50 then 50
+              when age between 50 and 60 then 60
+              when age between 60 and 200 then 61
+              ELSE 61
+              END age FROM {$table}_age_{$y}
+            ) c
+            GROUP BY c.age ORDER BY c.age";
+          $query = CRM_Core_DAO::executeQuery($sql);
+          while($query->fetch()) {
+            $result[$table.'_age_'.$y][$query->age] = $query->count;
           }
         }
         break;
@@ -512,6 +589,46 @@ ON base_year.contact_id = last_year.contact_id
         );
         civicrm_statistics_annual_query_result($result, $params);
         break;
+      case 'track':
+        $sql = "SELECT t.referrer_type, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type IS NOT NULL GROUP BY t.referrer_type";
+        $params = array(
+          'name' => $table.'_referrer_type',
+          'sql' => $sql,
+          'years' => array($base_year),
+          'table' => $t,
+          'fields' => array('referrer_type' => 'count'),
+        );
+        civicrm_statistics_annual_query_result($result, $params);
+
+        $sql = "SELECT t.referrer_type, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type IS NOT NULL AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_type";
+        $params = array(
+          'name' => $table.'_referrer_type_goal',
+          'sql' => $sql,
+          'years' => array($base_year),
+          'table' => $t,
+          'fields' => array('referrer_type' => 'count'),
+        );
+        civicrm_statistics_annual_query_result($result, $params);
+
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' GROUP BY t.referrer_network";
+        $params = array(
+          'name' => $table.'_social_network',
+          'sql' => $sql,
+          'years' => array($base_year),
+          'table' => $t,
+          'fields' => array('referrer_type' => 'count'),
+        );
+        civicrm_statistics_annual_query_result($result, $params);
+
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_network";
+        $params = array(
+          'name' => $table.'_social_network_goal',
+          'sql' => $sql,
+          'years' => array($base_year),
+          'table' => $t,
+          'fields' => array('referrer_type' => 'count'),
+        );
+        civicrm_statistics_annual_query_result($result, $params);
     }
   }
   return $result;
@@ -530,6 +647,7 @@ function civicrm_statistics_annual_table($flip = FALSE){
     'trend_contribution' => array('table_alias' => 'cc', 'date_field' => 'receive_date', 'primary_id' => 'id'),
     'trend_mailing' => array('table_alias' => 'm', 'date_field' => 'time_stamp', 'primary_id' => 'id'),
     'trend_event' => array('table_alias' => 'p', 'date_field' => 'register_date', 'primary_id' => 'id'),
+    'track' => array('table_alias' => 't', 'date_field' => 'visit_date', 'primary_id' => 'id'),
   );
   if($flip){
     return array_flip($tables);
@@ -542,7 +660,7 @@ function civicrm_statistics_annual_query_result(&$result, $params) {
     $table = $params['table'];
     $sql = civicrm_statistics_annual_query_modify($table, $y, $params['sql']);
     $query = CRM_Core_DAO::executeQuery($sql);
-    if ($params['allrows']) {
+    if (!empty($params['allrows'])) {
       $group = array();
       while($query->fetch()) {
         foreach($params['fields'] as $k => $f) {
