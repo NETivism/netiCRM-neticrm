@@ -597,26 +597,29 @@ GROUP BY donors.contribution_status_id
           'years' => array($base_year),
           'table' => $t,
           'fields' => array('referrer_type' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
 
-        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' GROUP BY t.referrer_network";
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.referrer_network IS NOT NULL GROUP BY t.referrer_network";
         $params = array(
           'name' => $table.'_social_network',
           'sql' => $sql,
           'years' => array($base_year),
           'table' => $t,
-          'fields' => array('referrer_type' => 'count'),
+          'fields' => array('referrer_network' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
 
-        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_network";
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.referrer_network IS NOT NULL AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_network";
         $params = array(
           'name' => $table.'_social_network_goal',
           'sql' => $sql,
           'years' => array($base_year),
           'table' => $t,
-          'fields' => array('referrer_type' => 'count'),
+          'fields' => array('referrer_network' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
     }
