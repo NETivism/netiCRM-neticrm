@@ -589,6 +589,7 @@ GROUP BY donors.contribution_status_id
         );
         civicrm_statistics_annual_query_result($result, $params);
         break;
+
       case 'track':
         $sql = "SELECT t.referrer_type, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type IS NOT NULL GROUP BY t.referrer_type";
         $params = array(
@@ -597,6 +598,7 @@ GROUP BY donors.contribution_status_id
           'years' => array($base_year),
           'table' => $t,
           'fields' => array('referrer_type' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
 
@@ -607,26 +609,29 @@ GROUP BY donors.contribution_status_id
           'years' => array($base_year),
           'table' => $t,
           'fields' => array('referrer_type' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
 
-        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' GROUP BY t.referrer_network";
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.referrer_network IS NOT NULL GROUP BY t.referrer_network";
         $params = array(
           'name' => $table.'_social_network',
           'sql' => $sql,
           'years' => array($base_year),
           'table' => $t,
-          'fields' => array('referrer_type' => 'count'),
+          'fields' => array('referrer_network' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
 
-        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_network";
+        $sql = "SELECT t.referrer_network, COUNT(t.id) as `count` FROM civicrm_track t WHERE %start AND %end AND t.page_type = 'civicrm_contribution_page' AND t.referrer_type = 'social' AND t.referrer_network IS NOT NULL AND t.entity_id IS NOT NULL AND t.state >= 4 GROUP BY t.referrer_network";
         $params = array(
           'name' => $table.'_social_network_goal',
           'sql' => $sql,
           'years' => array($base_year),
           'table' => $t,
-          'fields' => array('referrer_type' => 'count'),
+          'fields' => array('referrer_network' => 'count'),
+          'allrows' => 'all',
         );
         civicrm_statistics_annual_query_result($result, $params);
     }
@@ -669,7 +674,7 @@ function civicrm_statistics_annual_query_result(&$result, $params) {
           $group[] = $params['name'].'_'.$k.'_'.$f.'_'.$y;
         }
       }
-      if (!empty($group)) {
+      if (!empty($group) && is_numeric($params['allrows'])) {
         foreach($group as $g) {
           civicrm_statistics_normalize($result[$g], $params['allrows']);
         }
