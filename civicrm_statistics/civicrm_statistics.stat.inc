@@ -662,7 +662,7 @@ function civicrm_statistics_annual_query_result(&$result, $params) {
           $group[] = $params['name'].'_'.$k.'_'.$f.'_'.$y;
         }
       }
-      if (!empty($group)) {
+      if (!empty($group) && is_numeric($params['allrows'])) {
         foreach($group as $g) {
           civicrm_statistics_normalize($result[$g], $params['allrows']);
         }
