@@ -464,3 +464,10 @@ function neticrm_update_update_7256() {
 function neticrm_update_update_7257() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #23894, Add coupon related table
+ */
+function neticrm_update_update_7258() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
