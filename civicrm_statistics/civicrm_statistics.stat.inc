@@ -262,6 +262,9 @@ function civicrm_statistics_annual_data($base_year) {
             }
           }
           foreach($num as $type => $n) {
+            if ($num['delivered'] < 1000) { // only calculate over 1000 delivery
+              continue;
+            }
             if (strstr($type, '_rate')) {
               $result['mailing_'.$type.'_'.$y] = array_sum($n) / count($n);
             }
