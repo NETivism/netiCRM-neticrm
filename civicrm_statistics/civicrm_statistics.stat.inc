@@ -251,20 +251,20 @@ function civicrm_statistics_annual_data($base_year) {
           while($query->fetch()) {
             if ($query->mailing_id) {
               $delivered = CRM_Mailing_Event_BAO_Delivered::getTotalCount($query->mailing_id, NULL);
-							$opened = CRM_Mailing_Event_BAO_Opened::getTotalCount($query->mailing_id, NULL, TRUE);
-							$url_opened = CRM_Mailing_Event_BAO_TrackableURLOpen::getTotalCount($query->mailing_id, NULL, TRUE);
+              if ($delivered < 1000) { // only calculate over 1000 delivery
+                continue;
+              }
+              $opened = CRM_Mailing_Event_BAO_Opened::getTotalCount($query->mailing_id, NULL, TRUE);
+              $url_opened = CRM_Mailing_Event_BAO_TrackableURLOpen::getTotalCount($query->mailing_id, NULL, TRUE);
 
-							$num['delivered'][$query->mailing_id] = $delivered;
-							$num['opened'][$query->mailing_id] = $opened;
-							$num['opened_rate'][$query->mailing_id] = $opened / $delivered;
-							$num['url_opened'][$query->mailing_id] = $url_opened;
-							$num['clicked_rate'][$query->mailing_id] = $url_opened / $delivered;
+              $num['delivered'][$query->mailing_id] = $delivered;
+              $num['opened'][$query->mailing_id] = $opened;
+              $num['opened_rate'][$query->mailing_id] = $opened / $delivered;
+              $num['url_opened'][$query->mailing_id] = $url_opened;
+              $num['clicked_rate'][$query->mailing_id] = $url_opened / $delivered;
             }
           }
           foreach($num as $type => $n) {
-            if ($num['delivered'] < 1000) { // only calculate over 1000 delivery
-              continue;
-            }
             if (strstr($type, '_rate')) {
               $result['mailing_'.$type.'_'.$y] = array_sum($n) / count($n);
             }
@@ -417,6 +417,23 @@ GROUP BY donors.contribution_status_id
             $result[$table.'_age_'.$y][$query->age] = $query->count;
           }
         }
+
+        // state and province leveling
+        $states = CRM_Core_PseudoConstant::stateProvince();
+        foreach(array($base_year, $last_year) as $y) {
+          $sql = "SELECT f.state_province_id, COUNT(f.id) as count FROM (SELECT c.id, a.state_province_id FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id INNER JOIN civicrm_address a ON c.id = a.contact_id AND a.is_primary = 1 LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND a.state_province_id IS NOT NULL AND %start AND %end GROUP BY cc.contact_id) f GROUP BY f.state_province_id ORDER BY state_province_id";
+          $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
+          $query = CRM_Core_DAO::executeQuery($sql);
+
+          while($query->fetch()) {
+            $state = $states[$query->state_province_id];
+            if (empty($state)) {
+              continue;
+            }
+            $result[$table.'_city_'.$y][$state] = $query->count;
+          }
+        }
+
         break;
 
       case 'contribution_recur':
