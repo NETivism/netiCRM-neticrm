@@ -476,7 +476,7 @@ GROUP BY donors.contribution_status_id
 
         $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
         foreach(array($base_year, $last_year) as $y) {
-          $sql = "SELECT MONTH(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.contribution_recur_id IS NULL AND %start AND %end GROUP BY cc.contribution_recur_id ) cf GROUP BY MONTH(cf.receive_date) ORDER BY MONTH(cf.receive_date)";
+          $sql = "SELECT MONTH(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.contribution_recur_id IS NULL AND %start AND %end ) cf GROUP BY MONTH(cf.receive_date) ORDER BY MONTH(cf.receive_date)";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
           while($query->fetch()) {

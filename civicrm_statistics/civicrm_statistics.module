@@ -15,7 +15,7 @@ function civicrm_statistics_cron(){
   $year = (int)date('Y');
   // only fetch last year at January
   if ($_SERVER['REQUEST_TIME'] >= strtotime("$year-01-10") &&
-      $_SERVER['REQUEST_TIME'] <= strtotime("$year-01-20") &&
+      $_SERVER['REQUEST_TIME'] <= strtotime("$year-01-26") &&
       empty($member['optout_crm_stat'])) {
     $base_year = $year - 1;
     $exists = variable_get('civicrm_statistics_run_annual', array());
