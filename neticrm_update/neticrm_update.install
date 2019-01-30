@@ -461,3 +461,23 @@ function neticrm_update_update_6156() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * Refs #24358, Add background image column to contribution page table;
+ */
+function neticrm_update_update_6157() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #23894, Add coupon related table
+ */
+function neticrm_update_update_6158() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #23894, Add field `discount_amount` to coupon_track table
+ */
+function neticrm_update_update_6159() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
