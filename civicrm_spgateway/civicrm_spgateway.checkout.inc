@@ -320,3 +320,77 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
   }
 }
 
+
+/**
+ * $objects should be an array of the dao of contribution, email, merchant_payment_processor
+ */
+function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
+  $contribution = $objects['contribution'];
+  $merchantPaymentProcessor = $objects['payment_processor'];
+
+  if($type = 'applepay') {
+    $email = new CRM_Core_DAO_Email();
+    $email->contact_id = $contribution->contact_id;
+    $email->is_primary = true;
+    $email->find(TRUE);
+
+    $token = urlencode(json_encode($post['token']));
+    $is_test = $contribution->is_test;
+
+    $params = array(
+      'TimeStamp' => time(),
+      'Version' => '1.0',
+      'MerchantOrderNo' => _civicrm_spgateway_trxn_id($is_test, $contribution->id),
+      'Amt' => $contribution->total_amount,
+      'ProdDesc' => $post['description'], 
+      'PayerEmail' => $email->email,
+      'CardNo' => '',
+      'Exp' => '',
+      'CVC' => '',
+      'APPLEPAY' => $token,
+      'APPLEPAYTYPE' => '02',
+    );
+
+    $data = _civicrm_spgateway_recur_encrypt(http_build_query($params), get_object_vars($merchantPaymentProcessor));
+
+    $data = array(
+      'MerchantID_' => $merchantPaymentProcessor->user_name,
+      'PostData_' => $data,
+      'Pos_' => 'JSON',
+    );
+    if($contribution->is_test){
+      $url = 'https://ccore.spgateway.com/API/CreditCard';
+    }else{
+      $url = 'https://core.spgateway.com/API/CreditCard';
+    }
+
+    $ch = curl_init($url);
+    $opt = array();
+    $opt[CURLOPT_RETURNTRANSFER] = TRUE;
+    $opt[CURLOPT_POST] = TRUE;
+    $opt[CURLOPT_POSTFIELDS] = $data;
+    curl_setopt_array($ch, $opt);
+
+    $result = curl_exec($ch);
+    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    if ($result === FALSE) {
+      $errno = curl_errno($ch);
+      $err = curl_error($ch);
+      $curlError = array($errno => $err);
+    }
+    else{
+      $curlError = array();
+    }
+    curl_close($ch);
+
+    $result = json_decode($result);
+    civicrm_spgateway_record($contribution->id, get_object_vars($result));
+    $return = array();
+    if($result->Status == 'SUCCESS'){
+      $return['is_success'] = true;
+    }
+    $return['message'] = $result->Message;
+  }
+  return $return;
+
+}
