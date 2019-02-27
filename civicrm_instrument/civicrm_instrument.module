@@ -103,7 +103,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $options = array();
         $is_test = array('0' => '', '1' => 'test_');
         $js = '
-jQuery(document).ready(function($){';
+cj(document).ready(function($){';
         foreach ($is_test as $is_test_value => $is_test_str) {
           $sql = "SELECT id, name, user_name FROM civicrm_payment_processor WHERE class_name IN ('Payment_ALLPAY', 'Payment_SPGATEWAY') AND is_test = $is_test_value GROUP BY user_name;";
           $dao = CRM_Core_DAO::executeQuery($sql);
