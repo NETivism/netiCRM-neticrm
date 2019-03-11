@@ -616,6 +616,24 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       }
     }
   }
+  elseif ($processor_type === 'TapPay') {
+    $enabled_instruments = array(
+      'Credit Card' =>  array('label' => '信用卡', 'desc' => '', 'code' => 'Credit', 'value' => 1),
+    );
+    if(!empty($_GET['id'])){
+      $_POST['civicrm_instrument_id'] = 1;
+    }
+    foreach($enabled_instruments as $name => $i){
+      $radio_name = _civicrm_instrument_form_name($name);
+      if(!empty($active_instruments[$radio_name])){
+        $radios[$i['value']] = array(
+          'form_name'=> $radio_name,
+          'name'=> $name,
+          'label' => ts($name),
+        );
+      }
+    }
+  }
 
   if($processor_type == 'Mobile'){
     $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
