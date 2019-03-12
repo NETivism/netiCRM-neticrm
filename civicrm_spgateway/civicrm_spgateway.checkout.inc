@@ -351,7 +351,7 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
       'APPLEPAYTYPE' => '02',
     );
 
-    $data = _civicrm_spgateway_recur_encrypt(http_build_query($params), get_object_vars($merchantPaymentProcessor));
+    $data = _civicrm_spgateway_recur_encrypt(http_build_query($params, '', '&'), get_object_vars($merchantPaymentProcessor));
 
     $data = array(
       'MerchantID_' => $merchantPaymentProcessor->user_name,
