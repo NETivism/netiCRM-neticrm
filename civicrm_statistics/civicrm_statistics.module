@@ -13,13 +13,13 @@ function civicrm_statistics_cron(){
   }
 
   $year = (int)date('Y');
-  // last year
+  // only fetch last year at January
   if ($_SERVER['REQUEST_TIME'] >= strtotime("$year-01-10") &&
-      $_SERVER['REQUEST_TIME'] <= strtotime("$year-01-31") &&
+      $_SERVER['REQUEST_TIME'] <= strtotime("$year-02-12") &&
       empty($member['optout_crm_stat'])) {
     $base_year = $year - 1;
     $exists = variable_get('civicrm_statistics_run_annual', array());
-    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 86400*20) && date('G') >= 3 && date('G') <= 7) {
+    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 60000) && date('G') >= 3 && date('G') <= 14) {
       sleep(mt_rand(1, 60)); // multiple sites will fetch at the same time, delay awhile for each site
       civicrm_statistics_annual_fetch($base_year, TRUE);
       $exists[$base_year] = $_SERVER['REQUEST_TIME'];
@@ -27,7 +27,7 @@ function civicrm_statistics_cron(){
     }
   }
 
-  // current year
+  // fetch current year every 30 days
   if ($_SERVER['REQUEST_TIME'] >= strtotime("$year-01-01") &&
       $_SERVER['REQUEST_TIME'] <= strtotime("$year-12-31") &&
       empty($member['optout_crm_stat'])) {

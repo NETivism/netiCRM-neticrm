@@ -38,7 +38,12 @@ function civicrm_secure_group_civicrm_aclWhereClause( $type, &$tables, &$whereTa
   }
 
   if( !strstr($where, 'is_deleted')){
-    $where .= ' contact_a.is_deleted = 0 AND ';
+    if(!empty($_POST['deleted_contacts'])) {
+      $where .= ' contact_a.is_deleted = 1 AND ';
+    }
+    else {
+      $where .= ' contact_a.is_deleted = 0 AND ';
+    }
   }
 
   // if the contact has spcific role, dont modify the clause

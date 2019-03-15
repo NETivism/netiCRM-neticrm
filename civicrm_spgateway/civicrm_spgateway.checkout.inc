@@ -302,6 +302,7 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
      if ($vars['contributionRecurID']) {
        $query[] = "crid={$vars['contributionRecurID']}";
        $query[] = "cpid={$vars['contributionPageID']}";
+       $query[] = "ppid={$vars['payment_processor']}";
      }
   }
 

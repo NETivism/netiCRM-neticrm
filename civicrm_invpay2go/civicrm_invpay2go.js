@@ -127,5 +127,13 @@ $(document).ready(function(){
       $('input[date-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
     }
   }, 500);
+  if ($("#customData").length) {
+    $(document).ajaxComplete(function(event, xhr, settings) {
+      if ( settings.url.indexOf('type=Contribution&subType=')) {
+        triggerReceiptType();
+        $('input[date-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+      }
+    });
+  }
 });
 }(cj));

@@ -34,6 +34,7 @@ function civicrm_invpay2go_install() {
     // text
     $fields['taxreceipt_device_number'] = _civicrm_demo_create_custom_field('taxreceipt_device_number', '載具編號', 'String', 'Text', $group_id);
     $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group_id);
+    $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
     $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group_id);
     CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET help_post = %1 WHERE id = %2", array(
       1 => array('三聯式發票將會直接寄出電子檔案到您的信箱，不再郵寄紙本列印之電子發票。', 'String'),
@@ -56,6 +57,7 @@ function civicrm_invpay2go_install() {
     'taxReceiptDeviceNumber' => $fields['taxreceipt_device_number']['id'],
     'taxReceiptDonate' => $fields['taxreceipt_donate']['id'],
     'taxReceiptSerial' => $fields['taxreceipt_serial']['id'],
+    'taxReceiptTitle' => $fields['taxreceipt_title']['id'],
     'taxReceiptNumber' => $fields['taxreceipt_number']['id'],
     'taxReceiptItem' => $fields['taxreceipt_item']['id'],
     'taxReceiptPaper' => $fields['taxreceipt_paper']['id'],
@@ -88,6 +90,28 @@ function civicrm_invpay2go_update_6011() {
     $fields = array();
     $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
     if ($fields['taxreceipt_agree']['id']) {
+      $return['success'] = TRUE;
+    }
+  }
+  return $return;
+}
+
+/**
+ * Add tax receipt title. refs #20311
+ */
+function civicrm_invpay2go_update_6012() {
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  $return = array( 'success' => FALSE );
+  if (empty($config->taxReceiptTitle)) {
+    module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+    $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+    $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
+    if ($fields['taxreceipt_title']['id']) {
+      $params = array(
+        'taxReceiptTitle' => $fields['taxreceipt_title']['id'],
+      );
+      CRM_Core_BAO_ConfigSetting::add($params);
       $return['success'] = TRUE;
     }
   }

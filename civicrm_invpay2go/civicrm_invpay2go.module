@@ -117,6 +117,15 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
     }
   }
 
+  // check first attempt response
+  if (!$success && !empty($receipt['issue_response']->Message)) {
+    if (!empty($_POST)) {
+      drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+    }
+
+    return array('create' => TRUE);
+  }
+
   // check status
   if (!$success) {
     $contribution = new CRM_Contribute_DAO_Contribution();
@@ -135,13 +144,6 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
         );
       }
     }
-  }
-
-  // check first attempt response
-  if (!$success && !empty($receipt['issue_response']->Message)) {
-    drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
-
-    return array('create' => TRUE);
   }
 
   // the only thing we can print.
@@ -291,58 +293,60 @@ jQuery(document).ready(function($){
         }
       }
       if (!empty($_GET['snippet']) && $_GET['snippet'] == 4) {
-        if (isset($_GET['cgcount']) && !empty($_GET['entityID']) && is_numeric($_GET['entityID'])) {
-          $contribution = new CRM_Contribute_DAO_Contribution();
-          $contribution->id = $_GET['entityID'];
-          if (!$contribution->find(TRUE)) {
-            return;
+        if (isset($_GET['cgcount'])) {
+          if (!empty($_GET['entityID']) && is_numeric($_GET['entityID'])) {
+            $contribution = new CRM_Contribute_DAO_Contribution();
+            $contribution->id = $_GET['entityID'];
+            if (!$contribution->find(TRUE)) {
+              return;
+            }
+            if (isset($taxTypes[$contribution->contribution_type_id])) {
+              $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($contribution->trxn_id));
+              $exists['module'] = 'civicrm_invpay2go';
+              $success = _civicrm_invpay2go_check_success($exists);
+            }
           }
-          if (isset($taxTypes[$contribution->contribution_type_id])) {
-            $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($contribution->trxn_id));
-            $exists['module'] = 'civicrm_invpay2go';
-            $success = _civicrm_invpay2go_check_success($exists);
-            $config = CRM_Core_Config::singleton();
-            $available = array();
-            foreach($config as $key => $v){
-              if (strstr($key, 'taxReceipt')) {
-                $available[$key] = $v;
+          $config = CRM_Core_Config::singleton();
+          $available = array();
+          foreach($config as $key => $v){
+            if (strstr($key, 'taxReceipt')) {
+              $available[$key] = $v;
+            }
+          }
+          
+          $field_index = array();
+          foreach($form->_elementIndex as $idx => $dontcare) {
+            foreach($available as $key => $custom_id) {
+              if (strstr($idx, 'custom_'.$custom_id)) {
+                $field_index[$key] = $idx;
               }
             }
-            
-            $field_index = array();
-            foreach($form->_elementIndex as $idx => $dontcare) {
-              foreach($available as $key => $custom_id) {
-                if (strstr($idx, 'custom_'.$custom_id)) {
-                  $field_index[$key] = $idx;
-                }
-              }
-            }
+          }
 
-            foreach($field_index as $key => $idx) {
-              $element = $form->getElement($idx);
-              if ($element->_type == 'group') {
-                foreach($element->_elements as $e) {
-                  $e->setAttribute('data-invpay2go', $key);
-                  if ($success || $key == 'taxReceiptPaper') {
-                    $e->freeze();
-                  }
+          foreach($field_index as $key => $idx) {
+            $element = $form->getElement($idx);
+            if ($element->_type == 'group') {
+              foreach($element->_elements as $e) {
+                $e->setAttribute('data-invpay2go', $key);
+                if ($success || $key == 'taxReceiptPaper') {
+                  $e->freeze();
                 }
               }
-              else {
-                $element->setAttribute('data-invpay2go', $key);
-                if ($success) {
-                  $element->freeze();
-                }
+            }
+            else {
+              $element->setAttribute('data-invpay2go', $key);
+              if ($key === 'taxReceiptTitle') {
+                $element->setAttribute('placeholder', '留空即預設聯絡人名稱');
+              }
+              if ($success) {
+                $element->freeze();
               }
             }
           }
         }
       }
       else {
-        $pageType = $form->_values['contribution_type_id'];
-        if (!empty($pageType) && isset($taxTypes[$pageType])) {
-          drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', 'footer');
-        }
+        drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', 'footer');
         if (!empty($form->_values['trxn_id'])) {
           $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($form->_values['trxn_id']));
           if (!empty($exists['order_number'])) {
@@ -386,6 +390,59 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
     $replace = '<fieldset id="tax-invoice-fieldset" class="crm-group tax-invoice-group"><legend>發票開立</legend>'.$replace.'</fieldset>';
     $replace = '<!--invpay2go-separator--><div id="invpay2go-section">'.$replace.'</div>';
     $content = str_replace('<!--payment-separator-->', $replace.'<!--payment-separator-->', $content);
+  }
+}
+
+function civicrm_invpay2go_civicrm_alterTemplateVars(&$resourceName, &$vars) {
+  if ($_GET['q'] == 'civicrm/contact/view/contribution' && $resourceName == 'CRM/common/drupal.tpl' && $vars['viewCustomData']) {
+    $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+    if (!empty($vars['viewCustomData'][$group_id])) {
+      $config = CRM_Core_Config::singleton();
+      $cv_id = key($vars['viewCustomData'][$group_id]);
+      if ($config->taxReceiptNumber && !empty($vars['viewCustomData'][$group_id][$cv_id]['fields'][$config->taxReceiptNumber])) {
+        $tax_serial =& $vars['viewCustomData'][$group_id][$cv_id]['fields'][$config->taxReceiptNumber];
+        $invoice_id = $tax_serial['field_value'];
+        $exists = invpay2go_api_get(NULL, $invoice_id);
+        if (!empty($exists['search_response']->Result->InvoiceStatus) && $exists['search_response']->Result->InvoiceStatus == 2) {
+          $tax_serial['field_value'] .= ' (已作廢)';
+        }
+      }
+    }
+  }
+}
+
+function civicrm_invpay2go_civicrm_export(&$exportTempTable, &$header, &$columns, &$exportMode){
+  if ($exportMode == CRM_Export_Form_Select::CONTRIBUTE_EXPORT) {
+    $config = CRM_Core_Config::singleton();
+    $column_name = 'custom_'.$config->taxReceiptNumber;
+    $has_column = FALSE;
+    foreach($columns as $name) {
+      list($column) = explode(' ', $name);
+      if ($column == $column_name) {
+        $has_column = TRUE;
+        break;
+      }
+    }
+    if ($has_column){
+      $invoice_ids = array();
+      $dao = CRM_Core_DAO::executeQuery("SELECT $column_name FROM $exportTempTable");
+      while($dao->fetch()) {
+        $invoice_ids[] = $dao->$column_name;
+      }
+      if (!empty($invoice_ids)) {
+        $invoice_update = array();
+        $invoice_str = "'".implode("','", $invoice_ids)."'";
+        $status_str = '\\\\\\\"InvoiceStatus\\\\\\\":\\\\\\\"2\\\\\\\"';
+        $dao = CRM_Core_DAO::executeQuery("SELECT invoice_number, search_response FROM invpay2go_invoice WHERE invoice_number IN ($invoice_str) AND search_response LIKE '%$status_str%'");
+        while($dao->fetch()) {
+          $invoice_update[] = $dao->invoice_number;
+        }
+        if (!empty($invoice_update)) {
+          $invoice_update_str = "'".implode("','", $invoice_update)."'";
+          CRM_Core_DAO::executeQuery("UPDATE $exportTempTable SET $column_name = CONCAT($column_name, ' (已作廢)') WHERE $column_name IN ($invoice_update_str)");
+        }
+      }
+    }
   }
 }
 
@@ -686,7 +743,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'TransNum' => '', // if pay2go, provide
     'Status' => '1', // 1 - immediately, 0 - trigger to issue, 3 - datetime to issue
     'CreateStatusTime' => '', // only apply this when Status = 3
-    'BuyerName' => $contact['sort_name'],
+    'BuyerName' => !empty(trim($field_info['taxReceiptTitle']['value'])) ? trim($field_info['taxReceiptTitle']['value']) : $contact['sort_name'],
     'BuyerAddress' => '', // not provided
     'BuyerEmail' => $contact['email'],
     'Amt' => $amt, // non-tax amount
