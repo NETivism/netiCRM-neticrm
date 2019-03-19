@@ -32,4 +32,15 @@ function _neticrm_update_update_7260() {
        CONSTRAINT FK_civicrm_contribution_tappay_log_contribution_id FOREIGN KEY (contribution_id) REFERENCES civicrm_contribution(id) ON DELETE SET NULL  
   )  ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC  ;";
   CRM_Core_DAO::executeQuery($sql);
+
+  $sql = "INSERT INTO `civicrm_payment_processor_type` 
+ (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur )
+VALUES 
+('TapPay', '{TapPay Payment}', NULL, 1, 0, 'Merchant ID', '{Partner Key}', '{App ID}', '{App Key}',  'Payment_TapPay', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  4, 1);";
+  $sql = str_replace("{TapPay Payment}", ts("TapPay Payment"), $sql);
+  $sql = str_replace("{Partner Key}", ts("Partner Key"), $sql);
+  $sql = str_replace("{App ID}", ts("App ID"), $sql);
+  $sql = str_replace("{App Key}", ts("App Key"), $sql);
+  CRM_Core_DAO::executeQuery($sql);
 }
+
