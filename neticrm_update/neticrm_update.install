@@ -478,3 +478,10 @@ function neticrm_update_update_7258() {
 function neticrm_update_update_7259() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #24837, Add tables tappay and tappay_log.
+ */
+function neticrm_update_update_7260() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
