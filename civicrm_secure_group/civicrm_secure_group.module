@@ -64,8 +64,8 @@ function civicrm_secure_group_civicrm_aclWhereClause( $type, &$tables, &$whereTa
     // else modify the query so we can ensure that contactIDs belong to the secure group are not shown
     $groupTable = 'secure_group';
     $tables[$groupTable] = $whereTables[$groupTable] =
-        "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id IN(" . CIVICRM_SECURE_GROUP_GID . ") )";
-    $where .= " ( $groupTable.status is null OR $groupTable.status != 'Added' ) ";
+        "LEFT JOIN civicrm_group_contact $groupTable ON ( contact_a.id = $groupTable.contact_id AND $groupTable.group_id IN(" . CIVICRM_SECURE_GROUP_GID . ") AND $groupTable.status = 'Added' )";
+    $where .= " ( $groupTable.status is null ) ";
   }
 
 }
