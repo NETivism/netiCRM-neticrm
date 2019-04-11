@@ -204,7 +204,7 @@ function civicrm_allpay_cron(){
   // every morning, we check allpay payment result
   $last = variable_get('civicrm_allpay_recur_sync', 0);
   $now = time();
-  if($now - $last > 60000 && date('G') > '6' && date('G') < '12'){
+  if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_allpay_recur_sync();
     variable_set('civicrm_allpay_recur_sync', $now);
   }
@@ -325,29 +325,22 @@ function civicrm_allpay_recur_sync($days = array()){
       date('j'),
       date('j', strtotime('-1 day')),
     );
-    if(date('n') == '2'){
-      if(date('j') == '28'){
-        $days[] = '29';
-        $days[] = '30';
-        $days[] = '31';
-      }
-      elseif(date('j') == '29'){
-        $days[] = '30';
-        $days[] = '31';
+
+    // when end of month
+		$end_this_month = date('j', strtotime('last day of this month'));
+    if (date('j') == $end_this_month) {
+      for($i = $end_this_month; $i <= 31; $i++) {
+        $days[] = $i;
       }
     }
-    elseif(date('j') == '30'){
-      $days[] = '31';
-    }
-    elseif(date('j') == '1' && !array_search('31', $days)){
-      $days[] = '31';
-    }
+    $days = array_unique($days);
   }
 
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
   ORDER BY r.create_date ASC";
   foreach($days as $d){
+    $d = (string) $d;
     watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
     $query_params = array(
       1 => array($d, 'String'),
