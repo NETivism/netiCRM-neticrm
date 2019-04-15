@@ -1,4 +1,11 @@
 <?php
+define('SPGATEWAY_EXPIRE_DAY', 7);
+define('SPGATEWAY_MAX_EXPIRE_DAY', 180);
+define('SPGATEWAY_RESPONSE_TYPE', 'JSON');
+define('SPGATEWAY_MPG_VERSION','1.2');
+define('SPGATEWAY_RECUR_VERSION','1.0');
+define('SPGATEWAY_QUERY_VERSION','1.1');
+
 /**
  * Implementation of hook_init()
  */
@@ -178,6 +185,7 @@ function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams)
   }
 }
 
+
 function civicrm_spgateway_error(){
   $msg = $_SESSION['spgateway']['error'];
   if(!count($msg)){
@@ -283,6 +291,176 @@ function civicrm_spgateway_record($cid, $data = null){
   }
 }
 
+function civicrm_spgateway_cron() {
+  // every nights, we check recurring payment result 
+  /* will uncomment after live site verified
+  $last = variable_get('civicrm_spgateway_recur_sync', 0);
+  $now = time();
+  if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
+    civicrm_spgateway_recur_sync();
+    variable_set('civicrm_spgateway_recur_sync', $now);
+  }
+  */
+}
+
+function civicrm_spgateway_recur_sync($days = array()){
+  civicrm_initialize();
+  if(empty($days)){
+    $days = array(
+      date('j'),
+      date('j', strtotime('-1 day')),
+    );
+
+    // when end of month
+		$end_this_month = date('j', strtotime('last day of this month'));
+    if (date('j') == $end_this_month) {
+      for($i = $end_this_month; $i <= 31; $i++) {
+        $days[] = $i;
+      }
+    }
+    $days = array_unique($days);
+  }
+
+  $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
+  WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
+  ORDER BY r.create_date ASC";
+  foreach($days as $d){
+    $d = (string) $d;
+    watchdog('civicrm_spgateway', 'Start to sync recurring for day '.$d);
+    $query_params = array(
+      1 => array($d, 'String'),
+      2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
+      3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+    );
+    $result = CRM_Core_DAO::executeQuery($query, $query_params);
+    while($result->fetch()){
+      if(empty($result->contribution_count)){
+        // check if is next day of expect recurring
+        civicrm_spgateway_recur_check($result->id);
+        usleep(300000); // sleep 0.3 second
+      }
+    }
+    $result->free();
+    $result = NULL;
+  }
+}
+
+/**
+ * Always trying to fetch next trxn_id which not appear in CRM
+ */
+function civicrm_spgateway_recur_check($recurring_id) {
+  civicrm_initialize();
+  module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.ipn');
+   
+  // get latest trxn_id civicrm_contribution
+  // whatever contribution success or not, trxn_id will increase number
+  // we dont limit recurring status to make sure when ever recurring stopped, we still can syncronize contribution
+  $query = "SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY c.id DESC";
+  $result = CRM_Core_DAO::executeQuery($query, array(1 => array($recurring_id, 'Integer')));
+  $result->fetch();
+  if(!empty($result->N)){
+    if (strstr($result->trxn_id, '_')) {
+      list($parent_trxn_id, $recurring_installment) = explode('_', $trxn_id);
+      if (is_numeric($recurring_installment)) {
+        $recurring_installment++;
+        civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
+      }
+    }
+  }
+}
+
+function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, $order = NULL) {
+  $parent_trxn_id = 0;
+  $payment_processor_id = 0;
+  if (strstr($trxn_id, '_')) {
+    list($parent_trxn_id, $recurring_installment) = explode('_', $trxn_id);
+  }
+  $contribution = new CRM_Contribute_DAO_Contribution();
+  $contribution->trxn_id = $trxn_id;
+  if ($contribution->find(TRUE)) {
+    $payment_processor_id = $contribution->payment_processor_id;
+    $create_contribution = FALSE; // found
+  }
+  elseif($create_contribution) {
+    // recurring contribution
+    if ($parent_trxn_id) {
+      $contribution = new CRM_Contribute_DAO_Contribution();
+      $contribution->trxn_id = $parent_trxn_id.'_1';
+      if ($contribution->find(TRUE)) {
+        $payment_processor_id = $contribution->payment_processor_id;
+      }
+      else {
+        $contribution = new CRM_Contribute_DAO_Contribution();
+        $contribution->trxn_id = $parent_trxn_id;
+        if ($contribution->find(TRUE)) {
+          $payment_processor_id = $contribution->payment_processor_id;
+        }
+      }
+    }
+  }
+
+  // we can't support single contribution check because lake of payment processor id #TODO - logic to get payment processor id
+  if (!empty($payment_processor_id)) {
+    $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($payment_processor_id, $contribution->is_test ? 'test': 'live');
+
+    if (!empty($payment_processor['user_name'])) {
+      if ($order) {
+        // this is for ci testing or something we already had response
+        // should be object or associated array
+        $result = $order;
+      }
+      else {
+        $request_data = array(
+          'Amt' => floor($contribution->total_amount),
+          'MerchantID' => $payment_processor['user_name'],
+          'MerchantOrderNo' => $trxn_id,
+          'RespondType' => SPGATEWAY_RESPONSE_TYPE,
+          'TimeStamp' => REQUEST_TIME,
+          'Version' => SPGATEWAY_QUERY_VERSION,
+        );
+        _civicrm_spgateway_encode($request_data, $payment_processor);
+        $result = _civicrm_spgateway_postdata($payment_processor['url_api'], $checkvalue);
+      }
+
+      if (!empty($result) && $result->Status == 'SUCCESS') {
+        if ($create_contribution && $contribution->id) {
+          // complex part to simulate spgateway ipn
+          $ipn_get = $ipn_post = array();
+
+          // prepare post, complex logic because recurring have different variable names
+          $ipn_result = clone $result;
+          $ipn_result->Result->AuthAmt = $result->Result->Amt;
+          unset($ipn_result->Result->Amt);
+          unset($ipn_result->Result->CheckCode);
+          $ipn_result->Result->OrderNo = $result->Result->MerchantOrderNo;
+          list($first_id, $period_times) = explode('_', $result->Result->MerchantOrderNo);
+          if(!empty($period_times)){
+            $ipn_result->Result->AlreadyTimes = $period_times;
+          }
+          $ipn_result->Result->MerchantOrderNo = $first_id;
+          $ipn_result = json_encode($ipn_result);
+          $ipn_post = array('Period' => _civicrm_spgateway_recur_encrypt($ipn_result, $payment_processor));
+
+          // prepare get
+          $ids = CRM_Contribute_BAO_Contribution::buildIds($contribution->id);
+          $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
+          parse_str($query, $ipn_get);
+
+          // create recurring record
+          $result->_post = $ipn_post;
+          $result->_get = $ipn_get;
+          $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
+          return $result;
+        }
+        else {
+          return $result;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+
 function _civicrm_spgateway_post_decode($post = null){
   // Make $post be the object.
   $data = empty($post) ? $_POST : $post;
@@ -376,10 +554,12 @@ function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = arra
   foreach($checkArgs as $k){
     switch ($k) {
       case 'HashIV':
+      case 'IV':
         $v = $payment_processor['signature'];
         _civicrm_spgateway_checkKeyIV($v);
         break;
       case 'HashKey':
+      case 'Key':
         $v = $payment_processor['password'];
         _civicrm_spgateway_checkKeyIV($v);
         break;
@@ -417,33 +597,34 @@ function _civicrm_spgateway_checkKeyIV($v){
   }
 }
 
-function _civicrm_spgateway_postdata($url, $post_data, $json = TRUE){
+function _civicrm_spgateway_postdata($url, $post_data){
   $ch = curl_init($url);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_POST, 1);
-  $field_string = http_build_query($post_data, '', '&');
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
   curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
-  $receive = curl_exec($ch);
+  $response = curl_exec($ch);
   if(curl_errno($ch)){
     watchdog('civicrm_spgateway', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch), 'error');
   }
   else{
+    $field_string = http_build_query($post_data, '', '&');
     watchdog('civicrm_spgateway', 'Request:'.$url."?".$field_string);
-    watchdog('civicrm_spgateway', 'Response:'.$receive);
+    if (strlen($response) > 1000) {
+      $logs = str_split($response, 1000);
+      foreach($logs as $l) {
+        watchdog('civicrm_spgateway', $l);
+      }
+    }
+    else {
+      watchdog('civicrm_spgateway', $response);
+    }
   }
   curl_close($ch);
-  if(!empty($receive)){
-    if($json){
-      return json_decode($receive);
-    }
-    else{
-      $return = array();
-      parse_str($receive, $return);
-      return $return;
-    }
+  if(!empty($response)){
+    return json_decode($response);
   }
   else{
     return FALSE;
@@ -451,7 +632,7 @@ function _civicrm_spgateway_postdata($url, $post_data, $json = TRUE){
 }
 
 function _civicrm_spgateway_cancel_recuring_message(){
-  $js = '<p>因智付通並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://www.spgateway.com/main/login_center/single_login/">智付通的後台</a>進行取消之操作，確認取消後，系統會於下次該捐款的扣款日時，自動同步智付通上的定期定額訂單狀態，這段時間的資料以智付通後台的狀態為主</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
+  $js = '<p>因智付通並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://www.newebpay.com/main/login_center/single_login/">智付通的後台</a>進行取消之操作，確認取消後，系統會於下次該捐款的扣款日時，自動同步智付通上的定期定額訂單狀態，這段時間的資料以智付通後台的狀態為主</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
   return $js;
 }
 
@@ -502,7 +683,7 @@ function _civicrm_spgateway_error_msg($code){
     'PER10035' => '委託單更新授權結果失敗',
     'PER10036' => '驗證資料錯誤(來源不合法)',
     'PER10037' => '付款頁參數不足',
-    'uncertain' => 'Go check in spgateway.com.tw',
+    'uncertain' => 'Go check in www.newebpay.com',
   );
   if(!empty($msg[$code])){
     // return t($msg[$code]);
