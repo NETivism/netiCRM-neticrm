@@ -536,9 +536,9 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
   $config = CRM_Core_Config::singleton();
 
   $elements = array(
-    'taxReceiptType' => array('title' => '', 'required' => TRUE),
-    'taxReceiptDeviceType' => array('title' => ''),
-    'taxReceiptDeviceNumber' => array('title' => ''),
+    'taxReceiptType' => array('title' => '發票類型', 'required' => TRUE),
+    'taxReceiptDeviceType' => array('title' => '載具類型'),
+    'taxReceiptDeviceNumber' => array('title' => '載具編號'),
     'taxReceiptDonate' => array('title' => '發票捐贈單位'),
     'taxReceiptSerial' => array('title' => '統一編號', 'placeholder' => '請輸入8碼公司統一編號'),
     'taxReceiptAgree' => array('title' => '同意事項'),
@@ -772,6 +772,16 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
       elseif ($fields['taxReceiptDeviceType']['value'] == '0' || $fields['taxReceiptDeviceType']['value'] == 1) {
         if (empty($fields['taxReceiptDeviceNumber']['value'])) {
           $errors['taxReceiptDeviceNumber'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptDeviceNumber']['title']));
+        }
+        if ($fields['taxReceiptDeviceType']['value'] == '0') { // cellphone serial
+          if (!preg_match('@^/[0-9A-Z-+.]+@', $fields['taxReceiptDeviceNumber']['value'])) {
+            $errors['taxReceiptDeviceNumber'] = $fields['taxReceiptDeviceNumber']['title'] . ' - ' .ts('Please enter correct Data ( in valid format ).').' - '.'「/ABCD123」';
+          }
+        }
+        if ($fields['taxReceiptDeviceType']['value'] == '1') {
+          if (!preg_match('^/[A-Z]{2}[0-9]{14}+/', $fields['taxReceiptDeviceNumber']['value'])) {
+            $errors['taxReceiptDeviceNumber'] = $fields['taxReceiptDeviceNumber']['title'] . ' - ' .ts('Please enter correct Data ( in valid format ).').' - '.'「AA12345678901234」';
+          }
         }
       }
       else {
