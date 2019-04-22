@@ -485,3 +485,10 @@ function neticrm_update_update_7259() {
 function neticrm_update_update_7260() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #24847, ADD `last_execute_date` to `civicrm_contribution_recur` 
+ */
+function neticrm_update_update_7261() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
