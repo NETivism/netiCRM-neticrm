@@ -128,7 +128,7 @@ $(document).ready(function(){
       $('input[data-invpay2go=taxReceiptDeviceNumber]').blur(function(){
         $(this).val($(this).val().toUpperCase());
         if ($('input[data-invpay2go=taxReceiptDeviceType]:checked').val() == "0") {
-          $(this).prop("pattern", '^\/[0-9A-z]{7}$');
+          $(this).prop("pattern", '^\/[0-9A-z+-.]{7}$');
         }
         if ($('input[data-invpay2go=taxReceiptDeviceType]:checked').val() == "1") {
           $(this).prop("pattern", '^[A-Z]{2}[0-9]{14}$');
