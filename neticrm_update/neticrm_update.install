@@ -495,3 +495,10 @@ function neticrm_update_update_6160() {
 function neticrm_update_update_6161() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * "Refs #24936, Change region type of toufeng.
+ */
+function neticrm_update_update_6162() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
