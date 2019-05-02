@@ -14,6 +14,7 @@ function _neticrm_update_update_7260() {
          last_four varchar(32)    COMMENT 'The last four words of card number.',
          expiry_date date    COMMENT 'Used date time of this coupon track.',
          data text    COMMENT 'Newest return data.' ,
+         token_status varchar(32)    COMMENT 'Used in 3JTSP cards, correspond to auto_renew column in contribution_recur.' ,
         PRIMARY KEY ( id )
         ,     INDEX tappay_order_number(
             order_number  ),     INDEX UI_rec_trade_id(
