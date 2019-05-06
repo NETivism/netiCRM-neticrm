@@ -51,7 +51,7 @@ function _neticrm_update_update_7260() {
     $sql = "INSERT INTO `civicrm_payment_processor_type` 
    (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur )
   VALUES 
-  ('TapPay', '{TapPay Payment}', NULL, 1, 0, 'Merchant ID', '{Partner Key}', '{App ID}', '{App Key}',  'Payment_TapPay', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  4, 1);";
+  ('TapPay', '{TapPay Payment}', NULL, 1, 0, 'Merchant ID', '{Partner Key}', '{App ID}', '{App Key}',  'Payment_TapPay', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,  8, 1);";
     $sql = str_replace("{TapPay Payment}", ts("TapPay Payment"), $sql);
     $sql = str_replace("{Partner Key}", ts("Partner Key"), $sql);
     $sql = str_replace("{App ID}", ts("App ID"), $sql);
