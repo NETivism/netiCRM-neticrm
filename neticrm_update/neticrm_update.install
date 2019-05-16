@@ -506,3 +506,10 @@ function neticrm_update_update_7262() {
 function neticrm_update_update_7263() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #25456, Add 'Suspended' to contribution status
+ */
+function neticrm_update_update_7264() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
