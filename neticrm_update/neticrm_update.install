@@ -494,8 +494,15 @@ function neticrm_update_update_7261() {
 }
 
 /**
- * "Refs #24936, Change region type of toufeng.
+ * Refs #24936, Change region type of toufeng.
  */
 function neticrm_update_update_7262() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #25456, changed modified_date type to datetime in civicrm_note.
+ */
+function neticrm_update_update_7263() {
   return neticrm_update_load_include(__FUNCTION__);
 }
