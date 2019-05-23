@@ -513,3 +513,10 @@ function neticrm_update_update_7263() {
 function neticrm_update_update_7264() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #21360, Add created_date / modified_date to contact
+ */
+function neticrm_update_update_7265() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
