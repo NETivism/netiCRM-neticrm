@@ -57,7 +57,13 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $default_instrument = $form->_submitValues['civicrm_instrument_id'];
       }
       else {
-        $default_instrument = !empty($_POST['civicrm_instrument_id_dummy']) ? $_POST['civicrm_instrument_id_dummy'] : 0;
+        $defaultFromRequest = $form->get('defaultFromRequest');
+        if (!empty($defaultFromRequest['instrument'])) {
+          $default_instrument = $defaultFromRequest['instrument'];
+        }
+        else {
+          $default_instrument = !empty($_POST['civicrm_instrument_id_dummy']) ? $_POST['civicrm_instrument_id_dummy'] : 0;
+        }
       }
 
       // is multiple payment processor?
