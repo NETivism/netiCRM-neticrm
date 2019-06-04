@@ -527,3 +527,10 @@ function neticrm_update_update_7265() {
 function neticrm_update_update_7266() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #25553, add pricefield to custom group list
+ */
+function neticrm_update_update_7267() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
