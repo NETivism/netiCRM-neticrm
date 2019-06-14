@@ -137,8 +137,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $recur =& $objects['contributionRecur'];
       if($failed){
         CRM_Core_Error::debug_log_message( "Cancel recurring immediately." );
-        $recur->cancel_date = date('YmdHis');
-        $recur->save();
+        $params = array();
+        $params['id'] = $recur->id;
+        $params['cancel_date'] = date('YmdHis');
+        $null = NULL;
+        CRM_Contribute_BAO_ContributionRecur::add($params, $null);
       }
       else{
         require_once 'CRM/Core/Payment.php';
@@ -172,7 +175,9 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         );
         drupal_alter('civicrm_recur_params', $alter);
         
-        $alter['object']->save();
+        $params = (array) $alter['object'];
+        $null = NULL;
+        CRM_Contribute_BAO_ContributionRecur::add($params, $null);
         CRM_Core_Error::debug_log_message( "Done the recurring object save." );
         CRM_Core_DAO::executeQuery("INSERT INTO civicrm_contribution_neweb_recur (recur_id,order_num,cycle) VALUES ($recur->id, $order_num, 0)");
 
