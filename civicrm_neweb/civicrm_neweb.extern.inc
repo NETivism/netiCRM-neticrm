@@ -136,8 +136,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $recur =& $objects['contributionRecur'];
       if($failed){
         CRM_Core_Error::debug_log_message( "Cancel recurring immediately." );
-        $recur->cancel_date = date('YmdHis');
-        $recur->save();
+        $params = array();
+        $params['id'] = $recur->id;
+        $params['cancel_date'] = date('YmdHis');
+        $null = NULL;
+        CRM_Contribute_BAO_ContributionRecur::add($params, $null);
       }
       else{
         require_once 'CRM/Core/Payment.php';
