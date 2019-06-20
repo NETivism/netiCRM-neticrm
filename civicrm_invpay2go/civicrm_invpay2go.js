@@ -124,8 +124,31 @@ $(document).ready(function(){
     if ($('input[data-invpay2go=taxReceiptType]').length) {
       triggerReceiptType();
       clearInterval(checkExist);
-      $('input[date-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+      $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+      $('input[data-invpay2go=taxReceiptDeviceNumber]').blur(function(){
+        $(this).val($(this).val().toUpperCase());
+        if ($('input[data-invpay2go=taxReceiptDeviceType]:checked').val() == "0") {
+          $(this).prop("pattern", '^\/[0-9A-z+-.]{7}$');
+        }
+        if ($('input[data-invpay2go=taxReceiptDeviceType]:checked').val() == "1") {
+          $(this).prop("pattern", '^[A-Z]{2}[0-9]{14}$');
+        }
+        if ($(this).prop("pattern") && !this.checkValidity()) {
+          var form = $(this).closest('form')[0];
+          setTimeout(function(){
+            form.reportValidity();
+          }, 500);
+        }
+      });
     }
   }, 500);
+  if ($("#customData").length) {
+    $(document).ajaxComplete(function(event, xhr, settings) {
+      if ( settings.url.indexOf('type=Contribution&subType=')) {
+        triggerReceiptType();
+        $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+      }
+    });
+  }
 });
 }(cj));
