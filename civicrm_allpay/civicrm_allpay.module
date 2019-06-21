@@ -45,7 +45,7 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
         $is_allpay = TRUE;
       }
       if($is_allpay){
-        drupal_set_message("本網站的 IP 為「".gethostbyname($_SERVER['SERVER_NAME']).'」。<br />請登入綠界後台，廠商後台 > 系統開發管理 > 系統介接設定 > 允許的 IP中，填入本站IP。');
+        drupal_set_message("本網站的 IP 為「".gethostbyname($_SERVER['HTTP_HOST']).'」。<br />請登入綠界後台，廠商後台 > 系統開發管理 > 系統介接設定 > 允許的 IP中，填入本站IP。');
       }
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
