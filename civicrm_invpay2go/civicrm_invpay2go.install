@@ -34,6 +34,7 @@ function civicrm_invpay2go_install() {
     // text
     $fields['taxreceipt_device_number'] = _civicrm_demo_create_custom_field('taxreceipt_device_number', '載具編號', 'String', 'Text', $group_id);
     $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group_id);
+    $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
     $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group_id);
     CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET help_post = %1 WHERE id = %2", array(
       1 => array('三聯式發票將會直接寄出電子檔案到您的信箱，不再郵寄紙本列印之電子發票。', 'String'),
@@ -55,6 +56,7 @@ function civicrm_invpay2go_install() {
     'taxReceiptDeviceNumber' => $fields['taxreceipt_device_number']['id'],
     'taxReceiptDonate' => $fields['taxreceipt_donate']['id'],
     'taxReceiptSerial' => $fields['taxreceipt_serial']['id'],
+    'taxReceiptTitle' => $fields['taxreceipt_title']['id'],
     'taxReceiptNumber' => $fields['taxreceipt_number']['id'],
     'taxReceiptItem' => $fields['taxreceipt_item']['id'],
     'taxReceiptPaper' => $fields['taxreceipt_paper']['id'],
@@ -65,58 +67,52 @@ function civicrm_invpay2go_install() {
 }
 
 /**
- * Add paper receipt option to custom field. #18992
+ * Implementation of hook_uninstall()
  */
-function civicrm_invpay2go_update_7001() {
-  civicrm_initialize();
-  $config = CRM_Core_Config::singleton();
-  if ($config->taxReceiptType) {
-    $params = array(
-      'id' => $config->taxReceiptType,
-    );
-    $field_type = array();
-    CRM_Core_BAO_CustomField::retrieve($params, $field_type);
-    if (!empty($field_type['custom_group_id'])) {
-      $group_id = $field_type['custom_group_id'];
-      variable_set('civicrm_invpay2go_invoice_group', $group_id);
-
-      module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
-      $field_paper = _civicrm_demo_create_custom_field('taxreceipt_paper', '印出紙本發票', 'Boolean', 'Radio', $group_id, 0);
-      if (!empty($field_paper['id'])) {
-        $params = array(
-          'taxReceiptPaper' => $field_paper['id'],
-        );
-        CRM_Core_BAO_ConfigSetting::add($params);
-        return 'Success add new crm custom field for civicrm_invpay2go';
-      }
-    }
-  }
-  throw new DrupalUpdateException('No exists tax receipt custom group or add field error. Abort.');
+function civicrm_invpay2go_uninstall() {
 }
 
+
+/**
+ * Add agree note. refs #20311
+ */
 function civicrm_invpay2go_update_7011() {
   civicrm_initialize();
   $config = CRM_Core_Config::singleton();
+  $return = array( 'success' => FALSE );
   if (empty($config->taxReceiptAgree)) {
     module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
     $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
-    if ($group_id) {
-      $agree_options = array(
-        'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
-      );
-      $fields = array();
-      $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
-      if ($fields['taxreceipt_agree']['id']) {
-        return 'Success add new crm custom field for civicrm_invpay2go';
-      }
+    $agree_options = array(
+      'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
+    );
+    $fields = array();
+    $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
+    if ($fields['taxreceipt_agree']['id']) {
+      return 'Success add new crm custom field for civicrm_invpay2go';
     }
   }
   throw new DrupalUpdateException('No exists tax receipt custom group or add field error. Abort.');
 }
 
 /**
- * Implementation of hook_uninstall()
+ * Add tax receipt title. refs #20311
  */
-function civicrm_invpay2go_uninstall() {
-
+function civicrm_invpay2go_update_7012() {
+  civicrm_initialize();
+  $config = CRM_Core_Config::singleton();
+  $return = array( 'success' => FALSE );
+  if (empty($config->taxReceiptTitle)) {
+    module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+    $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+    $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
+    if ($fields['taxreceipt_title']['id']) {
+      $params = array(
+        'taxReceiptTitle' => $fields['taxreceipt_title']['id'],
+      );
+      CRM_Core_BAO_ConfigSetting::add($params);
+      $return['success'] = TRUE;
+    }
+  }
+  return $return;
 }
