@@ -631,7 +631,7 @@ function _civicrm_spgateway_postdata($url, $post_data){
 }
 
 function _civicrm_spgateway_cancel_recuring_message(){
-  $js = '<p>因智付通並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://www.newebpay.com/main/login_center/single_login/">智付通的後台</a>進行取消之操作，確認取消後，系統會於下次該捐款的扣款日時，自動同步智付通上的定期定額訂單狀態，這段時間的資料以智付通後台的狀態為主</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
+  $js = '<p>因智付通並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://www.newebpay.com/main/login_center/single_login/">智付通的後台</a>進行取消之操作</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
   return $js;
 }
 
