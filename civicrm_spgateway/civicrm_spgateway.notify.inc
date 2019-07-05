@@ -21,7 +21,10 @@ function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
 }
 
 function civicrm_spgateway_notify_bytrxn($trxn_id){
-  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(1 => array($trxn_id, 'String')));
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", array(
+    1 => array($trxn_id, 'String'),
+    2 => array($trxn_id.'_1', 'String'),
+  ));
   return civicrm_spgateway_notify_info($cid);
 }
 
