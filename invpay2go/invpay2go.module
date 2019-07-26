@@ -172,25 +172,33 @@ function invpay2go_merchant_load($pid = NULL, $fields = array()) {
 
 function invpay2go_load_phpqrcode() {
   $path = 'sites/all/libraries/phpqrcode';
-  if (module_exists('libraries')) {
-    $path = libraries_get_path('phpqrcode');
-  }
-  if (!is_dir($path)) {
-    $path = drupal_get_path('module', 'invpay2go').'/phpqrcode';
-  }
+  if (!module_exists('civicrm')) {
+    if (module_exists('libraries')) {
+      $path = libraries_get_path('phpqrcode');
+    }
+    if (!is_dir($path)) {
+      $path = drupal_get_path('module', 'invpay2go').'/phpqrcode';
+    }
 
-  // Includes the ARC2 library if it exists.
-  if (!empty($path) && file_exists($path. '/qrlib.php')) {
-    include_once $path. '/qrlib.php';
+    // Includes the ARC2 library if it exists.
+    if (!empty($path) && file_exists($path. '/qrlib.php')) {
+      include_once $path. '/qrlib.php';
+    }
   }
 }
 
 function invpay2go_api_qrcode($string) {
-  ob_start();
-  echo QRcode::png($string, FALSE, QR_ECLEVEL_L, 4);
-  $img = ob_get_contents();
-  ob_end_clean();
-  $src = 'data:image/png;base64,'.base64_encode($img);
+  if (module_exists('civicrm')) {
+    $qrcode = new CRM_Utils_QRCode($string);
+    $src = $qrcode->dataImg();
+  }
+  else {
+    ob_start();
+    echo QRcode::png($string, FALSE, QR_ECLEVEL_L, 4);
+    $img = ob_get_contents();
+    ob_end_clean();
+    $src = 'data:image/png;base64,'.base64_encode($img);
+  }
   return $src;
 }
 
