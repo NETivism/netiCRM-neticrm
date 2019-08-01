@@ -231,7 +231,7 @@ function civicrm_event_parent_civicrm_buildForm_regAdditional( $formName, &$form
 }
 
 function civicrm_event_parent_civicrm_postProcess( $class, &$form ) {
-  if ( is_a( $form, 'CRM_Event_Form_Registration_Register' ) ) {
+  if ( is_a( $form, 'CRM_Event_Form_Registration_Register' )  || is_a($form, 'CRM_Event_Form_Registration_AdditionalParticipant')) {
     if($form->_values['event']['is_monetary'] == 0){
       return civicrm_event_parent_civicrm_postProcess_regConfirm( $class, $form );
     }
@@ -257,34 +257,36 @@ function civicrm_event_parent_civicrm_postProcess_regConfirm( $class, &$form ) {
     // get the participantIDS
     $participantIDs = $form->getVar( '_participantIDS' );
     
-    $pIDString = implode( ',', $participantIDs );
+    if (!empty($participantIDs)) {
+      $pIDString = implode( ',', $participantIDs );
 
-    // get all the contactIDs for these participants
-    $sql = "
-SELECT contact_id
-FROM   civicrm_participant
-WHERE  id IN ( $pIDString )
-";
+      // get all the contactIDs for these participants
+      $sql = "
+  SELECT contact_id
+  FROM   civicrm_participant
+  WHERE  id IN ( $pIDString )
+  ";
 
-    if ( $rTypeDir == 'a_b' ) {
-      $mainLabel  = 'a';
-      $otherLabel = 'b';
-    }
-    else {
-      $mainLabel  = 'b';
-      $otherLabel = 'a';
-    }
+      if ( $rTypeDir == 'a_b' ) {
+        $mainLabel  = 'a';
+        $otherLabel = 'b';
+      }
+      else {
+        $mainLabel  = 'b';
+        $otherLabel = 'a';
+      }
 
-    $dao = CRM_Core_DAO::executeQuery( $sql );
-    require_once 'api/v2/Relationship.php';
-    while ( $dao->fetch( ) ) {
-      // create the relationship
-      $params = array( "contact_id_{$mainLabel}"  => $mainID,
-                       "contact_id_{$otherLabel}" => $dao->contact_id,
-                       'relationship_type_id'     => $rTypeID,
-                       'is_active'                => 1,
-                       );
-      civicrm_relationship_create( $params );
+      $dao = CRM_Core_DAO::executeQuery( $sql );
+      require_once 'api/v2/Relationship.php';
+      while ( $dao->fetch( ) ) {
+        // create the relationship
+        $params = array( "contact_id_{$mainLabel}"  => $mainID,
+                         "contact_id_{$otherLabel}" => $dao->contact_id,
+                         'relationship_type_id'     => $rTypeID,
+                         'is_active'                => 1,
+                         );
+        civicrm_relationship_create( $params );
+      }
     }
   }
 }

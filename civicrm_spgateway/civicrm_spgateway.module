@@ -460,6 +460,15 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
   return FALSE;
 }
 
+function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActive) {
+  if ($recordBAO == 'CRM_Contribute_BAO_ContributionRecur' && empty($isActive)) {
+    $payment_processor_id = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $recordID, 'payment_processor_id', 'contribution_recur_id');
+    if (CRM_Core_DAO::getFieldValue('CRM_Core_DAO_PaymentProcessor', $payment_processor_id, 'payment_processor_type') == 'SPGATEWAY') {
+      CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_ContributionRecur', $recordID, 'contribution_status_id', 1);
+    }
+  }
+}
+
 function _civicrm_spgateway_post_decode($post = null){
   // Make $post be the object.
   $data = empty($post) ? $_POST : $post;
@@ -638,7 +647,25 @@ function civicrm_spgateway_mobile_checkout($type, $post, $objects){
 
 
 function _civicrm_spgateway_cancel_recuring_message(){
-  $js = '<p>因藍新並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://www.newebpay.com/main/login_center/single_login/">藍新的後台</a>進行取消之操作</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
+  $js = '<h3>
+藍新金流提醒
+</h3>
+<p>
+  藍新並未提供取消定捐 API，請透過以下步驟完成取消定捐。
+  
+</p>
+<p>
+  <ol>
+    <li>先登入到<a target="_blank" href="https://www.newebpay.com/main/login_center/single_login">藍新的後台</a>，找到該筆定期定額進行取消操作</li>
+    <li>藍新後台確認取消後，再到 CRM 後台取消（就是此功能）。</li>
+  </ol>
+</p>
+<p>
+  <span style="color:#ff0000;">注意</span>：若沒有在藍新後台取消，則該筆定捐<span style="color:#ff0000;">不會</span>停止喔！按下「確定」前請確認<b>您已在藍新後台取消該筆定捐</b>。
+</p>
+<p>
+  詳情請參考<a target="_blank" href="https://neticrm.tw/resources/2497#p1"> netiCRM 手冊說明</a>
+</p>';
   return $js;
 }
 

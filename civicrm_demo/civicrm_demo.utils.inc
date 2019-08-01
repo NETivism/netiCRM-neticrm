@@ -92,6 +92,9 @@ function civicrm_demo_process_event($vars){
     $result = civicrm_api('Event', 'create', $params);
 
     $event_id = $result['id'];
+    if (variable_get('civicrm_demo_sample_data', 0)) {
+      civicrm_demo_create_track('civicrm_event', $event_id);
+    }
 
     $params2 = array(
       'version' => 3,
@@ -322,7 +325,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'thankyou_title' => '謝謝你的支持',
     'receipt_from_email' => 'demo@demo.neticrm.tw',
   );
-  if (variable_get('civicrm_demo_sample_data', 0)) {
+  if (variable_get('civicrm_demo_sample_data_ci', 0)) {
     $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
     $params['payment_processor'] = $processors;
   }
@@ -348,6 +351,9 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
   }
   else{
     $contribution_page_id = 1;
+  }
+  if (variable_get('civicrm_demo_sample_data', 0)) {
+    civicrm_demo_create_track('civicrm_contribution_page', $contribution_page_id);
   }
   return $contribution_page_id;
 }
@@ -377,7 +383,7 @@ function civicrm_demo_create_custom_profile(){
     $uf_fields['receipt_yn'] = _civicrm_demo_create_uf_field('是否需要收據', 'Contribution', 'custom_'.$fields['receipt_yn']['id'], $uf_group['id'], TRUE);
     $uf_fields['receipt_title'] = _civicrm_demo_create_uf_field('收據抬頭', 'Contribution', 'custom_'.$fields['receipt_title']['id'], $uf_group['id']);
     $uf_fields['receipt_serial'] = _civicrm_demo_create_uf_field('報稅憑證', 'Contribution', 'custom_'.$fields['receipt_serial']['id'], $uf_group['id']);
-    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id']);
+    $uf_fields['receipt_donor_credit'] = _civicrm_demo_create_uf_field('捐款徵信名稱', 'Contribution', 'custom_'.$fields['receipt_donor_credit']['id'], $uf_group['id'], TRUE);
     CRM_Core_BAO_UFGroup::updateGroupTypes($uf_group['id'], array('Contribution'));
   }
 
@@ -402,6 +408,7 @@ function civicrm_demo_create_custom_profile(){
     $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);
     if(!empty($copy->id) && $copy->id != $uf_group_name_addr['id']){
       $copy->title = '捐款基本資料';
+      $copy->name = 'donor_basic_profile';
       $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
       CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '收據'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%' AND uf_group_id = $copy->id");
       CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '收據寄送地址' WHERE label LIKE '縣市（收據）' AND uf_group_id = $copy->id");
@@ -420,6 +427,22 @@ function civicrm_demo_create_custom_profile(){
 
   foreach($payment_page as $page_id){
     _civicrm_demo_create_uf_join($page_id, $uf_group_pre_id, $uf_group['id']);
+  }
+}
+
+function civicrm_demo_create_track($pageType, $pageId){
+  $referrerTypes = CRM_Contribute_PseudoConstant::referrerTypes();
+  for($i = 0; $i<500; $i++){
+    $params = array(
+      'page_type' => $pageType,
+      'page_id' => $pageId,
+      'session_key' => rand(1, 1000),
+      'counter' => rand(1, 3),
+      'referrer_type' => array_rand($referrerTypes),
+      'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
+      'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 45) + 600*mt_rand(1,12)),
+    );
+    CRM_Core_BAO_Track::add($params);
   }
 }
 
