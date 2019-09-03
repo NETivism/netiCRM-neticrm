@@ -534,3 +534,10 @@ function neticrm_update_update_7266() {
 function neticrm_update_update_7267() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #25894, correct traffic source null when has entity
+ */
+function neticrm_update_update_7268() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
