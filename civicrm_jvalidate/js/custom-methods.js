@@ -12,6 +12,11 @@
 
   $.validator.addMethod("twid", function(value, element, param){
     if(!value || (value == "__________" && !$(element).hasClass('required'))) return true;
+    if(validTWID(value) || validResidentID(value)) return true;
+    return false;
+  }, "請輸入正確的身分證字號或居留證號!");
+
+  function validTWID(value) {
     var tab = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
     var A1 = new Array (1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3 );
     var A2 = new Array (0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5 );
@@ -37,7 +42,23 @@
       return false;
     }
     return true;
-  }, "請輸入正確的身分證字號!");
+  }
+
+  function validResidentID(value) {
+    if (value == '') return true;
+    value = value.toUpperCase();
+    var tab = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
+    var c = (tab.indexOf(value.substr(0, 1)) + 10) + '' + (tab.indexOf(value.substr(1, 1)) % 10) + value.substr(2, 8);
+    var checkCode = parseInt(c.substr(0, 1));
+    for (var i = 1; i <= 9; i++) {
+      checkCode += (parseInt(c.substr(i, 1)) * (10 - i)) % 10;
+    }
+    checkCode += parseInt(c.substr(10, 1));
+    if (checkCode % 10 == 0) {
+      return true;
+    }
+    return false;
+  }
 
   $.validator.addMethod("twphone", function(value, element, param) {
     if(((/^0_-_/.test(value)) || (/^09__-_/.test(value))) && !$(element).hasClass('required')){
