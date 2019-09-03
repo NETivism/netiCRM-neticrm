@@ -137,7 +137,7 @@
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
     if(!$(obj).val()){
-      $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
+      $(obj).amask("a*99999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
     }
 
     // add id validate remove rule.
@@ -155,7 +155,7 @@
         $(obj).parent().find('.error').hide();
         $(obj).click(function(){
           $(obj).rules("add", "twid");
-          $(obj).amask("a999999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
+          $(obj).amask("a*99999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
         })
       }
     });
