@@ -27,7 +27,7 @@ msgstr "請輸入分機號碼"
 
 #: civicrm_jvalidate.module:18
 msgid "other format?"
-msgstr "若您是外籍人士，點此輸入護照號碼"
+msgstr "若您是外籍人士，點此輸入統一證號"
 
 #: civicrm_jvalidate.module:19
 msgid "Enter id below."
