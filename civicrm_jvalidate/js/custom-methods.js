@@ -14,7 +14,7 @@
     if(!value || (value == "__________" && !$(element).hasClass('required'))) return true;
     if(validTWID(value) || validResidentID(value)) return true;
     return false;
-  }, "請輸入正確的身分證字號或居留證號!");
+  }, "請輸入正確的身分證字號或統一證號!");
 
   function validTWID(value) {
     var tab = "ABCDEFGHJKLMNPQRSTUVXYWZIO";
