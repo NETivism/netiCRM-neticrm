@@ -92,7 +92,7 @@
   $.amask.id_add_validate = function(obj){
     $(obj).rules("add", "twid");
     if(!$(obj).val()){
-      $(obj).amask("a*9999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
+      $(obj).amask("a*99999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
     }
 
     // add id validate remove rule.
