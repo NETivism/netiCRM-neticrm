@@ -548,3 +548,11 @@ function neticrm_update_update_7268() {
 function neticrm_update_update_7269() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #24740, Update annual receipt template
+ */
+function neticrm_update_update_7270()
+{
+  return neticrm_update_load_include(__FUNCTION__);
+}
