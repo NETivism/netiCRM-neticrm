@@ -544,3 +544,10 @@ function neticrm_update_update_6167() {
 function neticrm_update_update_6168() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #25962, add qrcode switch on event table
+ */
+function neticrm_update_update_6169() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
