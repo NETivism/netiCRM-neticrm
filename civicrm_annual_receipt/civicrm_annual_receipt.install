@@ -209,6 +209,28 @@ function _civicrm_annual_receipt_tpl() {
       </tr>
     </table>
   </div>
+  <div class="receipt-signature">
+    <table>
+      <tr>
+        <td>
+          <table>
+            <tr>
+              <td class="label">組織簽章</td>
+              <td class="value stamp-wrapper"><img class="big-stamp stamp-img" src="{$imageBigStampUrl}"/></td>
+            </tr>
+          </table>
+        </td>
+        <td>
+          <table>
+            <tr>
+              <td class="label">經辦人</td>
+              <td class="value stamp-wrapper"><img class="small-stamp stamp-img" src="{$imageSmallStampUrl}"/></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
   <div class="receipt-record">
     <table>
       <tr>
@@ -227,18 +249,6 @@ function _civicrm_annual_receipt_tpl() {
       {/foreach}
     </table>
     <div class="annual-total align-right">總金額： {$info.total}</div>
-  </div>
-  <div class="receipt-signature">
-    <table>
-      <tr>
-        <td class="label signature-1">機構章</td>
-        <td class="value signature-1"> __________________</td>
-        <td class="label signature-2">主管</td>
-        <td class="value signature-2"> __________________</td>
-        <td class="label signature-3">經辦人</td>
-        <td class="value signature-3"> __________________</td>
-      </tr>
-    </table>
   </div>
   <div class="receipt-footer">
     <table>
