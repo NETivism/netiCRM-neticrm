@@ -226,7 +226,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     }else{
       $data['PeriodTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
     }
-    $str = http_build_query($data);
+    $str = http_build_query($data, '', '&');
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
     $args['MerchantID_'] = $payment_processor['user_name'];
