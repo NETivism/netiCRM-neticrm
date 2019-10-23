@@ -74,12 +74,54 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
       // check if this page is multiple payment processor
       if(!empty($type) && $snippet == 4){
-        print civicrm_instrument_attach_instrument($form, $all_instruments, $active_instruments, $default_instrument, FALSE);
+        $output = '';
+        $output .= '
+        <style>
+         .need-creditcard-message {
+           color: #666;
+           font-size: 12px;
+         }
+        </style>
+        <script>
+          cj(document).ready(function($){
+            checkRecur();
+          });
+        </script>';
+        $output .= civicrm_instrument_attach_instrument($form, $all_instruments, $active_instruments, $default_instrument, FALSE);
+        print($output);
         return;
       }
       else{
         $js = '
         cj(document).ready(function($){
+          // checkRecur function trigger when #is_recur radio options changing.
+          checkRecur = function(){
+            if($("input[name=is_recur]:checked").val() == "1") {
+              // display "need creditcard" message
+              if ($(".instrument-section .label .need-creditcard-message").length == 0) {
+                $(".instrument-section .label").append("<div class=\'need-creditcard-message\'>'.ts("You have to use credit card for recurring contribution.").'</div>");
+              }
+              $(".need-creditcard-message").show();
+
+              // disable not creditcard instrument
+              $creditCardInput = $("[data-credit-card=\'1\']");
+              if($creditCardInput.length > 0) {
+                $creditCardInput.attr("checked",true);
+              }
+              $("[data-credit-card=\'0\']").attr("disabled", "disabled");
+            }
+            else {
+              // hide "need creditcard" message
+              $(".need-creditcard-message").hide();
+
+              // enable all instrument
+              $(".civicrm-instrument-dummy input[type=\'radio\']").removeAttr("disabled");
+            }
+          }
+          cj("input[name=is_recur]").click(function(){
+            checkRecur();
+          });
+
           if ($.isFunction($(document).on)) {
             $(document).on("click", "input[name=payment_processor]", function(){
               if($(this).val() == 0){
@@ -424,7 +466,14 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
           $r['label'] = civicrm_field_i18n_t($r['label']);
         }
         $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;margin-top: -6px;">' : $r['label'];
-        $output = '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" checked="checked" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+        if ($r['form_name'] == 'credit_card') {
+          $r['class'][] = 'credit-card';
+          $dataCreditCard = 1;
+        } else {
+          $r['class'][] = 'not-credit-card';
+          $dataCreditCard = 0;
+        }
+        $output = '<div class="civicrm-instrument-dummy ' . implode(" ", $r['class']) . '"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-' . $rid . '"><input id="civicrm-instrument-dummy-' . $rid . '" type="radio" name="civicrm_instrument_id_dummy" value="' . $rid . '" checked="checked" data-credit-card="' . $dataCreditCard . '" class="form-radio md-radio-input required"><span class="elem-label md-radio-label">' . $r['label'] . '</span></label><div class="hover-item">' . $r['description'] . '</div></div>' . "\n";
       }
       else{
         if (empty($default_instrument)) {
@@ -436,8 +485,15 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
             $r['label'] = civicrm_field_i18n_t($r['label']);
           }
           $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;margin-top: -6px;">' : $r['label'];
+          if ($r['form_name'] == 'credit_card') {
+            $r['class'][] = 'credit-card';
+            $dataCreditCard = 1;
+          } else {
+            $r['class'][] = 'not-credit-card';
+            $dataCreditCard = 0;
+          }
           $checked = ($rid == $default_instrument) ? 'checked="checked"' : '';
-          $output .= '<div class="civicrm-instrument-dummy"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required" '.$checked.'><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
+          $output .= '<div class="civicrm-instrument-dummy ' . implode(" ", $r['class']) . '"><label class="crm-form-elem crm-form-radio md-elem md-radio" for="civicrm-instrument-dummy-'.$rid.'"><input id="civicrm-instrument-dummy-'.$rid.'" type="radio" name="civicrm_instrument_id_dummy" value="'.$rid.'" class="form-radio md-radio-input required" '.$checked.' data-credit-card="' . $dataCreditCard . '" ><span class="elem-label md-radio-label">'.$r['label'].'</span></label><div class="hover-item">'.$r['description'].'</div></div>'."\n";
         }
       }
       $label = ts('Payment Instrument');
