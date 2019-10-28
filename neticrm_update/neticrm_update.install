@@ -559,3 +559,11 @@ function neticrm_update_update_6170()
 {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #24499, Add installment_option field.
+ */
+function neticrm_update_update_6171()
+{
+  return neticrm_update_load_include(__FUNCTION__);
+}

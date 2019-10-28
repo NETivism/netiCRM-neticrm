@@ -320,6 +320,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'recur_frequency_unit' => 'month',
     'thankyou_title' => '謝謝你的支持',
     'receipt_from_email' => 'demo@demo.neticrm.tw',
+    'installments_option' => '1',
   );
   if (variable_get('civicrm_demo_sample_data', 0)) {
     $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
