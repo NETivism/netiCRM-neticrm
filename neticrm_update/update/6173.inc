@@ -3,7 +3,7 @@
  * @file
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_6172() {
+function _neticrm_update_update_6173() {
   $check = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_product' AND column_name = 'calculate_mode'";
   $exists = CRM_Core_DAO::singleValueQuery($check);
   if (!$exists) {
