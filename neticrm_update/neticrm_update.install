@@ -564,3 +564,17 @@ function neticrm_update_update_7271()
 {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #26473, #23719, add new fields into mailing
+ */
+function neticrm_update_update_7272() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #26455, add new fields to premium
+ */
+function neticrm_update_update_7273() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
