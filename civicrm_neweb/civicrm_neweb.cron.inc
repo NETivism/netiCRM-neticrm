@@ -325,6 +325,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
           $contribution->save();
         }
 
+        CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
         $responseDetail = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
         _civicrm_neweb_addnote(implode("\n", $responseDetail), $contribution->id, $contribution->contact_id);
         // now we have correct contribution object. procceed.
@@ -376,7 +377,6 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
           $IPN->failed($objects, $transaction, $failed_reason);
           // TODO: record failed reason 
         }
-        CRM_Contribute_BAO_ContributionRecur::syncContribute($recur->id, $contribution->id);
       }
 
       // compatibility php 5.2
