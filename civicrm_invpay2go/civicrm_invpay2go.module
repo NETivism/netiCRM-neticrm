@@ -759,7 +759,14 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'Comment' => truncate_utf8($contribution['source'], 30),
   );
 
-  return array_merge($params, $conditional_params);
+  $params = array_merge($params, $conditional_params);
+
+  // check error again for pay2go specific conditional required
+  if (empty($params['BuyerEmail']) && $params['CarrierType'] == 2) {
+    drupal_set_message('聯絡人需要有電子郵件信箱，才能選擇「會員載具」來開立發票', 'error');
+    return;
+  }
+  return $params;
 }
 
 function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
