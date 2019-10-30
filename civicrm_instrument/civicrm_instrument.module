@@ -101,7 +101,8 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
-            if($("input[name=is_recur]:checked").val() == "1") {
+            var is_recur = $("input[name=is_recur]:checked").val();
+            if(is_recur == "1") {
               // display "need creditcard" message
               if ($(".instrument-section .label .need-creditcard-message").length == 0) {
                 $(".instrument-section .label").append("<div class=\'need-creditcard-message\'>'.ts("You have to use credit card for recurring contribution.").'</div>");
@@ -109,11 +110,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $(".need-creditcard-message").show();
 
               // disable not creditcard instrument
-              $creditCardInput = $("[data-credit-card=\'1\']");
+              $creditCardInput = $(".instrument-section [data-credit-card=\'1\']");
+              $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
               if($creditCardInput.length > 0) {
-                $creditCardInput.attr("checked",true);
+                $creditCardInput.attr("checked", true);
               }
-              $("[data-credit-card=\'0\']").attr("disabled", "disabled");
+              else {
+                $notCreditCardInput.attr("checked", false);
+              }
+              $notCreditCardInput.attr("disabled", "disabled");
             }
             else {
               // hide "need creditcard" message
