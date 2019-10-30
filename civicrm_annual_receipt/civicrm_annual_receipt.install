@@ -202,7 +202,7 @@ function _civicrm_annual_receipt_tpl() {
         <td class="col-2">{$info.sort_name}</td>
       </tr>
       <tr>
-        <td class="col-1 align-right">憑證號碼</td>
+        <td class="col-1 align-right">身份證字號/統一編號</td>
         <td class="col-2">{$info.serial_id}</td>
       </tr>
     </table>
