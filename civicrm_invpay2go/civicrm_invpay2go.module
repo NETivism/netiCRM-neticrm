@@ -269,7 +269,7 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
     // custom fields ajax form when edit contribution
     case 'CRM_Contribute_Form_Contribution':
       $taxTypes = CRM_Contribute_PseudoConstant::contributionType(NULL, 'is_taxreceipt');
-      if (!empty($form->_contactID) && empty($_GET['snippet'])) {
+      if ((!empty($form->_contactID) || !empty($form->_id) ) && empty($_GET['snippet'])) {
         $params = array('id' => $form->_contactID);
         $contactInfo = array();
         $returnProperities = array('contact_type', 'sic_code');
