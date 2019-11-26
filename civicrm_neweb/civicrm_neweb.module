@@ -637,7 +637,7 @@ function _civicrm_neweb_cancel_recuring_message($recurID){
   $sql = "SELECT start_date FROM civicrm_contribution_recur WHERE id = %1";
   $params = array(1 => array($recurID, 'Positive'));
   $startDate = CRM_Core_DAO::singleValueQuery($sql, $params);
-  if (REQUEST_TIME - strtotime($startDate) <= (3 * 86400)) {
+  if (time() - strtotime($startDate) <= (3 * 86400)) {
     $html = '<h3>藍新金流提醒</h3>
     <p>為避免與藍新的資訊尚未同步完成，捐款開始日期後三天內禁止進行取消動作。如欲取消請於本定期定額開始後三天再重試。</p>
     <script>cj(".ui-dialog-buttonset button").hide();</script>
