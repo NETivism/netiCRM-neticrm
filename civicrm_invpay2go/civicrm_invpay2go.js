@@ -86,10 +86,12 @@ $(document).ready(function(){
           hideEle($('[data-invpay2go=taxReceiptDonate]'));
           hideEle($('[data-invpay2go=taxReceiptAgree]'));
           hideEle($('input[data-invpay2go=taxReceiptSerial]'));
+          hideEle($('input[data-invpay2go=taxReceiptTitle]'));
           showEle($('input[data-invpay2go=taxReceiptDeviceType]'));
           break;
         case 'donate':
           hideEle($('input[data-invpay2go=taxReceiptSerial]'));
+          hideEle($('input[data-invpay2go=taxReceiptTitle]'));
           hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
           hideEle($('[data-invpay2go=taxReceiptAgree]'));
           showEle($('[data-invpay2go=taxReceiptDonate]'));
@@ -100,6 +102,7 @@ $(document).ready(function(){
           hideEle($('[data-invpay2go=taxReceiptDonate]'));
           showEle($('[data-invpay2go=taxReceiptSerial]'));
           showEle($('[data-invpay2go=taxReceiptAgree]'));
+          showEle($('[data-invpay2go=taxReceiptTitle]'));
           break;
       }
     }
@@ -109,6 +112,7 @@ $(document).ready(function(){
       hideEle($('input[data-invpay2go=taxReceiptDeviceType]'));
       hideEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
       hideEle($('input[data-invpay2go=taxReceiptSerial]'));
+      hideEle($('input[data-invpay2go=taxReceiptTitle]'));
     }
     triggerDeviceType();
   }

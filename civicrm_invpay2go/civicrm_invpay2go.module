@@ -269,7 +269,7 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
     // custom fields ajax form when edit contribution
     case 'CRM_Contribute_Form_Contribution':
       $taxTypes = CRM_Contribute_PseudoConstant::contributionType(NULL, 'is_taxreceipt');
-      if (!empty($form->_contactID) && empty($_GET['snippet'])) {
+      if ((!empty($form->_contactID) || !empty($form->_id) ) && empty($_GET['snippet'])) {
         $params = array('id' => $form->_contactID);
         $contactInfo = array();
         $returnProperities = array('contact_type', 'sic_code');
@@ -542,6 +542,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
     'taxReceiptDeviceNumber' => array('title' => '載具編號'),
     'taxReceiptDonate' => array('title' => '發票捐贈單位'),
     'taxReceiptSerial' => array('title' => '統一編號', 'placeholder' => '請輸入8碼公司統一編號'),
+    'taxReceiptTitle' => array('title' => '發票抬頭	', 'placeholder' => '請輸入公司全名'),
     'taxReceiptAgree' => array('title' => '同意事項'),
     'taxReceiptItem' => array('title' => '發票品項'),
   );
@@ -798,6 +799,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
       if ($remove_unused) {
         unset($fields['taxReceiptDonate']);
         unset($fields['taxReceiptSerial']);
+        unset($fields['taxReceiptTitle']);
         unset($fields['taxReceiptAgree']);
       }
       break;
@@ -809,12 +811,14 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
         unset($fields['taxReceiptDeviceType']);
         unset($fields['taxReceiptDeviceNumber']);
         unset($fields['taxReceiptSerial']);
+        unset($fields['taxReceiptTitle']);
         unset($fields['taxReceiptAgree']);
       }
       break;
     case 'company':
-      if (empty($fields['taxReceiptSerial']['value'])) {
+      if (empty($fields['taxReceiptSerial']['value']) || empty($fields['taxReceiptTitle']['value'])) {
         $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptSerial']['title']));
+        $errors['taxReceiptTitle'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptTitle']['title']));
       }
       elseif (!preg_match('/\d{8}/', $fields['taxReceiptSerial']['value'])) {
         $errors['taxReceiptSerial'] = $fields['taxReceiptSerial']['title'].' - '.ts('Enter numbers only, no spaces or dashes.');
@@ -827,7 +831,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
       break;
     // fallback error
     default:
-      $errors['taxReceiptSerial'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptType']['title']));
+      $errors['taxReceiptType'] = ts('Missing required field: %1', array(1 => $fields['taxReceiptType']['title']));
       break;
   }
   return $errors;
