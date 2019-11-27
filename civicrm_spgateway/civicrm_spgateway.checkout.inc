@@ -376,6 +376,7 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
       $curlError = array();
     }
     curl_close($ch);
+    CRM_Core_Error::debug('applepay_transact_curl_error', $curlError);
 
     $result = json_decode($result);
     civicrm_spgateway_record($contribution->id, get_object_vars($result));
