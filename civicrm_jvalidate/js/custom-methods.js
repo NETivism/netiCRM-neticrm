@@ -1,4 +1,6 @@
 (function($){
+  var msg = "";
+
   $.validator.addMethod("ckbox", function(value, element, param) {
     var p = $(element).parents('div.ckbox');
     var s = p.find("input:checkbox:checked").length;
@@ -66,6 +68,14 @@
     }
     var tel = /^0[1-9]-[0-9]{7,8}[#_]*[0-9_]*$/;
     var mobile = /^09[0-9]{2}-[0-9]{3}[0-9]{3}$/;
+
+    if (/^.{2}[-]/.test(value)) {
+      msg = "電話號碼格式有誤！（市話：03-1111111）";
+    }
+
+    if (/^.{4}[-]/.test(value)) {
+      msg = "電話號碼格式有誤！（行動電話：0911-111111）";
+    }
     return this.optional(element) || (tel.test(value)) || (mobile.test(value));
-  }, "電話號碼格式有誤！（市話:03-1111111 行動:0911-111111）");
+  }, function () { return msg; });
 })(jQuery);
