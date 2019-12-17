@@ -33,14 +33,14 @@ function civicrm_spgateway_notify_info($cid){
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
   switch($type){
     case 'VACC':
-      $return['繳費銀行代碼'] = $json['BankCode'];
-      $return['繳費虛擬帳號'] = $json['CodeNo'];
-      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $return[ts('Bank code')] = $json['BankCode'];
+      $return[ts('Virtual account number')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
     case 'CVS':
-      $help = l('» 步驟說明', 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
-      $return['便利商店繳費代碼'] = $json['CodeNo'];
-      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $help = l('» '.ts('Payment Instructions'), 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
+      $return[ts('Convenience Store Payment Code')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       $return[] = $help;
       break;
     case 'BARCODE':
@@ -49,8 +49,8 @@ function civicrm_spgateway_notify_info($cid){
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
       }
-      $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
-      $return['繳費期限'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $return[ts('Payment slip')] = '<a href="'.$invoice_link.'" target="_blank">» '.ts('Print payment slip').'</a>';
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
   }
   if(!empty($return)){
@@ -89,7 +89,7 @@ function civicrm_spgateway_notify_display_barcode($info){
       $output .= '<div>'.$v.'</div>';
     }
   }
-  $output .= '<p><label>繳費期限:</label> <span>'.$info['#expire'].'</span></p>';
-  $output .= '<p><span style="font-size: 9px;">備註：完成繳費後，商店約需3~4個工作天確認繳費成功。</span></p>';
+  $output .= '<p><label>'.ts('Payment deadline').':</label> <span>'.$info['#expire'].'</span></p>';
+  $output .= '<p><span style="font-size: 9px;">'.ts('Note: Payment confirmation takes 3-4 working days.').'</span></p>';
   return $output;
 }
