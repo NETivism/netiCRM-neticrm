@@ -82,6 +82,14 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $output = '';
         $output .= '
         <style>
+        .civicrm-instrument-dummy .crm-form-radio .elem-label.md-radio-label:before {
+          top: 50%;
+          transform: rotate(0deg)translateY(-50%);
+        }
+        .civicrm-instrument-dummy .crm-form-radio .elem-label.md-radio-label:after {
+          top: 50%;
+          transform: translateY(-50%);
+        }
          .need-creditcard-message {
            color: #666;
            font-size: 12px;
@@ -440,7 +448,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
           $r['description'] = civicrm_field_i18n_t($r['description']);
           $r['label'] = civicrm_field_i18n_t($r['label']);
         }
-        $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;margin-top: -6px;">' : $r['label'];
+        $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;">' : $r['label'];
         if ($r['form_name'] == 'credit_card') {
           $r['class'][] = 'credit-card';
           $dataCreditCard = 1;
@@ -459,7 +467,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
             $r['description'] = civicrm_field_i18n_t($r['description']);
             $r['label'] = civicrm_field_i18n_t($r['label']);
           }
-          $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;margin-top: -6px;">' : $r['label'];
+          $r['label'] = !empty($r['image']) ? '<img src="'.base_path().$r['image'].'" alt="'.$r['label'].'" style="max-height: 30px;;">' : $r['label'];
           if ($r['form_name'] == 'credit_card') {
             $r['class'][] = 'credit-card';
             $dataCreditCard = 1;
@@ -676,7 +684,11 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if(!empty($active_instruments[$radio_name])){
         $i = $all_instruments[$name];
-        if (file_exists($path.$name.'.png')) {
+        $x2x = '@2x';
+        if (file_exists($path.$name.$x2x.'.png')) {
+          $image = $path.$name.$x2x.'.png';
+        }
+        elseif (file_exists($path.$name.'.png')) {
           $image = $path.$name.'.png';
         }
         else {
