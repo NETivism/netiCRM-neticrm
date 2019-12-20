@@ -117,6 +117,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
               if($creditCardInput.length > 0) {
                 $creditCardInput.attr("checked", true);
+                $("input[name=civicrm_instrument_id]").val("1");
               }
               else {
                 $notCreditCardInput.attr("checked", false);
