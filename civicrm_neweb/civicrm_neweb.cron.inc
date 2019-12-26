@@ -306,6 +306,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
           unset($contribution->trxn_id);
           unset($contribution->invoice_id);
           unset($contribution->receipt_id);
+          unset($contribution->receipt_date);
           $contribution->contribution_status_id = 2;
           $contribution->created_date = date('YmdHis', $now);
 
