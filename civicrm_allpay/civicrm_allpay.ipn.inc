@@ -252,6 +252,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
       unset($c->cancel_reason);
       unset($c->invoice_id);
       unset($c->receipt_id);
+      unset($c->receipt_date);
       $c->contribution_status_id = 2;
       $c->trxn_id = $trxn_id;
       $c->created_date = date('YmdHis');

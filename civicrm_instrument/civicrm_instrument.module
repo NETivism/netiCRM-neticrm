@@ -117,6 +117,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
               if($creditCardInput.length > 0) {
                 $creditCardInput.attr("checked", true);
+                $("input[name=civicrm_instrument_id]").val("1");
               }
               else {
                 $notCreditCardInput.attr("checked", false);
@@ -129,6 +130,23 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
               // enable all instrument
               $(".civicrm-instrument-dummy input[type=\'radio\']").removeAttr("disabled");
+            }
+            // Check ApplePay
+            if ( !window.ApplePaySession || !ApplePaySession.canMakePayments) {
+              $applepay_input = $("#civicrm-instrument-dummy-'.$all_instruments['ApplePay']['value'].'");
+              $applepay_input.prop("checked",false);
+              $applepay_input.attr("disabled","disabled");
+              if (/(iPhone|iPad|Mac|Pike)/.exec(navigator.platform)) {
+                if ( $applepay_input.parent().find(".description").length == 0){
+                  $applepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("Please use Safari to process ApplePay Payment.").'</div>");
+                }
+              }
+              else {
+                if ( $applepay_input.parent().find(".description").length == 0){
+                  $applepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("ApplePay only can be used with Apple device.").'</div>");
+                }
+                $applepay_input.next().find("img").css("opacity", ".5");
+              }
             }
           }
           cj("input[name=is_recur]").click(function(){
