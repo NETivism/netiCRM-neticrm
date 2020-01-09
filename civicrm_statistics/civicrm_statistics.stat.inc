@@ -201,7 +201,7 @@ function civicrm_statistics_annual_fetch($base_year, $force = FALSE) {
   }
   else {
     $result = civicrm_statistics_annual_data($base_year);
-    cache_set('civicrm_statistics_annual_'.$base_year, $result, 'cache', time() + 86400*7);
+    cache_set('civicrm_statistics_annual_'.$base_year, $result, 'cache', time() + 60000);
   }
 
   if (!empty($result)) {
