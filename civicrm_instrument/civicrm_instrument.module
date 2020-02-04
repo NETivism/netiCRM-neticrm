@@ -138,7 +138,9 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               if ($applepay_input.length) {
                 $applepay_input.prop("checked",false);
                 $applepay_input.attr("disabled","disabled");
-                $applepay_input.parent().append("<div class=\"description\" style=\"margin:0 0 .8rem 12px;\">'.ts("Please use Safari to process ApplePay Payment.").'</div>");
+                if ( $applepay_input.parent().find(".description").length == 0){
+                  $applepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("Please use Safari to process ApplePay Payment.").'</div>");
+                }
               }
             }
             // End check ApplePay
