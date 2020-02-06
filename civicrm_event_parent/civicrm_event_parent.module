@@ -113,6 +113,11 @@ function civicrm_event_parent_civicrm_buildForm( $formName, &$form ) {
 }
 
 function civicrm_event_parent_civicrm_buildForm_regRegister( $formName, &$form ) {
+  // refs #27403
+  $participantId = CRM_Utils_Request::retrieve( 'participantId', 'Integer', $form, false, null, $_REQUEST);
+  if (!empty($participantId)) {
+    return;
+  }
 
   $cid = CRM_Utils_Request::retrieve( 'cid', 'Integer', $form, false, null, $_REQUEST);
   $session = CRM_Core_Session::singleton( );
