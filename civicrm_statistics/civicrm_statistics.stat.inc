@@ -223,7 +223,7 @@ function civicrm_statistics_annual_fetch($base_year, $force = FALSE) {
   return $result;
 }
 
-function civicrm_statistics_annual_data($base_year) {
+function civicrm_statistics_annual_data($base_year, $run_only = array()) {
   $tables = civicrm_statistics_annual_table();
   $last_year = (int) $base_year - 1;
   $before_last_year = $last_year - 1;
@@ -231,6 +231,12 @@ function civicrm_statistics_annual_data($base_year) {
 
   $result = array();
   foreach($tables as $table => $t){
+    if (!empty($run_only)) {
+      if (!in_array($table, $run_only)) {
+        continue;
+      }
+    }
+
     switch($table) {
       case 'contact':
         $params = array(
@@ -508,7 +514,7 @@ GROUP BY donors.contribution_status_id
       case 'contribution_online':
         $params = array(
           'name' => $table,
-          'sql' => "SELECT SUM(ccc.total_amount) as nonrecur_sum, COUNT(*) as nonrecur_count FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end) ccc",
+          'sql' => "SELECT SUM(total_amount) as nonrecur_sum, COUNT(*) as nonrecur_count FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_status_id",
           'years' => array($base_year, $last_year),
           'table' => $t,
           'fields' => array('nonrecur_sum', 'nonrecur_count'),
@@ -517,7 +523,7 @@ GROUP BY donors.contribution_status_id
 
         $params = array(
           'name' => $table,
-          'sql' => "SELECT SUM(ccc.total_amount) as recur_sum, COUNT(*) as recur_count FROM (SELECT total_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_recur_id) ccc",
+          'sql' => "SELECT SUM(cc.total_amount) as recur_sum, COUNT(*) as recur_count FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end GROUP BY cc.contribution_status_id",
           'years' => array($base_year, $last_year),
           'table' => $t,
           'fields' => array('recur_sum', 'recur_count'),
