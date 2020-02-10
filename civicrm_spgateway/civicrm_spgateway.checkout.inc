@@ -225,6 +225,9 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     }else{
       $data['PeriodTimes'] = empty($vars['installments']) ? 99 : $vars['installments']; // support endless
     }
+    if($language->language == 'en'){
+      $data['LangType'] = 'en';
+    }
     $str = http_build_query($data, '', '&');
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
