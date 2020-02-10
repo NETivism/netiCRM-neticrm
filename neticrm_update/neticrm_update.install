@@ -578,3 +578,10 @@ function neticrm_update_update_7272() {
 function neticrm_update_update_7273() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #26696, fixes created date for contact who don't has log
+ */
+function neticrm_update_update_7274() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
