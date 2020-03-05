@@ -34,6 +34,11 @@ function neticrm_drush_drush_command() {
     'examples' => array(
       'drush neticrm-rebuildmenu',
     ),
+    'aliases' => array(
+      'neticrm-cache-clear',
+      'neticrm-menu-rebuild',
+      'neticrm-rebuild-menu',
+    ),
     'callback' => 'drush_neticrm_rebuild_menu',
   );
 
@@ -43,6 +48,7 @@ function neticrm_drush_drush_command() {
     'examples' => array(
       'drush neticrm-clear-cache',
     ),
+    'aliases' => array('neticrm-cache-clear'),
     'callback' => 'drush_neticrm_clear_cache',
   );
   
@@ -61,6 +67,19 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_welcome_mail',
   );
+
+  /* Reminder date update */
+  $items['neticrm-member-reminder-date'] = array(
+    'description' => 'update all member reminder date',
+    'arguments' => array(
+      'membership_type_id' => 'membership_type_id to update',
+    ),
+    'examples' => array(
+      'drush neticrm-member-reminder-date'
+    ),
+    'callback' => 'drush_neticrm_member_reminder_date',
+  );
+
   return $items;
 }
 
@@ -229,3 +248,38 @@ function _drush_neticrm_schedule_default(){
   );
 }
 
+function drush_neticrm_member_reminder_date($membership_type_id = NULL) {
+  civicrm_initialize();
+  if ($membership_type_id && is_numeric($membership_type_id)) {
+    $sql = "SELECT * FROM civicrm_membership WHERE membership_type_id = %1";
+    $dao = CRM_Core_DAO::executeQuery($sql, array(
+      1 => array($membership_type_id, 'Integer'),
+    ));
+  }
+  else {
+    $sql = "SELECT * FROM civicrm_membership WHERE 1";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+  }
+  while($dao->fetch()) {
+    $calcDates = CRM_Member_BAO_MembershipType::getDatesForMembershipType($dao->membership_type_id, $dao->join_date, $dao->start_date, $dao->end_date);
+    $params = array();
+    if (!empty($calcDates['reminder_date'])) {
+      $params['reminder_date'] = $calcDates['reminder_date'];
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = %2 WHERE id = %1", array(
+        1 => array($dao->id, 'Integer'),
+        2 => array($calcDates['reminder_date'], 'Date'),
+      ));
+    }
+    elseif ($dao->reminder_date) {
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = NULL WHERE id = %1", array(
+        1 => array($dao->id, 'Integer'),
+      ));
+    }
+  }
+  if ($membership_type_id) {
+    drush_log("Updated reminder date of $dao->N members for membership type id $membership_type_id", "ok");
+  }
+  else {
+    drush_log("Updated reminder date of $dao->N members for all membership", "ok");
+  }
+}
