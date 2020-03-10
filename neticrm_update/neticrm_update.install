@@ -585,3 +585,10 @@ function neticrm_update_update_7273() {
 function neticrm_update_update_7274() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #26345, modify batch database and add related template 
+ */
+function neticrm_update_update_7275() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
