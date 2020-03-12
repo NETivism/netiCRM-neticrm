@@ -28,10 +28,15 @@ function civicrm_demo_settings(){
       ),
     ),
   );
+  $form['is_test'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Is Test')."?",
+    '#default_value' => 1,
+  );
   $form['batch'] = array(
     '#type' => 'checkbox',
     '#title' => t('Batch'),
-    '#default_value' => 0,
+    '#default_value' => 1,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -63,6 +68,8 @@ function civicrm_demo_batch($vars) {
     ),
     'finished' => 'civicrm_demo_batch_finished',
     'title' => t('Processing').' '.$vars['operation'],
+    'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.utils.inc',
+    'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.admin.inc',
   );
   batch_set($batch);
 }
@@ -75,6 +82,11 @@ function civicrm_demo_batch_process($vars, &$context){
   }
   $num_per_batch = 50;
   $arg = array('limit' => $num_per_batch);
+  if (!$vars['is_test']) {
+    // not is test, then create demo sample data
+    global $conf;
+    $conf['civicrm_demo_sample_data'] = 1;
+  }
   $func = $vars['function'];
   $func($arg);
   $context['sandbox']['progress'] += $num_per_batch;
