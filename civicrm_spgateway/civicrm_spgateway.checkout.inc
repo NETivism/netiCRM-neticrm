@@ -347,6 +347,7 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
       'APPLEPAY' => $token,
       'APPLEPAYTYPE' => '02',
     );
+    CRM_Core_Error::debug('applepay_transact_curl_params_before_encrypt', $params);
 
     $data = _civicrm_spgateway_recur_encrypt(http_build_query($params), get_object_vars($merchantPaymentProcessor));
 
@@ -360,6 +361,8 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
     }else{
       $url = 'https://core.spgateway.com/API/CreditCard';
     }
+
+    CRM_Core_Error::debug('applepay_transact_curl_data_after_encrypt', $data);
 
     $ch = curl_init($url);
     $opt = array();
