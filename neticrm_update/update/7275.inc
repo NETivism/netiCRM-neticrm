@@ -19,7 +19,7 @@ function _neticrm_update_update_7275() {
   // second, add option group and option values
   $typeGroupId= CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
   if (empty($typeGroupId)) {
-    CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group ('name', 'label','description','is_reserved','is_active) VALUES ('batch_type', NULL, 'Batch Type', 1, 1)");
+    CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group (`name`, `label`,`description`,`is_reserved`,`is_active`) VALUES ('batch_type', NULL, 'Batch Type', 1, 1)");
     $typeGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
     // values
     CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_value 
@@ -28,13 +28,13 @@ function _neticrm_update_update_7275() {
   }
   $statusGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_status'");
   if (empty($statusGroupId)) {
-    CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group ('name', 'label','description','is_reserved','is_active) VALUES ('batch_status', NULL, 'Batch Status', 1, 1)");
+    CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group (`name`, `label`,`description`,`is_reserved`,`is_active`) VALUES ('batch_status', NULL, 'Batch Status', 1, 1)");
     $statusGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
     CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_value 
     (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `domain_id`, `visibility_id`) 
     VALUES 
     ($statusGroupId, '".ts('Completed')."', 1, 'Completed', NULL, 0, 0, 1, NULL, 0, 1, 1, NULL, 1, NULL),
-    ($statusGroupId, '".ts('Pending').", 2, 'Pending', NULL, 0, 0, 2, NULL, 0, 1, 1, NULL, 1, NULL),
+    ($statusGroupId, '".ts('Pending')."', 2, 'Pending', NULL, 0, 0, 2, NULL, 0, 1, 1, NULL, 1, NULL),
     ($statusGroupId, '".ts('Running')."', 3, 'Running', NULL, 0, 0, 3, NULL, 0, 1, 1, NULL, 1, NULL),
     ($statusGroupId, '".ts("Canceled")."', 4, 'Canceled', NULL, 0, 0, 4, NULL, 0, 1, 1, NULL, 1, NULL) 
     ");
