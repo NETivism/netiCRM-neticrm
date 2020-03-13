@@ -2,25 +2,27 @@
 module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
 
 function civicrm_demo_settings(){
+  civicrm_initialize();
   $form['operation'] = array(
     '#type' => 'radios',
     '#required' => true,
-    '#title' => t('Data'),
+    '#title' => ts('Data'),
     '#options' => array(
-      'contact' => t('Contact'),
-      'contribution' => t('Contribution'),
-      'event' => t('Event and Participant'),
-      'member' => t('Member'),
+      'contact' => ts('Contacts'),
+      'contribution' => ts('Contribution'),
+      'track' => ts('Traffic Source'),
+      'event' => ts('Event').' / '.ts('Participant'),
+      'member' => ts('Membership'),
     ),
   );
   $form['limit'] = array(
     '#type' => 'textfield',
-    '#title' => t('Number'),
+    '#title' => ts('Number to Generate'),
     '#default_value' => 10,
   );
   $form['start_year'] = array(
     '#type' => 'textfield',
-    '#title' => t('Start year'),
+    '#title' => ts('Start year'),
     '#default_value' => date('Y', (time() - 86400*5*365) ),
     '#states' => array(
       'visible' => array(   // action to take.
@@ -30,7 +32,7 @@ function civicrm_demo_settings(){
   );
   $form['is_test'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Is Test')."?",
+    '#title' => ts('Is Test?'),
     '#default_value' => 1,
   );
   $form['batch'] = array(
@@ -40,7 +42,7 @@ function civicrm_demo_settings(){
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Generate'),
+    '#value' => ts('Submit'),
   );
   return $form;
 }
@@ -55,6 +57,11 @@ function civicrm_demo_settings_submit($form, &$form_state){
       civicrm_demo_batch($form_state['values']);
     }
     else{
+      if (!$form_state['values']['is_test']) {
+        // not is test, then create demo sample data
+        global $conf;
+        $conf['civicrm_demo_sample_data'] = 1;
+      }
       $function($form_state['values']);
       drupal_set_message(t("Successful generate data of !type", array('!type' => $op )));
     }
@@ -67,7 +74,7 @@ function civicrm_demo_batch($vars) {
       array('civicrm_demo_batch_process', array($vars)),
     ),
     'finished' => 'civicrm_demo_batch_finished',
-    'title' => t('Processing').' '.$vars['operation'],
+    'title' => ts('Processing').' '.$vars['operation'],
     'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.utils.inc',
     'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.admin.inc',
   );
