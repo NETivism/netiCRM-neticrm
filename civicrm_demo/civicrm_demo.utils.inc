@@ -93,7 +93,12 @@ function civicrm_demo_process_event($vars){
 
     $event_id = $result['id'];
     if (variable_get('civicrm_demo_sample_data', 0)) {
-      civicrm_demo_create_track('civicrm_event', $event_id);
+      $trackVars = array(
+        'limit' => 2000,
+        'pageType' => 'civicrm_event',
+        'pageId' => $event_id,
+      );
+      civicrm_demo_process_track($trackVars);
     }
 
     $params2 = array(
@@ -354,7 +359,12 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     $contribution_page_id = 1;
   }
   if (variable_get('civicrm_demo_sample_data', 0)) {
-    civicrm_demo_create_track('civicrm_contribution_page', $contribution_page_id);
+    $trackVars = array(
+      'limit' => 2000,
+      'pageId' => $contribution_page_id,
+      'pageType' => 'civicrm_contribution_page',
+    );
+    civicrm_demo_process_track($trackVars);
   }
   return $contribution_page_id;
 }
@@ -431,19 +441,46 @@ function civicrm_demo_create_custom_profile(){
   }
 }
 
-function civicrm_demo_create_track($pageType, $pageId){
-  $referrerTypes = CRM_Contribute_PseudoConstant::referrerTypes();
-  for($i = 0; $i<500; $i++){
-    $params = array(
-      'page_type' => $pageType,
-      'page_id' => $pageId,
-      'session_key' => rand(1, 1000),
-      'counter' => rand(1, 3),
-      'referrer_type' => array_rand($referrerTypes),
-      'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
-      'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 45) + 600*mt_rand(1,12)),
-    );
-    CRM_Core_BAO_Track::add($params);
+function civicrm_demo_process_track($trackVars = NULL){
+  extract($trackVars);
+  if (!$pageType) {
+    $pid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution_page ORDER BY id ASC");
+    if ($pid) {
+      $vars = array(
+        'limit' => $limit ? $limit : '500',
+        'pageId' => $pid,
+        'pageType' => 'civicrm_contribution_page',
+      );
+      civicrm_demo_process_track($vars);
+    }
+    $pid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_event WHERE is_template != 1 ORDER BY id ASC");
+    if ($pid) {
+      $vars = array(
+        'limit' => $limit ? $limit : '500',
+        'pageId' => $pid,
+        'pageType' => 'civicrm_event',
+      );
+      civicrm_demo_process_track($vars);
+    } 
+    return;
+  }
+  if (!empty($pageId) && !empty($pageType)) {
+    $referrerTypes = CRM_Contribute_PseudoConstant::referrerTypes();
+    unset($referrerTypes['internal']);
+    unset($referrerTypes['unknown']);
+    $limit = $limit ? $limit : 500;
+    for($i = 0; $i < $limit; $i++){
+      $params = array(
+        'page_type' => $pageType,
+        'page_id' => $pageId,
+        'session_key' => rand(1, 1000),
+        'counter' => rand(1, 3),
+        'referrer_type' => array_rand($referrerTypes),
+        'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
+        'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 365) + 600*mt_rand(1,12)),
+      );
+      CRM_Core_BAO_Track::add($params);
+    }
   }
 }
 
