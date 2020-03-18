@@ -29,7 +29,7 @@ function _neticrm_update_update_7275() {
   $statusGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_status'");
   if (empty($statusGroupId)) {
     CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group (`name`, `label`,`description`,`is_reserved`,`is_active`) VALUES ('batch_status', NULL, 'Batch Status', 1, 1)");
-    $statusGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
+    $statusGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_status'");
     CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_value 
     (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `domain_id`, `visibility_id`) 
     VALUES 
