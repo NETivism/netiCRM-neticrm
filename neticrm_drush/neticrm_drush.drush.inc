@@ -64,6 +64,15 @@ function neticrm_drush_drush_command() {
     'callback' => 'drush_neticrm_member_reminder_date',
   );
 
+  /* #26345 run batch queue */
+  $items['neticrm-batch-run'] = array(
+    'description' => 'Run current queuing batch process',
+    'examples' => array(
+      'drush neticrm-batch-run'
+    ),
+    'callback' => 'drush_neticrm_batch_run',
+  );
+
   return $items;
 }
 
@@ -217,5 +226,16 @@ function drush_neticrm_member_reminder_date($membership_type_id = NULL) {
   }
   else {
     drush_log("Updated reminder date of $dao->N members for all membership", "ok");
+  }
+}
+
+function drush_neticrm_batch_run() {
+  civicrm_initialize();
+  $msg = CRM_Batch_BAO_Batch::runQueue();
+  if ($msg) {
+    drush_log($msg, "ok");
+  }
+  else {
+    drush_log("Queue not run", "ok");
   }
 }
