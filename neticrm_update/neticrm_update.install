@@ -596,3 +596,9 @@ function neticrm_update_update_6175() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
+ * refs #26630, add bounce pattern
+ */
+function neticrm_update_update_6176() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
