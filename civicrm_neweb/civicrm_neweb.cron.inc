@@ -374,7 +374,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
           CRM_Core_DAO::executeQuery($sql);
         }
         // Status: failed, cancel. We don't have retry mechnism.
-        else{
+        else if($objects['contribution']->contribution_status_id != 4) {
           $err = civicrm_neweb_response($t['PRC'], $t['SRC'], $t['BANKRESCODE'], 'detail');
           $error_code = ts('Error Code:')."PRC-{$input['PRC']},SRC-{$input['SRC']},BRC-{$input['BankResponseCode']}";
           $failed_reason = implode("\n", $err) . "\n" . $error_code;

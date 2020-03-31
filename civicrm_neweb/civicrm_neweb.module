@@ -232,7 +232,8 @@ function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
   }
   if($hour >= 16 && $hour <= 23 && variable_get('civicrm_neweb_transaction_'.$pid.$test, 0) < $yesterday){
     // get yesterday transaction result
-    if(civicrm_neweb_process_transaction($is_test, $now, $pid)){
+    $force_update = variable_get('civicrm_neweb_process_transaction_force', FALSE);
+    if(civicrm_neweb_process_transaction($is_test, $now, $pid, $force_update)){
       variable_set('civicrm_neweb_transaction_'.$pid.$test, $now);
     }
   }
@@ -539,7 +540,8 @@ function _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterd
     if(count($week)){
       foreach($week as $ymd){
         $date = strtotime($ymd);
-        if(!civicrm_neweb_process_transaction($is_test, $date, $pid)){
+        $force_update = variable_get('civicrm_neweb_process_transaction_force', FALSE);
+        if(!civicrm_neweb_process_transaction($is_test, $date, $pid, $force_update)){
           $flag = true;
           $error = "Doesn't finish process missing transaction file. PP ID is $pid. File should be RP_Trans_".$payment['user_name']."_$ymd.log";
           _civicrm_neweb_error($error, $is_test, WATCHDOG_NOTICE);
