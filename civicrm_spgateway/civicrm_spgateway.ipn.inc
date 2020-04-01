@@ -96,7 +96,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       require_once 'CRM/Core/Transaction.php';
       $transaction = new CRM_Core_Transaction();
       $note = '';
-      if( $this->validateOthers($input, $ids, $objects, $transaction, $note) ){
+      if( $this->validateOthers($input, $ids, $objects, $transaction, $note, $instrument) ){
         $contribution =& $objects['contribution'];
         if(empty($contribution->receive_date)){
           if(!empty($input['PayTime'])){
@@ -145,7 +145,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
   }
 
-  function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
+  function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note, $instrument){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
     $valid_value = array();
@@ -183,8 +183,16 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
 
     // spgateway validation
     // only validate this when not test.
+    if (strtolower($instrument) == 'googlepay') {
+      $ppid = self::$_payment_processor['user_name'];
+      $test = $contribution->is_test ? 'test':'live';
+      $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $test);
+    }
+    else {
+      $payment_processor = self::$_payment_processor;
+    }
     if(!empty($valid_value['CheckCode'])){
-      $check_code = _civicrm_spgateway_checkcode($input, self::$_payment_processor);
+      $check_code = _civicrm_spgateway_checkcode($input, $payment_processor);
       if(strtolower($valid_value['CheckCode']) != strtolower($check_code)) {
         $note .= ts("Failuare: CheckCode not match. Contact system admin.")."\n";
         watchdog("civicrm_spgateway", "Failuare: CheckCode not match. Should be '{$check_code}', but '{$input['CheckCode']}' displayed.");
