@@ -17,6 +17,10 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   $instrument_name = civicrm_instrument_by_id($instrument_id, 'name');
   $spgateway_instruments = _civicrm_spgateway_instrument('code');
   $instrument_code = $spgateway_instruments[$instrument_name];
+  if (empty($instrument_code)) {
+    // For google pay
+    $instrument_code = $instrument_name;
+  }
   $form_key = $component == 'event' ? 'CRM_Event_Controller_Registration_'.$vars['qfKey'] : 'CRM_Contribute_Controller_Contribution_'.$vars['qfKey'];
 
   // The first, we insert every contribution into record. After this, we'll use update for the record.
@@ -123,6 +127,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   $itemDescription = $vars['description'];
   $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
   $itemDescription .= ':'.$vars['amount'];
+  $itemDescription = preg_replace('/[^[:alnum:][:space:]]/u', ' ', $itemDescription);
 
   if(!$vars['is_recur']){
     $args = array(
@@ -175,6 +180,10 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
         break;
       case 'Credit':
         $args['CREDIT'] = 1;
+        $args['ReturnURL'] = $thankyou_url;
+        break;
+      case 'GooglePay':
+        $args['ANDROIDPAY'] = 1;
         $args['ReturnURL'] = $thankyou_url;
         break;
     }
