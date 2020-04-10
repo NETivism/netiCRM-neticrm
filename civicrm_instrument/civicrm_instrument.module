@@ -22,7 +22,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
           'payment_instrument' => $saved_instruments,
         );
         $gid = variable_get('civicrm_instrument_gid', 0);
-        $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 ORDER BY weight ASC");
+        $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 AND name NOT LIKE 'ach%' ORDER BY weight ASC");
 
         $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
         $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
