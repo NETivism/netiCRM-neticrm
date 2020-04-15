@@ -599,3 +599,10 @@ function neticrm_update_update_7275() {
 function neticrm_update_update_7276() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #27673, Create taiwan ach table and pp type.
+ */
+function neticrm_update_update_7277() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
