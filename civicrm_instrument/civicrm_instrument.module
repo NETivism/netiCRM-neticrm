@@ -99,6 +99,24 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         <script>
           cj(document).ready(function($){
             checkRecur();
+
+            // Check Google Pay Hint
+            $("[name=\"civicrm_instrument_id_dummy\"]").change(changeGoogleHint);
+            changeGoogleHint();
+
+            function changeGoogleHint(){
+              var $googlepay_input = $("#civicrm-instrument-dummy-'.$all_instruments['GooglePay']['value'].'");
+              console.log($googlepay_input.length);
+              console.log($googlepay_input.parent().find(".description").length);
+              if ($googlepay_input.length && $googlepay_input.prop("checked") && !$googlepay_input.parent().find(".description").length) {
+                $googlepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("Payment processor needs Google account with credit card.").'</div>");
+              }
+              else {
+                $googlepay_input.parent().find(".description").remove();
+              }
+            }
+            // End Check Google Pay Hint
+
           });
         </script>';
         $output .= civicrm_instrument_attach_instrument($form, $all_instruments, $active_instruments, $default_instrument, FALSE);
