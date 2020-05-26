@@ -8,6 +8,7 @@ function _neticrm_update_update_6179() {
   $searchs = array(
     'UpcomingBirthdays' => ts('Upcoming Birthdays Search'),
     'RecurDonor' => ts('Recurring Donors Search'),
+    'TaiwanACHSearch' => ts('ACH Search'),
   );
 
   foreach($searchs as $name => $label){
