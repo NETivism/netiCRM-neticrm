@@ -280,8 +280,12 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
         // Find same trxn_id contribution.
         $trxn_id = $t['ORGORDERNUMBER'];
         $recur_id = $t['REFNUMBER'];
-        $sql = "SELECT * FROM civicrm_contribution WHERE trxn_id LIKE '%$trxn_id%'  AND contribution_recur_id = $recur_id";
-        $dao = CRM_Core_DAO::executeQuery($sql); 
+        $last_year = date('Y-m-d H:i:s', strtotime('-1 year'));
+        $sql = "SELECT * FROM civicrm_contribution WHERE trxn_id LIKE '%$trxn_id%'  AND contribution_recur_id = $recur_id AND created_date > %1";
+        $params = array(
+          1 => array($last_year, 'String')
+        );
+        $dao = CRM_Core_DAO::executeQuery($sql, $params); 
         $dao->fetch(); 
 
         // If the contribution is belong to correct recuring, and same contribution id, Then update receive data. 
