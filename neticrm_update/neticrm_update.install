@@ -616,3 +616,10 @@ function neticrm_update_update_6177() {
 function neticrm_update_update_6178() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #8649, #26924, Add recurring donnor search, birthday search
+ */
+function neticrm_update_update_6179() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
