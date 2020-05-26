@@ -209,6 +209,22 @@
 
           var advselect = $(this).parents(".crm-section:first").find(".advmultiselect select[multiple]");
           advselect.removeClass("required");
+
+          var file = $(this).parents(".crm-section:first").find(":input[type='file']");
+          file.each(function(i, e) {
+            var $e = $(e);
+            // For custom fields
+            if( $e.closest('.crm-section').next().find('img').length) {
+              $e.removeClass("required");
+            }
+            if( $e.closest('.crm-section').next().find('a').length) {
+              $e.removeClass("required");
+            }
+            // for contact image
+            if ($e.closest('.crm-section').find('.crm-contact_image-block img').length) {
+              $e.removeClass("required");
+            }
+          });
         }
       });
       if($(this).attr("id")){
