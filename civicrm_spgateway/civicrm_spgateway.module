@@ -5,6 +5,12 @@ define('SPGATEWAY_RESPONSE_TYPE', 'JSON');
 define('SPGATEWAY_MPG_VERSION','1.2');
 define('SPGATEWAY_RECUR_VERSION','1.0');
 define('SPGATEWAY_QUERY_VERSION','1.1');
+define('SPGATEWAY_REAL_DOMAIN', 'https://core.newebpay.com');
+define('SPGATEWAY_TEST_DOMAIN', 'https://ccore.newebpay.com');
+define('SPGATEWAY_URL_SITE', '/MPG/mpg_gateway');
+define('SPGATEWAY_URL_API', '/API/QueryTradeInfo');
+define('SPGATEWAY_URL_RECUR', '/MPG/period');
+define('SPGATEWAY_URL_CREDITBG', "/API/CreditCard");
 
 /**
  * Implementation of hook_init()
