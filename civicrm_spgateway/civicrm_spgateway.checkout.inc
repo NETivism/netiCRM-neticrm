@@ -141,8 +141,13 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       'LoginType' => '0',
       'ItemDesc' => $itemDescription,
       'MerchantOrderNo' => $vars['trxn_id'],
-      '#url' => $payment_processor['url_site'],
     );
+    if ($payment_processor['is_test']) {
+      $args['#url'] = SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_SITE;
+    }
+    else {
+      $args['#url'] = SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_SITE;
+    }
 
     switch($instrument_code){
       case 'ATM':
@@ -241,7 +246,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
     $args['MerchantID_'] = $payment_processor['user_name'];
-    $args['#url'] = $payment_processor['url_recur'];
+    if ($payment_processor['is_test']) {
+      $args['#url'] = SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_RECUR;
+    }
+    else {
+      $args['#url'] = SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_RECUR;
+    }
   }
 
 
@@ -365,9 +375,9 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
       'Pos_' => 'JSON',
     );
     if($contribution->is_test){
-      $url = 'https://ccore.spgateway.com/API/CreditCard';
+      $url = SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_CREDITBG;
     }else{
-      $url = 'https://core.spgateway.com/API/CreditCard';
+      $url = SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_CREDITBG;
     }
 
     $ch = curl_init($url);
