@@ -813,12 +813,6 @@ function _civicrm_demo_processor_default($class_name){
     $default['password'] = 'DLJ2NeCY3FY54ahvmZGHVW7POQIcz48c';
     $default['signature'] = 'QReE6RCaxBgCLx78';
     $default['subject'] = '';
-    $default['url_site'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_SITE;
-    $default['url_api'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_API;
-    $default['url_recur'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_RECUR;
-    $default['url_site_test'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_SITE;
-    $default['url_api_test'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_API;
-    $default['url_recur_test'] = SPGATEWAY_TEST_DOMAIN . SPGATEWAY_URL_RECUR;
   }
   return $default;
 }
