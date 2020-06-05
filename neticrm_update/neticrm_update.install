@@ -623,3 +623,10 @@ function neticrm_update_update_6178() {
 function neticrm_update_update_6179() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #27227, Add column in contribution page table for sending SMS.
+ */
+function neticrm_update_update_6180() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
