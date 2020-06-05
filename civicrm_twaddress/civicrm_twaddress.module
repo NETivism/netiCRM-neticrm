@@ -368,7 +368,7 @@ function _civicrm_twaddress_grouping_js(){
             var classes = $(this).attr("class");
             if(!classes.match(/state_province/g)){
               var html = $(this).find(".content>*");
-              var label = html.closest(".crm-section").find(".label>label").text();
+            var label = html.closest(".crm-section").find(".label>label").text().replace("*", "").trim();
               html.appendTo(".state_province-"+id+"-section .content");
               html.find("input").attr("placeholder", label);
               $(this).hide();
