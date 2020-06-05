@@ -367,7 +367,10 @@ function _civicrm_twaddress_grouping_js(){
           $("[rel=\'"+property+"\']").each(function(){
             var classes = $(this).attr("class");
             if(!classes.match(/state_province/g)){
-              var html = $(this).find(".content>*").appendTo(".state_province-"+id+"-section .content");
+              var html = $(this).find(".content>*");
+              var label = html.closest(".crm-section").find(".label>label").text();
+              html.appendTo(".state_province-"+id+"-section .content");
+              html.find("input").attr("placeholder", label);
               $(this).hide();
             }
           });
