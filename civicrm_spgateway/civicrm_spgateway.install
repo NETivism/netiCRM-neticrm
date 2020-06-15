@@ -37,11 +37,11 @@ function civicrm_spgateway_install() {
   civicrm_initialize( );
 
   // new payment processor - credit card (allowed recurring)
-  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('SPGATEWAY', '智付通信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_SPGATEWAY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, 1, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('SPGATEWAY', '藍新信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_SPGATEWAY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, 1, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment processor - others (not allowed recurring)
-  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('SPGATEWAYX', '智付通非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_SPGATEWAY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, 0, 1)";
+  $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('SPGATEWAYX', '藍新非信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_SPGATEWAY', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, 0, 1)";
   CRM_Core_DAO::executeQuery($sql);
 
   // new payment instrument
