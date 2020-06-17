@@ -48,15 +48,20 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Payment_Main':
       // check the payment limitation.
       $entity_id = $form->getVar('_id') ? $form->getVar('_id') : $form->getVar('_eventId');
       if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
         $entity_table = 'civicrm_contribution_page';
         $info =& $form->_values;
       }
-      else{
+      elseif($form_name == 'CRM_Event_Form_Registration_Register'){
         $entity_table = 'civicrm_event';
         $info =& $form->_values['event'];
+      }
+      else {
+        $entity_id = $form->getVar('_entityId');
+        $entity_table = $form->getVar('_entityTable');
       }
       $active_instruments = _civicrm_instrument_prepare_active($entity_id, $entity_table);
       $all_instruments = _civicrm_instrument_prepare_all();
@@ -250,6 +255,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
   switch($form_name){
     case 'CRM_Contribute_Form_Contribution_Main':
     case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Payment_Main':
       $processor_type = $form->_paymentProcessor['payment_processor_type'];
       if(isset($fields['payment_processor']) && $fields['payment_processor'] !== '0' && $processor_type != 'ESUNBANK' && $processor_type != 'NCCC'){
         if( empty($fields['civicrm_instrument_id']) && isset($fields['civicrm_instrument_id_dummy'])){
