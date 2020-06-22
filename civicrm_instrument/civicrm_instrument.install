@@ -225,7 +225,7 @@ function civicrm_instrument_update_7004(){
 /**
  * Correct Payment Instrument refs #23862
  */
-function civicrm_instrument_update_7005() {
+function civicrm_instrument_update_7105() {
   civicrm_initialize();
   CRM_Core_DAO::executeQuery("UPDATE civicrm_option_value SET label = 'LINE Pay' WHERE label LIKE 'Line Pay'");
 }
@@ -233,7 +233,7 @@ function civicrm_instrument_update_7005() {
 /**
  * Add ACH Instruments. refs #27673
  */
-function civicrm_instrument_update_7006() {
+function civicrm_instrument_update_7106() {
   civicrm_initialize();
 
   $payment_instrument = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
