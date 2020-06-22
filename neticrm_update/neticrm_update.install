@@ -637,3 +637,10 @@ function neticrm_update_update_6180() {
 function neticrm_update_update_6181() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #28471, update contribution online / offline message subject to support pdf receipt
+ */
+function neticrm_update_update_6182() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
