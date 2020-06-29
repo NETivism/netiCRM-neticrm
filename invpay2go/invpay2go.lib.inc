@@ -2,8 +2,8 @@
 
 class Pay2goInvoice {
 
-  CONST INVPAY2GO_TEST = 'https://cinv.pay2go.com';
-  CONST INVPAY2GO_PROD = 'https://inv.pay2go.com';
+  CONST INVPAY2GO_TEST = 'https://cinv.ezpay.com.tw';
+  CONST INVPAY2GO_PROD = 'https://inv.ezpay.com.tw';
   CONST RESPONSE_TYPE = 'JSON';
 
   public $isTest = 0;
