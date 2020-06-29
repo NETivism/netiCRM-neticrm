@@ -131,16 +131,7 @@ function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
   $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
 
-  if(module_exists('civicrm_allpay')){
-    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
-  }
-  if(module_exists('civicrm_neweb')){
-    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
-  }
-  if(module_exists('civicrm_spgateway')){
-    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
-  }
-  $contribution_page_id[3] = civicrm_demo_create_contribution_page('Payment_Mobile');
+  $contribution_page_id[0] = civicrm_demo_create_contribution_page();
 
   // query exists contact
   $contrib_per_contact = 5; // limit every contact only have num of contribution.
@@ -318,6 +309,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
   $types = CRM_Contribute_PseudoConstant::contributionType();
   $contribution_type_id = reset(array_keys($types));
 
+  $from_email = variable_get('smtp_from', '');
   $params = array(
     'version' => 3,
     'title' => '捐款贊助',
@@ -328,7 +320,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'is_allow_other_amount' => 1,
     'recur_frequency_unit' => 'month',
     'thankyou_title' => '謝謝你的支持',
-    'receipt_from_email' => 'demo@demo.neticrm.tw',
+    'receipt_from_email' => !empty($from_email) ? $from_email : 'demo@demo.neticrm.tw',
     'installments_option' => 1,
   );
   if (variable_get('civicrm_demo_sample_data_ci', 0)) {
