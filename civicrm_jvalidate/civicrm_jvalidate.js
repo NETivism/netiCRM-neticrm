@@ -48,7 +48,7 @@
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
-      $('<span href="#" class="ext" rel="'+fid+'"> +'+Drupal.settings.jvalidate.ext+'</span>').insertAfter(obj);
+      $('<span href="#" class="extend" rel="'+fid+'"> +'+Drupal.settings.jvalidate.ext+'</span>').insertAfter(obj);
       $("span[rel='"+fid+"']").css({cursor:"pointer",color:"green"});
       $("span[rel='"+fid+"']").click(function(){
         var ext = prompt(Drupal.settings.jvalidate.extprompt);
