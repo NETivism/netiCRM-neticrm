@@ -131,7 +131,17 @@ function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
   $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
 
-  $contribution_page_id[0] = civicrm_demo_create_contribution_page();
+  // ci testing needed
+  if (variable_get('civicrm_demo_sample_data_ci', 0)) {
+    $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
+    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
+    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
+    $contribution_page_id[3] = civicrm_demo_create_contribution_page('Payment_Mobile');
+  }
+  else {
+    // demo site or normal site
+    $contribution_page_id[0] = civicrm_demo_create_contribution_page('');
+  }
 
   // query exists contact
   $contrib_per_contact = 5; // limit every contact only have num of contribution.
