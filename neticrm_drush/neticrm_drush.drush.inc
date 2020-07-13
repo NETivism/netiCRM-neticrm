@@ -88,6 +88,18 @@ function neticrm_drush_drush_command() {
     ),
     'callback' => 'drush_neticrm_batch_run',
   );
+  $items['neticrm-process-recurring'] = array(
+    'description' => "Process recurring of certain payment processor.",
+    'examples' => array(
+      'drush neticrm-process-recurring' =>
+      'Process all recurring',
+      'drush neticrm-process-recurring --payment-processor=tappay' => 'Process tappey recurring',
+    ),
+    'options' => array(
+      'payment-processor' => 'The payment processor need to process.',
+    ),
+    'callback' => 'drush_neticrm_process_recurring',
+  );
 
   return $items;
 }
@@ -301,5 +313,20 @@ function drush_neticrm_batch_run() {
   }
   else {
     drush_log("Queue not run", "ok");
+  }
+}
+
+function drush_neticrm_process_recurring() {
+  civicrm_initialize();
+  $ppName = drush_get_option('payment-processor', NULL);
+  if (!empty($ppName)) {
+    if (strtolower($ppName) == 'tappay') {
+      $time = CRM_REQUEST_TIME;
+      CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
+    }
+  }
+  else {
+    $msg = "Please input with payment processor type name\nExample: \n drush neticrm-process-recurring --payment-processor=tappay\n";
+    print($msg);
   }
 }
