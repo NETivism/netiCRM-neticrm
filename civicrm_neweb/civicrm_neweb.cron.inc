@@ -365,7 +365,7 @@ function civicrm_neweb_process_transaction($is_test, $now = NULL, $pid, $force_u
         );
         require_once 'CRM/Core/Transaction.php';
         $transaction = new CRM_Core_Transaction();
-        $IPN = new CRM_Core_Payment_NewebIPN();
+        $IPN = new CRM_Core_Payment_NewebIPN(array(), array());
         // $IPN->validateData($input, $ids, $objects, FALSE); // do not load all object for performance issue
 
         // Check the response
