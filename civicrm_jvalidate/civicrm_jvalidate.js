@@ -13,13 +13,18 @@
       $("span[rel="+fid+"]").remove();
       $(obj).css("max-width", "280px")
 
-      if (Drupal.settings.jvalidate.phoneValidator) {
-        $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+      // check format first, if correct, apply mask
+      var validatedDefault = false;
+      if ($(obj).val() && $(obj).val().match(/^09\d{2}-?\d{6}$/)) {
+        var validatedDefault = true;
       }
-      else{
-        $(obj).rules("add", "twphone");
-      }
-      if (!$(obj).val()) {
+      if (!$(obj).val() || validatedDefault) {
+        if (Drupal.settings.jvalidate.phoneValidator) {
+          $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+        }
+        else{
+          $(obj).rules("add", "twphone");
+        }
         if (Drupal.settings.jvalidate.mobileMask) {
           $(obj).amask(Drupal.settings.jvalidate.mobileMask);
         }
@@ -29,15 +34,19 @@
       }
     }
     var phone_mask = function(obj){
-      if (Drupal.settings.jvalidate.phoneValidator) {
-        $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
-      }
-      else {
-        $(obj).rules("add", "twphone");
-      }
       $(obj).css("max-width", "280px")
+      var validatedDefault = false;
+      if ($(obj).val() && $(obj).val().match(/^0\d{1}-?\d+#?\d*$/)) {
+        var validatedDefault = true;
+      }
+      if (!$(obj).val() || validatedDefault) {
+        if (Drupal.settings.jvalidate.phoneValidator) {
+          $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+        }
+        else {
+          $(obj).rules("add", "twphone");
+        }
 
-      if (!$(obj).val()) {
         if (Drupal.settings.jvalidate.phoneMask) {
           $(obj).amask(Drupal.settings.jvalidate.phoneMask);
         }
@@ -135,8 +144,12 @@
   }
 
   $.amask.id_add_validate = function(obj){
-    $(obj).rules("add", "twid");
-    if(!$(obj).val()){
+    var validatedDefault = false;
+    if ($(obj).val() && $(obj).val().match(/^[a-zA-Z]\w\d{8}$/)) {
+      var validatedDefault = true;
+    }
+    if(!$(obj).val() || validatedDefault){
+      $(obj).rules("add", "twid");
       $(obj).amask("a*99999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
     }
 
