@@ -644,3 +644,10 @@ function neticrm_update_update_6181() {
 function neticrm_update_update_6182() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Added region of Singapore, Refs #28567.
+ */
+function neticrm_update_update_6183() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
