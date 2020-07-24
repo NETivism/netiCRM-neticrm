@@ -10,18 +10,28 @@
     var mobile_mask = function(obj){
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
-      $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      if (!$(obj).val()) {
+
+      var validatedDefault = false;
+      if ($(obj).val() && $(obj).val().match(/^09\d{2}-?\d{6}$/)) {
+        var validatedDefault = true;
+      }
+      if (!$(obj).val() || validatedDefault) {
+        $(obj).rules("add", "twphone");
         $(obj).amask("oz99-999999");
       }
     }
     var phone_mask = function(obj){
-      $(obj).rules("add", "twphone");
       $(obj).css("max-width", "280px")
-      if (!$(obj).val()) {
+      var validatedDefault = false;
+      if ($(obj).val() && $(obj).val().match(/^0\d{1}-?\d+#?\d*$/)) {
+        var validatedDefault = true;
+      }
+      if (!$(obj).val() || validatedDefault) {
+        $(obj).rules("add", "twphone");
         $(obj).amask("o~-9999999?##########");
       }
+
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
@@ -90,8 +100,12 @@
   }
 
   $.amask.id_add_validate = function(obj){
-    $(obj).rules("add", "twid");
-    if(!$(obj).val()){
+    var validatedDefault = false;
+    if ($(obj).val() && $(obj).val().match(/^[a-zA-Z]\w\d{8}$/)) {
+      var validatedDefault = true;
+    }
+    if(!$(obj).val() || validatedDefault){
+      $(obj).rules("add", "twid");
       $(obj).amask("a*99999999", {completed:function(){ obj.value = obj.value.toUpperCase(); }});
     }
 

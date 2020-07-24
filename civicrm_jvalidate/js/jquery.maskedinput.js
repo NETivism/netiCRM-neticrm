@@ -332,9 +332,6 @@ $.fn.extend({
                 k = getKeyCode(this.value, pos.end+1);
                 c = String.fromCharCode(k);
               }
-              else {
-                pasteALL(currentInput, pos);
-              }
             }
             else {
               // backspace handling of android
@@ -359,9 +356,6 @@ $.fn.extend({
             if (!isPasteEvent) {
               k = getKeyCode(this.value, pos.end+1);
               c = String.fromCharCode(k);
-            }
-            else {
-              pasteALL(currentInput, pos);
             }
           }
 
@@ -390,34 +384,6 @@ $.fn.extend({
           }
           else {
             removeImeNotify(inputWrapper);
-          }
-        }
-      }
-
-      function pasteALL(val, pos) {
-        var k, c, p, l;
-
-        if (pos.begin == pos.end) {
-          l = Number(pos.end) + 1;
-
-          for (var i = 0; i < l; i++) {
-            k = getKeyCode(val, i + 1);
-            c = String.fromCharCode(k);
-            p = seekNext(i - 1);
-
-            if (p < len) {
-              if (tests[p].test(c)) {
-                shiftR(p);
-                buffer[p] = c;
-                writeBuffer();
-                next = seekNext(p);
-                input.caret(next);
-
-                if (settings.completed && next >= len) {
-                  settings.completed.call(input);
-                }
-              }
-            }
           }
         }
       }
