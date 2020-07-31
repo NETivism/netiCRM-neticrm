@@ -648,3 +648,10 @@ function neticrm_update_update_7282() {
 function neticrm_update_update_7283() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #28713,Modify wrong country name.
+ */
+function neticrm_update_update_7284() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
