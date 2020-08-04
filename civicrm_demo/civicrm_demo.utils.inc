@@ -67,14 +67,18 @@ function civicrm_demo_process_event($vars){
     $params['is_monetory'] = 0;
     $params['event_type_id'] = 1;
     $params['is_show_location'] = 0;
-    $params['start_date'] = date('Ymd', $now+$i*86400*5);
-    $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
-    $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
-    $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
-    $params['max_participants'] = 5;
-    if(!variable_get('civicrm_demo_sample_data', 0)){
+    if(variable_get('civicrm_demo_sample_data', 0)){
+      $params['start_date'] = date('Ymd', $now+$i*86400*5);
+      $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
+      $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
+      $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
+      $params['max_participants'] = 5;
+    }
+    else {
       $params['is_template'] = 1;
       $params['template_title'] = $title[$seed];
+      $params['start_date'] = date('Ymd', $now+$i*86400*5);
+      $params['max_participants'] = '';
     }
 
     if($seed == 0 || $seed == 4){
@@ -90,6 +94,11 @@ function civicrm_demo_process_event($vars){
     $params['is_online_registration'] = 1;
 
     $result = civicrm_api('Event', 'create', $params);
+    if ($params['is_template'] && $result['id']) {
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_event SET start_date = NULL WHERE id = %1", array(
+        1 => array($result['id'], 'Integer')
+      ));
+    }
 
     $event_id = $result['id'];
     if (variable_get('civicrm_demo_sample_data', 0)) {
