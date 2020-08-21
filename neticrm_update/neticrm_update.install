@@ -641,3 +641,24 @@ function neticrm_update_update_7281() {
 function neticrm_update_update_7282() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Added region of Singapore, Refs #28567.
+ */
+function neticrm_update_update_7283() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28713,Modify wrong country name.
+ */
+function neticrm_update_update_7284() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28713,Modify zuo-zhen dist. in tainan.
+ */
+function neticrm_update_update_7285() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
