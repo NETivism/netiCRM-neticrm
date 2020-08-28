@@ -665,3 +665,10 @@ function neticrm_update_update_6184() {
 function neticrm_update_update_6185() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #27449, increase date range back to 1990
+ */
+function neticrm_update_update_6186() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
