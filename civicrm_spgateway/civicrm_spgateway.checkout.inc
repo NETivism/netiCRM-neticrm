@@ -136,7 +136,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
       'TimeStamp' => time(),
       'Version' => SPGATEWAY_MPG_VERSION,
       'Amt' => $amount,
-      'NotifyURL' => $notify_url."&qfKey=".$vars['qfKey'],
+      'NotifyURL' => $notify_url,
       'Email' => $vars['email-5'],
       'LoginType' => '0',
       'ItemDesc' => $itemDescription,
