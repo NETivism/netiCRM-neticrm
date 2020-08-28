@@ -20,7 +20,7 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     $rid = $decryptParams['MerchantOrderNo'];
   }
 
-  if (!empty($decryptParams) && $decryptParams['RespondCode'] == '00' && $decryptParams['Status'] == 'SUCCESS') {
+  if (!empty($decryptParams)) {
     // complex part to simulate spgateway ipn
     $ipn_result = $ipn_get = $ipn_post = array();
 
@@ -41,7 +41,7 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, TRUE);
     $query .= '&ppid='.$pid;
     parse_str($query, $ipn_get);
-    CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_post', $ipn_get);
+    CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_get', $ipn_get);
 
     // create recurring record
     $result = new stdClass();
