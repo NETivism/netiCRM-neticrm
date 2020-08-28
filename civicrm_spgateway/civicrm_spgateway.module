@@ -28,6 +28,13 @@ function civicrm_spgateway_menu(){
       'weight' => 0,
       'file' => 'civicrm_spgateway.ipn.inc',
     ),
+    'spgateway/neweb-transfer' => array(
+      'access callback' => true,
+      'page callback' => 'civicrm_spgateway_neweb_transfer',
+      'type' => MENU_CALLBACK,
+      'weight' => 0,
+      'file' => 'civicrm_spgateway.neweb.inc',
+    ),
   );
 }
 
