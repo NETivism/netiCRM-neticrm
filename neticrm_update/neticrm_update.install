@@ -672,3 +672,10 @@ function neticrm_update_update_6185() {
 function neticrm_update_update_6186() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #27114, disable unused IM provider, add used one
+ */
+function neticrm_update_update_6187() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
