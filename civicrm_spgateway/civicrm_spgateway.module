@@ -88,8 +88,12 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
               // first contribution of recurring, update trxn_id.
               $contribution->trxn_id = $params['trxn_id'] . "_1";
               $contribution->created_date = date('YmdHis', strtotime($contribution->created_date));
-              $contribution->receive_date = date('YmdHis', strtotime($contribution->receive_date));
-              $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
+              if (!empty($contribution->receive_date)) {
+                $contribution->receive_date = date('YmdHis', strtotime($contribution->receive_date));
+              }
+              if (!empty($contribution->receipt_date)) {
+                $contribution->receipt_date = date('YmdHis', strtotime($contribution->receipt_date));
+              }
               $contribution->save();
             }
             if(!empty($contrib_values['id']) && $contrib_values['contribution_status_id'] != 1 && strstr($return_params['PaymentType'], 'Credit')){
