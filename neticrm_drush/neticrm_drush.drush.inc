@@ -318,6 +318,7 @@ function drush_neticrm_batch_run() {
 
 function drush_neticrm_process_recurring() {
   civicrm_initialize();
+  watchdog('drush_neticrm', 'Executing drush neticrm-process-recurring');
   $ppName = drush_get_option('payment-processor', NULL);
   if (!empty($ppName)) {
     if (strtolower($ppName) == 'tappay') {
