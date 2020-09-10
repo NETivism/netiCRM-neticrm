@@ -679,3 +679,10 @@ function neticrm_update_update_6186() {
 function neticrm_update_update_6187() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #28422, change recur processor id db fields
+ */
+function neticrm_update_update_6188() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
