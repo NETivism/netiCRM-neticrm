@@ -15,8 +15,9 @@ function _neticrm_update_update_7288() {
   $sql = "SELECT id, processor_id FROM `civicrm_contribution_recur` WHERE processor_id NOT RLIKE '^[0-9]*$'";
   $dao = CRM_Core_DAO::executeQuery($sql);
   while($dao->fetch()) {
-    $sql = "UPDATE civicrm_contribution_recur SET processor_id = NULL WHERE id = %2";
+    $sql = "UPDATE civicrm_contribution_recur SET processor_id = NULL, external_id = %1 WHERE id = %2";
     CRM_Core_DAO::executeQuery($sql, array(
+      1 => array($dao->processor_id, 'String'),
       2 => array($dao->id, 'Integer'),
     ));
   }
