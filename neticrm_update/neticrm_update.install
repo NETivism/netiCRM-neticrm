@@ -683,3 +683,10 @@ function neticrm_update_update_7287() {
 function neticrm_update_update_7288() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #28181, Add renewal only column to membership_block table.
+ */
+function neticrm_update_update_7289() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
