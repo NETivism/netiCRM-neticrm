@@ -578,3 +578,115 @@ function neticrm_update_update_7272() {
 function neticrm_update_update_7273() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #26696, fixes created date for contact who don't has log
+ */
+function neticrm_update_update_7274() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #26345, modify batch database and add related template 
+ */
+function neticrm_update_update_7275() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #26630, add bounce pattern
+ */
+function neticrm_update_update_7276() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #27673, Create taiwan ach table and pp type.
+ */
+function neticrm_update_update_7277() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28070, Add 'Email Receipt' activity type.
+ */
+function neticrm_update_update_7278() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #8649, #26924, Add recurring donnor search, birthday search
+ */
+function neticrm_update_update_7279() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #27227, Add column in contribution page table for sending SMS.
+ */
+function neticrm_update_update_7280() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28304, Update neweb, spgateway payment type name.
+ */
+function neticrm_update_update_7281() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #28471, update contribution online / offline message subject to support pdf receipt
+ */
+function neticrm_update_update_7282() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Added region of Singapore, Refs #28567.
+ */
+function neticrm_update_update_7283() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28713,Modify wrong country name.
+ */
+function neticrm_update_update_7284() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28713,Modify zuo-zhen dist. in tainan.
+ */
+function neticrm_update_update_7285() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #27449, increase date range back to 1990
+ */
+function neticrm_update_update_7286() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #27114, disable unused, update new IM provider.
+ */
+function neticrm_update_update_7287() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28422, change recur processor id db fields
+ */
+function neticrm_update_update_7288() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * Refs #28181, Add renewal only column to membership_block table.
+ */
+function neticrm_update_update_7289() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
