@@ -13,11 +13,20 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     }
   }
 
+  if (empty($pid)) {
+    watchdog('civicrm_spgateway.neweb', "There are no SPGATEWAY payment processor.");
+    drupal_not_found();
+  }
+
   if (!empty($post['Period'])) {
     $paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($pid, $isTest ? 'test': 'live');
     $decryptParams = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($post['Period'], $paymentProcessor));
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_decrypt_params', $decryptParams);
     $rid = $decryptParams['MerchantOrderNo'];
+  }
+  else {
+    watchdog('civicrm_spgateway.neweb', "\$post['Period'] not exist.");
+    drupal_not_found();
   }
 
   if (!empty($decryptParams)) {
@@ -50,8 +59,17 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     $result->_get = $ipn_get;
     module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
     $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
+    // If correct, it must return '1|OK'.
+    if (!empty($result->_response)) {
+      $query = "UPDATE civicrm_contribution SET payment_processor_id = %1 WHERE contribution_recur_id = %2 ORDER BY id DESC LIMIT 1";
+      $params = array(
+        1 => array($pid, 'Positive'),
+        2 => array($ids['contributionRecurID'], 'Positive'),
+      );
+      CRM_Core_DAO::executeQuery($query, $params);
+    }
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_response', $result->_response);
-    return json_encode($result);
+    echo $result->_response;
   }
 
 }
