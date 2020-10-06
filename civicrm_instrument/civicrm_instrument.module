@@ -247,6 +247,16 @@ jQuery(document).ready(function($){';
 ';
   drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
       }
+      if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
+        $js = "
+        jQuery(document).ready(function($){
+          $('[class*=url_site]').hide();
+          $('[class*=url_api]').hide();
+          $('[class*=url_recur]').hide();
+        });
+        ";
+        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+      }
       break;
   }
 }
