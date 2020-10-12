@@ -500,12 +500,14 @@ function _civicrm_spgateway_post_decode($post = null){
 
   if(isset($jsonData->Result)){
     if(is_string($jsonData->Result)){
-      $return = json_decode($jsonData->Result,true);
+      $return = json_decode($jsonData->Result, true);
     }else{
       $return = (array) $jsonData->Result;
     }
     $return['Status'] = $jsonData->Status;
-    $return['Message'] = $jsonData->Message;
+    if (empty($return['Message'] && !empty($jsonData->Message))) {
+      $return['Message'] = $jsonData->Message;
+    }
   }
   return $return;
 }
