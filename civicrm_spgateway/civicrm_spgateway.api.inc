@@ -1,39 +1,77 @@
 <?php
 class spgateway_spgateway_api {
 
-  protected $_urlDomain;
+  public $_urlDomain;
 
   // Used for request parameter
-  protected $_apiType;
+  public $_isTest;
+  public $_paymentProcessorId;
+  public $_paymentProcessor;
+  public $_apiType;
+  public $_apiMethod = 'POST'; // In This API , Always Use POST.
 
-  protected $_contribution_id; // this request relative contribution.
-  protected $_apiMethod; // In This API , Always Use POST.
+  public $_contribution_id; // this request relative contribution.
+  public $_logId;
 
-  protected static $_apiTypes = array(
+  public static $_apiTypes = array(
     'alter-status' => '/MPG/period/AlterStatus',
     'alter-amt' => '/MPG/period/AlterAmt',
   );
-  protected static $_alterStatus = array(
+  public static $_alterStatus = array(
     'suspend',    // Paused
     'terminate',  // Stop
     'restart',    // Only used in paused recur.
   );
 
   // Used for request result
-  protected $_response;
-  protected $_success;
+  public $_apiURL;
+  public $_request;
+  public $_response;
+  public $_success;
 
 
   /**
    * $apiParams must has these fields: 
    *   apiType
-   *   partnerKey
+   *   paymentProcessorId
    *   isTest
    */
   function __construct($apiParams) {
     extract($apiParams);
+    $mode = $isTest ? '' : 'test';
+    if (empty($paymentProcessorId)) {
+      CRM_Core_Error::fatal('Missing payment processor ID');
+    }
+    else {
+      $this->_paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($paymentProcessorId, $mode);
+    }
+
+    if ($isTest) {
+      $this->_urlDomain = SPGATEWAY_TEST_DOMAIN;
+    }
+    else {
+      $this->_urlDomain = SPGATEWAY_REAL_DOMAIN;
+    }
+    $this->_isTest = $isTest;
+    $this->_paymentProcessorId = $paymentProcessorId;
+    $this->_apiType = $apiType;
   }
 
+  /*
+   *
+   * ########  ########  #######  ##     ## ########  ######  ######## 
+   * ##     ## ##       ##     ## ##     ## ##       ##    ##    ##    
+   * ##     ## ##       ##     ## ##     ## ##       ##          ##    
+   * ########  ######   ##     ## ##     ## ######    ######     ##    
+   * ##   ##   ##       ##  ## ## ##     ## ##             ##    ##    
+   * ##    ##  ##       ##    ##  ##     ## ##       ##    ##    ##    
+   * ##     ## ########  ##### ##  #######  ########  ######     ##    
+   *
+   * Required field:
+   * * MerOrderNo
+   * * PeriodNo
+   * 
+   */
   public function request($params) {
     $allowedFields = self::fields($this->_apiType);
     $post = array();
@@ -44,6 +82,15 @@ class spgateway_spgateway_api {
       else {
         $post[$name] = $value;
       }
+    }
+    if (empty($post['RespondType'])) {
+      $post['RespondType'] = SPGATEWAY_RESPONSE_TYPE;
+    }
+    if (empty($post['Version'])) {
+      $post['Version'] = SPGATEWAY_RECUR_VERSION;
+    }
+    if (empty($post['TimeStamp'])) {
+      $post['TimeStamp'] = time();
     }
 
     $requiredFields = self::fields($this->_apiType, TRUE);
@@ -57,12 +104,9 @@ class spgateway_spgateway_api {
     }
 
     $this->_request = $post;
+    $this->_apiURL = $this->_urlDomain.self::$_apiTypes[$this->_apiType];
     $result = $this->_curl();
     if ($result['status'] && !empty($this->_response)) {
-      if (in_array($this->_apiType, $this->_apiNeedSaveData)) {
-        // Record tappay data
-        self::saveTapPayData($this->_contribution_id, $this->_response, $this->_apiType);
-      }
 
       // Format of amount
       $response =& $this->_response;
@@ -77,6 +121,17 @@ class spgateway_spgateway_api {
     }
   }
 
+  /*
+   * 
+   *  ######  ##     ## ########  ##       
+   * ##    ## ##     ## ##     ## ##       
+   * ##       ##     ## ##     ## ##       
+   * ##       ##     ## ########  ##       
+   * ##       ##     ## ##   ##   ##       
+   * ##    ## ##     ## ##    ##  ##       
+   *  ######   #######  ##     ## ######## 
+   * 
+   */
   private function _curl() {
     $this->_success = FALSE;
     if (!empty(getenv('CIVICRM_TEST_DSN'))) {
@@ -88,32 +143,33 @@ class spgateway_spgateway_api {
     }
     $ch = curl_init($this->_apiURL);
     $opt = array();
-
-    $opt[CURLOPT_HTTPHEADER] = array(
-      'Content-Type: application/json',
-      'x-api-key: ' . $this->_partnerKey,
-    );
     $opt[CURLOPT_RETURNTRANSFER] = TRUE;
     if($this->_apiMethod == 'POST'){
+      $requestString = http_build_query($this->_request, '', '&');
+      $postDataString = _civicrm_spgateway_recur_encrypt($requestString, $this->_paymentProcessor);
+      $postFields = array(
+        'MerchantID_' => $this->_paymentProcessor['user_name'],
+        'PostData_' => $postDataString,
+      );
       $opt[CURLOPT_POST] = TRUE;
-      $opt[CURLOPT_POSTFIELDS] = json_encode($this->_request, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+      $opt[CURLOPT_POSTFIELDS] = $postFields;
     }
     curl_setopt_array($ch, $opt);
 
-    $recordData = array(
-      'contribution_id' => $this->_contribution_id,
-      'url' => $this->_apiTypes[$this->_apiType],
-      'date' => date('Y-m-d H:i:s'),
-      'post_data' => $opt[CURLOPT_POSTFIELDS],
-    );
-    $lodId = self::writeRecord(NULL, $recordData);
+    // $recordData = array(
+    //   'contribution_id' => $this->_contribution_id,
+    //   'url' => $this->_apiTypes[$this->_apiType],
+    //   'date' => date('Y-m-d H:i:s'),
+    //   'post_data' => $opt[CURLOPT_POSTFIELDS],
+    // );
+    // $lodId = $this->writeRecord(NULL, $recordData);
 
     $result = curl_exec($ch);
 
-    $recordData = array(
-      'return_data' => $result,
-    );
-    self::writeRecord($lodId, $recordData);
+    // $recordData = array(
+    //   'return_data' => $result,
+    // );
+    // $this->writeRecord($lodId, $recordData);
 
     $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $errno = curl_errno($ch);
@@ -134,7 +190,7 @@ class spgateway_spgateway_api {
     curl_close($ch);
     if (!empty($result)) {
       $response = json_decode($result);
-      $this->_response = $response;
+      $this->_response = json_decode(_civicrm_spgateway_recur_decrypt($response->period, $this->_paymentProcessor));
       $this->_success = isset($response->status) && $response->status == '0' ? TRUE : FALSE;
     }
     else {
@@ -148,7 +204,34 @@ class spgateway_spgateway_api {
     return $return;
   }
 
-  protected static function fields($apiType, $is_required = FALSE) {
+  /*
+   *
+   * ########  ########  ######   #######  ########  ########  
+   * ##     ## ##       ##    ## ##     ## ##     ## ##     ## 
+   * ##     ## ##       ##       ##     ## ##     ## ##     ## 
+   * ########  ######   ##       ##     ## ########  ##     ## 
+   * ##   ##   ##       ##       ##     ## ##   ##   ##     ## 
+   * ##    ##  ##       ##    ## ##     ## ##    ##  ##     ## 
+   * ##     ## ########  ######   #######  ##     ## ########  
+   *
+   */
+  public function writeRecord($logId, $data) {
+    $record = new CRM_Core_DAO_Log();
+    if(!empty($logId)) {
+      $record->id = $logId;
+      $record->find(TRUE);
+    }
+
+    $record->entity_table = 'spgateway_api_'.$this->_apiType;
+    $record->entity_id = $this->_contribution_id;
+
+    $record->data = serialize($data);
+
+    $record->save();
+    return $record->id;
+  }
+
+  public static function fields($apiType, $is_required = FALSE) {
     $fields = array();
     switch($apiType){
       case 'alter-status':
