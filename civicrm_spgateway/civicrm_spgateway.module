@@ -394,7 +394,9 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
   $contribution->trxn_id = $trxn_id;
   if ($contribution->find(TRUE)) {
     $payment_processor_id = $contribution->payment_processor_id;
-    $create_contribution = FALSE; // found
+    if ($contribution->contribution_status_id == 1) {
+      $create_contribution = FALSE; // Found, And contribution is already success.
+    }
   }
   elseif($create_contribution) {
     // recurring contribution
@@ -435,7 +437,8 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
         );
         $used_args = array('IV','Amt','MerchantID','MerchantOrderNo', 'Key');
         _civicrm_spgateway_encode($request_data, $payment_processor, $used_args);
-        $result = _civicrm_spgateway_postdata($payment_processor['url_api'], $request_data);
+        $urlApi = $contribution->is_test ? SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_API : SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_API;
+        $result = _civicrm_spgateway_postdata($urlApi, $request_data);
       }
 
       if (!empty($result) && $result->Status == 'SUCCESS') {
@@ -450,7 +453,7 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
           unset($ipn_result->Result->CheckCode);
           $ipn_result->Result->OrderNo = $result->Result->MerchantOrderNo;
           list($first_id, $period_times) = explode('_', $result->Result->MerchantOrderNo);
-          if(!empty($period_times)){
+          if(!empty($period_times) && $period_times != 1){
             $ipn_result->Result->AlreadyTimes = $period_times;
           }
           $ipn_result->Result->MerchantOrderNo = $first_id;
@@ -465,6 +468,7 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
           // create recurring record
           $result->_post = $ipn_post;
           $result->_get = $ipn_get;
+          module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
           $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
           return $result;
         }
