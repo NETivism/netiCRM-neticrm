@@ -33,19 +33,21 @@ class spgateway_spgateway_api {
   /**
    * $apiParams must has these fields: 
    *   apiType
-   *   paymentProcessorId
+   *   paymentProcessorId or paymentProcessor
    *   isTest
    */
   function __construct($apiParams) {
     extract($apiParams);
-    $mode = $isTest ? '' : 'test';
-    if (empty($paymentProcessorId)) {
-      CRM_Core_Error::fatal('Missing payment processor ID');
+    if (!empty($paymentProcessor)) {
+      $this->_paymentProcessor = $paymentProcessor;
     }
-    else {
+    else if (!empty($paymentProcessorId)) {
+      $mode = $isTest ? '' : 'test';
       $this->_paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($paymentProcessorId, $mode);
     }
-
+    else {
+      CRM_Core_Error::fatal('Missing payment processor or payment processor ID');
+    }
     if ($isTest) {
       $this->_urlDomain = SPGATEWAY_TEST_DOMAIN;
     }
@@ -101,6 +103,22 @@ class spgateway_spgateway_api {
     }
     if(!empty($missingRequired)) {
       CRM_Core_Error::fatal('Required parameters missing: '.implode(',', $missingRequired));
+    }
+
+    if (!empty($post['PeriodType']) xor !empty($post['PeriodPoint'])) {
+      CRM_Core_Error::fatal('PeriodType and PeriodPoint must exist at same time.');
+    }
+    if (!empty($post['PeriodType'])) {
+      if ($post['PeriodType'] == 'Y' && !preg_match('/\d{4}/', $post['PeriodPoint'])) {
+        CRM_Core_Error::fatal('PeriodPoint format should be MMDD when PeriodType is "Y".');
+      }
+      if ($post['PeriodType'] == 'M' && !preg_match('/\d{2}/', $post['PeriodPoint'])) {
+        CRM_Core_Error::fatal('PeriodPoint format should be DD when PeriodType is "M".');
+      }
+    }
+
+    if (!empty($post['PeriodTimes']) xor !empty($post['Extday'])) {
+      CRM_Core_Error::fatal('PeriodTimes and Extday must exist at same time.');
     }
 
     $this->_request = $post;
