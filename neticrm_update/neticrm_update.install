@@ -690,3 +690,10 @@ function neticrm_update_update_7288() {
 function neticrm_update_update_7289() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Refs #28110, correct premium message in template
+ */
+function neticrm_update_update_7290() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
