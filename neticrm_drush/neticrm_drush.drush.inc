@@ -312,7 +312,7 @@ function drush_neticrm_batch_run() {
     drush_log($msg, "ok");
   }
   else {
-    drush_log("Queue not run", "ok");
+    drush_log("Queue not run", "warning");
   }
 }
 
