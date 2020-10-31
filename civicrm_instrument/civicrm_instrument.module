@@ -208,7 +208,10 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         });
 ';
         drupal_add_js($js, 'inline');
-        $form->addElement('hidden', 'civicrm_instrument_id', reset($active_instruments));
+
+        // refs #29628, we can't really detect default instrument_id
+        // change back to 1 for further postprocess handling
+        $form->addElement('hidden', 'civicrm_instrument_id', 1);
       }
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
@@ -241,6 +244,16 @@ cj(document).ready(function($){';
 });
 ';
   drupal_add_js($js, 'inline', 'footer');
+      }
+      if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
+        $js = "
+        jQuery(document).ready(function($){
+          $('[class*=url_site]').hide();
+          $('[class*=url_api]').hide();
+          $('[class*=url_recur]').hide();
+        });
+        ";
+        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
       }
       break;
   }
@@ -366,6 +379,15 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
       break;
     // save instrument
     case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Contribute_Form_Contribution_Main':
+      // refs #29628, force use civicrm_instrument_dummy_id when different with default civicrm_instrument_id
+      if (!empty($form->_submitValues['civicrm_instrument_id_dummy']) && !empty($form->_submitValues['civicrm_instrument_id'])) {
+        if ($form->_submitValues['civicrm_instrument_id_dummy'] != $form->_submitValues['civicrm_instrument_id']) {
+          $form->_submitValues['civicrm_instrument_id'] = $form->_submitValues['civicrm_instrument_id_dummy'];
+          $form->_params[0]['civicrm_instrument_id'] = $form->_submitValues['civicrm_instrument_id_dummy'];
+          $form->set('params', $form->_params);
+        }
+      }
       break;
     case 'CRM_Contribute_Form_Contribution_Confirm':
       $cid = $form->_values['contribution_id'];
