@@ -19,17 +19,37 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
   }
 
   if (!empty($post['Period'])) {
-    $paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($pid, $isTest ? 'test': 'live');
-    $decryptParams = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($post['Period'], $paymentProcessor));
-    CRM_Core_Error::debug_var('spgateway_neweb_transfer_decrypt_params', $decryptParams);
-    $rid = $decryptParams['MerchantOrderNo'];
+    if (is_array($pid)) {
+      $pids = $pid;
+      foreach ($pids as $pid) {
+        $paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($pid, $isTest ? 'test': 'live');
+        $decryptParams = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($post['Period'], $paymentProcessor));
+        CRM_Core_Error::debug_var('spgateway_neweb_transfer_decrypt_params', $decryptParams);
+        if (!empty($decryptParams)) {
+          $rid = $decryptParams['MerchantOrderNo'];
+          break;
+        }
+      }
+      if (empty($pid)) {
+        watchdog('civicrm_spgateway.neweb', "You set multiple SPGATEWAY payment processors, but none of them are decryptable.");
+        echo "Error. Please check log.";
+        drupal_not_found();
+      }
+    }
+    else {
+      $paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($pid, $isTest ? 'test': 'live');
+      $decryptParams = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($post['Period'], $paymentProcessor));
+      CRM_Core_Error::debug_var('spgateway_neweb_transfer_decrypt_params', $decryptParams);
+      $rid = $decryptParams['MerchantOrderNo'];
+      CRM_Core_Error::debug_var('spgateway_neweb_transfer_rid', $rid);
+    }
   }
   else {
     watchdog('civicrm_spgateway.neweb', "\$post['Period'] not exist.");
     drupal_not_found();
   }
 
-  if (!empty($decryptParams)) {
+  if (!empty($decryptParams) && !empty($rid)) {
     // complex part to simulate spgateway ipn
     $ipn_result = $ipn_get = $ipn_post = array();
 
@@ -71,5 +91,9 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_response', $result->_response);
     echo $result->_response;
   }
-
+  else {
+    $msg = 'Error. Decrypt error or Recurring ID is not found.';
+    watchdog('civicrm_spgateway.neweb', $msg);
+    echo $msg;
+  }
 }
