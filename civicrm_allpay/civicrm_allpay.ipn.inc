@@ -138,7 +138,7 @@ class CRM_Core_Payment_ALLPAYIPN extends CRM_Core_Payment_BaseIPN {
     $pass = TRUE;
     
     // check contribution id matches
-    if ( $contribution->trxn_id != $input['MerchantTradeNo'] ) {
+    if (!strstr($contribution->trxn_id, $input['MerchantTradeNo'])) {
       watchdog("civicrm_allpay", "OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$input['MerchantTradeNo']} " );
       $note .= ts("Failuare: OrderNumber values doesn't match between database and IPN request. {$contribution->trxn_id} : {$input['MerchantTradeNo']}")."\n";
       $pass = FALSE;
