@@ -150,8 +150,10 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             $civicrm_instrument_id = $saved_params['civicrm_instrument_id'];
           }
           $display = civicrm_spgateway_notify_display($info, $civicrm_instrument_id);
-          if(!empty($contrib_values['id'])){
+          $isSend = $form->get('invoice_sended', FALSE);
+          if(!empty($contrib_values['id']) && !$isSend){
             civicrm_spgateway_notify_generate($contrib_values['id'], TRUE); // send mail
+            $form->set('invoice_sended', TRUE);
           }
           $form->assign('payment_instrument', $display); 
 
@@ -365,7 +367,7 @@ function civicrm_spgateway_recur_sync($days = array()){
  */
 function civicrm_spgateway_recur_check($recurring_id) {
   civicrm_initialize();
-  module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.ipn');
+  module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
    
   // get latest trxn_id civicrm_contribution
   // whatever contribution success or not, trxn_id will increase number
@@ -441,6 +443,7 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
         $result = _civicrm_spgateway_postdata($urlApi, $request_data);
       }
 
+      // Online contribution
       if (!empty($result) && $result->Status == 'SUCCESS') {
         if ($create_contribution && $contribution->id) {
           // complex part to simulate spgateway ipn
