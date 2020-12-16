@@ -126,13 +126,57 @@ class spgateway_spgateway_api {
     $result = $this->_curl();
     if ($result['status'] && !empty($this->_response)) {
 
-      // Format of amount
-      $response =& $this->_response;
-      if(!empty($response->amount) && $response->currency != 'TWD') {
-        $response->amount = (float)$response->amount / 100;
+      // Curl Correct and have response
+
+      if ($this->_response->Status == 'SUCCESS') {
+        // Format Every thing.
+        // Format of amount
+        $response =& $this->_response;
+        if(!empty($response->amount) && $response->currency != 'TWD') {
+          $response->amount = (float)$response->amount / 100;
+        }
+
+        $apiResult = $this->_response->Result;
+
+        // For AlterType API
+        $resultType = $apiResult->AlterType;
+        if (!empty($resultType)) {
+          $statusReverseMap = array_flip(CRM_Core_Payment_SPGATEWAY::$_statusMap);
+          $recurResult['contribution_status_id'] = $statusReverseMap[$resultType];
+        }
+        if (!empty($result['NewNextTime'])) {
+          $recurResult['next_sched_contribution'] = $result['NewNextTime'];
+        }
+
+        // For AlterOther API
+        if (!empty($apiResult->PeriodType)) {
+          $unitReverseMap = array_flip(CRM_Core_Payment_SPGATEWAY::$_unitMap);
+          $recurResult['frequency_unit'] = $unitReverseMap[$apiResult->PeriodType];
+        }
+        $result['cycle_day'] = $apiResult->PeriodPoint;
+        if (!empty($apiResult->NewNextAmt) && $apiResult->NewNextAmt != '-') {
+          $recurResult['amount'] = $apiResult->NewNextAmt;
+        }
+        if (!empty($apiResult->NewNextTime)) {
+          $recurResult['next_sched_contribution'] = $apiResult->NewNextTime;
+        }
+
+        return $recurResult;
+      }
+      else {
+        $errResult['is_error'] = 1;
+        $errResult['msg'] = $this->_response->Status.': '.$this->_response->Message;
+        return $errResult;
       }
 
-      return $this->_response;
+    }
+    else if ($result['success'] == 0){
+      // Curl Error
+      $return = array(
+        'is_error' => 1,
+        'msg' => reset($result['curlError']),
+      );
+      return $return;
     }
     else {
       return FALSE;
