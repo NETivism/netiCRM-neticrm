@@ -117,10 +117,6 @@ class spgateway_spgateway_api {
       }
     }
 
-    if (!empty($post['PeriodTimes']) xor !empty($post['Extday'])) {
-      CRM_Core_Error::fatal('PeriodTimes and Extday must exist at same time.');
-    }
-
     $this->_request = $post;
     $this->_apiURL = $this->_urlDomain.self::$_apiTypes[$this->_apiType];
     $result = $this->_curl();
