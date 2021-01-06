@@ -15,7 +15,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       $entity_id = $_GET['id'] ? $_GET['id'] : ($form->_defaultValues['id'] ? $form->_defaultValues['id'] : NULL);
       if($entity_id){
         $entity_table = $form_name == 'CRM_Contribute_Form_ContributionPage_Amount' ? 'civicrm_contribution_page' : 'civicrm_event';
-//civicrm_contribution_page
+        //civicrm_contribution_page
         $saved_instruments = CRM_Core_DAO::singleValueQuery("SELECT payment_instruments FROM civicrm_instrument WHERE entity_id = {$entity_id} AND entity_table = '{$entity_table}'");
         $saved_instruments = unserialize($saved_instruments);
         $default_instruments = array(
@@ -261,7 +261,7 @@ jQuery(document).ready(function($){';
           // Make Checkbox For Control Spgateway Recurring API Enable;
           $js = "
           jQuery(document).ready(function($){
-            $('fieldset [class^=\"crm-paymentProcessor-\"]:last-child').each(function(i, e){
+            $('fieldset [class^=\"crm-paymentProcessor-\"][class$=\"url_recur\"]').each(function(i, e){
               var je = $(e);
               document.e = e;
               var trClass = e.className+'-api-checkbox-wrapper';
