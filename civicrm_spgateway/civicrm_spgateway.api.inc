@@ -217,6 +217,7 @@ class spgateway_spgateway_api {
     $ch = curl_init($this->_apiURL);
     $opt = array();
     $opt[CURLOPT_RETURNTRANSFER] = TRUE;
+    $opt[CURLOPT_SSL_VERIFYPEER] = FALSE;
     if($this->_apiMethod == 'POST'){
       $requestString = http_build_query($this->_request, '', '&');
       $postDataString = _civicrm_spgateway_recur_encrypt($requestString, $this->_paymentProcessor);
