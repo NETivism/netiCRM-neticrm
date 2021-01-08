@@ -498,27 +498,49 @@ function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActiv
   }
 }
 
+/**
+ * return Array;
+ */
 function _civicrm_spgateway_post_decode($post = null){
-  // Make $post be the object.
   $data = empty($post) ? $_POST : $post;
-  if(!empty($data['JSONData'])){
+  if (is_object($data)) {
+    $data = (array) $data;
+  }
+  if (is_array($data) && !empty($data['JSONData'])){
+    // decode JSONData
     $data = $data['JSONData'];
   }
-
-  while(is_string($data)){
-    $data = json_decode($data);
-  }
-  $jsonData = $data;
-
-  if(isset($jsonData->Result)){
-    if(is_string($jsonData->Result)){
-      $return = json_decode($jsonData->Result, true);
-    }else{
-      $return = (array) $jsonData->Result;
+  if (is_string($data) && json_decode($data)){
+    $data = json_decode($data, TRUE);
+    if (is_string($data) && json_decode($data)) {
+      // Sometimes, neweb will return 2 times encode json.
+      $data = json_decode($data, TRUE);
     }
-    $return['Status'] = $jsonData->Status;
-    if (empty($return['Message'] && !empty($jsonData->Message))) {
-      $return['Message'] = $jsonData->Message;
+  }
+
+  $return = $data;
+
+  // flatten the jsonData object to 1-dimension array.
+  if(isset($data['Result'])){
+    if(is_string($data['Result']) && json_decode($data['Result'], true)){
+      $return = $dataResult = json_decode($data['Result'], true);
+    }
+    else {
+      $return = $dataResult = (array) $data['Result'];
+    }
+    if (!empty($data['Status'])) {
+      if (empty($return['Status'])) {
+        $return['Status'] = $data['Status'];
+        // status is in origin data, not in 'Result' object.
+      }
+      else {
+        $return['_RequestStatus'] = $data['Status'];
+        // The condition jsonData status is success, but the error status is in 'Result' attribute.
+      }
+    }
+    if (empty($dataResult['Message']) && !empty($data['Message'])) {
+      // 'Result' has no 'Message', use original 'Message'.
+      $return['Message'] = $data['Message'];
     }
   }
   return $return;
