@@ -253,7 +253,8 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
           $params['trxn_id'] = $input['PeriodNo'];
           if (!empty($input['AuthTimes']) && $input['AuthTimes'] != $params['installments']) {
             $params['installments'] = $input['AuthTimes'];
-            $params['message'] = ts('Modify installments by newebpay return data.');
+            $params['message'] = ts('Modify installments by Newebpay data.');
+            CRM_Contribute_BAO_ContributionRecur::addNote($recur->id, $params['message']);
           }
           CRM_Contribute_BAO_ContributionRecur::add($params, $null);
         }
