@@ -88,6 +88,10 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
       );
       CRM_Core_DAO::executeQuery($query, $params);
     }
+    $recur_processor_id = CRM_Core_DAO::getFieldValue("CRM_Contribute_DAO_ContributionRecur", $rid, "processor_id");
+    if ($recur_processor_id != $pid) {
+      CRM_Core_DAO::setFieldValue("CRM_Contribute_DAO_ContributionRecur", $rid, "processor_id", $pid);
+    }
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_response', $result->_response);
     echo $result->_response;
   }

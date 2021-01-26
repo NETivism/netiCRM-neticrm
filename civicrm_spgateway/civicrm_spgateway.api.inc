@@ -28,6 +28,7 @@ class spgateway_spgateway_api {
   public $_request;
   public $_response;
   public $_success;
+  public $_curlResult;
 
 
   /**
@@ -119,7 +120,7 @@ class spgateway_spgateway_api {
 
     $this->_request = $post;
     $this->_apiURL = $this->_urlDomain.self::$_apiTypes[$this->_apiType];
-    $result = $this->_curl();
+    $result = $this->_curlResult = $this->_curl();
     if ($result['status'] && !empty($this->_response)) {
 
       // Curl Correct and have response
@@ -166,7 +167,7 @@ class spgateway_spgateway_api {
       }
 
     }
-    else if ($result['success'] == 0){
+    else if ($result['success'] == FALSE && $result['status'] == 0){
       // Curl Error
       $return = array(
         'is_error' => 1,
@@ -174,7 +175,17 @@ class spgateway_spgateway_api {
       );
       return $return;
     }
+    else if (empty($this->_response)) {
+      // No any response, need to ask Newebpay
+      CRM_Core_Error::debug('NewebPay api request as empty response', $this);
+      $return = array(
+        'is_error' => 1,
+        'msg' => ts('The response from payment provider is empty.'),
+      );
+      return $return;
+    }
     else {
+      CRM_Core_Error::debug('NewebPay api request else', $this);
       return FALSE;
     }
   }
@@ -202,6 +213,7 @@ class spgateway_spgateway_api {
     $ch = curl_init($this->_apiURL);
     $opt = array();
     $opt[CURLOPT_RETURNTRANSFER] = TRUE;
+    $opt[CURLOPT_SSL_VERIFYPEER] = FALSE;
     if($this->_apiMethod == 'POST'){
       $requestString = http_build_query($this->_request, '', '&');
       $postDataString = _civicrm_spgateway_recur_encrypt($requestString, $this->_paymentProcessor);
