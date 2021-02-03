@@ -25,7 +25,7 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
         $paymentProcessor = CRM_Core_BAO_PaymentProcessor::getPayment($pid, $isTest ? 'test': 'live');
         $decryptParams = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($post['Period'], $paymentProcessor));
         CRM_Core_Error::debug_var('spgateway_neweb_transfer_decrypt_params', $decryptParams);
-        if (!empty($decryptParams)) {
+        if (!empty($decryptParams['MerchantOrderNo'])) {
           $rid = $decryptParams['MerchantOrderNo'];
           break;
         }
