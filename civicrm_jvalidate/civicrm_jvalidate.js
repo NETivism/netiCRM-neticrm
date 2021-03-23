@@ -103,43 +103,55 @@
     }
 
     // phone type change
-    if (admin) {
-      $(".contact_information-section").on("change", "select[name*='phone_type_id']", function(){
-        var type_id = Number($(this).val());
-        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-          $(this).unbind(".amask");
-          $(this).unbind("input");
-          if(type_id == 2){
-            mobile_mask(this);
-          }
-          else if(type_id == 1 || type_id == 3){
-            phone_mask(this);
-          }else{
-            $(this).rules('remove');
-            $(this).unmask();
-            var fid = $(this).attr("id");
-            $("span[rel="+fid+"]").remove();
-          }
-        });
+    var adminPhoneSelect = function() {
+      var type_id = Number($(obj).val());
+      $(obj).parents('tr:first').find("input[name$='[phone]']").each(function(){
+        $(obj).unbind(".amask");
+        $(obj).unbind("input");
+        if(type_id == 2){
+          mobile_mask(obj);
+        }
+        else if(type_id == 1 || type_id == 3){
+          phone_mask(obj);
+        }else{
+          $(obj).rules('remove');
+          $(obj).unmask();
+          var fid = $(obj).attr("id");
+          $("span[rel="+fid+"]").remove();
+        }
       });
     }
-    else {
-      $("select[name*='phone_type_id']").on("change", function(){
-        var type_id = Number($(this).val());
-        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-          if(type_id == 2){
-            mobile_mask(this);
-          }
-          else if(type_id == 1 || type_id == 3){
-            phone_mask(this);
-          }else{
-            $(this).rules('remove');
-            $(this).unmask();
-            var fid = $(this).attr("id");
-            $("span[rel="+fid+"]").remove();
-          }
-        });
+    var normalPhoneSelect = function(obj) {
+      var type_id = Number($(obj).val());
+      $(obj).parents('tr:first').find("input[name$='[phone]']").each(function(){
+        if(type_id == 2){
+          mobile_mask(obj);
+        }
+        else if(type_id == 1 || type_id == 3){
+          phone_mask(obj);
+        }else{
+          $(obj).rules('remove');
+          $(obj).unmask();
+          var fid = $(obj).attr("id");
+          $("span[rel="+fid+"]").remove();
+        }
       });
+    }
+    if (admin) {
+      if (typeof $(".contact_information-section").on !== 'undefined') {
+        $(".contact_information-section").on("change", "select[name*='phone_type_id']", adminPhoneSelect);
+      }
+      else {
+        $(".contact_information-section select[name*='phone_type_id']").live("change", adminPhoneSelect);
+      }
+    }
+    else {
+      if (typeof $("select[name*='phone_type_id']").on !== 'undefined') {
+        $("select[name*='phone_type_id']").on("change", normalPhoneSelect);
+      }
+      else {
+        $("select[name*='phone_type_id']").live("change", normalPhoneSelect);
+      }
     }
   }
 
