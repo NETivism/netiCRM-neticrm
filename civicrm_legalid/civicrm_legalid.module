@@ -27,26 +27,11 @@ function civicrm_legalid_civicrm_validate( $formName, &$fields, &$files, &$form 
   if ($formName == 'CRM_Contact_Form_Contact') {
     $contactID = $form->getVar( '_contactId' );
     if ( !empty($fields['legal_identifier']) ) {
-/*
-TODO: need to change to Taiwan id verify
-      $preg = "/^\\d{3}[- ]?\\d{2}[- ]?\\d{4}$/";
-      $match = preg_match($preg, $fields['legal_identifier'] ) ? true : false;
-      if ( !$match ) {
-        $errors['legal_identifier'] = ts('Enter valid SSN number.');
-      }
-*/
-      // length
-      /*
-      if(strlen($fields['legal_identifier']) < 10){
-        $errors['legal_identifier'] = ts('Enter valid personal identifier number.');
-      }
-      */
-
       // duplicate
       $qvar = array( 
         1 => array($fields['legal_identifier'], 'String' ),
       );
-      $sql = "SELECT id, display_name FROM civicrm_contact WHERE is_deleted = 0 AND legal_identifier = %1";
+      $sql = "SELECT id, display_name FROM civicrm_contact WHERE is_deleted = 0 AND LOWER(legal_identifier) = %1";
       if($contactID){
         // when update
         $qvar[2] = array($contactID, 'Integer' );
