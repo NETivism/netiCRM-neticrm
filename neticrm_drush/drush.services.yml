@@ -1,0 +1,5 @@
+services:
+  neticrm.commands:
+    class: Drupal\neticrm_drush\Commands\NeticrmCommands
+    tags:
+      -  { name: drush.command }

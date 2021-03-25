@@ -1,0 +1,20 @@
+drush_neticrm_schedule:
+  run_civimail: 
+    frequency: 180
+    last: 0
+  run_civimail_process:
+    frequency: 7200
+    last: 0
+  run_contact_greeting_update:
+    frequency: 21600 
+    last: 0
+  run_membership_status_update:
+    frequency: 86399 
+    last: 0
+  run_participant_processor:
+    frequency: 3600 
+    last: 0
+  run_civireport_mail:
+    frequency: 86399 
+    last: 0
+    hour: '6-8'

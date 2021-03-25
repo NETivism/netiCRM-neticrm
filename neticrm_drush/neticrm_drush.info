@@ -1,6 +1,0 @@
-name = netiCRM drush 
-description = Port some of drush command from civicrm to netiCRM
-version = 2.0
-dependencies[] = civicrm
-package = netiCRM
-core = 7.x
