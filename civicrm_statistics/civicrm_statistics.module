@@ -1,29 +1,29 @@
 <?php
 function civicrm_statistics_cron(){
-  module_load_include('inc', 'civicrm_statistics', 'civicrm_statistics.stat');
-
   // only collect who has membership profile, because we need to know if they opt-out
-  $member = variable_get('neticrm_preset_membership', array());
+  $member = \Drupal::config('neticrm_preset')->get('membership');
   if (empty($member['status'])) {
     return;
   }
+  module_load_include('inc', 'civicrm_statistics', 'civicrm_statistics.stat');
 
-  if($_SERVER['REQUEST_TIME'] - variable_get('civicrm_statistics_run', 0) > 80000 && empty($member['optout_crm_stat'])){
+  $last = \Drupal::state()->get('civicrm_statistics.last_cron', 0);
+  if($_SERVER['REQUEST_TIME'] - $last > 80000 && empty($member['optout_crm_stat'])){
     civicrm_statistics_fetch();
   }
 
-  $year = (int)date('Y');
+  $year = (int) date('Y');
   // only fetch last year at January
-  if ($_SERVER['REQUEST_TIME'] >= strtotime("$year-01-08") &&
+  if ($_SERVER['REQUEST_TIME'] >= strtotime("$year-01-25") &&
       $_SERVER['REQUEST_TIME'] <= strtotime("$year-01-31") &&
       empty($member['optout_crm_stat'])) {
     $base_year = $year - 1;
-    $exists = variable_get('civicrm_statistics_run_annual', array());
-    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 60000) && date('G') >= 3 && date('G') <= 14) {
+    $annual = \Drupal::state()->get('civicrm_statistics.last_annual_cron', []);
+    if (($_SERVER['REQUEST_TIME'] - $annual[$base_year] >= 60000) && date('G') >= 3 && date('G') <= 14) {
       sleep(mt_rand(1, 60)); // multiple sites will fetch at the same time, delay awhile for each site
       civicrm_statistics_annual_fetch($base_year, TRUE);
-      $exists[$base_year] = $_SERVER['REQUEST_TIME'];
-      variable_set('civicrm_statistics_run_annual', $exists);
+      $annual[$base_year] = $_SERVER['REQUEST_TIME'];
+      \Drupal::state()->set('civicrm_statistics.last_annual_cron', $annual);
     }
   }
 
@@ -32,13 +32,13 @@ function civicrm_statistics_cron(){
       $_SERVER['REQUEST_TIME'] <= strtotime("$year-12-31") &&
       empty($member['optout_crm_stat'])) {
     $base_year = $year;
-    $exists = variable_get('civicrm_statistics_run_annual', array());
+    $annual = \Drupal::state()->get('civicrm_statistics.last_annual_cron', []);
     // every 30 days, we collect data of current year
-    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 86400*30) && date('G') >= 3 && date('G') <= 7) {
+    if (($_SERVER['REQUEST_TIME'] - $annual[$base_year] >= 86400*30) && date('G') >= 3 && date('G') <= 7) {
       sleep(mt_rand(1, 60)); // multiple sites will fetch at the same time, delay awhile for each site
       civicrm_statistics_annual_fetch($base_year, TRUE);
-      $exists[$base_year] = $_SERVER['REQUEST_TIME'];
-      variable_set('civicrm_statistics_run_annual', $exists);
+      $annual[$base_year] = $_SERVER['REQUEST_TIME'];
+      \Drupal::state()->set('civicrm_statistics.last_annual_cron', $annual);
     }
   }
 }

@@ -96,22 +96,18 @@ function civicrm_statistics_fetch($debug = false){
       $stat[$t] = $rows;
     }
     else{
-      $options = array(
-        'method' => 'POST',
-        'data' => http_build_query(array('stat' => json_encode($rows)), '', '&'),
-        'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
-      );
-      $response = drupal_http_request($url, $options);
-      if($response->code == 200 && $response->data){
-        $stat[$t] = $response->data;
-      }
+      $client = \Drupal::httpClient();
+      $client->post($url, [
+        'form_params' => [
+          'stat' => json_encode($rows),
+        ]
+      ]);
       sleep(mt_rand(1, 3));
     }
   }
 
   if(!empty($stat) && !$debug){
-    variable_set('civicrm_statistics_run', $_SERVER['REQUEST_TIME'] + 300*mt_rand(2, 20));
-    variable_set('civicrm_statistics', $stat);
+    \Drupal::state()->set('civicrm_statistics.last_cron', $_SERVER['REQUEST_TIME'] + 300*mt_rand(2, 20));
   }
   elseif($debug){
     print_r($stat);
@@ -199,25 +195,21 @@ function civicrm_statistics_normalize(&$rows, $num){
 
 function civicrm_statistics_annual_fetch($base_year, $force = FALSE) {
   civicrm_initialize();
-  $membership = variable_get("neticrm_preset_membership", array());
-  $cache = cache_get('civicrm_statistics_annual_'.$base_year);
-  if ($cache && $cache->data && !$force) {
-    $result = $cache->data;
-  }
-  else {
+  $result = CRM_Core_BAO_Cache::getItem('civicrm_statistics_annual', $base_year, NULL, REQUEST_TIME - 86400);
+  if (empty($result)) {
     $result = civicrm_statistics_annual_data($base_year);
-    cache_set('civicrm_statistics_annual_'.$base_year, $result, 'cache', time() + 86400*7);
+    CRM_Core_BAO_Cache::setItem($result, 'civicrm_statistics_annual', $base_year);
   }
 
   if (!empty($result)) {
     $sitekey = $_SERVER['HTTP_HOST'];
     $url = civicrm_statistics_build_fetch_url($sitekey, 'annual', $base_year);
-    $options = array(
-      'method' => 'POST',
-      'data' => http_build_query(array('stat' => json_encode($result)), '', '&'),
-      'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
-    );
-    $response = drupal_http_request($url, $options);
+    $client = \Drupal::httpClient();
+    $client->post($url, [
+      'form_params' => [
+        'stat' => json_encode($result),
+      ]
+    ]);
   }
 
   return $result;

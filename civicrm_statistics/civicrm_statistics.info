@@ -1,6 +1,0 @@
-name = CiviCRM Statistics 
-description = Check statistics data from netiCRM to know avarage number of your organization.
-package = NetiCRM
-core = 7.x
-version = 7.x-2.0
-dependencies[] = civicrm

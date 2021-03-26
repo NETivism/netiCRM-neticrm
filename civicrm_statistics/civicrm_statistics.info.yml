@@ -1,0 +1,9 @@
+name: CiviCRM Statistics 
+type: module
+description: Check statistics data from netiCRM to know avarage number of your organization.
+package: netiCRM
+core: 8.x
+version: 8.x-3.0
+dependencies:
+  - civicrm
+core_version_requirement: ^8 || ^9
