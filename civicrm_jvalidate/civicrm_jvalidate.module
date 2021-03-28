@@ -1,7 +1,45 @@
 <?php
+
+function civicrm_jvalidate_page_attachments(array &$page) {
+  // $result = \Drupal::service('library.discovery')->getLibraryByName('civicrm_jvalidate', 'civicrm.jvalidate');
+  // $page['#attached']['library'][] = 'civicrm/civicrm.jvalidate';
+  $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  $config = array('jvalidate' => array(
+    'ext'=> t('Phone Ext.'),
+    'extprompt' => t('Enter phone number Ext.'),
+    'notw' => t('other format?'),
+    'notwprompt' => t('Enter id below.'),
+    'imeNotify' => t('Please close your Input Method to input number'),
+    'lang' => $lang,
+    'phoneMask' => '',
+    'mobileMask' => '',
+    'phoneValidator' => '',
+  ));
+  $page['#attached']['drupalSettings'] += $config;
+}
+
+function civicrm_jvalidate_library_info_alter(&$libraries, $extension) {
+  if ($extension == 'civicrm') {
+    $jvalidate = array('weight' => -5, 'header' => TRUE);
+    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/jquery.validate.min.js'] = $jvalidate;
+    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/localization/messages_tw.js'] = $jvalidate;
+    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/custom-methods.js'] = $jvalidate;
+    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/jquery.maskedinput.js'] = $jvalidate;
+    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/civicrm_jvalidate.js'] = $jvalidate;
+  }
+}
+
+/*
+function civicrm_jvalidate_preprocess_page(&$variables){
+  $variables['page']['#attached']['library'][] = 'civicrm_jvalidate/civicrm.jvalidate';
+}
+*/
+
+
 /**
  * Implementation of hook_civicrm_buildForm().
  */
+/*
 function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
   static $add;
 
@@ -48,15 +86,13 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
     $options = array(
       'type' => 'file',
     );
-    drupal_add_js($config, 'setting');
+    CRM_Utils_System::addJs($config, array('type' => 'settings'));
     $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
-    drupal_add_js($path."/js/jquery.validate$min.js", $options);
+    // drupal_add_js($path."/js/jquery.validate$min.js", $options);
     if($config['jvalidate']['lang'] == "zh-hant"){
-      drupal_add_js($path.'/js/localization/messages_tw.js', $options);
+      // drupal_add_js($path.'/js/localization/messages_tw.js', $options);
     }
-    drupal_add_js($path.'/js/custom-methods.js', $options);
-    drupal_add_js($path.'/js/jquery.maskedinput.js', $options);
-    drupal_add_js($path.'/civicrm_jvalidate.js', $options);
     $add = TRUE;
   }
 }
+*/

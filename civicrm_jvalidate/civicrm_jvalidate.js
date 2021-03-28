@@ -1,5 +1,4 @@
 (function($){
-  jvalidateSetting = Drupal.settings.jvalidate;
 
   $.amask.definitions['~']='[1-9]';
   $.amask.definitions['o']='[0]';
@@ -19,14 +18,14 @@
         var validatedDefault = true;
       }
       if (!$(obj).val() || validatedDefault) {
-        if (Drupal.settings.jvalidate.phoneValidator) {
-          $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+        if (drupalSettings.jvalidate.phoneValidator) {
+          $(obj).rules("add", drupalSettings.jvalidate.phoneValidator);
         }
         else{
           $(obj).rules("add", "twphone");
         }
-        if (Drupal.settings.jvalidate.mobileMask) {
-          $(obj).amask(Drupal.settings.jvalidate.mobileMask);
+        if (drupalSettings.jvalidate.mobileMask) {
+          $(obj).amask(drupalSettings.jvalidate.mobileMask);
         }
         else{
           $(obj).amask("oz99-999999");
@@ -40,15 +39,15 @@
         var validatedDefault = true;
       }
       if (!$(obj).val() || validatedDefault) {
-        if (Drupal.settings.jvalidate.phoneValidator) {
-          $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
+        if (drupalSettings.jvalidate.phoneValidator) {
+          $(obj).rules("add", drupalSettings.jvalidate.phoneValidator);
         }
         else {
           $(obj).rules("add", "twphone");
         }
 
-        if (Drupal.settings.jvalidate.phoneMask) {
-          $(obj).amask(Drupal.settings.jvalidate.phoneMask);
+        if (drupalSettings.jvalidate.phoneMask) {
+          $(obj).amask(drupalSettings.jvalidate.phoneMask);
         }
         else{
           $(obj).amask("o~-9999999?##########");
@@ -57,10 +56,10 @@
       // add phone ext box.
       var fid = $(obj).attr("id");
       $("span[rel="+fid+"]").remove();
-      $('<span href="#" class="extend" rel="'+fid+'"> +'+Drupal.settings.jvalidate.ext+'</span>').insertAfter(obj);
+      $('<span href="#" class="extend" rel="'+fid+'"> +'+drupalSettings.jvalidate.ext+'</span>').insertAfter(obj);
       $("span[rel='"+fid+"']").css({cursor:"pointer",color:"green"});
       $("span[rel='"+fid+"']").click(function(){
-        var ext = prompt(Drupal.settings.jvalidate.extprompt);
+        var ext = prompt(drupalSettings.jvalidate.extprompt);
         if(ext != null && ext != ""){
           var f = '#'+$(this).attr("rel");
           var v = $(f).val().replace(/#.*/, '');
@@ -168,10 +167,10 @@
     // add id validate remove rule.
     var fid = $(obj).attr("id");
     $("span[rel="+fid+"]").remove();
-    $('<span href="#" class="valid-id" rel="'+fid+'"> '+Drupal.settings.jvalidate.notw+'</span>').insertAfter(obj);
+    $('<span href="#" class="valid-id" rel="'+fid+'"> '+drupalSettings.jvalidate.notw+'</span>').insertAfter(obj);
     $("span[rel='"+fid+"']").css({cursor:"pointer",color:"green"});
     $("span[rel='"+fid+"']").click(function(){
-      var notw = prompt(Drupal.settings.jvalidate.notwprompt);
+      var notw = prompt(drupalSettings.jvalidate.notwprompt);
       if(notw != null && notw != ""){
         $(obj).rules("remove", "twid");
         $(obj).unmask();
@@ -205,8 +204,8 @@
   };
 
   $(document).ready(function(){
-    var lang = Drupal.settings.jvalidate.lang;
-    var skiptwcheck = typeof(Drupal.settings.skiptwcheck) == 'undefined' ? 0 : 1;
+    var lang = drupalSettings.path.currentLanguage;
+    var skiptwcheck = typeof(drupalSettings.skiptwcheck) == 'undefined' ? 0 : 1;
     var path = parse_url('path', document.URL);
     var action = parse_url('action', document.URL) == 'update' ? 'update' : 'add';
     var admin = path.match('civicrm/contact/add') ? 1 : 0;

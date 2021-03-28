@@ -81,7 +81,7 @@ $.fn.extend({
       preventDoubleInput = 0,
       isIME;
 
-    var jvalidateSetting = Drupal.settings.jvalidate;
+    var jvalidateSetting = drupalSettings.jvalidate;
     var imeCompositionEnabled = false;
     var imeKeydownEnabled = false;
     var imeNotifyMsg = jvalidateSetting.imeNotify;
