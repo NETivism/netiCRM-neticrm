@@ -1,4 +1,0 @@
-<?php
-function civicrm_twaddress_install() {
-  db_query("UPDATE {system} SET weight = 50 WHERE name = 'civicrm_twaddress'");
-}
