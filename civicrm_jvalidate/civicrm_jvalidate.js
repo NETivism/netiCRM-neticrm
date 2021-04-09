@@ -15,7 +15,8 @@
 
       // check format first, if correct, apply mask
       var validatedDefault = false;
-      if ($(obj).val() && $(obj).val().match(/^09\d{2}-?\d{6}$/)) {
+      // refs #31241, this regex /^09-*\d{2}-*?\d{6}_*$/ is tested when switch between phone type
+      if ($(obj).val() && ($(obj).val().match(/^09-*\d{2}-*?\d{6}_*$/) || $(obj).val().match(/^[_]*-[_]*$/) )) {
         var validatedDefault = true;
       }
       if (!$(obj).val() || validatedDefault) {
@@ -33,13 +34,13 @@
         }
       }
     }
-    var phone_mask = function(obj){
+    var phone_mask = function(obj, force){
       $(obj).css("max-width", "280px")
       var validatedDefault = false;
-      if ($(obj).val() && $(obj).val().match(/^0\d{1}-?\d+#?\d*$/)) {
+      if ($(obj).val() && ( $(obj).val().match(/^0\d{1}-?\d+#?\d*$/) || $(obj).val().match(/^[_]*-[_]*$/) )) {
         var validatedDefault = true;
       }
-      if (!$(obj).val() || validatedDefault) {
+      if (!$(obj).val() || validatedDefault || force) {
         if (Drupal.settings.jvalidate.phoneValidator) {
           $(obj).rules("add", Drupal.settings.jvalidate.phoneValidator);
         }
@@ -102,31 +103,45 @@
       phone_mask(obj);
     }
 
-    // phone type change
     if (admin) {
+      var refreshMask = function(obj, type_id, force) {
+        $(obj).next('.error').remove();
+        $(obj).unbind(".amask");
+        $(obj).unbind("input");
+
+        if(type_id == 2){
+          mobile_mask(obj);
+        }
+        else if(type_id == 1 || type_id == 3){
+          phone_mask(obj, force);
+        }
+        else{
+          $(obj).rules('remove');
+          $(obj).unmask();
+          var fid = $(obj).attr("id");
+          $("span[rel="+fid+"]").remove();
+        }
+      }
+
+      // phone type change
       $(".contact_information-section").on("change", "select[name*='phone_type_id']", function(){
         var type_id = Number($(this).val());
-        $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
-          $(this).unbind(".amask");
-          $(this).unbind("input");
-          if(type_id == 2){
-            mobile_mask(this);
-          }
-          else if(type_id == 1 || type_id == 3){
-            phone_mask(this);
-          }else{
-            $(this).rules('remove');
-            $(this).unmask();
-            var fid = $(this).attr("id");
-            $("span[rel="+fid+"]").remove();
-          }
+        $(this).closest('tr').find("input[name$='[phone]']").each(function(){
+          refreshMask(this, type_id);
         });
+      });
+      
+      // phone input paste
+      $(".contact_information-section").on("focus", "input[name$='[phone]']", function(){
+        var type_id = Number($(this).closest('tr').find("select[name*='phone_type_id']").val());
+        refreshMask(this, type_id);
       });
     }
     else {
       $("select[name*='phone_type_id']").on("change", function(){
         var type_id = Number($(this).val());
         $(this).parents('tr:first').find("input[name$='[phone]']").each(function(){
+          $(this).next('.error').remove();
           if(type_id == 2){
             mobile_mask(this);
           }
