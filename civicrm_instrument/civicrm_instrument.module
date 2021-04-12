@@ -21,7 +21,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $default_instruments = array(
           'payment_instrument' => $saved_instruments,
         );
-        $gid = variable_get('civicrm_instrument_gid', 0);
+        $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'payment_instrument'");
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 AND name NOT LIKE 'ach%' ORDER BY weight ASC");
 
         $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
@@ -130,7 +130,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
       }
       else{
         $js = '
-        cj(document).ready(function($){
+        cj(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
             var is_recur = $("input[name=is_recur]:checked").val();
@@ -175,6 +175,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
           }
           cj("input[name=is_recur]").click(function(){
             checkRecur();
+            console.log("checkRecur");
           });
 
           if ($.isFunction($(document).on)) {
@@ -209,7 +210,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
           }
         });
 ';
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        CRM_Utils_System::addJs(array('type' => 'inline'), $js);
 
         // refs #29628, we can't really detect default instrument_id
         // change back to 1 for further postprocess handling
@@ -245,7 +246,7 @@ jQuery(document).ready(function($){';
         $js.='
 });
 ';
-  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+  CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), $js);
       }
       if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
         $js = "
@@ -255,7 +256,7 @@ jQuery(document).ready(function($){';
           $('[class*=url_recur]').hide();
         });
         ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), $js);
 
         if (defined('NETICRM_SPGATEWAY_RECURRING_API_ENABLE') && NETICRM_SPGATEWAY_RECURRING_API_ENABLE) {
           // Make Checkbox For Control Spgateway Recurring API Enable;
@@ -282,7 +283,7 @@ jQuery(document).ready(function($){';
             });
           });
           ";
-          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+          CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), $js);
 
           // Remove url_recur validation for url;
           foreach ($form->_rules['url_recur'] as $key => $rule) {
@@ -364,7 +365,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
             }
           }
         }
-        drupal_add_js(array('civicrm_instrument' => $js_settings), 'setting');
+        CRM_Utils_System::addJs(array('civicrm_instrument' => $js_settings), 'setting');
         if (!empty($errors)) {
           $js = 'cj(document).ready(function($){
     if ($("#crm-container label[for^=payment_instrument]").length) {
@@ -381,7 +382,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
       });
     }
   });';
-          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+          CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), $js);
         }
       }
       // continue validate with fee
@@ -474,7 +475,7 @@ function _civicrm_instrument_js_page($radios, &$form, $default_instrument = 0){
     $default_instrument = key($radios);
   }
   foreach($radios as $rid => $radio){
-    if (module_exists('civicrm_field_i18n')) {
+    if (\Drupal::moduleHandler()->moduleExists('civicrm_field_i18n')) {
       $radio['description'] = civicrm_field_i18n_t($radio['description']);
       $radio['label'] = civicrm_field_i18n_t($radio['label']);
     }
@@ -534,7 +535,7 @@ cj(document).ready(function($){
   });
 });
 ';
-  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+  drupal_addCRM_Utils_System::addJs_js(array('type' => 'inline', 'scope' => 'footer'), $js);
 }
 
 /**
@@ -545,7 +546,7 @@ function _civicrm_instrument_form_name($name){
 }
 
 function civicrm_instrument_by_id($id, $field = NULL){
-  $gid = variable_get('civicrm_instrument_gid', 0);
+  $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'payment_instrument'");
   if(!$field){
     $query = CRM_Core_DAO::exetuteQuery("SELECT * FROM civicrm_option_value WHERE id = {$id} AND option_group_id = {$gid}");
     return $query->fetch();
@@ -556,7 +557,7 @@ function civicrm_instrument_by_id($id, $field = NULL){
 }
 
 function civicrm_instrument_by_name($name, $field = NULL){
-  $gid = variable_get('civicrm_instrument_gid', 0);
+  $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'payment_instrument'");
   if(!$field){
     $query = CRM_Core_DAO::exetuteQuery("SELECT * FROM civicrm_option_value WHERE name = '{$name}' AND option_group_id = {$gid}");
     return $query->fetch();
@@ -574,14 +575,14 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
   if(!empty($radios)){
     if(count($radios) && $js){
       // attach by js
-      drupal_add_js(_civicrm_instrument_js_page($radios, $form, $default_instrument), array('type' => 'inline', 'scope' => 'footer'));
+      drupal_CRM_Utils_System::addJsadd_js(array('type' => 'inline', 'scope' => 'footer'), _civicrm_instrument_js_page($radios, $form, $default_instrument));
     }
     else{
       // attach by html
       if(count($radios) == 1){
         $rid = key($radios);
         $r = reset($radios);
-        if (module_exists('civicrm_field_i18n')) {
+        if (\Drupal::moduleHandler()->moduleExists('civicrm_field_i18n')) {
           $r['description'] = civicrm_field_i18n_t($r['description']);
           $r['label'] = civicrm_field_i18n_t($r['label']);
         }
@@ -603,7 +604,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
           $default_instrument = key($radios);
         }
         foreach($radios as $rid => $r){
-          if (module_exists('civicrm_field_i18n')) {
+          if (\Drupal::moduleHandler()->moduleExists('civicrm_field_i18n')) {
             $r['description'] = civicrm_field_i18n_t($r['description']);
             $r['label'] = civicrm_field_i18n_t($r['label']);
           }
@@ -638,7 +639,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
 }
 
 function _civicrm_instrument_prepare_active($entity_id, $entity_table){
-  $gid = variable_get('civicrm_instrument_gid', 0);
+  $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'payment_instrument'");
   $query_params = array(
     1 => array($entity_id, 'Integer'),
     2 => array($entity_table,'String'),
@@ -652,7 +653,7 @@ function _civicrm_instrument_prepare_active($entity_id, $entity_table){
   return $active_instruments;
 }
 function _civicrm_instrument_prepare_all(){
-  $gid = variable_get('civicrm_instrument_gid', 0);
+  $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'payment_instrument'");
   $all_instruments = array();
   $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 ORDER BY weight ASC");
   while($dao->fetch()){
@@ -667,40 +668,8 @@ function _civicrm_instrument_prepare_all(){
 }
 function _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments){
   $radios = array();
-  if(module_exists('civicrm_gw') && $processor_type == 'GW'){
-    $enabled_instruments = _civicrm_gw_instrument();
-    $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
-
-    foreach($enabled_instruments as $name => $i){
-      $radio_name = _civicrm_instrument_form_name($name);
-      if($active_instruments[$radio_name]){
-        $radios[$i['value']] = array(
-          'form_name'=> $radio_name,
-          'name'=> $name,
-          'label' => $i['label'],
-          'description' => $i['description'],
-        );
-      }
-    }
-  }
-  elseif(module_exists('civicrm_neweb') && $processor_type == 'Neweb'){
-    $enabled_instruments = _civicrm_neweb_instrument();
-    $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
-
-    foreach($enabled_instruments as $name => $i){
-      $radio_name = _civicrm_instrument_form_name($name);
-      if($active_instruments[$radio_name]){
-        $radios[$i['value']] = array(
-          'form_name'=> $radio_name,
-          'name'=> $name,
-          'label' => $i['label'],
-          'description' => $i['description'],
-        );
-      }
-    }
-  }
-  elseif(module_exists('civicrm_allpay') && strstr($processor_type, 'ALLPAY')){
-    $enabled_instruments = _civicrm_allpay_instrument();
+  if(strstr($processor_type, 'ALLPAY')){
+    $enabled_instruments = CRM_Core_Payment_ALLPAY::_civicrm_allpay_instrument();
     $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
     if($processor_type == 'ALLPAY'){
       $credit_card = $enabled_instruments['Credit Card'];
@@ -718,16 +687,16 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       if($name == 'Convenient Store'){
         $i['description'].='若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
         $js = 'function show_allpay_msg(){
-            $option = jQuery("[for=civicrm-instrument-dummy-11]");
+            $option = cj("[for=civicrm-instrument-dummy-11]");
             if($option.children("#civicrm-instrument-dummy-11").prop("checked")){
               $option.next(".hover-item").show();
             }else{
               $option.next(".hover-item").hide();
             }
           }
-          jQuery(function(){
+          cj(function(){
             show_allpay_msg();
-            jQuery(".civicrm-instrument-dummy input").change(show_allpay_msg);
+            cj(".civicrm-instrument-dummy input").change(show_allpay_msg);
           })';
         $css = '
         [for="civicrm-instrument-dummy-11"]+.hover-item {
@@ -744,8 +713,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
             $css
             </style>");
         }else{
-          drupal_add_js($js, 'inline');
-          drupal_add_css($css, 'inline');
+          CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+          // drupal_add_css($css, 'inline');
         }
       }
       $radio_name = _civicrm_instrument_form_name($name);
@@ -759,7 +728,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       }
     }
   }
-  elseif(module_exists('civicrm_spgateway') && strstr($processor_type, 'SPGATEWAY')){
+  elseif(strstr($processor_type, 'SPGATEWAY')){
     $enabled_instruments = _civicrm_spgateway_instrument();
     $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
     if($processor_type == 'SPGATEWAY'){
