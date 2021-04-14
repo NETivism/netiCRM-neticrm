@@ -59,6 +59,7 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     $ipn_result['Result']['MerchantOrderNo'] = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY id ASC LIMIT 1", $queryParams);
     $ipn_result['Status'] = $decryptParams['Status'];
     $ipn_result['Result']['OrderNo'] = 'r_'.$ipn_result['Result']['OrderNo'];
+    $periodNo = $ipn_result['Result']['PeriodNo'];
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_result', $ipn_result);
     $ipn_result = json_encode($ipn_result);
     $ipn_post = array('Period' => _civicrm_spgateway_recur_encrypt($ipn_result, $paymentProcessor));
@@ -87,6 +88,25 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
         2 => array($ids['contributionRecurID'], 'Positive'),
       );
       CRM_Core_DAO::executeQuery($query, $params);
+      // Check processor_id, trxn_id of contribution_recur
+      $sql = "SELECT trxn_id, processor_id FROM civicrm_contribution_recur WHERE id = %1";
+      $sqlParams = array( 1 => array($ids['contributionRecurID'], 'Positive'));
+      $recurDao = CRM_Core_DAO::executeQuery($sql, $sqlParams);
+      while ($recurDao->fetch()) {
+        if ($recurDao->processor_id != $pid) {
+          $recurParams['processor_id'] = $pid;
+        }
+        if ($recurDao->trxn_id != $periodNo) {
+          $recurParams['trxn_id'] = $periodNo;
+        }
+        if (!empty($recurParams)) {
+          $recurParams['id'] = $ids['contributionRecurID'];
+          $recurParams['message'] = ts('Modify parameters of original Newebpay by Newebpay data.');
+          CRM_Core_Error::debug_var('spgateway_neweb_transfer_update_recur_params', $recurParams);
+          CRM_Contribute_BAO_ContributionRecur::addNote($ids['contributionRecurID'], $recurParams['message']);
+          CRM_Contribute_BAO_ContributionRecur::add($recurParams, $null);
+        }
+      }
     }
     CRM_Core_Error::debug_var('spgateway_neweb_transfer_ipn_response', $result->_response);
     echo $result->_response;
