@@ -704,7 +704,7 @@ function _civicrm_spgateway_cancel_recuring_message(){
 藍新金流提醒
 </h3>
 <p>
-  藍新並未提供取消定捐 API，請透過以下步驟完成取消定捐。
+  藍新請透過以下步驟，先至金流後台改狀態，再到此完成取消定捐。
   
 </p>
 <p>
