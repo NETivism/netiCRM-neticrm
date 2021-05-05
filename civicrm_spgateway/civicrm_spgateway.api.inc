@@ -163,7 +163,7 @@ class spgateway_spgateway_api {
 
         return $recurResult;
       }
-      else if ( in_array($this->_response->Status, array('PER10061', 'PER10063')) ) {
+      else if ( in_array($this->_response->Status, array('PER10061', 'PER10062', 'PER10063')) ) {
         // Refs #30842, Status is already changed in NewebPay.
         $recurResult['note_body'] = ts('NewebPay response:') . $this->_response->Message;
         $statusReverseMap = array_flip(CRM_Core_Payment_SPGATEWAY::$_statusMap);
