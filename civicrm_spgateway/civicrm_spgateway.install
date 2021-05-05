@@ -59,6 +59,9 @@ function civicrm_spgateway_install() {
       'is_active' => 1,
       'is_reserved' => 1,
     );
+    if ($v['code'] == 'WebATM') {
+      $params['is_active'] = 0;
+    }
     $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE option_group_id = {$gid} AND name = '$k'");
     $dao->fetch();
     if($dao->id){
