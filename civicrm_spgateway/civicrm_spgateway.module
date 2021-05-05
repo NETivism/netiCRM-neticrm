@@ -318,6 +318,15 @@ function civicrm_spgateway_cron() {
   $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
+
+    // For old neweb.
+    $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHEREtrxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
+    $dao = CRM_Core_DAO::executeQuery($query);
+    while($dao->fetch()) {
+      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
+      civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+    }
+
     variable_set('civicrm_spgateway_recur_sync', $now);
   }
 }
