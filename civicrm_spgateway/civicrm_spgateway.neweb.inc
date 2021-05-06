@@ -135,7 +135,12 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '') {
       $sql = "SELECT trxn_id, receive_date FROM civicrm_contribution WHERE id = (SELECT MAX(id) FROM civicrm_contribution WHERE trxn_id LIKE 'r_{$recurId}_%')";
       $dao = CRM_Core_DAO::executeQuery($sql);
       $dao->fetch();
-      if (!empty($dao->receive_date) && date('M', strtotime($dao->receive_date)) == date('M')) {
+
+      // Only execute the contributions last month have successed.
+      $lastReceiveMonth = date('Ym', strtotime($dao->receive_date));
+      $thisMonth = date('Ym');
+      $subtractMonth = $thisMonth - $lastReceiveMonth;
+      if (!in_array($subtractMonth, array(1, 89))) {
         continue;
       }
       $output = '';
@@ -162,7 +167,7 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '') {
       $used_args = array('IV','Amt','MerchantID','MerchantOrderNo', 'Key');
       _civicrm_spgateway_encode($request_data, $payment_processor, $used_args);
       $urlApi = SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_API;
-      sleep(1);
+      sleep(0.5);
       CRM_Core_Error::debug_var("doResyncOldNewebRecur:encoded_request_data", $request_data);
       $result = _civicrm_spgateway_postdata($urlApi, $request_data);
       CRM_Core_Error::debug_var("doResyncOldNewebRecur:result", $result);
