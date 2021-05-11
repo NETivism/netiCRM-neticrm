@@ -118,19 +118,21 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
   }
 }
 
-function civicrm_spgateway_neweb_resync($ppid_new, $day = '') {
+function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()) {
 
   CRM_Core_Error::debug_log_message("Start doResyncOldNewebRecur, time:".date('Y-m-d H:i:s').", ppid_new = {$ppid_new}, day = {$day}");
   $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($ppid_new, 'live');
   if (!empty($payment_processor)) {
 
-    $cycle_day = empty($day) ? date('j') : $day;
-    $sql = "SELECT GROUP_CONCAT(DISTINCT r.id) from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1";
-    $idsString = CRM_Core_DAO::singleValueQuery($sql, array(
-      1 => array($cycle_day, 'Integer')
-    ));
-    $recurNo = explode(',', $idsString);
-  
+    if (empty($recurNo)) {
+      $cycle_day = empty($day) ? date('j') : $day;
+      $sql = "SELECT GROUP_CONCAT(DISTINCT r.id) from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1";
+      $idsString = CRM_Core_DAO::singleValueQuery($sql, array(
+        1 => array($cycle_day, 'Integer')
+      ));
+      $recurNo = explode(',', $idsString);
+    }
+
     foreach ($recurNo as $recurId) {
       $sql = "SELECT trxn_id, receive_date FROM civicrm_contribution WHERE id = (SELECT MAX(id) FROM civicrm_contribution WHERE trxn_id LIKE 'r_{$recurId}_%')";
       $dao = CRM_Core_DAO::executeQuery($sql);
