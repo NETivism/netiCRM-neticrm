@@ -1,7 +1,7 @@
 <?php
 function civicrm_statistics_cron(){
   // only collect who has membership profile, because we need to know if they opt-out
-  $member = \Drupal::config('neticrm_preset')->get('membership');
+  $member = _neticrm_preset_membership();
   if (empty($member['status'])) {
     return;
   }
