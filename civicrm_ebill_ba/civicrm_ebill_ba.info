@@ -1,9 +1,0 @@
-name = Payment Method Ebill
-description = Payment method of eBill Bank Association in Taiwan.
-package = NetiCRM Payment Method
-dependencies[] = civicrm
-core = 7.x
-version = 7.x-1.0
-
-files[] = civicrm_ebill_ba.checkout.inc
-files[] = civicrm_ebill_ba.ipn.inc
