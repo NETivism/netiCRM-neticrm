@@ -4,11 +4,13 @@
  * Implementation of hook_install()
  */
 function civicrm_demo_install() {
-  include_once "civicrm_demo.module";
+  module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+  include_once __DIR__."/civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
   civicrm_initialize();
   
-  if(variable_get('civicrm_demo_sample_data', 0)) {
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  if($sample) {
     $vars['limit'] = 20;
     civicrm_demo_process_contact($vars);
 

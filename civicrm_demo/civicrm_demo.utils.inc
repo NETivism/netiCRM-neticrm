@@ -48,7 +48,8 @@ function civicrm_demo_process_event($vars){
 
   civicrm_initialize();
   CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
-  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
+  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
 
   // create 5 events
   $title = array(
@@ -67,7 +68,7 @@ function civicrm_demo_process_event($vars){
     $params['is_monetory'] = 0;
     $params['event_type_id'] = 1;
     $params['is_show_location'] = 0;
-    if(variable_get('civicrm_demo_sample_data', 0)){
+    if($sample){
       $params['start_date'] = date('Ymd', $now+$i*86400*5);
       $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
       $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
@@ -101,7 +102,7 @@ function civicrm_demo_process_event($vars){
     }
 
     $event_id = $result['id'];
-    if (variable_get('civicrm_demo_sample_data', 0)) {
+    if ($sample) {
       $trackVars = array(
         'limit' => 2000,
         'pageType' => 'civicrm_event',
@@ -138,10 +139,12 @@ function civicrm_demo_process_event($vars){
 
 function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
-  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
+  $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
 
   // ci testing needed
-  if (variable_get('civicrm_demo_sample_data_ci', 0)) {
+  if ($sample_ci) {
     $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
     $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
     $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
@@ -208,7 +211,7 @@ function civicrm_demo_process_contribution($vars){
 
 function civicrm_demo_process_membership($vars){
   civicrm_initialize();
-  $is_test = variable_get('civicrm_demo_sample_data', 0) ? 0 : 1;
+  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
   $domain_id = CRM_Core_Config::domainID();
 
   // check if any organization contact exists
@@ -285,7 +288,8 @@ function civicrm_demo_process_membership($vars){
   }
 
   // only create demo membership when sample data needed
-  if ($membership_type_id && variable_get('civicrm_demo_sample_data', 0)) {
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  if ($membership_type_id && $sample) {
 		$membership_limit = $vars['limit']; // total limit this batch
     $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
     $dao = CRM_Core_DAO::executeQuery($sql);
@@ -318,7 +322,8 @@ function civicrm_demo_process_membership($vars){
 }
 
 function civicrm_demo_create_contribution_page($payment_processor_type){
-  $payment_page = variable_get('civicrm_demo_payment_page', array());
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  $payment_page = \Drupal::state()->get('civicrm_demo.payment_page', []);
   if(isset($payment_page[$payment_processor_type])){
     return $payment_page[$payment_processor_type];
   }
@@ -328,7 +333,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
   $types = CRM_Contribute_PseudoConstant::contributionType();
   $contribution_type_id = reset(array_keys($types));
 
-  $from_email = variable_get('smtp_from', '');
+  $from_email = Drupal::config('smtp.settings')->get('smtp_from');
   $params = array(
     'version' => 3,
     'title' => '捐款贊助',
@@ -342,7 +347,8 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     'receipt_from_email' => !empty($from_email) ? $from_email : 'demo@demo.neticrm.tw',
     'installments_option' => 1,
   );
-  if (variable_get('civicrm_demo_sample_data_ci', 0)) {
+  $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
+  if ($sample_ci) {
     $processors = _civicrm_demo_setup_paymentProcessor($payment_processor_type);
     $params['payment_processor'] = $processors;
   }
@@ -364,12 +370,12 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     $qvar = array(1 => array(serialize($payment_instrument) ,'String'));
     CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$result['id']}, entity_table='civicrm_contribution_page', payment_instruments=%1", $qvar);
     $payment_page[$payment_processor_type] = $contribution_page_id;
-    variable_set('civicrm_demo_payment_page', $payment_page);
+    \Drupal::state()->set('civicrm_demo.payment_page', $payment_page);
   }
   else{
     $contribution_page_id = 1;
   }
-  if (variable_get('civicrm_demo_sample_data', 0)) {
+  if ($sample) {
     $trackVars = array(
       'limit' => 2000,
       'pageId' => $contribution_page_id,
@@ -445,7 +451,7 @@ function civicrm_demo_create_custom_profile(){
   }
 
   // set contribution page default custom pre/post
-  $payment_page = variable_get('civicrm_demo_payment_page', array());
+  $payment_page = \Drupal::state()->get('civicrm_demo.payment_page', []);
 
   foreach($payment_page as $page_id){
     _civicrm_demo_create_uf_join($page_id, $uf_group_pre_id, $uf_group['id']);
