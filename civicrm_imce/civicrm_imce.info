@@ -1,8 +1,0 @@
-; $Id$
-name = CiviCRM IMCE
-description = Integrates Drupal IMCE module with CiviCRM build in Editors CKeditor and TinyMCE.
-core = 7.x
-package = "NetiCRM"
-version = "7.x-2.0"
-dependencies[] = civicrm
-dependencies[] = imce
