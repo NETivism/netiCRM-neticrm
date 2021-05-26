@@ -697,3 +697,10 @@ function neticrm_update_update_7289() {
 function neticrm_update_update_7290() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #31611, add is_internal in contribution page
+ */
+function neticrm_update_update_7291() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
