@@ -318,6 +318,15 @@ function civicrm_spgateway_cron() {
   $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
+
+    // For old neweb.
+    $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
+    $dao = CRM_Core_DAO::executeQuery($query);
+    while($dao->fetch()) {
+      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
+      civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+    }
+
     variable_set('civicrm_spgateway_recur_sync', $now);
   }
 }
@@ -706,8 +715,7 @@ function _civicrm_spgateway_cancel_recuring_message(){
 藍新金流提醒
 </h3>
 <p>
-  藍新並未提供取消定捐 API，請透過以下步驟完成取消定捐。
-  
+  藍新請透過以下步驟，先至金流後台改狀態，再到此完成取消定捐。
 </p>
 <p>
   <ol>
