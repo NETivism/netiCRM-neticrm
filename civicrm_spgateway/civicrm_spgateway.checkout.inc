@@ -385,6 +385,7 @@ function _civicrm_spgateway_mobile_checkout($type, $post, $objects) {
     $opt[CURLOPT_RETURNTRANSFER] = TRUE;
     $opt[CURLOPT_POST] = TRUE;
     $opt[CURLOPT_POSTFIELDS] = $data;
+    $opt[CURLOPT_SSL_VERIFYPEER] = FALSE;
     curl_setopt_array($ch, $opt);
 
     $result = curl_exec($ch);

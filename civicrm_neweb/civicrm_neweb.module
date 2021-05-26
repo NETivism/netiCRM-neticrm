@@ -452,7 +452,7 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
 }
 
 function _civicrm_neweb_mail_error_log_notify($message, $host, $is_test){
-  $send = variable_get('civicrm_neweb_send_sftp_notify', true);
+  $send = variable_get('civicrm_neweb_send_sftp_notify', false);
   $last_notify_time = variable_get('civicrm_neweb_send_sftp_last_notify_time', 0);
   $current_time = time();
 
