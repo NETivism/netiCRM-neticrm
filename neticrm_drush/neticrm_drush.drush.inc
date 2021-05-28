@@ -149,6 +149,8 @@ function drush_neticrm_civimail() {
 /* Rebuild crm menu path table from xml files. */
 function drush_neticrm_rebuild_menu(){
   civicrm_initialize();
+  // refs #31419, clear IDS config
+  CRM_Core_IDS::initConfig(NULL, TRUE);
   CRM_Core_Menu::store();
   CRM_Core_BAO_Navigation::resetNavigation();
 }
@@ -157,7 +159,11 @@ function drush_neticrm_clear_cache(){
   civicrm_initialize();
   $config = CRM_Core_Config::singleton();
   $config->clearDBCache();
-  $config->cleanup(1);
+  // refs #31419, do not clean up template_c because we will loss log files
+  // $config->cleanup(1);
+
+  // refs #31419, instead cleanup template compiler dir, we clear IDS config
+  CRM_Core_IDS::initConfig(NULL, TRUE);
   drush_log("netiCRM cache cleared", "ok");
 }
 
