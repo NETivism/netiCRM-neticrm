@@ -17,6 +17,5 @@ function civicrm_allpay_update_8000() {
     CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_allpay` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`id`)");
     CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_allpay` CHANGE `cid` `cid` INT(10) UNSIGNED NULL DEFAULT NULL COMMENT 'Contribution id for civicrm'");
     CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_allpay` ADD CONSTRAINT `FK_civicrm_contribution_allpay_cid` FOREIGN KEY (`cid`) REFERENCES `civicrm_contribution`(`id`) ON DELETE SET NULL ON UPDATE RESTRICT");
-    CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_allpay` ADD CONSTRAINT `FK_civicrm_contribution_allpay_cid` FOREIGN KEY (`cid`) REFERENCES `civicrm_contribution`(`id`) ON DELETE SET NULL ON UPDATE RESTRICT");
   }
 }

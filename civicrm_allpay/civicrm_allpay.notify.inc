@@ -26,7 +26,7 @@ function civicrm_allpay_notify_bytrxn($trxn_id){
 }
 
 function civicrm_allpay_notify_info($cid){
-  $data = CRM_Core_Error::singleValueQuery("SELECT data FROM civicrm_contribution_allpay WHERE cid = %1", array(1 => array($cid, 'Positive')));
+  $data = CRM_Core_DAO::singleValueQuery("SELECT data FROM civicrm_contribution_allpay WHERE cid = %1", array(1 => array($cid, 'Positive')));
   $json = json_decode($data, TRUE);
   if(!empty($json['#info'])){
     $info =& $json['#info'];
