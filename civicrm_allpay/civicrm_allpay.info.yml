@@ -1,0 +1,12 @@
+name: Payment Method for Allpay
+description: Allpay payment functions for civicrm.
+type: module
+package: netiCRM
+dependencies:
+  - civicrm
+  - civicrm_instrument
+version: 9.x-1.0
+core_version_requirement: ^8 || ^9
+files:
+  - civicrm_allpay.ipn.inc
+  - civicrm_allpay.checkout.inc

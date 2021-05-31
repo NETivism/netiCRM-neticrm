@@ -1,9 +1,0 @@
-name = Payment Method for Allpay
-description = Allpay payment functions for civicrm.
-package = NetiCRM Payment Method
-dependencies[] = civicrm
-dependencies[] = civicrm_instrument
-core = 7.x
-version = 7.x-1.6
-files[] = civicrm_allpay.ipn.inc
-files[] = civicrm_allpay.checkout.inc

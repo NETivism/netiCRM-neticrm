@@ -1,6 +1,0 @@
-name = Contribution / Event Instrument.
-description = Custom translation function for inhance instruments selection.
-package = NetiCRM 
-dependencies[] = civicrm
-core = 7.x
-version = 7.x-1.6
