@@ -432,6 +432,10 @@ GROUP BY donors.contribution_status_id
         $result[$table.'_donor_new_'.$last_year] = $query->new;
         $result[$table.'_donor_returned_'.$last_year] = $query->returned;
         $result[$table.'_donor_new_rate_'.$last_year] = $query->rate;
+
+        // drop temp table at the end
+        CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}");
+        CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_lifetime");
         break;
 
       case 'contribution_leveling':
@@ -456,6 +460,7 @@ GROUP BY donors.contribution_status_id
           while($query->fetch()) {
             $result[$table.'_'.$y][$query->level] = $query->count;
           }
+          CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_{$y}");
         }
 
         // non recur amount leveling
@@ -479,6 +484,7 @@ GROUP BY donors.contribution_status_id
           while($query->fetch()) {
             $result[$table.'_nonrecur_'.$y][$query->level] = $query->count;
           }
+          CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_nonrecur_{$y}");
         }
 
         // leveling by age
@@ -504,6 +510,7 @@ GROUP BY donors.contribution_status_id
           while($query->fetch()) {
             $result[$table.'_age_'.$y][$query->age] = $query->count;
           }
+          CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_age_{$y}");
         }
         foreach(array($base_year, $last_year) as $y) {
           $sql = "SELECT cc.contact_id, SUM(cc.total_amount) as total_amount, YEAR(CURRENT_TIMESTAMP) - YEAR(c.birth_date) - (RIGHT(CURRENT_TIMESTAMP, 5) < RIGHT(c.birth_date, 5)) as age FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND c.birth_date IS NOT NULL AND %start AND %end GROUP BY cc.contact_id";
@@ -527,6 +534,7 @@ GROUP BY donors.contribution_status_id
           while($query->fetch()) {
             $result[$table.'_age_amount_'.$y][$query->age] = $query->sum;
           }
+          CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_age_sum_{$y}");
         }
 
         // state and province leveling
