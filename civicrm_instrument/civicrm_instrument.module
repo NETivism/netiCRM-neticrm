@@ -409,15 +409,31 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
     case 'CRM_Event_Form_ManageEvent_Fee':
       $entity_table = strstr($form_name, 'Contribute') ? 'civicrm_contribution_page' : 'civicrm_event';
       $entity_id = $form->getVar('_id');
+      $sql = "SELECT id FROM civicrm_instrument WHERE entity_id = %1 AND entity_table = %2";
+      $instrumentId = CRM_Core_DAO::singleValueQuery($sql, array(
+        1 => array( $entity_id, 'Positive'),
+        2 => array( $entity_table, 'String'),
+      ));
       if($entity_id){
         if( !empty($form->_submitValues['payment_instrument'])){
           $payment_instrument = $form->_submitValues['payment_instrument'];
           $qvar = array(1 => array(serialize($payment_instrument) ,'String'));
-          CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments=%1", $qvar);
+          if (!empty($instrumentId)) {
+            $qvar[2] = array( $instrumentId, 'Positive');
+            CRM_Core_DAO::executeQuery("UPDATE civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments=%1 WHERE id = %2", $qvar);
+          }
+          else {
+            CRM_Core_DAO::executeQuery("INSERT INTO civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments=%1", $qvar);
+          }
         }
         else{
           // empty
-          CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments=''");
+          if (!empty($instrumentId)) {
+            CRM_Core_DAO::executeQuery("UPDATE civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments='' WHERE id = %1", array(1 => array( $instrumentId, 'Positive')));
+          }
+          else {
+            CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$entity_id}, entity_table='{$entity_table}', payment_instruments=''");
+          }
         }
       }
       break;

@@ -1,35 +1,4 @@
 <?php
-/**
- * Implementation of hook_init()
- */
-function civicrm_allpay_init(){
-  if(strstr($_GET['q'], 'allpay')){
-    $GLOBALS['conf']['cache'] = FALSE;
-  }
-}
-
-/**
- * Implementation of hook_menu()
- */
-function civicrm_allpay_menu(){
-  return array(
-    'allpay/ipn/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_allpay_ipn',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_allpay.ipn.inc',
-    ),
-    'allpay/record/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_allpay_record',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
-  );
-}
 
 /**
  * Implementation of hook_civicrm_buildForm()
@@ -45,7 +14,7 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
         $is_allpay = TRUE;
       }
       if($is_allpay){
-        drupal_set_message("本網站的 IP 為「".gethostbyname($_SERVER['HTTP_HOST']).'」。<br />請登入綠界後台，廠商後台 > 系統開發管理 > 系統介接設定 > 允許的 IP中，填入本站IP。');
+        \Drupal::messenger()->addStatus("本網站的 IP 為「".gethostbyname($_SERVER['HTTP_HOST']).'」。<br />請登入綠界後台，廠商後台 > 系統開發管理 > 系統介接設定 > 允許的 IP中，填入本站IP。');
       }
       break;
     case 'CRM_Contribute_Form_Contribution_Main':
@@ -55,10 +24,10 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
       $session->set('submitted', FALSE);
       if($submitted){
         if($_SESSION['allpay']['instrument'] == 'Credit'){
-          drupal_set_message(t("This message indicate your last payment may not success because you didn't submit credit card information. If you are sure you have completed the transaction, please contact us. Otherwise, you can retry again."), 'error');
+          \Drupal::messenger()->addError(ts("This message indicate your last payment may not success because you didn't submit credit card information. If you are sure you have completed the transaction, please contact us. Otherwise, you can retry again."));
         }
         else{
-          drupal_set_message(t("You just submit a payment. You may want to check your email to follow payment instruction, or try submit this form again."), 'error');
+          \Drupal::messenger()->addError(ts("You just submit a payment. You may want to check your email to follow payment instruction, or try submit this form again."));
         }
       }
       if(isset($_GET['id']) && $_GET['id']!== NULL){
@@ -87,12 +56,11 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
             CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
             if(!empty($contrib_values['id']) && $contrib_values['contribution_status_id'] != 1 && strstr($form->_submitValues['PaymentType'], 'Credit')){
               // trigger ipn success
-              module_load_include('inc', 'civicrm_allpay', 'civicrm_allpay.ipn');
               $ids = CRM_Contribute_BAO_Contribution::buildIds($contrib_values['id']);
               $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
               parse_str($query, $get);
               $post = $_POST;
-              $result = civicrm_allpay_ipn('Credit', $post, $get, FALSE);
+              $result = CRM_Core_Payment_ALLPAY::civicrm_allpay_ipn('Credit', $post, $get, FALSE);
               if(strstr($result, 'OK')){
                 $status = 1;
               }
@@ -150,10 +118,10 @@ function civicrm_allpay_civicrm_validate($form_name, &$form){
       $processor_type = CRM_Core_DAO::singleValueQuery("SELECT payment_processor_type FROM civicrm_payment_processor WHERE id = %1", $params);
       if($processor_type == 'ALLPAY'){
         if(!empty($form['installments']) && $form['installments'] > 99){
-          $errors['installments'] = t('Installments of recurring must lower than 99.');
+          $errors['installments'] = ts('Installments of recurring must lower than 99.');
         }
         if(!empty($form['installments']) && $form['installments'] > 9 && !empty($form['frequency_unit']) && $form['frequency_unit'] == 'year'){
-          $errors['installments'] = t('The years of recurring installments must lower than 9.');
+          $errors['installments'] = ts('The years of recurring installments must lower than 9.');
         } 
       }
       /* Already done by CRM_Contribute_Form_Contribution_Main
@@ -182,66 +150,16 @@ function civicrm_allpay_civicrm_prepareInvoice($contribution_id, &$tplParams){
   }
 }
 
-function civicrm_allpay_error(){
-  $msg = $_SESSION['allpay']['error'];
-  if(!count($msg)){
-    drupal_access_denied();
-  }
-  $output .= '<div class="allpay-error">';
-  $output .= '<div class="allpay-error-first">'.array_shift($msg).'</div>';
-  foreach($msg as $m){
-    $items[] = $m;
-  }
-  $output .= theme('item_list', array('items' => $items));
-  $output .= '</div>';
-  return $output;
-}
-
 /**
  * Implementation of hook_cron()
  */
 function civicrm_allpay_cron(){
   // every morning, we check allpay payment result
-  $last = variable_get('civicrm_allpay_recur_sync', 0);
+  $last = \Drupal::state()->get('civicrm_allpay.recur_sync', 0);
   $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_allpay_recur_sync();
-    variable_set('civicrm_allpay_recur_sync', $now);
-  }
-  /* // TODO: confirm allpay has no problem at this
-  $last_fee_sync = variable_get('civicrm_allpay_fee_sync', 0);
-  if($now - $last > 60000 && date('G') > '3' && date('G') < '9'){
-    civicrm_allpay_fee_sync();
-    variable_set('civicrm_allpay_fee_sync', $now);
-  }
-  */
-}
-
-function _civicrm_allpay_instrument($type = 'normal'){
-  $i = array(
-    'Credit Card' => array('label' => '信用卡', 'desc' => '', 'code' => 'Credit'),
-    'ATM' => array('label' => 'ATM 轉帳', 'desc' => '', 'code' => 'ATM'),
-    'Web ATM' => array('label' => 'Web ATM', 'desc' => '', 'code' => 'WebATM'),
-    'Convenient Store' => array('label' => '超商條碼繳費', 'desc'=>'', 'code' => 'BARCODE'),
-    'Convenient Store (Code)' => array('label'=>'超商代碼','desc' => '', 'code' => 'CVS'),
-    'Alipay' => array('label'=> '支付寶', 'desc' => '', 'code' => 'Alipay'),
-    // 'Tenpay' => array('label'=> '財付通', 'desc' => '', 'code' => 'Tenpay'),
-  );
-  if($type == 'form_name'){
-    foreach($i as $name => $data){
-      $form_name = preg_replace('/[^0-9a-z]+/i', '_', strtolower($name));
-      $instrument[$form_name] = $data;
-    }
-    return $instrument;
-  }
-  elseif($type == 'code'){
-    foreach($i as $name =>  $data){
-      $instrument[$name] = $data['code'];
-    }
-    return $instrument;
-  }
-  else{
-    return $i;
+    \Drupal::state()->set('civicrm_allpay.recur_sync', $now);
   }
 }
 
@@ -258,69 +176,8 @@ function _civicrm_allpay_vars2str($post){
   return implode('&', $array);
 }
 
-function civicrm_allpay_record($cid, $data = null){
-  if(is_numeric($cid)){
-    $billing_notify = FALSE;
-    if(empty($data) && !empty($_POST)){
-      if(arg(1) == 'record'){
-        $billing_notify = TRUE;
-        $data['#info'] = $_POST;
-      }
-      else{
-        $data = $_POST;
-      }
-    }
-    if(!empty($data['MerchantID']) || !empty($data['#info']['MerchantID'])){
-      $result = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
-      $exists = json_decode($result, TRUE);
-      if(is_array($exists)){
-        $data = array_merge($exists, $data);
-      }
-      $record = array(
-        'cid' => $cid,
-        'data' => json_encode($data),
-      );
-      // update
-      if(db_query("SELECT cid FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
-        drupal_write_record('civicrm_contribution_allpay', $record, 'cid');
-      }
-      else{
-        drupal_write_record('civicrm_contribution_allpay', $record);
-      }
-      if($billing_notify){
-        module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
-        civicrm_allpay_notify_generate($cid, TRUE); // send mail
-
-        // return allpay successful received notify
-        echo "1|OK";
-      }
-
-      // Set expire time
-      if(!empty($data['#info']['ExpireDate'])){
-        $expire_date = $data['#info']['ExpireDate'];
-      }
-      if(!empty($data['ExpireDate'])){
-        $expire_date = $data['ExpireDate'];
-      }
-      if(!empty($expire_date)){
-        if (strlen($expire_date) < 11) {
-          $expire_date = str_replace('/', '-', $expire_date).' 23:59:59';
-        }
-        $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
-        $params = array(
-          1 => array( $expire_date, 'String'),
-          2 => array( $cid, 'Integer'),
-        );
-        CRM_Core_DAO::executeQuery($sql, $params);
-      }
-
-    }
-  }
-}
-
 function civicrm_allpay_recur_sync($days = array()){
   civicrm_initialize();
-  module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.ipn');
   if(empty($days)){
     $days = array(
       date('j'),
@@ -342,7 +199,7 @@ function civicrm_allpay_recur_sync($days = array()){
   ORDER BY r.create_date ASC";
   foreach($days as $d){
     $d = (string) $d;
-    watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
+    \Drupal::logger('civicrm_allpay')->info('Start to sync recurring for day '.$d);
     $query_params = array(
       1 => array($d, 'String'),
       2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
@@ -387,7 +244,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
         'MerchantTradeNo' => $result->trxn_id,
         'TimeStamp' => $now,
       );
-      _civicrm_allpay_checkmacvalue($post_data, $processor);
+      CRM_Core_Payment_ALLPAY::_civicrm_allpay_checkmacvalue($post_data, $processor);
       if(empty($order)){
         $order = _civicrm_allpay_postdata($payment_processor['url_recur'], $post_data);
       }
@@ -434,7 +291,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
             if($o->RtnCode == 1 && empty($o->gwsr)){
               continue; // skip, not normal
             }
-            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $noid);
+            $trxn_id = CRM_Core_Payment_ALLPAY::_civicrm_allpay_recur_trxn($order->MerchantTradeNo, $noid);
             $orders[$trxn_id] = $o;
           }
         }
@@ -455,7 +312,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
               'MerchantID' => $order->MerchantID,
               'MerchantTradeNo' => $order->MerchantTradeNo,
               'RtnCode' => $o->RtnCode,
-              'RtnMsg' => !empty($o->RtnMsg) ? t($o->RtnMsg) : _civicrm_allpay_error_msg($o->RtnCode),
+              'RtnMsg' => !empty($o->RtnMsg) ? ts($o->RtnMsg) : _civicrm_allpay_error_msg($o->RtnCode),
               'PeriodType' => $order->PeriodType,
               'Frequency' => $order->Frequency,
               'ExecTimes' => $order->ExecTimes,
@@ -469,7 +326,7 @@ function civicrm_allpay_recur_check($rid, $order = NULL){
             );
 
             // manually trigger ipn
-            civicrm_allpay_ipn('Credit', $post, $get, FALSE);
+            CRM_Core_Payment_ALLPAY::civicrm_allpay_ipn('Credit', $post, $get, FALSE);
           }
         }
       }
@@ -508,7 +365,7 @@ function civicrm_allpay_fee_sync(){
           'MerchantTradeNo' => $result->trxn_id,
           'TimeStamp' => time(),
         );
-        _civicrm_allpay_checkmacvalue($post_data, $processor);
+        CRM_Core_Payment_ALLPAY::_civicrm_allpay_checkmacvalue($post_data, $processor);
         $response = _civicrm_allpay_postdata($payment_processor['url_api'], $post_data, FALSE);
         if(!empty($response) && $response->MerchantTradeNo == $result->trxn_id && !empty($response->HandlingCharge)){
           $fee_amount = (float)$response->HandlingCharge;
@@ -525,67 +382,6 @@ function civicrm_allpay_fee_sync(){
   }
 }
 
-function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
-  // remove empty arg
-  if(is_array($args)){
-    foreach($args as $k => $v){
-      if($k == 'CheckMacValue'){
-        unset($args[$k]);
-      }
-    }
-  }
-  elseif(is_string($args)){
-    $tmp = explode('&', $args);
-    $args = array();
-    foreach($tmp as $v){
-      list($key, $value) = explode('=', $v);
-      $args[$key] = $value;
-    }
-  }
-  uksort($args, 'strnatcasecmp');
-  $a = array(
-    'HashKey='.$payment_processor['password'],
-  );
-  foreach($args as $k => $v){
-    $a[] = $k.'='.$v;
-  }
-  $a[] = 'HashIV='.$payment_processor['signature'];
-  $keystr = implode('&', $a);
-  $keystr = urlencode($keystr);
-  $keystr = strtolower($keystr);
-
-  $special_char_allpay = array(
-    '%2d' => '-',
-    '%5f' => '_',
-    '%2e' => '.',
-    '%21' => '!',
-    '%2a' => '*',
-    '%28' => '(',
-    '%29' => ')',
-    '%20' => '+',
-  );
-  $keystr = str_replace(array_keys($special_char_allpay), $special_char_allpay, $keystr);
-
-  $checkmacvalue = md5($keystr);
-  $args['CheckMacValue'] = $checkmacvalue;
-  return $checkmacvalue;
-}
-
-function _civicrm_allpay_trxn_id($is_test, $id){
-  if($is_test){
-    $id = 'test' . substr(str_replace(array('.','-'), '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. mt_rand(100, 999);
-  }
-  return $id;
-}
-function _civicrm_allpay_recur_trxn($parent, $gwsr){
-  if(empty($gwsr)){
-    return $parent;
-  }
-  else{
-    return $parent . '-' . $gwsr;
-  }
-}
-
 function _civicrm_allpay_postdata($url, $post_data, $json = TRUE){
   $ch = curl_init($url);
   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
@@ -597,19 +393,19 @@ function _civicrm_allpay_postdata($url, $post_data, $json = TRUE){
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
   $receive = curl_exec($ch);
   if(curl_errno($ch)){
-    watchdog('civicrm_allpay', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch), 'error');
+    \Drupal::logger('civicrm_allpay')->error('Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch));
   }
   else{
-    watchdog('civicrm_allpay', 'Request:'.$url."?".$field_string);
+    \Drupal::logger('civicrm_allpay')->info('Request:'.$url."?".$field_string);
 
     if (strlen($receive) > 1000) {
       $logs = str_split($receive, 1000);
       foreach($logs as $l) {
-        watchdog('civicrm_allpay', $l);
+        \Drupal::logger('civicrm_allpay')->info($l);
       }
     }
     else {
-      watchdog('civicrm_allpay', $receive);
+      \Drupal::logger('civicrm_allpay')->debug($receive);
     }
   }
   curl_close($ch);
@@ -664,10 +460,10 @@ function _civicrm_allpay_error_msg($code){
     '0' => 'Please login your payment processor system to check problem.',
   );
   if(!empty($msg[$code])){
-    return t($msg[$code]);
+    return ts($msg[$code]);
   }
   else{
-    return t('Error when processing your payment.');
+    return ts('Error when processing your payment.');
   }
 }
 
