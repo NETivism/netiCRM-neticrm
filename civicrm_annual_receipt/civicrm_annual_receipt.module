@@ -5,9 +5,9 @@
  */
 function civicrm_annual_receipt_civicrm_tokens(&$tokens){
   $tokens['receipt'] = array(
-    'receipt.thisyear' => t('Receipt info in this year'),
-    'receipt.lastyear' => t('Receipt info in last year'),
-    'receipt.all' => t('Receipt info in all lifetime'),
+    'receipt.thisyear' => ts('Receipt info in this year'),
+    'receipt.lastyear' => ts('Receipt info in last year'),
+    'receipt.all' => ts('Receipt info in all lifetime'),
   );
 }
 
@@ -79,7 +79,7 @@ function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
   if($objectType == 'contact'){
     if (CRM_Core_Permission::access('CiviContribute')) {
       $tasks[] = array(
-        'title' => t('Print Annual Receipt'),
+        'title' => ts('Print Annual Receipt'),
         'class' => 'CRM_Contact_Form_Task_AnnualReceipt',
         'result' => TRUE,
       );

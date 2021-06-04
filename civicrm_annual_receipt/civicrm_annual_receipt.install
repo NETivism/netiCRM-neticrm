@@ -4,82 +4,24 @@
  * Implementation of hook_install()
  */
 function civicrm_annual_receipt_install() {
-  // see if exists group
-  civicrm_initialize();
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
-  if(empty($id)){
-    return FALSE;
-  }
-
-  $group_params = array(
-    'id' => $id,
-  );
-  $option_params = array(
-    'label' => '紙本收據 - 年度收據',
-    'name' => 'receipt_letter_annual',
-    'is_active' => TRUE,
-  );
-  if(variable_get('civicrm_annual_receipt_option_id', 0)){
-    $option_id = variable_get('civicrm_annual_receipt_option_id', 0);
-    $action = CRM_Core_Action::UPDATE;
-  }
-  else{
-    $option_id = NULL;
-    $action = CRM_Core_Action::ADD;
-  }
-  $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
-  variable_set('civicrm_annual_receipt_option_id', $option->id);
-
-  $html = _civicrm_annual_receipt_tpl();
-  $params = array(
-    'msg_title' => '紙本收據 - 年度整合收據',
-    'msg_subject' => '收據',
-    'msg_text' => '目前僅提供HTML版本收據',
-    'msg_html' => $html,
-    'is_active' => TRUE,
-    'workflow_id' => $option->id,
-    'is_default' => 1,
-    'is_reserved' => 0,
-  );
-  if(variable_get('civicrm_annual_receipt_default_tpl_id', 0)){
-    $params['id'] = variable_get('civicrm_annual_receipt_default_tpl_id', 0);
-  }
-  // add default template
-  $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-  variable_set('civicrm_annual_receipt_default_tpl_id', $default_tpl->id);
-
-  // add reserved template only when first time install. re-install will not change customize template
-  if(!variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
-    $params['is_default'] = 0;
-    $params['is_reserved'] = 1;
-    if(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
-      $params['id'] = variable_get('civicrm_annual_receipt_reserved_tpl_id', 0);
-    }
-    $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-    variable_set('civicrm_annual_receipt_reserved_tpl_id', $reserved_tpl->id);
-  }
+  // move annual receipt tpl installation to _neticrm_preset_receipt_msg_template
 
   // add custom search
+  civicrm_initialize();
+  $custom_obj = NULL;
   $custom_search = array();
   $group_params = array(
     'name' => 'custom_search',
   );
   CRM_Core_OptionValue::getValues($group_params, $custom_search);
-  $custom_search_id = variable_get('civicrm_annual_receipt_custom_search_id', 0);
-  if($custom_search_id){
-    $custom_obj = isset($custom_search[$custom_search_id]) ? $custom_search[$custom_search_id] : NULL;
-  }
-  else{
-    foreach($custom_search as $cid => $c){
-      if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
-        $custom_search_id = $cid;
-        variable_set('civicrm_annual_receipt_custom_search_id', $cid);
-        $custom_obj = $c;
-      }
+  foreach($custom_search as $cid => $c){
+    if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
+      $custom_search_id = $cid;
+      $custom_obj = $c;
     }
   }
 
-  if(empty($custom_obj)){
+  if (empty($custom_obj)) {
     // create custom search
     $params = array(
       'label' => '產生年度收據',
@@ -90,29 +32,8 @@ function civicrm_annual_receipt_install() {
     $group_params = array('name' => 'custom_search');
     $action = CRM_Core_Action::ADD;
     $custom_obj = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
-    variable_set('civicrm_annual_receipt_custom_search_id', $custom_obj->id);
-
-    // create druapl menu for that
-    if (module_exists('civicrm_dmenu')) {
-      $exists = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/search/AnnualReceipt'")->fetchField();
-      if(!$exists){
-        $plid = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/contribute'")->fetchField(); 
-        civicrm_dmenu_menu_item(
-          'civicrm/search/AnnualReceipt',
-          '產生年度收據',
-          NULL,
-          'menu-neticrm',
-          $plid,
-          '-44',
-          'menu',
-          NULL,
-          0
-        );
-      }
-    }
   }
-  elseif($custom_obj['is_active'] == 0){
-    // enable custom search
+  else {
     CRM_Core_BAO_OptionValue::setIsActive($custom_search_id, 1);
   }
 }
@@ -122,147 +43,17 @@ function civicrm_annual_receipt_install() {
  */
 function civicrm_annual_receipt_uninstall(){
   civicrm_initialize();
-
-  if(variable_get('civicrm_annual_receipt_default_tpl_id', 0)){
-    CRM_Core_BAO_MessageTemplates::setIsActive(variable_get('civicrm_annual_receipt_default_tpl_id', 0), 0);
-  }
-  if(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
-    CRM_Core_BAO_MessageTemplates::setIsActive(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0), 0);
-  }
-  if(variable_get('civicrm_annual_receipt_custom_search_id', 0)){
-    CRM_Core_BAO_OptionValue::setIsActive(variable_get('civicrm_annual_receipt_custom_search_id', 0), 0);
-  }
-
-  // We don't need to delete variable. For next time we enable module, we need id to check.
-  //variable_del('civicrm_annual_receipt_option_id');
-}
-
-/**
- * Upgrade receipt to support multiple receipt name, #18275
- */
-function civicrm_annual_receipt_update_7202(){
-  civicrm_initialize();
-  $html = _civicrm_annual_receipt_tpl();
-  $default_id = variable_get('civicrm_annual_receipt_default_tpl_id', 0);
-  $reserved_id = variable_get('civicrm_annual_receipt_reserved_tpl_id', 0);
-  $dao = CRM_Core_DAO::executeQuery("
-    SELECT diverted.id, orig.id orig_id
-     FROM civicrm_msg_template diverted JOIN civicrm_msg_template orig ON (
-     diverted.id = $default_id AND
-     orig.id = $reserved_id AND
-     orig.is_reserved = 1 AND (
-     diverted.msg_subject != orig.msg_subject OR
-     diverted.msg_text    != orig.msg_text    OR
-     diverted.msg_html    != orig.msg_html
-     )
-   )
-  ");
-  $dao->fetch();
-  if (empty($dao->id)) {
-    $params = array(
-      'id' => $default_id,
-      'msg_html' => $html,
-      'is_active' => 1,
-    );
-    if (!empty($params['id'])) {
-      CRM_Core_BAO_MessageTemplates::add($params);
+  $custom_obj = NULL;
+  $custom_search = array();
+  $group_params = array(
+    'name' => 'custom_search',
+  );
+  CRM_Core_OptionValue::getValues($group_params, $custom_search);
+  foreach($custom_search as $cid => $c){
+    if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
+      $custom_search_id = $cid;
+      break;
     }
   }
-  $params = array(
-    'id' => $reserved_id,
-    'msg_html' => $html,
-    'is_active' => 0,
-  );
-  if (!empty($params['id'])) {
-    CRM_Core_BAO_MessageTemplates::add($params);
-  }
-  return 'Successful update annual receipt.';
-}
-
-function _civicrm_annual_receipt_tpl() {
-  return '{foreach from=$contact_info key=contact_name item=info name=annual}
-
-<div class="wrapper">
-<div class="single-page-header">
-  <div class="info">
-    <div class="address">{$address}</div>
-    <div><span class="web-name">{$info.addressee}收</span></div>
-  </div>
-</div>
-
-<div class="receipt">
-  <div class="receipt-head">
-    <div class="logo"><img src="{$logo}" height="30" /></div>
-    <div class="title">收據</div>
-  </div>
-  <div class="receipt-body">
-    <table>
-      <tr>
-        <td class="col-1 align-right">姓名/抬頭</td>
-        <td class="col-2">{$info.sort_name}</td>
-      </tr>
-      <tr>
-        <td class="col-1 align-right">身份證字號/統一編號</td>
-        <td class="col-2">{$info.serial_id}</td>
-      </tr>
-    </table>
-  </div>
-  <div class="receipt-signature">
-    <table>
-      <tr>
-        <td>
-          <table>
-            <tr>
-              <td class="label">組織簽章</td>
-              <td class="value stamp-wrapper"><img class="big-stamp stamp-img" src="{$imageBigStampUrl}"/></td>
-            </tr>
-          </table>
-        </td>
-        <td>
-          <table>
-            <tr>
-              <td class="label">經辦人</td>
-              <td class="value stamp-wrapper"><img class="small-stamp stamp-img" src="{$imageSmallStampUrl}"/></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
-  <div class="receipt-record">
-    <table>
-      <tr>
-        {foreach from=$recordHeader item=th}
-          <th>{$th}</th>
-        {/foreach}
-      </tr>
-      {foreach from=$record.$contact_name item=row}
-      <tr>
-         <td class="align-right">{$row.receipt_id}</td>
-         <td>{$row.contribution_type}</td>
-         <td>{$row.instrument}</td>
-         <td>{$row.receipt_date}</td>
-         <td class="align-right">{$row.total_amount}</td>
-      </tr>
-      {/foreach}
-    </table>
-    <div class="annual-total align-right">總金額： {$info.total}</div>
-  </div>
-  <div class="receipt-footer">
-    <table>
-      <tr>
-        <td class="col-1">組織資訊</td>
-        <td class="col-2">{$receiptOrgInfo}</td>
-        <td class="col-3">備註說明</td>
-        <td class="col-4">{$receiptDescription}</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
-</div><!-- wrapper -->
-{if $contact_info|@count gt $smarty.foreach.annual.index + 1 }<div style="page-break-after: always;"></div>{/if}
-
-{/foreach}
-';
+  CRM_Core_BAO_OptionValue::setIsActive($custom_search_id, 0);
 }
