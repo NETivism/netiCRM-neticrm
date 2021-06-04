@@ -7,7 +7,7 @@ function _neticrm_update_update_7227() {
   civicrm_initialize();
 
   // 取得正確的 tpl html 
-  $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/receipt_letter_html.tpl';
+  $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/receipt_letter_html.zh_TW.tpl';
   $tpl_html = file_get_contents($path);
 
   // 取得目前預設的 $msg_workflow_id, $msg_html

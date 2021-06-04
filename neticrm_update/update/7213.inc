@@ -39,8 +39,8 @@ function _neticrm_update_update_7213(){
   // Add new msg template
   $name = '紙本收據';
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/receipt_letter_';
-  if(is_file($path.'html.tpl')){
-    $html = $is_customized ? $customized_html : file_get_contents($path.'html.tpl');
+  if(is_file($path.'html.zh_TW.tpl')){
+    $html = $is_customized ? $customized_html : file_get_contents($path.'html.zh_TW.tpl');
     
     $text = file_get_contents($path.'text.tpl');
     $subject = file_get_contents($path.'subject.tpl');
@@ -59,7 +59,7 @@ function _neticrm_update_update_7213(){
     $params['is_default'] = 0;
     $params['is_reserved'] = 1;
     if($is_customized){
-      $params['msg_html'] = file_get_contents($path.'html.tpl');
+      $params['msg_html'] = file_get_contents($path.'html.zh_TW.tpl');
     }
 
     // add reserved template
@@ -67,6 +67,6 @@ function _neticrm_update_update_7213(){
 
     return "Success to update receipt_letter message template.";
   }else{
-    return array('#abort' => array('success' => FALSE, 'query' => 'You need /xml/templates/message_templates/receipt_letter_html.tpl in CiviCrm direction to finish update.'));
+    return array('#abort' => array('success' => FALSE, 'query' => 'You need /xml/templates/message_templates/receipt_letter_html.zh_TW.tpl in CiviCrm direction to finish update.'));
   }
 }
