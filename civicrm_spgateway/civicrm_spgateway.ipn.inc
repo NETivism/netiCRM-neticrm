@@ -273,6 +273,15 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       }
       $failed_reason = $response_msg. ' ('.ts('Error Code:'). $response_code.')';
       $note .= $failed_reason;
+      if ($input['PayTime']) {
+        $objects['contribution']->cancel_date = $input['PayTime'];
+      }
+      elseif ($input['CreateTime']) {
+        $objects['contribution']->cancel_date = $input['CreateTime'];
+      }
+      elseif ($input['AuthDate']) {
+        $objects['contribution']->cancel_date = $input['AuthDate'];
+      }
       $this->failed($objects, $transaction, $failed_reason);
       $pass = FALSE;
     }
