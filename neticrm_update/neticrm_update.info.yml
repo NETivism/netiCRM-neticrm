@@ -1,0 +1,9 @@
+name: netiCRM update
+type: module
+description: Update database migration for neticrm branch.
+version: 3.0
+dependencies:
+  - civicrm
+packages: netiCRM
+core: 8.x
+core_version_requirement: ^8 || ^9

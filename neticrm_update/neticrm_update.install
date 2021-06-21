@@ -1,699 +1,97 @@
 <?php
 /**
- * Implement hook_install()
+ * netiCRM update main install file
+ * 
+ * Every file in update/*.inc should use this style to handling update success or not
+ * 
+ * ```php
+ * // success
+ * #return 'Messages';     # drupal 6,7,9: this will display success message
+ * #return TRUE            # drupal 6,7,9: will be success
+ * #return NULL            # drupal 6,7.9: no return value or return null will be success
+
+ * // failed, error,  schema_version will not be update
+ * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
+ * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+
+ * // should never use
+ * #throw UpdateException  # drupal 9 only, will be fatal error on drupal 6,7
+ * #throw DrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
+ * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
+ * ```
+ * 
  */
-function neticrm_update_install(){
-  // add more custom search
-  neticrm_update_update_7201();
-  neticrm_update_update_7202();
-  neticrm_update_update_7203();
-  // taiwanes tax
-  neticrm_update_update_7207();
-}
-/**
- * Implement hook_uninstall()
- */
-function neticrm_update_uninstall(){
-  // for interface uninstall
-}
+
+use Drupal\Core\Utility\UpdateException;
 
 /**
  * Include correct file for update
+ * 
+ * @return mixed
  */
 function neticrm_update_load_include($func){
   if(function_exists('civicrm_initialize')){
     $n = substr($func, strrpos($func, '_')+1);
-    if($n){
+    if(is_numeric($n)){
       civicrm_initialize();
+      module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
       $path = dirname(__FILE__).'/update/';
-      $filename = $path . $n. '.inc';
-      if(file_exists($filename)){
-        module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+
+      $neticrm_update = $path . 'neticrm_x'.substr($n, 1).'.inc'; # eg. neticrm_x300.inc
+      $filename = $path . $n. '.inc';   # eg. 9300.inc
+
+      // check if this is global neticrm update
+      if (file_exists($neticrm_update)) {
+        $filename = $neticrm_update;
+        require_once $filename;
+        $func = '_neticrm_update_update_x'.substr($n, 1); # eg. _neticrm_update_update_x300()
+      }
+      // if not, it's drupal version sensitive update
+      elseif(file_exists($filename)){
         require_once $filename;
         $func = '_'.$func;
-        if(function_exists($func)){
-          return $func();
+      }
+      else {
+        throw new UpdateException("Can not find update file in $filename or $neticrm_update when updating $func");
+      }
+
+      if(function_exists($func)){
+        $result = $func();
+        if ($result === FALSE) {
+          throw new UpdateException("Update failed in $func with no detail");
+        }
+        elseif (is_string($reuslt) && stristr($result, '[error]')) {
+          throw new UpdateException("Update failed in $func. Message: $result");
+        }
+        else {
+          // success
+          if (is_string($result)) {
+            return "$func successfully updated. ".$result;
+          }
+          else {
+            return "$func successfully updated. No details message.";
+          }
         }
       }
+      else {
+        throw new UpdateException("$func not exists in $filename");
+      }
     }
-    throw new DrupalUpdateException('Could not find update file.');
-    return 0;
+    else {
+      throw new UpdateException("$n should be numeric, but it's not when updating $func");
+    }
   }
   else{
-    throw new DrupalUpdateException('Update for netiCRM Fail');
-    return 0;
+    throw new UpdateException("No civicrm installed / initialized. when updating $func");
   }
+  throw new UpdateException("Unknow error when updating $func");
 }
 
 /**
- * Billing location fix
+ * First update function for drupal 9.
+ * 
+ * Only for test propose
  */
-function neticrm_update_update_6000() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Enable contribution page support custom field
- */
-function neticrm_update_update_6001() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * County update for taiwan
- */
-function neticrm_update_update_6002() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update recurring info to contribution message tpl, #12866
- */
-function neticrm_update_update_7201() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add new custom search(recur search ...etc)
- */
-function neticrm_update_update_7202() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update dedupe rule to prevent overwrite individual
- */
-function neticrm_update_update_7203() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update receipt text not to htmlize
- */
-function neticrm_update_update_7204() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update allowed file extension, #16538
- */
-function neticrm_update_update_7205() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update invoice notify template, #14612
- */
-function neticrm_update_update_7206() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add new civicrm report for taiwanese tax, #10745
- */
-function neticrm_update_update_7207() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Change and disable civicrm recurring unit, #17604
- */
-function neticrm_update_update_7208() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Top participant, #16800
- */
-function neticrm_update_update_7209() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * participant status translation correct, #12480
- */
-function neticrm_update_update_7210() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * member only priceset option, #17919
- */
-function neticrm_update_update_7211() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * mailing advanced search, #15329
- */
-function neticrm_update_update_7212() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Apply new receipt letter template. refs #17024
- */
-function neticrm_update_update_7213() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Apply website type in profile. refs #18283
- */
-function neticrm_update_update_7214() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Clear matching field cache to apply group tag import, refs #18274
- */
-function neticrm_update_update_7215() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Correct county - area name, refs #18989
- */
-function neticrm_update_update_7216() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add tax receipt column - refs #18992
- */
-function neticrm_update_update_7217() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Taiwan is not a province of China - refs #19429
- */
-function neticrm_update_update_7218() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Correct some receipt character - refs #19522, #19171
- */
-function neticrm_update_update_7219() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update message template receipt to payment notification, refs #18236
- */
-function neticrm_update_update_7220() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update database for failed recurring, refs #14971
- */
-function neticrm_update_update_7221() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Transfer receipt yes or no field contain more option
- */
-function neticrm_update_update_7222() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Change receipt subject if no payment required, refs #19810
- */
-function neticrm_update_update_7223() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Move receive date to cancel date of failed contribution. refs #19459
- */
-function neticrm_update_update_7224() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Change is_recur type of contribution page. refs #18981
- */
-function neticrm_update_update_7225() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Enable ienomore modules. refs #16489
- */
-function neticrm_update_update_7226() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update receipt message. refs #19627
- */
-function neticrm_update_update_7227() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update receipt field label. refs #20195, #20424
- */
-function neticrm_update_update_7228() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update county name. refs #20236
- */
-function neticrm_update_update_7229() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update wrong greeting config. refs #20138
- */
-function neticrm_update_update_7230() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update custom search title from description to label, refs #19180
- */
-function neticrm_update_update_7231() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update event notification email message. refs #20460
- */
-function neticrm_update_update_7232() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Correct is_billing flag of civicrm address. refs #20146
- */
-function neticrm_update_update_7233() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Extend url field length. refs #20983
- */
-function neticrm_update_update_7234() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add allow_cancel_by_link column to civicrm_event. refs #20460
- */
-function neticrm_update_update_7235() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add civicrm_sequence table. refs #21105
- */
-function neticrm_update_update_7236() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Expand length of external identifier. refs #21286
- */
-function neticrm_update_update_7237() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update db for SMS to use. refs #20991
- */
-function neticrm_update_update_7238() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update message template for event confirmation invitation. refs #22026
- */
-function neticrm_update_update_7239() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Update receipt template for upload stamp image. refs #19461
- */
-function neticrm_update_update_7240() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- *mailing advanced search. refs #22543
- */
-function neticrm_update_update_7241() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add Mobile processor options. refs #21929
- */
-function neticrm_update_update_7242() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add view public CiviMail content in default perm. refs #21514
- */
-function neticrm_update_update_7243() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add new table civicrm_track. refs #22872
- */
-function neticrm_update_update_7244() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Add new field of contribution page for goal subscription. refs #18908
- */
-function neticrm_update_update_7245() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Change varchar to text of bounce_reason field, add bounce pattern. refs #22612
- */
-function neticrm_update_update_7246() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Change database chartset and collate to utf8mb4. refs #15256
- */
-function neticrm_update_update_7247() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #22714, Add expire date column to contribution , and data from payment processor.
- */
-function neticrm_update_update_7248() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23174, Add last_name and first_name fields to user account page.
- */
-function neticrm_update_update_7249() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23594, Update civcirm_country.
- */
-function neticrm_update_update_7250() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23679, Add Macao subdivisions.
- */
-function neticrm_update_update_7251() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23595, Unsubscribe letter translation update
- */
-function neticrm_update_update_7252() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23819, emergency fix after 3.0
- */
-function neticrm_update_update_7253() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23639, add linepay record table for crm
- */
-function neticrm_update_update_7254() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23918, update old wrong fee level of price item
- */
-function neticrm_update_update_7255() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23892, Add `max_value` column to civicrm_price_field table;
- */
-function neticrm_update_update_7256() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #24358, Add background image column to contribution page table;
- */
-function neticrm_update_update_7257() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #23894, Add coupon related table
- */
-function neticrm_update_update_7258() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #23894, Add field `discount_amount` to coupon_track table
- */
-function neticrm_update_update_7259() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #24837, Add tables tappay and tappay_log.
- */
-function neticrm_update_update_7260() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #24847, ADD `last_execute_date` to `civicrm_contribution_recur` 
- */
-function neticrm_update_update_7261() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #24936, Change region type of toufeng.
- */
-function neticrm_update_update_7262() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #25456, changed modified_date type to datetime in civicrm_note.
- */
-function neticrm_update_update_7263() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #25456, Add 'Suspended' to contribution status
- */
-function neticrm_update_update_7264() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #21360, Add created_date / modified_date to contact
- */
-function neticrm_update_update_7265() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #23858, Add index to various track table 
- */
-function neticrm_update_update_7266() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #25553, add pricefield to custom group list
- */
-function neticrm_update_update_7267() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #25894, correct traffic source null when has entity
- */
-function neticrm_update_update_7268() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #25962, add qrcode switch on event table
- */
-function neticrm_update_update_7269() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #24740, Update annual receipt template
- */
-function neticrm_update_update_7270()
-{
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #24499, Add installment_option field
- */
-function neticrm_update_update_7271()
-{
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #26473, #23719, add new fields into mailing
- */
-function neticrm_update_update_7272() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #26455, add new fields to premium
- */
-function neticrm_update_update_7273() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #26696, fixes created date for contact who don't has log
- */
-function neticrm_update_update_7274() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #26345, modify batch database and add related template 
- */
-function neticrm_update_update_7275() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #26630, add bounce pattern
- */
-function neticrm_update_update_7276() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #27673, Create taiwan ach table and pp type.
- */
-function neticrm_update_update_7277() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28070, Add 'Email Receipt' activity type.
- */
-function neticrm_update_update_7278() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #8649, #26924, Add recurring donnor search, birthday search
- */
-function neticrm_update_update_7279() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #27227, Add column in contribution page table for sending SMS.
- */
-function neticrm_update_update_7280() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28304, Update neweb, spgateway payment type name.
- */
-function neticrm_update_update_7281() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * refs #28471, update contribution online / offline message subject to support pdf receipt
- */
-function neticrm_update_update_7282() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Added region of Singapore, Refs #28567.
- */
-function neticrm_update_update_7283() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28713,Modify wrong country name.
- */
-function neticrm_update_update_7284() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28713,Modify zuo-zhen dist. in tainan.
- */
-function neticrm_update_update_7285() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #27449, increase date range back to 1990
- */
-function neticrm_update_update_7286() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #27114, disable unused, update new IM provider.
- */
-function neticrm_update_update_7287() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28422, change recur processor id db fields
- */
-function neticrm_update_update_7288() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28181, Add renewal only column to membership_block table.
- */
-function neticrm_update_update_7289() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
- * Refs #28110, correct premium message in template
- */
-function neticrm_update_update_7290() {
+function neticrm_update_update_9300() {
   return neticrm_update_load_include(__FUNCTION__);
 }
