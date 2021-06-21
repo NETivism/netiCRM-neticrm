@@ -88,7 +88,7 @@ function neticrm_update_load_include($func){
 }
 
 /**
- * First update function for drupal 9.
+ * refs #31657, First update function for drupal 9.
  * 
  * Only for test propose
  */
