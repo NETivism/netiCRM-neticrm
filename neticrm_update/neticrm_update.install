@@ -1,5 +1,28 @@
 <?php
 /**
+ * netiCRM update main install file
+ * 
+ * Every file in update/*.inc should use this style to handling update success or not
+ * 
+ * ```php
+ * // success
+ * #return 'Messages';     # drupal 6,7,9: this will display success message
+ * #return TRUE            # drupal 6,7,9: will be success
+ * #return NULL            # drupal 6,7.9: no return value or return null will be success
+
+ * // failed, error,  schema_version will not be update
+ * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
+ * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+
+ * // should never use
+ * #throw UpdateException  # drupal 9 only, will be fatal error on drupal 6,7
+ * #throw DrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
+ * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
+ * ```
+ * 
+ */
+ 
+/**
  * Implement hook_install()
  */
 function neticrm_update_install(){
@@ -23,29 +46,65 @@ function neticrm_update_uninstall(){
 
 /**
  * Include correct file for update
+ * 
+ * @return mixed
  */
 function neticrm_update_load_include($func){
-  $n = substr($func, strrpos($func, '_')+1);
-  if($n){
-    civicrm_initialize();
-    $path = dirname(__FILE__).'/update/';
-    $filename = $path . $n. '.inc';
-    if(file_exists($filename)){
+  if(function_exists('civicrm_initialize')){
+    $n = substr($func, strrpos($func, '_')+1);
+    if(is_numeric($n)){
+      civicrm_initialize();
       module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
-      include $filename;
-      $func = '_'.$func;
+      $path = dirname(__FILE__).'/update/';
+
+      $neticrm_update = $path . 'neticrm_x'.substr($n, 1).'.inc'; # eg. neticrm_x300.inc
+      $filename = $path . $n. '.inc';   # eg. 9300.inc
+
+      // check if this is global neticrm update
+      if (file_exists($neticrm_update)) {
+        $filename = $neticrm_update;
+        require_once $filename;
+        $func = '_neticrm_update_update_x'.substr($n, 1); # eg. _neticrm_update_update_x300()
+      }
+      // if not, it's drupal version sensitive update
+      elseif(file_exists($filename)){
+        require_once $filename;
+        $func = '_'.$func;
+      }
+      else {
+        return array('success' => FALSE, 'query' => "Can not find update file in $filename or $neticrm_update when updating $func");
+      }
+
       if(function_exists($func)){
-        $ret = $func();
-        if($ret){
-          return array('success' => TRUE, 'query' => $ret);
+        $result = $func();
+        if ($result === FALSE) {
+          return array('success' => FALSE, 'query' => "Update failed in $func with no detail");
         }
-        else{
-          return array('success' => FALSE, 'query' => "Error when udpate to version $n");
+        elseif (is_string($reuslt) && stristr($result, '[error]')) {
+          return array('success' => FALSE, 'query' => "Update failed in $func. Message: $result");
+        }
+        else {
+          // success
+          if (is_string($result)) {
+            return array('success' => TRUE, 'query' => "$func successfully updated. ".$result);
+          }
+          else {
+            return array('success' => TRUE, 'query' => "$func successfully updated. No details message.");
+          }
         }
       }
+      else {
+        return array('success' => FALSE, 'query' => "$func not exists in $filename");
+      }
+    }
+    else {
+      return array('success' => FALSE, 'query' => "$n should be numeric, but it's not when updating $func");
     }
   }
-  return array('success' => FALSE, 'query' => 'Could not find update file.');
+  else{
+    return array('success' => FALSE, 'query' => "No civicrm installed / initialized. when updating $func");
+  }
+  return array('success' => FALSE, 'query' => "Unknow error when updating $func");
 }
 
 /**
@@ -705,5 +764,14 @@ function neticrm_update_update_6190() {
  * refs #31611, add is_internal in contribution page
  */
 function neticrm_update_update_6191() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #31657, First update function for drupal 9
+ * 
+ * Only for test propose, drupal 9 will be 9300
+ */
+function neticrm_update_update_6300() {
   return neticrm_update_load_include(__FUNCTION__);
 }
