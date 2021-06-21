@@ -1,5 +1,28 @@
 <?php
 /**
+ * netiCRM update main install file
+ * 
+ * Every file in update/*.inc should use this style to handling update success or not
+ * 
+ * ```php
+ * // success
+ * #return 'Messages';     # drupal 6,7,9: this will display success message
+ * #return TRUE            # drupal 6,7,9: will be success
+ * #return NULL            # drupal 6,7.9: no return value or return null will be success
+
+ * // failed, error,  schema_version will not be update
+ * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
+ * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+
+ * // should never use
+ * #throw DrupalUpdateException  # drupal 9 only, will be fatal error on drupal 6,7
+ * #throw DrupalDrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
+ * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
+ * ```
+ * 
+ */
+
+/**
  * Implement hook_install()
  */
 function neticrm_update_install(){
@@ -19,30 +42,65 @@ function neticrm_update_uninstall(){
 
 /**
  * Include correct file for update
+ * 
+ * @return mixed
  */
 function neticrm_update_load_include($func){
   if(function_exists('civicrm_initialize')){
     $n = substr($func, strrpos($func, '_')+1);
-    if($n){
+    if(is_numeric($n)){
       civicrm_initialize();
+      module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
       $path = dirname(__FILE__).'/update/';
-      $filename = $path . $n. '.inc';
-      if(file_exists($filename)){
-        module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+
+      $neticrm_update = $path . 'neticrm_x'.substr($n, 1).'.inc'; # eg. neticrm_x300.inc
+      $filename = $path . $n. '.inc';   # eg. 9300.inc
+
+      // check if this is global neticrm update
+      if (file_exists($neticrm_update)) {
+        $filename = $neticrm_update;
+        require_once $filename;
+        $func = '_neticrm_update_update_x'.substr($n, 1); # eg. _neticrm_update_update_x300()
+      }
+      // if not, it's drupal version sensitive update
+      elseif(file_exists($filename)){
         require_once $filename;
         $func = '_'.$func;
-        if(function_exists($func)){
-          return $func();
+      }
+      else {
+        throw new DrupalUpdateException("Can not find update file in $filename or $neticrm_update when updating $func");
+      }
+
+      if(function_exists($func)){
+        $result = $func();
+        if ($result === FALSE) {
+          throw new DrupalUpdateException("Update failed in $func with no detail");
+        }
+        elseif (is_string($reuslt) && stristr($result, '[error]')) {
+          throw new DrupalUpdateException("Update failed in $func. Message: $result");
+        }
+        else {
+          // success
+          if (is_string($result)) {
+            return "$func successfully updated. ".$result;
+          }
+          else {
+            return "$func successfully updated. No details message.";
+          }
         }
       }
+      else {
+        throw new DrupalUpdateException("$func not exists in $filename");
+      }
     }
-    throw new DrupalUpdateException('Could not find update file.');
-    return 0;
+    else {
+      throw new DrupalUpdateException("$n should be numeric, but it's not when updating $func");
+    }
   }
   else{
-    throw new DrupalUpdateException('Update for netiCRM Fail');
-    return 0;
+    throw new DrupalUpdateException("No civicrm installed / initialized. when updating $func");
   }
+  throw new DrupalUpdateException("Unknow error when updating $func");
 }
 
 /**
@@ -702,5 +760,14 @@ function neticrm_update_update_7290() {
  * refs #31611, add is_internal in contribution page
  */
 function neticrm_update_update_7291() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #31657, First update function for drupal 9
+ * 
+ * Only for test propose, drupal 9 will be 9300
+ */
+function neticrm_update_update_7300() {
   return neticrm_update_load_include(__FUNCTION__);
 }
