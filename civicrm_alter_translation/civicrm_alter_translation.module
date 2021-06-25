@@ -1,33 +1,41 @@
 <?php
+
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+
+/**
+ * Customize function to translate civivicrm string
+ *
+ * @param string $string
+ * @param array $args
+ * @param string|null $langcode
+ * 
+ * @return string|null
+ */
 function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
-  global $language;
-  static $custom_strings;
-  static $function = NULL;
+  civicrm_initialize();
+  global $tsLocale;
 
-  $old = $string;
-  $langcode = isset($langcode) ? $langcode : $language->language;
-  if($function === NULL){
-    $function = function_exists('locale') ? 'locale' : FALSE;
+  // don't do anything when system lang
+  if ($tsLocale == CRM_Core_Config::SYSTEM_LANG) {
+    return;
   }
-
-  // First, check for an array of customized strings. If present, use the array
-  // *instead of* database lookups. This is a high performance way to provide a
-  // handful of string replacements. See settings.php for examples.
-  // Cache the $custom_strings variable to improve performance.
-  if (!isset($custom_strings[$langcode])) {
-    $custom_strings[$langcode] = variable_get('locale_custom_strings_'. $langcode, array());
+  if (!is_string($string)) {
+    return;
   }
-  // Custom strings work for English too, even if locale module is disabled.
-  if (isset($custom_strings[$langcode][$string])) {
-    $string = $custom_strings[$langcode][$string];
-  }
-  // Translate with locale module if enabled.
-  elseif ($function && $langcode != 'en') {
-    $string = $function($string, '', $langcode);
+  $untranslate = $string;
+  $languageCode = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  
+  if ($languageCode != 'en') {
+    $options = [
+      'langcode' => $languageCode,
+      'context' => 'civicrm alter translation',
+    ];
+    $string = new TranslatableMarkup($string, $args, $options);
+    $string = (string) $string;
   }
 
   // fallback to use CRM translation
-  if($string === $old){
+  if($string === $untranslate){
     $i18n = CRM_Core_I18n::singleton();
     return $i18n->crm_translate($string, $args);
   }
@@ -39,6 +47,7 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
     foreach($args as $k => $v){
       $alter_args["%".$k] = $v;
     }
-    return strtr($string, $alter_args);
+    $new = strtr($string, $alter_args);
+    return $new;
   }
 }

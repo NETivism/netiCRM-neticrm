@@ -1,0 +1,8 @@
+name: CiviCRM Alternative Translation
+type: module
+description: Custom translation function for replace of CiviCRM internal translation.
+package: netiCRM
+dependencies:
+  - civicrm
+core: 8.x
+core_version_requirement: ^8 || ^9
