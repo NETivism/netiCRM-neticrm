@@ -1,11 +1,24 @@
 <?php
 
 /**
- * Implement hook_enable
+ * Implement hook_install
  */
 function civicrm_field_i18n_install(){
-  db_update('system')
-    ->fields(array('weight' => 200))
-    ->condition('name', 'civicrm_field_i18n', '=')
-    ->execute();
+  module_set_weight('content_translation', 200);
+  civicrm_initialize();
+  $params = array(
+    'customTranslateFunction' => 'civicrm_alter_translation',
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function civicrm_field_i18n_uninstall() {
+  civicrm_initialize();
+  $params = array(
+    'customTranslateFunction' => '',
+  );
+  CRM_Core_BAO_ConfigSetting::add($params);
 }

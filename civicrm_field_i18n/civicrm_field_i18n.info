@@ -1,6 +1,0 @@
-name = Custom Field i18n 
-description = I18n for civicrm custom field.
-package = NetiCRM
-dependencies[] = civicrm
-core = 7.x
-version = 7.x-2.0

@@ -1,0 +1,9 @@
+name: CiviCRM Custom Field i18n 
+type: module
+description: I18n for civicrm custom field and some options when submit contribution
+package: netiCRM
+dependencies:
+  - civicrm
+  - civicrm_alter_translation
+core: 8.x
+core_version_requirement: ^8 || ^9
