@@ -21,7 +21,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Event_Form_Registration_Confirm',
     'CRM_Event_Form_Registration_ThankYou',
   );
-  if($tsLocale != 'en_US' && in_array($form_name, $allowed)){
+  if($tsLocale != CRM_Core_Config::SYSTEM_LANG && in_array($form_name, $allowed)){
     if($_GET['snippet'] == 4){
       if(!empty($form->_paymentProcessors)){
         foreach($form->_paymentProcessors as $k => $v){
@@ -101,7 +101,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   global $tsLocale;
-  if($tsLocale != 'en_US' ){
+  if($tsLocale != CRM_Core_Config::SYSTEM_LANG ){
     $profiles = array('customPre', 'customPost');
     foreach ($profiles as $p) {
       $var_name = $p . '_grouptitle';
@@ -126,9 +126,9 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
  */
 function civicrm_field_i18n_civicrm_pageRun($page){
   global $tsLocale;
-  if(is_object($page) && $tsLocale != 'en_US'){
+  if(is_object($page) && $tsLocale != CRM_Core_Config::SYSTEM_LANG){
     $class = get_class($page);
-    if($class == 'CRM_Profile_Page_Dynamic' && $tsLocale != 'en_US'){
+    if($class == 'CRM_Profile_Page_Dynamic' && $tsLocale != CRM_Core_Config::SYSTEM_LANG){
       civicrm_initialize();
       $template = CRM_Core_Smarty::singleton();
       $fields = $template->get_template_vars('profileFields');
@@ -154,7 +154,7 @@ function civicrm_field_i18n_civicrm_pageRun($page){
  */
 function civicrm_field_i18n_user_view(array &$build, \Drupal\user\UserInterface $account, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode){
   global $tsLocale;
-  if ($tsLocale != 'en_US') {
+  if ($tsLocale != CRM_Core_Config::SYSTEM_LANG) {
     if (isset($build['civicrm_profiles'])) {
       foreach($build['civicrm_profiles'] as $idx => &$profile) {
         if (strstr($idx, 'civicrm_profile_')) {
@@ -173,8 +173,6 @@ function civicrm_field_i18n_user_view(array &$build, \Drupal\user\UserInterface 
  * @return string
  */
 function civicrm_field_i18n_t($text){
-  static $langcode, $options;
-
   if (empty($text)) {
     return '';
   }
@@ -182,26 +180,8 @@ function civicrm_field_i18n_t($text){
     return $text;
   }
 
-  if (!$langcode) {
-    $langcode = \Drupal::languageManager()->getCurrentLanguage()->getId();
-  }
-  if (!$options) {
-    // use context then we don't have duplicate string when civicrm alter translation enabled
-    $options = [
-      'langcode' => $langcode,
-      'context' => 'civicrm alter translation',
-    ];
-  }
-
-  // using drupal first
-  $string = new TranslatableMarkup($text, [], $options);
-  $string = (string) $string;
-
-  // if drupal doesn't have string, use civicrm
-  if ($string === $text) {
-    $string = ts($text);
-  }
-  return $string;
+  // using ts because we depends civicrm_alter_translation
+  return ts($text);
 }
 
 /**
