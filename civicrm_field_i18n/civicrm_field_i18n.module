@@ -1,10 +1,15 @@
 <?php
 
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+
 /**
  * Implementation hook_civicrm_buildForm
+ * 
+ * @see CRM_Utils_Hook::buildForm
  */
 function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
-  global $language;
+  global $tsLocale;
+
   $allowed = array(
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
@@ -16,7 +21,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Event_Form_Registration_Confirm',
     'CRM_Event_Form_Registration_ThankYou',
   );
-  if($language->language != 'en' && in_array($form_name, $allowed)){
+  if($tsLocale != 'en_US' && in_array($form_name, $allowed)){
     if($_GET['snippet'] == 4){
       if(!empty($form->_paymentProcessors)){
         foreach($form->_paymentProcessors as $k => $v){
@@ -95,8 +100,8 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
-  global $language;
-  if($language->language != 'en' ){
+  global $tsLocale;
+  if($tsLocale != 'en_US' ){
     $profiles = array('customPre', 'customPost');
     foreach ($profiles as $p) {
       $var_name = $p . '_grouptitle';
@@ -114,11 +119,16 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   }
 }
 
+/**
+ * Implementation hook_civicrm_pageRun
+ * 
+ * @see CRM_Utils_Hook::pageRun
+ */
 function civicrm_field_i18n_civicrm_pageRun($page){
-  global $language;
-  if(is_object($page) && $language->language != 'en'){
+  global $tsLocale;
+  if(is_object($page) && $tsLocale != 'en_US'){
     $class = get_class($page);
-    if($class == 'CRM_Profile_Page_Dynamic' && $language->language != 'en'){
+    if($class == 'CRM_Profile_Page_Dynamic' && $tsLocale != 'en_US'){
       civicrm_initialize();
       $template = CRM_Core_Smarty::singleton();
       $fields = $template->get_template_vars('profileFields');
@@ -133,31 +143,76 @@ function civicrm_field_i18n_civicrm_pageRun($page){
   }
 }
 
-function civicrm_field_i18n_user_view($user, $view_mode){
-  global $language;
-  if(is_array($user->content) && $language->language != 'en'){
-    foreach($user->content as $k => $c){
-      if(is_array($c) && !empty($c['#title']) && isset($c[$c['#title']])){
-        $content = $c[$c['#title']]['#value'];
-        if(strstr($content, 'crm-container')){
-          $user->content[$k]['#title'] = civicrm_field_i18n_t($c['#title']);
+/**
+ * Implementation of hook_ENTITY_TYPE_view
+ *
+ * @param array $build page element to build
+ * @param \Drupal\user\UserInterface $account
+ * @param \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display
+ * @param string $view_mode
+ * @return void
+ */
+function civicrm_field_i18n_user_view(array &$build, \Drupal\user\UserInterface $account, \Drupal\Core\Entity\Display\EntityViewDisplayInterface $display, $view_mode){
+  global $tsLocale;
+  if ($tsLocale != 'en_US') {
+    if (isset($build['civicrm_profiles'])) {
+      foreach($build['civicrm_profiles'] as $idx => &$profile) {
+        if (strstr($idx, 'civicrm_profile_')) {
+          $profile['#title'] = civicrm_field_i18n_t($profile['#title']);
         }
       }
     }
   }
 }
 
+/**
+ * Internal translate helper
+ *
+ * @internal
+ * @param string $text
+ * @return string
+ */
 function civicrm_field_i18n_t($text){
-  if(!empty($text) && civicrm_field_i18n_test($text) === $text){
-    $opt = array(
-      'context' => 'civicrm',
-    );
-    return t($text, array(), $opt);
+  static $langcode, $options;
+
+  if (empty($text)) {
+    return '';
   }
-  return empty($text) ? '' : $text;
+  if (civicrm_field_i18n_test($text) !== $text) {
+    return $text;
+  }
+
+  if (!$langcode) {
+    $langcode = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  }
+  if (!$options) {
+    // use context then we don't have duplicate string when civicrm alter translation enabled
+    $options = [
+      'langcode' => $langcode,
+      'context' => 'civicrm alter translation',
+    ];
+  }
+
+  // using drupal first
+  $string = new TranslatableMarkup($text, [], $options);
+  $string = (string) $string;
+
+  // if drupal doesn't have string, use civicrm
+  if ($string === $text) {
+    $string = ts($text);
+  }
+  return $string;
 }
 
+/**
+ * Internal string testing
+ * 
+ * This testing will prevent chinese being translate and add into drupal.
+ *
+ * @internal
+ * @param string $text
+ * @return string|null 
+ */
 function civicrm_field_i18n_test($text){
-  // prevent translate chinese.
   return preg_replace('/[^a-zA-Z0-9\/_,\'|+ .-?!<>\n\t\s()&-]+/', '', $text);
 }

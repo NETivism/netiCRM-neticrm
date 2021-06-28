@@ -1,11 +1,8 @@
 <?php
 
 /**
- * Implement hook_enable
+ * Implement hook_install
  */
 function civicrm_field_i18n_install(){
-  db_update('system')
-    ->fields(array('weight' => 200))
-    ->condition('name', 'civicrm_field_i18n', '=')
-    ->execute();
+  module_set_weight('content_translation', 200);
 }
