@@ -3,15 +3,10 @@
  * Implements hook_install().
  */
 function civicrm_alter_translation_install() {
-  civicrm_initialize();
-  $params = array(
-    'customTranslateFunction' => 'civicrm_alter_translation',
-  );
-  CRM_Core_BAO_ConfigSetting::add($params);
 }
 
 /**
- * Implements hook_disable().
+ * Implements hook_uninstall().
  */
 function civicrm_alter_translation_uninstall() {
   civicrm_initialize();
@@ -19,4 +14,22 @@ function civicrm_alter_translation_uninstall() {
     'customTranslateFunction' => '',
   );
   CRM_Core_BAO_ConfigSetting::add($params);
+
+  // delete all translations in context=civicrm alter translation
+  try {
+    $database = \Drupal::database();
+    // Doesn't make sense in delete() query as too complex:
+    $result = $database->query("DELETE lt FROM `locales_target` lt INNER JOIN locales_source ls ON ls.lid=lt.lid WHERE ls.context = 'civicrm alter translation'");
+    $result->allowRowCount = TRUE;
+    $num_deleted = $result->rowCount();
+    $result->execute();
+
+    // Doesn't make sense in delete() query as too complex:
+    $result = $database->query("DELETE ls FROM `locales_source` ls WHERE ls.context = 'civicrm alter translation'");
+    $result->allowRowCount = TRUE;
+    $num_deleted = $result->rowCount();
+    $result->execute();
+  } catch (Exception $e) {
+    \Drupal::logger('civicrm_alter_translation')->error($e->getMessage());
+  }
 }

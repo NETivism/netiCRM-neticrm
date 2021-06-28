@@ -9,19 +9,20 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * @param array $args
  * @param string|null $langcode
  * 
- * @return string|null
+ * @return string
  */
 function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   civicrm_initialize();
   global $tsLocale;
 
-  // don't do anything when system lang
-  if ($tsLocale == CRM_Core_Config::SYSTEM_LANG) {
-    return;
-  }
   if (!is_string($string)) {
     return;
   }
+  // don't do anything when system lang
+  if ($tsLocale == CRM_Core_Config::SYSTEM_LANG) {
+    return $string;
+  }
+
   $untranslate = $string;
   $languageCode = \Drupal::languageManager()->getCurrentLanguage()->getId();
   
