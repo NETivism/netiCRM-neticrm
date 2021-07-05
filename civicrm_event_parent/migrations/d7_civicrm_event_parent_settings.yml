@@ -1,0 +1,14 @@
+id: d7_civicrm_event_parent_settings
+label: CiviCRM Event Parent Module Settins
+migration_tags:
+  - Drupal 7
+source:
+  plugin: variable
+  variables:
+    - civicrm_event_parent_gid
+  source_module: civicrm_event_parent
+process:
+  parent_gid: civicrm_event_parent_gid
+destination:
+  plugin: config
+  config_name: civicrm_event_parent.settings

@@ -11,14 +11,14 @@ msgstr ""
 "X-Poedit-SourceCharset: utf-8\n"
 "Plural-Forms: nplurals=2; plural=1;\n"
 
-msgid "!relation profile form"
-msgstr "!relation 基本資料表"
+msgid ":relation profile form"
+msgstr ":relation 基本資料表"
 
-msgid "Hello !name! After finish this form, we will create a relashionship between you and belows. If you are not below's !relationship, or you would like to register for yourself, please <a href='!register_link'>use alternative form to register this event</a>."
-msgstr "!name 你好，填寫完表後，我們會將您與下列的參加者建立關係。若您是為自己報名，或您並非參加者的「!relationship」，請您<a href='!register_link'>使用另一張表格進行登記</a>。"
+msgid "Hello :name! After finish this form, we will create a relashionship between you and belows. If you are not below's :relationship, or you would like to register for yourself, please <a href='@register_link'>use alternative form to register this event</a>."
+msgstr ":name 你好，填寫完表後，我們會將您與下列的參加者建立關係。若您是為自己報名，或您並非參加者的「:relationship」，請您<a href='@register_link'>使用另一張表格進行登記</a>。"
 
-msgid "Please continue enter this form. We suppose you are !relationship of belows, then we will create relationship between you and belows. If you would like to register for yourself, please <a href='!register_link'>use alternative form to register this event</a>."
-msgstr "剛才您已成功填寫了!relationship資料，請在此繼續為其他人報名活動。若您是自己想要參加活動，而非幫他人報名，應<a href='!register_link'>使用另一張表格進行登記</a>。"
+msgid "Please continue enter this form. We suppose you are :relationship of belows, then we will create relationship between you and belows. If you would like to register for yourself, please <a href='@register_link'>use alternative form to register this event</a>."
+msgstr "剛才您已成功填寫了:relationship資料，請在此繼續為其他人報名活動。若您是自己想要參加活動，而非幫他人報名，應<a href='@register_link'>使用另一張表格進行登記</a>。"
 
 msgid "Parent Relationship"
 msgstr "代理登記為參加者的："

@@ -1,0 +1,20 @@
+<?php
+
+/**
+ * hook_install
+ *
+ * @return void
+ */
+function civicrm_event_parent_install() {
+  module_load_include('inc', 'neticrm_preset', 'neticrm_preset.utils');
+  _neticrm_preset_import_po('civicrm_event_parent');
+}
+
+/**
+ * hook_uninstall
+ *
+ * @return void
+ */
+function civicrm_event_parent_uninstall() {
+
+}

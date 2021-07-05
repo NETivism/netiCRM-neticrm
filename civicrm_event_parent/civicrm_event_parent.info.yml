@@ -1,0 +1,10 @@
+name: Event Parent Register
+type: module
+description: Allow a parent to register children to an event.
+version: 3.0
+dependencies:
+  - civicrm
+  - neticrm_preset
+packages: netiCRM
+core: 8.x
+core_version_requirement: ^8 || ^9
