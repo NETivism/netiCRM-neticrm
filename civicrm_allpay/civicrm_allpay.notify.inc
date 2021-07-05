@@ -40,7 +40,7 @@ function civicrm_allpay_notify_info($cid){
         $return['繳費期限'] = $info['ExpireDate'];
         break;
       case 'CVS':
-        $help = l('» 步驟說明', 'https://www.ecpay.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
+        $help = '<a href="https://www.ecpay.com.tw/Service/pay_way_cvpay" target="_blank">» 步驟說明</a>';
         $return['便利商店繳費代碼'] = $info['PaymentNo'];
         $return['繳費期限'] = $info['ExpireDate'];
         $return[] = $help;
@@ -69,6 +69,7 @@ function civicrm_allpay_notify_info($cid){
 
 function civicrm_allpay_notify_display($info, $payment_instrument_id = NULL){
   $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  $output = '';
   foreach($info as $label => $value){
     if(preg_match('/^#/', $label)){
       continue;
