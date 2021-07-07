@@ -271,7 +271,7 @@ WHERE r.id = %1";
       $message .= "，剩{$unexecuted}筆未執行，移到下次進行。";
     }
     CRM_Core_Error::debug_log_message($message);
-    variable_set('spgateway_neweb_resync_offset', $offset+200);
+    variable_set('spgateway_neweb_resync_offset', $offset+300);
   }
 
 }  
