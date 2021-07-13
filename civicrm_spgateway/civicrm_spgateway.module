@@ -458,8 +458,9 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
         $result = $order;
       }
       else {
+        $amount = CRM_Core_DAO::singleValueQuery('SELECT amount FROM civicrm_contribution_recur WHERE id = %1', array(1 => array($contribution->contribution_recur_id, 'Positive')));
         $request_data = array(
-          'Amt' => floor($contribution->total_amount),
+          'Amt' => floor($amount),
           'MerchantID' => $payment_processor['user_name'],
           'MerchantOrderNo' => $trxn_id,
           'RespondType' => SPGATEWAY_RESPONSE_TYPE,
