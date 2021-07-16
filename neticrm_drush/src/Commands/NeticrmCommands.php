@@ -97,7 +97,11 @@ class NeticrmCommands extends DrushCommands {
     $this->init();
     $config = \CRM_Core_Config::singleton();
     $config->clearDBCache();
-    $config->cleanup(1);
+    // refs #31419, do not clean up template_c because we will loss log files
+    // $config->cleanup(1);
+    
+    // refs #31419, instead cleanup template compiler dir, we clear IDS config
+    \CRM_Core_IDS::initConfig(NULL, TRUE);
     $this->logger("neticrm_drush")->success("netiCRM cache cleared");
   }
 
