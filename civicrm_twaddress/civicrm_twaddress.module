@@ -85,7 +85,6 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     $name = $e->_attributes['name'];
     if(strstr($name, 'state_province') || !empty($e->_attributes['state-province'])){
       $element = $form->getElement($name);
-      $options = civicrm_twaddress_extract($element->_options);
 
       $optgrp = FALSE;
       foreach ($element->_options as $o => $opt) {
@@ -593,13 +592,18 @@ function _civicrm_twaddress_reorder($options) {
   $order = civicrm_twaddress_order();
   $neworder = array();
 
+  $duplicatedOption = array();
+  foreach ($options as $value) {
+    $duplicatedOption[$value['text']] = $value;
+  }
+
   foreach($order as $k => $v){
-    // if option is '-- select --', skip to next.
-    if(empty($options[$v]['attr']['value'])) continue;
-    if(!empty($options[$v])){
-      $opt = $options[$v];
-      $neworder[$v] = $opt;
+    if ($k == 0 && empty($options[$k]['attr']['value'])) {
+      // if option is '-- select --', skip to next.
+      $neworder[$k] = $options[$k];
+      continue;
     }
+    $neworder[$k] = $duplicatedOption[$v];
   }
   if (empty($neworder)) {
     return $options;
