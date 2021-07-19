@@ -230,12 +230,12 @@ function civicrm_field_i18n_user_view($user, $view_mode){
 
 function civicrm_field_i18n_t($text){
   if(!empty($text) && civicrm_field_i18n_test($text) === $text){
-    $translated = ts($text);
+    $opt = array(
+      'context' => 'civicrm',
+    );
+    $translated = t($text, array(), $opt);
     if ($translated == $text) {
-      $opt = array(
-        'context' => 'civicrm',
-      );
-      $translated = t($text, array(), $opt);
+      $translated = ts($text);
     }
     return $translated;
   }
