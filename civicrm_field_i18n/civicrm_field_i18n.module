@@ -234,9 +234,6 @@ function civicrm_field_i18n_t($text){
       'context' => 'civicrm',
     );
     $translated = t($text, array(), $opt);
-    if ($translated == $text) {
-      $translated = ts($text);
-    }
     return $translated;
   }
   return empty($text) ? '' : $text;
