@@ -233,9 +233,6 @@ function civicrm_field_i18n_user($op, &$edit, &$user){
 function civicrm_field_i18n_t($text){
   if(!empty($text) && civicrm_field_i18n_test($text) === $text){
     $translated = t($text, array());
-    if ($translated == $text) {
-      $translated = ts($text);
-    }
     return $translated;
   }
   return empty($text) ? '' : $text;
