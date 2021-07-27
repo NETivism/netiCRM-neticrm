@@ -1,0 +1,13 @@
+<?php
+
+function backer_auto_import_menu() {
+  $items = array();
+  $items['backer-founder/ipn/%'] = array(
+    'access callback' => true,
+    'page callback' => 'backer_auto_import_ipn',
+    'type' => MENU_CALLBACK,
+    'weight' => 0,
+    'file' => 'backer_auto_import.ipn.inc',
+  );
+  return $items;
+}

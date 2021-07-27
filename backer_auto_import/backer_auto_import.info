@@ -1,0 +1,8 @@
+name = backer auto import
+description = "Auto import backer contactribution into crm"
+
+package = netiCRM
+core = 7.x
+
+dependencies[] = civicrm
+dependencies[] = neticrm_preset
