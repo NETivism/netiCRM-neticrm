@@ -1,6 +1,6 @@
 <?php
 
-function backer_auto_import_ipn($project_id) {
+function civicrm_backer_autoimport_ipn($project_id) {
   $input = file_get_contents('php://input');
   $saved = 0;
   if (!empty($input)) {

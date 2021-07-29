@@ -1,6 +1,6 @@
 <?php
 
-function backer_auto_import_install() {
+function civicrm_backer_autoimport_install() {
   civicrm_initialize();
   
   $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor_type WHERE class_name LIKE 'Payment_Backer'");
