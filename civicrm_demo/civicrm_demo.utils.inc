@@ -800,12 +800,12 @@ function _civicrm_demo_processor_default($class_name){
     $default['password'] = '5294y06JbISpM5x9';
     $default['signature'] = 'v77hoKGq4kWxNNIS';
     $default['subject'] = '';
-    $default['url_site'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE;
-    $default['url_api'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_API;
-    $default['url_recur'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR;
-    $default['url_site_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE;
-    $default['url_api_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_API;
-    $default['url_recur_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR;
+    $default['url_site'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_SITE;
+    $default['url_api'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_API;
+    $default['url_recur'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_RECUR;
+    $default['url_site_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_SITE;
+    $default['url_api_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_API;
+    $default['url_recur_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_RECUR;
   }
 
   if($class_name == 'Payment_Neweb'){
