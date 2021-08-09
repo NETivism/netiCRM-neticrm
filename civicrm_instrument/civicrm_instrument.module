@@ -685,7 +685,7 @@ function _civicrm_instrument_prepare_all(){
 function _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments){
   $radios = array();
   if(strstr($processor_type, 'ALLPAY')){
-    $enabled_instruments = CRM_Core_Payment_ALLPAY::_civicrm_allpay_instrument();
+    $enabled_instruments = CRM_Core_Payment_ALLPAY::getInstruments();
     $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
     if($processor_type == 'ALLPAY'){
       $credit_card = $enabled_instruments['Credit Card'];
