@@ -125,7 +125,7 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
   if (!empty($payment_processor)) {
 
     if (empty($recurNo)) {
-      $offset = variable_get('spgateway_neweb_resync_offset', 0);
+      $offset = variable_get("spgateway_neweb_resync_offset_{$ppid_new}", 0);
       $cycle_day = empty($day) ? date('j') : $day;
       $sql = "SELECT DISTINCT r.id AS rid from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1 AND c.payment_processor_id = %2 LIMIT 200  OFFSET %3";
       $params = array(
@@ -136,7 +136,7 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
       $bao = CRM_Core_DAO::executeQuery($sql, $params);
       if ($bao->N == 0) {
         // offset variable roll back to zero.
-        variable_set('spgateway_neweb_resync_offset', 0);
+        variable_set("spgateway_neweb_resync_offset_{$ppid_new}", 0);
         
         // There are no recur need execute. return finished.
         $message = "已無需要處理之捐款，結束PPID為{$ppid_new}的所有舊藍新同步。";
@@ -270,7 +270,7 @@ WHERE r.id = %1";
       $message .= "，剩{$unexecuted}筆未執行，移到下次進行。";
     }
     CRM_Core_Error::debug_log_message($message);
-    variable_set('spgateway_neweb_resync_offset', $offset+300);
+    variable_set("spgateway_neweb_resync_offset_{$ppid_new}", $offset+300);
   }
 
 }  
