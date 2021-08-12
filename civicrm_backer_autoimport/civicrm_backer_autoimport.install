@@ -12,11 +12,11 @@ function civicrm_backer_autoimport_install() {
   // add relationship
   $types = CRM_Core_PseudoConstant::relationshipType();
   foreach($types as $tid => $type) {
-    if ($type['label_a_b'] == ts('Orderer') && $type['label_b_a'] == ts('Recipients') && $type['contact_type_a'] == '' && $type['contact_type_b'] == '') {
+    if ($type['label_a_b'] == ts('Orderer') && $type['label_b_a'] == ts('Recipient') && $type['contact_type_a'] == '' && $type['contact_type_b'] == '') {
       $rtypeId = $tid;
       break;
     }
-    if ($type['label_a_b'] == 'Orderer' && $type['label_b_a'] == 'Recipients' && $type['contact_type_a'] == '' && $type['contact_type_b'] == '') {
+    if ($type['label_a_b'] == 'Orderer' && $type['label_b_a'] == 'Recipient' && $type['contact_type_a'] == '' && $type['contact_type_b'] == '') {
       $rtypeId = $tid;
       break;
     }
