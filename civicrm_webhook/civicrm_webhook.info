@@ -1,0 +1,7 @@
+name = civicrm webhook
+description = Webhook of civicrm
+core = 7.x
+version = 7.x-1.0
+package = netiCRM 
+dependencies[] = civicrm
+dependencies[] = civicrm_demo
