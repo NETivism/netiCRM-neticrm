@@ -35,7 +35,6 @@ function neticrm_drush_drush_command() {
       'drush neticrm-rebuildmenu',
     ),
     'aliases' => array(
-      'neticrm-cache-clear',
       'neticrm-menu-rebuild',
       'neticrm-rebuild-menu',
     ),

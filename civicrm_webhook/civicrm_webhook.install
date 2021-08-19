@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * Implementation of hook_install()
+ */
+function civicrm_webhook_install() {
+  db_query("UPDATE {system} SET weight = 110 WHERE name = 'civicrm_webhook'");
+
+  module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+
+  civicrm_initialize();
+  $groupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_custom_group WHERE name = 'civicrm_webhook'");
+  if (empty($groupId)) {
+    $group = _civicrm_demo_create_custom_group('civcirm_webhook', 'CiviCRM Webhook');
+    $groupId = $group['id'];
+    CRM_Core_DAO::setFieldValue('CRM_Core_DAO_CustomGroup', $groupId, 'collapse_display', 1);
+    CRM_Core_DAO::setFieldValue('CRM_Core_DAO_CustomGroup', $groupId, 'collapse_adv_display', 1);
+  }
+  if(!empty($groupId)){
+    $fields = array();
+    $fields['notify'] = _civicrm_demo_create_custom_field('Webhook_Notify_URL', 'Webhook Notify URL', 'String', 'Text', $groupId);
+    $fields['redirect'] = _civicrm_demo_create_custom_field('Webhook_Redirect_URL', 'Webhook Redirect URL', 'String', 'Text', $groupId);
+    foreach($fields as $field) {
+      CRM_Core_DAO::setFieldValue('CRM_Core_DAO_CustomField', $field['id'], 'is_view', 1);
+    }
+  }
+}

@@ -5,6 +5,7 @@ function civicrm_backer_autoimport_menu() {
   $items['backer-founder/ipn/%'] = array(
     'access callback' => true,
     'page callback' => 'civicrm_backer_autoimport_ipn',
+    'page arguments' => array(2),
     'type' => MENU_CALLBACK,
     'weight' => 0,
     'file' => 'civicrm_backer_autoimport.ipn.inc',
