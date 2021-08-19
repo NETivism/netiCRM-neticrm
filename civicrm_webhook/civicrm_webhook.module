@@ -116,7 +116,7 @@ function civicrm_webhook_civicrm_postProcess($formName, &$form) {
             if (!empty($config->webhookDomain) && !empty($config->webhookSecret)) {
               $notify = civicrm_webhook_notify_params($form->_contributionID);
               if (!empty($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY])) {
-                _civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
+                civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
               }
             }
           }
@@ -132,7 +132,7 @@ function civicrm_webhook_civicrm_post($op, $entityType, $id, &$object) {
     if (!empty($config->webhookDomain) && !empty($config->webhookSecret)) {
       $notify = civicrm_webhook_notify_params($id);
       if (!empty($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY])) {
-        _civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
+        civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
       }
     }
   }
@@ -156,7 +156,7 @@ function civicrm_webhook_civicrm_ipnPost($type, &$objects, &$input = NULL, &$ids
       if (!empty($contributionId)) {
         $notify = civicrm_webhook_notify_params($contributionId);
         if (!empty($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY])) {
-          _civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
+          civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
         }
       }
     }
@@ -165,7 +165,7 @@ function civicrm_webhook_civicrm_ipnPost($type, &$objects, &$input = NULL, &$ids
       if (!empty($contributionId)) {
         $notify = civicrm_webhook_notify_params($contributionId);
         if (!empty($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY])) {
-          _civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
+          civicrm_webhook_notify_send($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY], $notify);
         }
       }
     }
@@ -281,42 +281,65 @@ function civicrm_webhook_notify_params($contributionId) {
   return array();
 }
 
-function _civicrm_webhook_notify_send($url, $notify) {
-  $config = CRM_Core_Config::singleton();
-  unset($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY]);
-  unset($notify[CIVICRM_WEBHOOK_FIELD_REDIRECT]);
-  if (!empty($config->webhookSecret)) {
-    $data = json_encode($notify);
-    $signature = hash_hmac('sha1', $data, $config->webhookSecret);
-    $ch = curl_init($url);
-    $opt = array();
-    $opt[CURLOPT_RETURNTRANSFER] = FALSE; // we don't care response
-    $opt[CURLOPT_POST] = TRUE;
-    $opt[CURLOPT_HTTPHEADER] = array(
-      "Content-Type: application/json",
-      "X-CIVICRM-WEBHOOK-SIGNATURE: $signature",
-    );
-    $opt[CURLOPT_POSTFIELDS] = $data;
-    $opt[CURLOPT_CONNECTTIMEOUT] = 3;
-    $opt[CURLOPT_TIMEOUT] = 15;
-    curl_setopt_array($ch, $opt);
-    $result = curl_exec($ch);
-    $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $response = array(
-      'status_code' => $status,
-    );
-    if ($result === FALSE) {
-      $response['success'] = 'false';
-      $response['error_no'] = curl_errno($ch);
-      $response['error'] = curl_error($ch);
+/**
+ * Do not send here to prevent block request
+ * 
+ * Send curl after shutdown
+ *
+ * @param string $url
+ * @param array $notify
+ * @return void
+ */
+function civicrm_webhook_notify_send($url, $notify) {
+  global $civicrm_webhook;
+  $civicrm_webhook[$url] = $notify;
+  register_shutdown_function('_civicrm_webhook_notify_send');
+}
+
+function _civicrm_webhook_notify_send() {
+  global $civicrm_webhook;
+  if (!empty($civicrm_webhook) && is_array($civicrm_webhook)) {
+    if (function_exists('fastcgi_finish_request')) {
+      fastcgi_finish_request();
     }
-    else{
-      $response['success'] = 'true';
+    foreach($civicrm_webhook as $url => $notify) {
+      $config = CRM_Core_Config::singleton();
+      unset($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY]);
+      unset($notify[CIVICRM_WEBHOOK_FIELD_REDIRECT]);
+      if (!empty($config->webhookSecret)) {
+        $data = json_encode($notify);
+        $signature = hash_hmac('sha1', $data, $config->webhookSecret);
+        $ch = curl_init($url);
+        $opt = array();
+        $opt[CURLOPT_RETURNTRANSFER] = FALSE; // we don't care response
+        $opt[CURLOPT_POST] = TRUE;
+        $opt[CURLOPT_HTTPHEADER] = array(
+          "Content-Type: application/json",
+          "X-CIVICRM-WEBHOOK-SIGNATURE: $signature",
+        );
+        $opt[CURLOPT_POSTFIELDS] = $data;
+        $opt[CURLOPT_CONNECTTIMEOUT] = 5;
+        $opt[CURLOPT_TIMEOUT] = 15;
+        curl_setopt_array($ch, $opt);
+        $result = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $response = array(
+          'status_code' => $status,
+        );
+        if ($result === FALSE) {
+          $response['success'] = 'false';
+          $response['error_no'] = curl_errno($ch);
+          $response['error'] = curl_error($ch);
+        }
+        else{
+          $response['success'] = 'true';
+        }
+        $message = 'Contribution ID: '.$notify['contribution_id'] .' has webhook notifiction to '.$url."\nResult: ";
+        foreach($response as $idx => $val) {
+          $message .= $idx ." => ".$val.",";
+        }
+        CRM_Core_Error::debug_log_message(trim($message, ','));
+      }
     }
-    $message = 'Contribution ID: '.$notify['contribution_id'] .' has webhook notifiction to '.$url."\nResult: ";
-    foreach($response as $idx => $val) {
-      $message .= $idx ." => ".$val.",";
-    }
-    CRM_Core_Error::debug_log_message(trim($message, ','));
   }
 }
