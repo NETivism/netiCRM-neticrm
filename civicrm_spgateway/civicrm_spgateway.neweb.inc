@@ -128,7 +128,7 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
     if (empty($recurNo)) {
       $offset = variable_get("spgateway_neweb_resync_offset_{$ppid_new}", 0);
       $cycle_day = empty($day) ? date('j') : $day;
-      $sql = "SELECT DISTINCT r.id AS rid from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1 AND c.payment_processor_id = %2 LIMIT 200  OFFSET %3";
+      $sql = "SELECT DISTINCT r.id AS rid from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1 AND c.payment_processor_id = %2 LIMIT 300  OFFSET %3";
       $params = array(
         1 => array($cycle_day, 'Integer'),
         2 => array($ppid_new, 'Integer'),
