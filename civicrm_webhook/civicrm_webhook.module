@@ -3,7 +3,7 @@
 define('CIVICRM_WEBHOOK_GROUP', 'CiviCRM_Webhook');
 define('CIVICRM_WEBHOOK_FIELD_REDIRECT', 'Webhook_Redirect_URL');
 define('CIVICRM_WEBHOOK_FIELD_NOTIFY', 'Webhook_Notify_URL');
-define('CIVICRM_WEBHOOK_NOTIFY_FIELD', 'contact_id,external_identifier,contribution_id,contribution_page_id,contribution_type_id,payment_instrument_id,trxn_id,contribution_status_id,amount_level,currency,total_amount,receipt_id,receipt_date,created_date,receive_date,receipt_id,participant.id,participant.event_id,participant.event_title,participant.participant_status_id,membership.id,membership.status_id,membership.start_date,membership.end_date,membership.membership_type_id');
+define('CIVICRM_WEBHOOK_NOTIFY_FIELD', 'is_test,contact_id,external_identifier,contribution_id,contribution_page_id,contribution_type_id,payment_instrument_id,trxn_id,contribution_status_id,amount_level,currency,total_amount,receipt_id,receipt_date,created_date,receive_date,receipt_id,participant.id,participant.event_id,participant.event_title,participant.participant_status_id,membership.id,membership.status_id,membership.start_date,membership.end_date,membership.membership_type_id');
 
 
 /**
@@ -199,10 +199,14 @@ function civicrm_webhook_civicrm_config(&$config) {
  */
 function civicrm_webhook_notify_params($contributionId) {
   $config = CRM_Core_Config::singleton();
+  $is_test = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $contributionId, 'is_test');
   $params = array(
     'version' => 3,
     'id' => $contributionId,
   );
+  if ($is_test) {
+    $params['contribution_is_test'] = 1;
+  }
   $result = civicrm_api('Contribution', 'get', $params);
   if (!empty($result['values']) && $result['id'] == $contributionId) {
     $contribution = reset($result['values']);
