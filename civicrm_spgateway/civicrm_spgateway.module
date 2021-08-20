@@ -313,9 +313,10 @@ function civicrm_spgateway_record($cid, $data = null){
 }
 
 function civicrm_spgateway_cron() {
+  $now = time();
+
   // every nights, we check recurring payment result 
   $last = variable_get('civicrm_spgateway_recur_sync', 0);
-  $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
 
@@ -329,6 +330,25 @@ function civicrm_spgateway_cron() {
 
     variable_set('civicrm_spgateway_recur_sync', $now);
   }
+
+  // For old neweb.
+  $last = variable_get('civicrm_spgateway_neweb_recur_sync', 0);
+  if($now - $last > 60000 && date('G') > '18' && date('G') < '24'){
+    $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
+    $dao = CRM_Core_DAO::executeQuery($query);
+    $finishedAll = TRUE;
+    while($dao->fetch()) {
+      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
+      $finished = civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+      if (!$finished) {
+        $finishedAll = FALSE;
+      }
+    }
+    if ($finishedAll) {
+      variable_set('civicrm_spgateway_neweb_recur_sync', $now);
+    }
+  }
+
 }
 
 function civicrm_spgateway_recur_sync($days = array()){
@@ -383,16 +403,23 @@ function civicrm_spgateway_recur_check($recurring_id) {
   // get latest trxn_id civicrm_contribution
   // whatever contribution success or not, trxn_id will increase number
   // we dont limit recurring status to make sure when ever recurring stopped, we still can syncronize contribution
-  $query = "SELECT trxn_id, CAST(REGEXP_REPLACE(trxn_id, '^[0-9]+_', '') as UNSIGNED) as number FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY number DESC";
+  $query = "SELECT trxn_id, CAST(REGEXP_REPLACE(trxn_id, '^[0-9]+_?', '') as UNSIGNED) as number FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY number DESC";
   $result = CRM_Core_DAO::executeQuery($query, array(1 => array($recurring_id, 'Integer')));
   $result->fetch();
   if(!empty($result->N)){
+    // when recurring trxn_id have underline, eg oooo_1
     if (strstr($result->trxn_id, '_')) {
       list($parent_trxn_id, $recurring_installment) = explode('_', $result->trxn_id);
       if (is_numeric($recurring_installment)) {
         $recurring_installment++;
         civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
       }
+    }
+    // when first recurring trxn_id record without underline
+    else {
+      $parent_trxn_id = $result->trxn_id;
+      $recurring_installment = 2;
+      civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
     }
   }
 }
@@ -440,8 +467,9 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
         $result = $order;
       }
       else {
+        $amount = CRM_Core_DAO::singleValueQuery('SELECT amount FROM civicrm_contribution_recur WHERE id = %1', array(1 => array($contribution->contribution_recur_id, 'Positive')));
         $request_data = array(
-          'Amt' => floor($contribution->total_amount),
+          'Amt' => floor($amount),
           'MerchantID' => $payment_processor['user_name'],
           'MerchantOrderNo' => $trxn_id,
           'RespondType' => SPGATEWAY_RESPONSE_TYPE,

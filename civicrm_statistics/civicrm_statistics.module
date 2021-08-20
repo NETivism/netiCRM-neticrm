@@ -34,11 +34,24 @@ function civicrm_statistics_cron(){
     $base_year = $year;
     $exists = variable_get('civicrm_statistics_run_annual', array());
     // every 30 days, we collect data of current year
-    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 86400*30) && date('G') >= 3 && date('G') <= 7) {
-      sleep(mt_rand(1, 60)); // multiple sites will fetch at the same time, delay awhile for each site
+    if (($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 86400*30) && date('G') >= mt_rand(5, 9) && date('G') <= 9 && date('j') == '1') {
+      sleep(mt_rand(1, 80)); // multiple sites will fetch at the same time, delay awhile for each site
       civicrm_statistics_annual_fetch($base_year, TRUE);
       $exists[$base_year] = $_SERVER['REQUEST_TIME'];
       variable_set('civicrm_statistics_run_annual', $exists);
     }
+  }
+
+  if (date('Ymd') === '20210603' && empty($member['optout_crm_stat']) && date('G') >= mt_rand(19, 22) && date('G') <= 23) {
+    set_time_limit(1200);
+    $exists = variable_get('civicrm_statistics_run_annual', array());
+    foreach(array('2020', '2019', '2018', '2017', '2016') as $base_year) {
+      if($_SERVER['REQUEST_TIME'] - $exists[$base_year] >= 86400) {
+        sleep(mt_rand(1, 90)); // multiple sites will fetch at the same time, delay awhile for each site
+        civicrm_statistics_annual_fetch($base_year, TRUE);
+        $exists[$base_year] = $_SERVER['REQUEST_TIME'];
+      }
+    }
+    variable_set('civicrm_statistics_run_annual', $exists);
   }
 }
