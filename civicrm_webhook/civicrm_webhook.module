@@ -205,7 +205,7 @@ function civicrm_webhook_notify_params($contributionId) {
     'id' => $contributionId,
   );
   if ($is_test) {
-    $params['contribution_is_test'] = 1;
+    $params['contribution_test'] = 1;
   }
   $result = civicrm_api('Contribution', 'get', $params);
   if (!empty($result['values']) && $result['id'] == $contributionId) {
