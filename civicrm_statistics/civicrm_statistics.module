@@ -8,9 +8,11 @@ function civicrm_statistics_cron(){
     return;
   }
 
+  /*
   if($_SERVER['REQUEST_TIME'] - variable_get('civicrm_statistics_run', 0) > 80000 && empty($member['optout_crm_stat'])){
     civicrm_statistics_fetch();
   }
+  */
 
   $year = (int)date('Y');
   // only fetch last year at January
