@@ -111,7 +111,13 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         }
 
         // assign trxn_id before complete transaction
-        $input['trxn_id'] = $objects['contribution']->trxn_id;
+        if(!empty($input['PeriodAmt'])){
+          // first contribution of recurring, update trxn_id.
+          $input['trxn_id'] = $input['MerchantOrderNo'] . "_1";
+        }
+        else {
+          $input['trxn_id'] = $objects['contribution']->trxn_id;
+        }
         $this->completeTransaction( $input, $ids, $objects, $transaction, $recur );
         $note .= ts('Completed')."\n";
         $this->addNote($note, $contribution);
