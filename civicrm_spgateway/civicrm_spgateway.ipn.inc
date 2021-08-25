@@ -111,7 +111,13 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         }
 
         // assign trxn_id before complete transaction
-        if(!empty($input['PeriodAmt'])){
+        $recurContribCount = NULL;
+        if (!empty($contribution->contribution_recur_id)) {
+          $recurContribCount = CRM_Core_DAO::singleValueQuery("SELECT count(id) FROM civicrm_contribution WHERE contribution_recur_id = %1", array(
+            1 => array($contribution->contribution_recur_id, 'Integer')
+          ));
+        }
+        if(!empty($input['PeriodAmt']) && $recurContribCount == 1){
           // first contribution of recurring, update trxn_id.
           $input['trxn_id'] = $input['MerchantOrderNo'] . "_1";
         }
