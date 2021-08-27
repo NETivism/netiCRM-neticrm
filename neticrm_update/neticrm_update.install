@@ -775,3 +775,10 @@ function neticrm_update_update_6191() {
 function neticrm_update_update_6300() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32446, civicmr_log modified id FK on delete null
+ */
+function neticrm_update_update_6301() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
