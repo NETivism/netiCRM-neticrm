@@ -55,13 +55,15 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
     // modify custom field admin page
     case 'CRM_Custom_Form_Group':
       $id = $form->get('id');
-      $name = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $id, 'name');
-      if ($name == CIVICRM_WEBHOOK_GROUP) {
-        $freezeElements = array('title', 'extends', 'is_active');
-        foreach($freezeElements as $elename) {
-          if (!empty($form->_elementIndex[$elename])) {
-            $ele = $form->getElement($elename);
-            $ele->freeze();
+      if ($id) {
+        $name = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $id, 'name');
+        if ($name == CIVICRM_WEBHOOK_GROUP) {
+          $freezeElements = array('title', 'extends', 'is_active');
+          foreach($freezeElements as $elename) {
+            if (!empty($form->_elementIndex[$elename])) {
+              $ele = $form->getElement($elename);
+              $ele->freeze();
+            }
           }
         }
       }
@@ -80,12 +82,14 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
       break;
     case 'CRM_Custom_Form_DeleteField':
       $id = CRM_Utils_Request::retrieve('id', 'Integer', CRM_Core_DAO::$_nullObject);
-      $name = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $id, 'name');
-      if (in_array($name, array(CIVICRM_WEBHOOK_FIELD_REDIRECT, CIVICRM_WEBHOOK_FIELD_NOTIFY))) {
-        $gid = CRM_Utils_Request::retrieve('gid', 'Integer', CRM_Core_DAO::$_nullObject);
-        $url = CRM_Utils_System::url('civicrm/admin/custom/group/field', 'reset=1&action=browse&gid='.$gid);
-        CRM_Core_Session::setStatus(ts('You do not have permission to delete this field.'), TRUE, 'warning');
-        CRM_Utils_System::redirect($url);
+      if ($id) {
+        $name = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', $id, 'name');
+        if (in_array($name, array(CIVICRM_WEBHOOK_FIELD_REDIRECT, CIVICRM_WEBHOOK_FIELD_NOTIFY))) {
+          $gid = CRM_Utils_Request::retrieve('gid', 'Integer', CRM_Core_DAO::$_nullObject);
+          $url = CRM_Utils_System::url('civicrm/admin/custom/group/field', 'reset=1&action=browse&gid='.$gid);
+          CRM_Core_Session::setStatus(ts('You do not have permission to delete this field.'), TRUE, 'warning');
+          CRM_Utils_System::redirect($url);
+        }
       }
       break;
   }
