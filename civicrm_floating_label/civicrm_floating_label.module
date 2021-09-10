@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * Implemnet hook_civicrm_preProcess
+ * 
+ * We need to do something very early before quickform generate
+ *
+ * @param object $config
+ * @return void
+ * 
+ * @see $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES'] in package/HTML/QuickForm.php
+ */
+function civicrm_floating_label_civicrm_preProcess($formName, &$form){
+  switch($formName) {
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Event_Form_Registration_AdditionalParticipant':
+      // not sure if placing here is early enough
+      set_include_path(get_include_path().PATH_SEPARATOR.__DIR__);
+
+      // change element type file and class
+      // please notice that, this will effect both html and ajax form(snipet=4)
+      // the condition is to prevent other module doing the same thing
+      // and that will make conflict
+      if (!empty($GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text']) && $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text'][1] === 'HTML_QuickForm_text') {
+        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text'] = array(
+          'civicrm_floating_label.text.inc', # file
+          'CiviCRM_Floating_Label_text',     # class
+        );
+      }
+      break;
+  }
+}
+
+/**
+ * Implemnet hook_civicrm_config
+ * 
+ * We need to do something very early before quickform generate
+ *
+ * @param object $config
+ * @return void
+ * 
+ * @see $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES'] in package/HTML/QuickForm.php
+ */
+function civicrm_floating_label_civicrm_buildForm($formName, &$form){
+  switch($formName) {
+    case 'CRM_Contribute_Form_Contribution_Main':
+    case 'CRM_Event_Form_Registration_Register':
+    case 'CRM_Event_Form_Registration_AdditionalParticipant':
+      // not sure if placing here is early enough
+      foreach($form->_elements as &$ele) {
+        if (get_class($ele) === 'CiviCRM_Floating_Label_text') {
+          $label = $ele->_label;
+          $ele->updateAttributes(['data-label' => $label]);
+
+          // clear exists label, prevent template output
+          $ele->setLabel('');
+        }
+      }
+      break;
+  }
+}
