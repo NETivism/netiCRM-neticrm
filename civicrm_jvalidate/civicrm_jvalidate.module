@@ -1,5 +1,7 @@
 <?php
 
+const CIVICRM_JVALIDATE_LIBRARY = 'civicrm-js-jvalidate';
+
 function civicrm_jvalidate_page_attachments(array &$page) {
   $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
   $config = array('jvalidate' => array(
@@ -29,16 +31,55 @@ function civicrm_jvalidate_page_attachments(array &$page) {
 }
 
 function civicrm_jvalidate_library_info_alter(&$libraries, $extension) {
+  // this will add js library into library, and use cj to trigger that
   if ($extension == 'civicrm') {
-    $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
     $min = \Drupal::config('system.performance')->get('js.preprocess') ? '.min' : '';
-    $jvalidate = array('weight' => -5, 'header' => TRUE);
-    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/jquery.validate'.$min.'.js'] = $jvalidate;
+    $libraries[CIVICRM_JVALIDATE_LIBRARY] = [
+      'weight' => -5,
+      'header' => true,
+      'dependencies' => [
+        'civicrm-js-packages',
+      ],
+    ];
+
+    $jvalidate = ['weight' => -5, 'minified' => true];
+    $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/js/jquery.validate'.$min.'.js'] = $jvalidate;
+
+    // TODO: we will have issue here. hook_library_info_alter only triggered once
+    $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
     if ($lang == 'zh-hant') {
-      $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/localization/messages_tw.js'] = $jvalidate;
+      $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/js/localization/messages_tw.js'] = $jvalidate;
     }
-    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/custom-methods.js'] = $jvalidate;
-    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/js/jquery.maskedinput.js'] = $jvalidate;
-    $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_jvalidate/civicrm_jvalidate.js'] = $jvalidate;
+    $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/js/custom-methods.js'] = $jvalidate;
+    $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/js/jquery.maskedinput.js'] = $jvalidate;
+    $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/js/custom-masks.js'] = $jvalidate;
+    $libraries[CIVICRM_JVALIDATE_LIBRARY]['js']['../neticrm/civicrm_jvalidate/civicrm_jvalidate.js'] = $jvalidate;
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_buildForm().
+ */
+function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
+  static $add;
+
+  $form_name = $form->_attributes['name'];
+  if($form_name == 'Dynamic'){
+    $is_dynamic = true;
+  }
+
+  if($_GET['q'] != 'civicrm/event/register' && $_GET['q'] != 'civicrm/profile/create' && $_GET['q']!= 'civicrm/contribute/transact' && $_GET['q'] != 'civicrm/contact/add' && $_GET['q'] != 'civicrm/profile/edit' && empty($is_dynamic)){
+    return;
+  }
+
+  if(isset($_GET['_qf_Confirm_display']) || isset($_GET['_qf_ThankYou_display'])){
+    return;
+  }
+
+  if(!$add){
+    // libraries already added, add logic here
+    $params['library'] = 'civicrm/'.CIVICRM_JVALIDATE_LIBRARY;
+    CRM_Utils_System::addJs($params, '');
+    $add = TRUE;
   }
 }
