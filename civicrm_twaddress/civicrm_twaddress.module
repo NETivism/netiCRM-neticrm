@@ -311,7 +311,7 @@ function civicrm_twaddress_order(){
 
 function civicrm_twaddress_library_info_alter(&$libraries, $extension) {
   if ($extension == 'civicrm') {
-    $jsAttribute = array('weight' => -5, 'header' => TRUE);
+    $jsAttribute = array('weight' => -5);
     $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_twaddress/twzipcode.js'] = $jsAttribute;
   }
 }
