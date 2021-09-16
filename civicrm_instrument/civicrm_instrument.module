@@ -247,39 +247,43 @@ cj(document).ready(function($){';
       }
       if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
         $js = "
-        jQuery(document).ready(function($){
-          $('[class*=url_site]').hide();
-          $('[class*=url_api]').hide();
-          $('[class*=url_recur]').hide();
-        });
+        (function($){
+          $(function(){
+            $('[class*=url_site]').hide();
+            $('[class*=url_api]').hide();
+            $('[class*=url_recur]').hide();
+          });
+        })(cj);
         ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        drupal_add_js($js, 'inline', 'footer');
 
         // Make Checkbox For Control Spgateway Recurring API Enable;
         $js = "
-        jQuery(document).ready(function($){
-          $('fieldset [class^=\"crm-paymentProcessor-\"]:last-child').each(function(i, e){
-            var je = $(e);
-            document.e = e;
-            var trClass = e.className+'-api-checkbox-wrapper';
-            var inputName = e.className+'-api-checkbox';
-            var originUrlInputField = $(e).find('input')[0];
-            je.after(
-              $('<tr class=\"'+trClass+'\"><td class=\"label\"><label for=\"'+inputName+'\">啟用定期定額 API</label></td><td><input type=\"checkbox\" id=\"'+inputName+'\"></td></tr>')
-            );
+        (function($){
+          $(function(){
+            $('fieldset [class^=\"crm-paymentProcessor-\"]:last-child').each(function(i, e){
+              var je = $(e);
+              document.e = e;
+              var trClass = e.className+'-api-checkbox-wrapper';
+              var inputName = e.className+'-api-checkbox';
+              var originUrlInputField = $(e).find('input')[0];
+              je.after(
+                $('<tr class=\"'+trClass+'\"><td class=\"label\"><label for=\"'+inputName+'\">啟用定期定額 API</label></td><td><input type=\"checkbox\" id=\"'+inputName+'\"></td></tr>')
+              );
 
-            var newCheckboeInputField = document.getElementById(inputName);
+              var newCheckboeInputField = document.getElementById(inputName);
 
-            // set Default Value
-            newCheckboeInputField.checked = (originUrlInputField.value == 1)? true: false;
+              // set Default Value
+              newCheckboeInputField.checked = (originUrlInputField.value == 1)? true: false;
 
-            $(newCheckboeInputField).change(function(){
-              originUrlInputField.value = (newCheckboeInputField.checked) ? 1:'';
+              $(newCheckboeInputField).change(function(){
+                originUrlInputField.value = (newCheckboeInputField.checked) ? 1:'';
+              });
             });
           });
-        });
+        })(cj);
         ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        drupal_add_js($js, 'inline', 'footer');
 
         // Remove url_recur validation for url;
         foreach ($form->_rules['url_recur'] as $key => $rule) {
