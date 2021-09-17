@@ -42,9 +42,11 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
       $pstatus = CRM_Event_PseudoConstant::participantStatus();
       if($new_pstatus = array_search('Pending from pay later', $pstatus)){
         CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $vars['participantID'], 'status_id', $new_pstatus, 'id');
-        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
+        $cancelled_pstatus = array_search('Cancelled', $pstatus);
+        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1 AND status_id != %2';
         $params = array(
           1 => array($vars['participantID'], 'Integer'),
+          2 => array($cancelled_pstatus, 'Integer'),
         );
         $dao = CRM_Core_DAO::executeQuery($sql, $params);
         while($dao->fetch()){
