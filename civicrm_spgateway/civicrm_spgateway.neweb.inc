@@ -154,7 +154,7 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
       $sql = "SELECT id, last_receive_date , last_failed_date,  ltid.last_trxn_id FROM civicrm_contribution_recur AS r 
 LEFT JOIN (SELECT contribution_recur_id AS rid, MAX(receive_date) AS last_receive_date FROM civicrm_contribution WHERE contribution_status_id = 1 AND contribution_recur_id = %1 GROUP BY contribution_recur_id) lrd ON lrd.rid = r.id 
 LEFT JOIN (SELECT contribution_recur_id AS rid, MAX(cancel_date) AS last_failed_date FROM civicrm_contribution WHERE contribution_status_id = 4 AND contribution_recur_id = %1 GROUP BY contribution_recur_id) lfd ON lfd.rid = r.id 
-LEFT JOIN (SELECT contribution_recur_id AS rid, MAX(trxn_id) AS last_trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 GROUP BY contribution_recur_id) ltid ON ltid.rid = r.id 
+LEFT JOIN (SELECT contribution_recur_id AS rid, CONCAT('r_', contribution_recur_id, '_', MAX(CAST(REGEXP_SUBSTR(trxn_id, '[0-9]+$') as INT))) AS last_trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 AND trxn_id LIKE CONCAT('r_', contribution_recur_id, '_%') GROUP BY contribution_recur_id) ltid ON ltid.rid = r.id 
 WHERE r.id = %1";
       $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($recurId, 'Integer')));
       $dao->fetch();
