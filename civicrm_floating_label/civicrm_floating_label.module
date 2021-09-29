@@ -94,7 +94,11 @@ function civicrm_floating_label_page_attachments(array &$page) {
 
   // Attach CSS and JS.
   if ($path_args[0] == 'civicrm' || \Drupal::service('civicrm')->initialized) {
-    $page['#attached']['library'][] = 'civicrm_floating_label/civicrm-css-floating-label';
+    switch ($current_path) {
+      case '/civicrm/contribute/transact':
+      case '/civicrm/event/register':
+        $page['#attached']['library'][] = 'civicrm_floating_label/civicrm-css-floating-label';
+        break;
+    }
   }
 }
-
