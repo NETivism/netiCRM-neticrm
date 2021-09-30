@@ -6,18 +6,15 @@
  */
 class CiviCRM_Floating_Label_textarea extends HTML_QuickForm_textarea {
   function __construct($elementName=null, $elementLabel=null, $attributes=null) {
-    if (is_string($attributes)) {
-      if (!strstr($attributes, 'placeholder=')) {
-        $attributes .= ' placeholder="' . ts('Enter text here') . ' ..."';
-      }
-    }
-    elseif (!isset($attributes['placeholder'])) {
-      $attributes['placeholder'] = ts('Enter text here') . ' ...';
-    }
-
     parent::__construct($elementName, $elementLabel, $attributes);
     $this->_persistantFreeze = true;
     $this->_type = 'textarea';
+
+    // set placeholder to make sure floating label work
+    $label = $this->_label != "" ? $this->_label : ts('Enter text here');
+    if (!isset($this->_attributes['placeholder'])) {
+      $this->setAttribute('placeholder', $label);
+    }
   }
 
   function toHtml() {
