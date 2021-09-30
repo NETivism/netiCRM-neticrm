@@ -27,7 +27,7 @@ class CiviCRM_Floating_Label_textarea extends HTML_QuickForm_textarea {
       $html = '<div class="crm-form-elem crm-form-textarea crm-floating-label">' . $this->_getTabs() . '<textarea' . $this->_getAttrString($this->_attributes) . '>' .
       // because we wrap the form later we don't want the text indented
       preg_replace("/(\r\n|\n|\r)/", '&#010;', htmlspecialchars($this->_value)) .
-      '</textarea><label for="'.$this->_attributes['name'].'">' . $label . '</label></div>';
+      '</textarea><label class="elem-label" for="'.$this->_attributes['name'].'">' . $label . '</label></div>';
 
       return $html;
     }

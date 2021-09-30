@@ -25,8 +25,8 @@ class CiviCRM_Floating_Label_text extends HTML_QuickForm_text {
       return $this->getFrozenHtml();
     }
     else {
-      $html = '<div class="crm-form-elem crm-form-textfield crm-floating-label">' . $this->_getTabs() . '<input' . $this->_getAttrString($this->_attributes) . ' /><label for="'.$this->_attributes['name'].'">'.$label.'</label></div>';
+      $html = '<div class="crm-form-elem crm-form-textfield crm-floating-label">' . $this->_getTabs() . '<input' . $this->_getAttrString($this->_attributes) . ' /><label class="elem-label" for="'.$this->_attributes['name'].'">'.$label.'</label></div>';
       return $html;
     }
-  } 
+  }
 }

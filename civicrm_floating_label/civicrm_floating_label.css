@@ -1,4 +1,5 @@
 .crm-container .crm-floating-label {
+  --field-height: 42px !important;
   --field-bg: #fff;
   --field-readonly-bg: #f2f2f2;
   position: relative;
@@ -33,7 +34,7 @@
   background: var(--field-readonly-bg) !important;
 }
 .crm-container .crm-floating-label > input.form-text {
-  height: 42px;
+  height: var(--field-height);
   line-height: 1.25;
   border: 1px solid #9e9e9e !important;
 }
@@ -54,32 +55,38 @@
   outline: none;
   border: 1px solid #333 !important;
 }
-.crm-container .crm-floating-label > label {
+.crm-container .crm-floating-label > input.form-text.error,
+.crm-container .crm-floating-label > textarea.form-textarea.error,
+.crm-container .crm-floating-label > input.form-text.error:focus,
+.crm-container .crm-floating-label > textarea.form-textarea.error:focus {
+  border: 1px solid #f44336 !important;
+}
+.crm-container .crm-floating-label > .elem-label {
   position: absolute;
   top: 0;
   left: 0;
   margin: 0 10px;
   padding: 10px;
-  height: 100%;
+  height: var(--field-height);
   font-size: 16px;
   border: 1px solid transparent;
   pointer-events: none;
   transform-origin: 0 0;
   transition: opacity .1s ease-in-out, transform .1s ease-in-out;
 }
-.crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ label,
-.crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ label,
-.crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ label,
-.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ label {
+.crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ .elem-label,
+.crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ .elem-label,
+.crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ .elem-label,
+.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label {
   display: block;
   opacity: 1;
   height: auto;
   transform: scale(.8) translateY(-22px) translateX(.15em);
 }
-.crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ label::before,
-.crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ label::before,
-.crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ label::before,
-.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ label::before {
+.crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ .elem-label::before,
+.crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ .elem-label::before,
+.crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ .elem-label::before,
+.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label::before {
   content: "";
   display: block;
   z-index: -1;
@@ -91,7 +98,16 @@
   width: 100%;
   background: var(--field-bg);
 }
-.crm-container .crm-floating-label > input.form-text[readonly]:not(:placeholder-shown) ~ label::before,
-.crm-container .crm-floating-label > textarea.form-textarea[readonly]:not(:placeholder-shown) ~ label::before {
+.crm-container .crm-floating-label > input.form-text[readonly]:not(:placeholder-shown) ~ .elem-label::before,
+.crm-container .crm-floating-label > textarea.form-textarea[readonly]:not(:placeholder-shown) ~ .elem-label::before {
   background: var(--field-readonly-bg);
+}
+.crm-container .crm-floating-label > .error,
+.crm-container .crm-floating-label > .extend {
+  display: inline-flex;
+  margin-top: .25em;
+  line-height: 1.25;
+  font-size: 13px;
+}
+.crm-container .crm-floating-label > .error {
 }
