@@ -509,7 +509,10 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
 
 function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActive) {
   if ($recordBAO == 'CRM_Contribute_BAO_ContributionRecur' && empty($isActive)) {
-    $payment_processor_id = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $recordID, 'payment_processor_id', 'contribution_recur_id');
+    $payment_processor_id = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_ContributionRecur', $recordID, 'processor_id');
+    if (empty($payment_processor_id)) {
+      $payment_processor_id = CRM_Core_DAO::getFieldValue('CRM_Contribute_DAO_Contribution', $recordID, 'payment_processor_id', 'contribution_recur_id');
+    }
     if (CRM_Core_DAO::getFieldValue('CRM_Core_DAO_PaymentProcessor', $payment_processor_id, 'payment_processor_type') == 'SPGATEWAY') {
       CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_ContributionRecur', $recordID, 'contribution_status_id', 3);
     }
