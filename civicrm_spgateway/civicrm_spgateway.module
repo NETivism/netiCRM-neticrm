@@ -358,7 +358,7 @@ function civicrm_spgateway_recur_sync($days = array()){
   }
 
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
-  WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
+  WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND (DAY(r.start_date) = %1 OR r.cycle_day = %1)
   ORDER BY r.create_date ASC";
   foreach($days as $d){
     $d = (string) $d;
@@ -687,7 +687,7 @@ function _civicrm_spgateway_checkKeyIV($v){
 
 function _civicrm_spgateway_postdata($url, $post_data){
   $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   curl_setopt($ch, CURLOPT_POST, 1);
   curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
