@@ -28,6 +28,13 @@ function civicrm_floating_label_civicrm_preProcess($formName, &$form){
           'CiviCRM_Floating_Label_text',     # class
         );
       }
+
+      if (!empty($GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea']) && $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea'][1] === 'HTML_QuickForm_textarea') {
+        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea'] = array(
+          'civicrm_floating_label.textarea.inc', # file
+          'CiviCRM_Floating_Label_textarea',     # class
+        );
+      }
       break;
   }
 }
@@ -49,7 +56,7 @@ function civicrm_floating_label_civicrm_buildForm($formName, &$form){
     case 'CRM_Event_Form_Registration_AdditionalParticipant':
       // not sure if placing here is early enough
       foreach($form->_elements as &$ele) {
-        if (get_class($ele) === 'CiviCRM_Floating_Label_text') {
+        if (get_class($ele) === 'CiviCRM_Floating_Label_text' || get_class($ele) === 'CiviCRM_Floating_Label_textarea') {
           $label = $ele->_label;
           $ele->updateAttributes(['data-label' => $label]);
 
@@ -58,5 +65,40 @@ function civicrm_floating_label_civicrm_buildForm($formName, &$form){
         }
       }
       break;
+  }
+}
+
+/**
+ * Implements hook_library_info_build().
+ *
+ * Static add js / css definition
+ */
+function civicrm_floating_label_library_info_build() {
+  $libraries = [];
+
+  // The weight must be greater than civicrm.css
+  $libraries['civicrm-css-floating-label']['css']['state']['civicrm_floating_label.css'] = ['weight' => 201];
+
+  return $libraries;
+}
+
+/**
+ * Implements hook_page_attachments().
+ *
+ * Inject arbitrary html into the head region.
+ */
+function civicrm_floating_label_page_attachments(array &$page) {
+  // Only do anything if CiviCRM is bootstrapped.
+  $current_path = \Drupal::service('path.current')->getPath();
+  $path_args = explode('/', ltrim($current_path, '/'));
+
+  // Attach CSS and JS.
+  if ($path_args[0] == 'civicrm' || \Drupal::service('civicrm')->initialized) {
+    switch ($current_path) {
+      case '/civicrm/contribute/transact':
+      case '/civicrm/event/register':
+        $page['#attached']['library'][] = 'civicrm_floating_label/civicrm-css-floating-label';
+        break;
+    }
   }
 }
