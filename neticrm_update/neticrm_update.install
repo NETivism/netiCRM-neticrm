@@ -782,3 +782,10 @@ function neticrm_update_update_6300() {
 function neticrm_update_update_6301() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32894, add multiple field index to improve performance
+ */
+function neticrm_update_update_6302() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
