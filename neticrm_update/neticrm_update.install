@@ -95,3 +95,17 @@ function neticrm_update_load_include($func){
 function neticrm_update_update_9300() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32446, civicmr_log modified id FK on delete null
+ */
+function neticrm_update_update_9301() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #32894, add multiple field index to improve performance
+ */
+function neticrm_update_update_9302() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
