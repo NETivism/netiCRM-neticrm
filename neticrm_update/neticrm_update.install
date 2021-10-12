@@ -789,3 +789,10 @@ function neticrm_update_update_6301() {
 function neticrm_update_update_6302() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32503, increase civicrm_msg_tempalte msg_html / msg_text length
+ */
+function neticrm_update_update_6303() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
