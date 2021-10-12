@@ -785,3 +785,10 @@ function neticrm_update_update_7301() {
 function neticrm_update_update_7302() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32503, increase civicrm_msg_tempalte msg_html / msg_text length
+ */
+function neticrm_update_update_7303() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
