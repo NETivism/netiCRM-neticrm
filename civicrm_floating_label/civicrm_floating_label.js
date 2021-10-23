@@ -26,11 +26,19 @@
             }
 
             $field.append("<label class='elem-label' for='" + selectName  +"'>" + label + "</label>");
+            $select.find("option[value]:first-child").html("");
+
+            if ($select.val() != "" || $select.find("option[selected]").length) {
+              $select.addClass("is-selected-val");
+            }
+            else {
+              $select.removeClass("is-selected-val");
+            }
 
             $select.change(function() {
               $(this).find("option[value]:first-child").html("");
 
-              if ($(this).val() != "") {
+              if ($(this).val() != "" || $(this).find("option[selected]").length) {
                 $(this).addClass("is-selected-val");
               }
               else {
