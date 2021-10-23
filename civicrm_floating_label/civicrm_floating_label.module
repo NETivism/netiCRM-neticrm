@@ -76,8 +76,13 @@ function civicrm_floating_label_civicrm_buildForm($formName, &$form){
 function civicrm_floating_label_library_info_build() {
   $libraries = [];
 
+  $libraries['civicrm-css-floating-label'] = [
+    'footer' => true,
+  ];
+
   // The weight must be greater than civicrm.css
   $libraries['civicrm-css-floating-label']['css']['state']['civicrm_floating_label.css'] = ['weight' => 201];
+  $libraries['civicrm-css-floating-label']['js']['civicrm_floating_label.js'] = [];
 
   return $libraries;
 }
