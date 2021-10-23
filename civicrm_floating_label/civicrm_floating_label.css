@@ -18,8 +18,8 @@
   color: transparent;
 }
 .crm-container .crm-floating-label.crm-form-readonly::after {
-  top: 50%;
-  right: 5px;
+  top: 50% !important;
+  right: 5px !important;
   transform: translateY(-50%);
 }
 .crm-container .crm-floating-label > input.form-text,
@@ -27,7 +27,8 @@
 .crm-container .crm-floating-label > select.form-select {
   display: block;
   width: 100%;
-  padding: 10px 20px;
+  padding: 0 10px !important;
+  overflow: hidden;
   font-size: 16px;
   background: var(--field-bg) !important;
 }
@@ -77,11 +78,13 @@
   top: 0;
   left: 0;
   z-index: 10;
-  margin: 0 10px;
+  margin: 0 5px;
   padding: 10px;
   height: var(--field-height);
+  line-height: 1;
   font-size: 16px;
   border: 1px solid transparent;
+  white-space: nowrap;
   pointer-events: none;
   transform-origin: 0 0;
   transition: opacity .1s ease-in-out, transform .1s ease-in-out;
@@ -95,6 +98,7 @@
   display: block;
   opacity: 1;
   height: auto;
+  line-height: 1.5;
   transform: scale(.8) translateY(-22px) translateX(.15em);
 }
 .crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ .elem-label::before,
