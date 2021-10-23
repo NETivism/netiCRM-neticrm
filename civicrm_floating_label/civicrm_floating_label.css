@@ -3,6 +3,7 @@
   --field-bg: #fff;
   --field-readonly-bg: #f2f2f2;
   position: relative;
+  width: 100%;
 }
 .crm-container .crm-floating-label * {
   box-sizing: border-box;
@@ -22,7 +23,8 @@
   transform: translateY(-50%);
 }
 .crm-container .crm-floating-label > input.form-text,
-.crm-container .crm-floating-label > textarea.form-textarea {
+.crm-container .crm-floating-label > textarea.form-textarea,
+.crm-container .crm-floating-label > select.form-select {
   display: block;
   width: 100%;
   padding: 10px 20px;
@@ -30,7 +32,8 @@
   background: var(--field-bg) !important;
 }
 .crm-container .crm-floating-label > input.form-text[readonly],
-.crm-container .crm-floating-label > textarea.form-textarea[readonly] {
+.crm-container .crm-floating-label > textarea.form-textarea[readonly],
+.crm-container .crm-floating-label > select.form-select[readonly] {
   background: var(--field-readonly-bg) !important;
 }
 .crm-container .crm-floating-label > input.form-text {
@@ -47,24 +50,33 @@
 .crm-container .crm-floating-label > textarea.form-textarea:hover,
 .crm-container .crm-floating-label > textarea.form-textarea[readonly],
 .crm-container .crm-floating-label > textarea.form-textarea[readonly]:hover,
-.crm-container .crm-floating-label > textarea.form-textarea[readonly]:focus {
+.crm-container .crm-floating-label > textarea.form-textarea[readonly]:focus,
+.crm-container .crm-floating-label > select.form-select,
+.crm-container .crm-floating-label > select.form-select:hover,
+.crm-container .crm-floating-label > select.form-select[readonly],
+.crm-container .crm-floating-label > select.form-select[readonly]:hover,
+.crm-container .crm-floating-label > select.form-select[readonly]:focus {
   border: 1px solid #9e9e9e !important;
 }
 .crm-container .crm-floating-label > input.form-text:focus,
-.crm-container .crm-floating-label > textarea.form-textarea:focus {
+.crm-container .crm-floating-label > textarea.form-textarea:focus,
+.crm-container .crm-floating-label > select.form-select:focus {
   outline: none;
   border: 1px solid #333 !important;
 }
 .crm-container .crm-floating-label > input.form-text.error,
 .crm-container .crm-floating-label > textarea.form-textarea.error,
 .crm-container .crm-floating-label > input.form-text.error:focus,
-.crm-container .crm-floating-label > textarea.form-textarea.error:focus {
+.crm-container .crm-floating-label > textarea.form-textarea.error:focus,
+.crm-container .crm-floating-label > select.form-select.error:focus,
+.crm-container .crm-floating-label > select.form-select.error:focus {
   border: 1px solid #f44336 !important;
 }
 .crm-container .crm-floating-label > .elem-label {
   position: absolute;
   top: 0;
   left: 0;
+  z-index: 10;
   margin: 0 10px;
   padding: 10px;
   height: var(--field-height);
@@ -76,8 +88,10 @@
 }
 .crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ .elem-label,
 .crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ .elem-label,
+.crm-container .crm-floating-label > select.form-select.is-selected-val:not([readonly]):focus ~ .elem-label,
 .crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ .elem-label,
-.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label {
+.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label,
+.crm-container .crm-floating-label > select.form-select.is-selected-val ~ .elem-label {
   display: block;
   opacity: 1;
   height: auto;
@@ -85,8 +99,10 @@
 }
 .crm-container .crm-floating-label > input.form-text:not([readonly]):focus ~ .elem-label::before,
 .crm-container .crm-floating-label > textarea.form-textarea:not([readonly]):focus ~ .elem-label::before,
+.crm-container .crm-floating-label > select.form-select.is-selected-val:not([readonly]):focus ~ .elem-label::before,
 .crm-container .crm-floating-label > input.form-text:not(:placeholder-shown) ~ .elem-label::before,
-.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label::before {
+.crm-container .crm-floating-label > textarea.form-textarea:not(:placeholder-shown) ~ .elem-label::before,
+.crm-container .crm-floating-label > select.form-select.is-selected-val ~ .elem-label::before {
   content: "";
   display: block;
   z-index: -1;
@@ -99,7 +115,8 @@
   background: var(--field-bg);
 }
 .crm-container .crm-floating-label > input.form-text[readonly]:not(:placeholder-shown) ~ .elem-label::before,
-.crm-container .crm-floating-label > textarea.form-textarea[readonly]:not(:placeholder-shown) ~ .elem-label::before {
+.crm-container .crm-floating-label > textarea.form-textarea[readonly]:not(:placeholder-shown) ~ .elem-label::before,
+.crm-container .crm-floating-label > select.form-select.is-selected-val[readonly] ~ .elem-label::before {
   background: var(--field-readonly-bg);
 }
 .crm-container .crm-floating-label > .error,
@@ -110,4 +127,17 @@
   font-size: 13px;
 }
 .crm-container .crm-floating-label > .error {
+}
+
+body .crm-container .crm-section > .label {
+  margin-bottom: .5em;
+}
+body .crm-container div[class*="crm-section state_province-"] .crm-floating-label.crm-form-select-single .form-select,
+body .crm-container div[class*="crm-section state_province-"] .crm-floating-label [name*="city-"] {
+  width: 8rem;
+}
+body .crm-container div[class*="crm-section state_province-"] .crm-floating-label input[name*="postal_code-"] {
+  width: 8rem;
+  /* overwrite civicrm.css */
+  max-width: 8rem;
 }
