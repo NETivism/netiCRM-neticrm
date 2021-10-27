@@ -158,7 +158,8 @@ function civicrm_allpay_cron(){
   $last = \Drupal::state()->get('civicrm_allpay.recur_sync', 0);
   $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
-    civicrm_allpay_recur_sync();
+    civicrm_initialize();
+    CRM_Core_Payment_ALLPAY::recurSync();
     \Drupal::state()->set('civicrm_allpay.recur_sync', $now);
   }
 }
