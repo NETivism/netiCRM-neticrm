@@ -23,7 +23,6 @@
   transform: translateY(-50%);
 }
 .crm-container .crm-floating-label > input.form-text,
-.crm-container .crm-floating-label > textarea.form-textarea,
 .crm-container .crm-floating-label > select.form-select {
   display: block;
   width: 100%;
