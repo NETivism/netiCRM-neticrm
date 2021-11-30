@@ -216,6 +216,10 @@ function _civicrm_allpay_order(&$vars, $component, &$payment_processor, $instrum
       # Recurring
       break;
   }
+  // Use hook_civicrm_alterPaymentProcessorParams
+  $mode = $payment_processor['is_test'] ? 'test' : 'live';
+  $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+  CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $args);
   return $args ;
 }
 

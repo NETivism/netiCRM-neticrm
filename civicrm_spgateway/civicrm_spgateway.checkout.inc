@@ -199,7 +199,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $args['LangType'] = 'en';
     }
-  }else{
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $args);
+  }
+  else{
     $data = array(
       'MerchantID' => $payment_processor['user_name'],
       'RespondType' => SPGATEWAY_RESPONSE_TYPE,
@@ -245,6 +250,11 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $data['LangType'] = 'en';
     }
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $data);
+    // Encrypt Recurring Request.
     $str = http_build_query($data, '', '&');
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
