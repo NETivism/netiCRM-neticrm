@@ -796,3 +796,10 @@ function neticrm_update_update_6302() {
 function neticrm_update_update_6303() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #32503, add order_number into civicrm_contribution_taiwanach
+ */
+function neticrm_update_update_6304() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
