@@ -84,7 +84,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
         $return_params = _civicrm_spgateway_post_decode(_civicrm_spgateway_recur_decrypt($form->_submitValues['Period'], $form->_paymentProcessor));
       }
       // Credit card have result immediately
-      if(isset($form->_submitValues) && !empty($return_params['RespondCode'])){
+      if(isset($form->_submitValues) && !empty($return_params['RespondCode']) && ($return_params['PaymentType'] == 'CREDIT' || !empty($return_params['PeriodAmt']))) {
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
         if(!empty($return_params['RespondCode'])){
           if($return_params['RespondCode'] == '00'){ // success
