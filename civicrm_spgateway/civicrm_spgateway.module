@@ -398,7 +398,7 @@ function civicrm_spgateway_recur_check($recurring_id) {
     else {
       $parent_trxn_id = $result->trxn_id;
       $recurring_installment = 2;
-      civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
+      civicrm_spgateway_single_check($parent_trxn_id, $create_contribution = TRUE);
     }
   }
 }
@@ -415,6 +415,18 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
     $payment_processor_id = $contribution->payment_processor_id;
     if ($contribution->contribution_status_id == 1) {
       $create_contribution = FALSE; // Found, And contribution is already success.
+    }
+    elseif (empty($parent_trxn_id) && $create_contribution) {
+      // First recurring or single contribution.
+      $contribution = new CRM_Contribute_DAO_Contribution();
+      $contribution->id = $trxn_id;
+      if ($contribution->find(TRUE)) {
+        $payment_processor_id = $contribution->payment_processor_id;
+        if (!empty($contribution->contribution_recur_id)) {
+          // First recurring contribution
+          $trxn_id = $trxn_id.'_1';
+        }
+      }
     }
   }
   elseif($create_contribution) {
@@ -496,6 +508,10 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
           $result->_get = $ipn_get;
           module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
           $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
+          if (!empty($contribution->contribution_recur_id) && $contribution->trxn_id != $trxn_id) {
+            // The case first contribution trxn_id not append '_1' in the end.
+            CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
+          }
           return $result;
         }
         else {
