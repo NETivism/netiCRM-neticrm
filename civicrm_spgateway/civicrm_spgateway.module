@@ -100,7 +100,6 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             else {
               $msg = $return_params['Status'].': '._civicrm_spgateway_error_msg($return_params['Status']);
             }
-            CRM_Core_Error::debug_var('$msg', $msg);
             $status = 4;
           }
         }
