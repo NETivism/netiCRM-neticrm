@@ -758,7 +758,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'ItemCount' => '1',
     'ItemUnit' => 'x',
     'ItemTaxType' => '', // TODO do not implement
-    'Comment' => truncate_utf8($contribution['source'], 30),
+    'Comment' => truncate_utf8($contribution['source'], 200),
   );
 
   $params = array_merge($params, $conditional_params);
