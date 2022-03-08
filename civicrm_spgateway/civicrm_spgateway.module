@@ -85,6 +85,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
         $return_params_decrypt = _civicrm_spgateway_recur_decrypt($form->_submitValues['Period'], $form->_paymentProcessor);
         $return_params = _civicrm_spgateway_post_decode($return_params_decrypt);
       }
+      CRM_Core_Error::debug_var('Neweb Notify Post Params', $return_params);
       // Credit card have result immediately
       if(isset($form->_submitValues) && ($return_params['PaymentType'] == 'CREDIT' || !empty($return_params['PeriodAmt']))) {
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
