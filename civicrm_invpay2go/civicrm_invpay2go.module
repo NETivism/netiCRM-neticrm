@@ -450,8 +450,13 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
       $content .= '<script>cj(document).ready(function($){
   let interval = setInterval(function(){
     if ($(".contrib-step").length > 0) {
-      $("#invpay2go-section").insertBefore($(".contrib-step:last .step-action-wrapper"));
-      clearInterval(interval);
+      $(".contrib-step").each(function(i, e){
+        var $ele = $(e);
+        if ($ele.find("#crm-submit-buttons").length) {
+          $("#invpay2go-section").insertBefore($ele.find(".step-action-wrapper"));
+          clearInterval(interval);
+        }
+      });
     }
   }, 500);
 });</script>';
