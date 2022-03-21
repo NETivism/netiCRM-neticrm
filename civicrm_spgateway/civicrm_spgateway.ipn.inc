@@ -170,7 +170,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       if(!empty($input['AuthAmt'])){
         // above second period
         $valid_value['Amt'] = $input['AuthAmt'];
-        if ($contribution->total_amount != $valid_value['Amt'] && $input['Status'] == 'SUCCESS') {
+        if ($contribution->total_amount != $valid_value['Amt']) {
           $note .= ts("Amount values dont match between database and IPN request. Force use IPN instead {$contribution->trxn_id}-{$input['AlreadyTimes']} . Original: {$contribution->total_amount}, IPN:{$valid_value['Amt']}")."\n";
           $contribution->total_amount = $valid_value['Amt'];
         }

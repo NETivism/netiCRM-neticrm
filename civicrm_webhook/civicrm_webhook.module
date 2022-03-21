@@ -29,7 +29,10 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
         }
         if (!empty($webhooks)) {
           foreach($webhooks as $hookName => $url) {
-            if (CRM_Utils_Rule::url($url, $config->webhookDomain, TRUE)) {
+            if ($config->debug && CRM_Utils_Rule::url($url, $config->webhookDomain)) {
+              $form->set($hookName, $url);
+            }
+            elseif (CRM_Utils_Rule::url($url, $config->webhookDomain, TRUE)) {
               $form->set($hookName, $url);
             }
             else {
@@ -47,7 +50,10 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
       $config = CRM_Core_Config::singleton();
       if (!empty($config->webhookDomain) && !empty($config->webhookSecret)) {
         $redirect = $form->get(CIVICRM_WEBHOOK_FIELD_REDIRECT);
-        if (CRM_Utils_Rule::url($redirect, $config->webhookDomain, TRUE)) {
+        if ($config->debug && CRM_Utils_Rule::url($redirect, $config->webhookDomain)) {
+          CRM_Utils_System::redirect($redirect);
+        }
+        elseif (CRM_Utils_Rule::url($redirect, $config->webhookDomain, TRUE)) {
           CRM_Utils_System::redirect($redirect);
         }
       }
@@ -252,7 +258,11 @@ function civicrm_webhook_notify_params($contributionId) {
       $limitDays = !empty($config->webhookDays) ? $config->webhookDays : 31;
       if ($days < $limitDays) {
         $notifyFieldId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', CIVICRM_WEBHOOK_FIELD_NOTIFY, 'id', 'name');
-        if (CRM_Utils_Rule::url($contribution['custom_'.$notifyFieldId], $config->webhookDomain, TRUE)) {
+        if ($config->debug && CRM_Utils_Rule::url($contribution['custom_'.$notifyFieldId], $config->webhookDomain)) {
+          $contribution[CIVICRM_WEBHOOK_FIELD_NOTIFY] = $contribution['custom_'.$notifyFieldId];
+          $allowed[] = CIVICRM_WEBHOOK_FIELD_NOTIFY;
+        }
+        elseif (CRM_Utils_Rule::url($contribution['custom_'.$notifyFieldId], $config->webhookDomain, TRUE)) {
           $contribution[CIVICRM_WEBHOOK_FIELD_NOTIFY] = $contribution['custom_'.$notifyFieldId];
           $allowed[] = CIVICRM_WEBHOOK_FIELD_NOTIFY;
         }
