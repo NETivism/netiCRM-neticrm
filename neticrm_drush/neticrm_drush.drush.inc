@@ -96,6 +96,7 @@ function neticrm_drush_drush_command() {
     ),
     'options' => array(
       'payment-processor' => 'The payment processor need to process.',
+      'contribution-recur-id' => 'The recur payment processor need to process.',
     ),
     'callback' => 'drush_neticrm_process_recurring',
   );
@@ -325,10 +326,16 @@ function drush_neticrm_process_recurring() {
   civicrm_initialize();
   watchdog('drush_neticrm', 'Executing drush neticrm-process-recurring');
   $ppName = drush_get_option('payment-processor', NULL);
+  $rId = drush_get_option('contribution-recur-id', NULL);
   if (!empty($ppName)) {
     if (strtolower($ppName) == 'tappay') {
       $time = CRM_REQUEST_TIME;
       CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
+    }
+    if (!empty($rId)) {
+      CRM_Core_Payment_TapPay::doCheckRecur($rId, $time);
+    } else if (empty ($rId)) {
+      CRM_Core_Error::debug_log_message('Recurring id is empty,please check');
     }
   }
   else {
