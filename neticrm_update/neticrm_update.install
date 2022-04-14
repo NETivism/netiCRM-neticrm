@@ -799,3 +799,10 @@ function neticrm_update_update_7303() {
 function neticrm_update_update_7304() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #33859, add bounce pattern for Relay type.
+ */
+function neticrm_update_update_7305() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
