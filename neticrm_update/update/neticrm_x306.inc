@@ -18,6 +18,74 @@ function _neticrm_update_update_x306() {
   _neticrm_update_add_activity_type_x306('Event Notification Email', 'CiviEvent');
   _neticrm_update_add_activity_type_x306('Membership Notification Email', 'CiviMember');
   _neticrm_update_add_activity_type_x306('PCP Notification Email', '');
+
+  // add default transactional mailing
+  $mailing = new CRM_Mailing_DAO_Mailing();
+  $mailing->is_hidden = 1;
+  $mailing->name = 'Transactional Email';
+  if (!$mailing->find(TRUE)) {
+    $systemContactId = CRM_Core_BAO_UFMatch::getContactId(1);
+    $params = array(
+      'header_id' => 'null',
+      'footer_id' => 'null',
+      'reply_id' => 'null',
+      'unsubscribe_id' => 'null',
+      'resubscribe_id' => 'null',
+      'optout_id' => 'null',
+      'name' => 'Transactional Email',
+      'from_name' => '',
+      'from_email' => '',
+      'replyto_email' => '',
+      'subject' => '',
+      'body_preview' => 'null',
+      'body_text' => 'null',
+      'body_html' => 'null',
+      //'body_json' => '',
+      'url_tracking' => TRUE,
+      'forward_replies' => FALSE,
+      'auto_responder' => FALSE,
+      'open_tracking' => TRUE,
+      'msg_template_id' => 'null',
+      'override_verp' => FALSE,
+      'created_id' => $systemContactId,
+      'created_date' => date('YmdHis'),
+      'scheduled_id' => 'null',
+      'scheduled_date' => 'null',
+      'is_archived' => 0,
+      'visibility' => 'User and User Admin Only',
+      'dedupe_email' => 0,
+      'sms_provider_id' => 'null',
+      'is_hidden' => 1,
+    );
+    $mailing = CRM_Mailing_BAO_Mailing::add($params);
+  }
+
+  $job = new CRM_Mailing_DAO_Job();
+  $job->mailing_id = $mailing->id;
+  $job->is_test = 0;
+  if (!$job->find(TRUE)) {
+    $params = array(
+      'mailing_id' => $mailing->id,
+      'status' => 'Running',
+      'scheduled_date' => 'null',
+      'is_test' => 0,
+    );
+    $job = CRM_Mailing_BAO_Job::create($params);
+  }
+
+  // add event transactional table
+  $exists = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name = 'civicrm_mailing_event_transactional'");
+  if(!$exists){
+    $sql = "CREATE TABLE civicrm_mailing_event_transactional (
+      id int unsigned NOT NULL AUTO_INCREMENT  ,
+      event_queue_id int unsigned NOT NULL   COMMENT 'FK to EventQueue',
+      activity_id int unsigned NOT NULL   COMMENT 'Foreign key to the activity for this mailing deliver record.',
+      PRIMARY KEY ( id ),
+      CONSTRAINT FK_civicrm_mailing_event_transactional_event_queue_id FOREIGN KEY (event_queue_id) REFERENCES civicrm_mailing_event_queue(id) ON DELETE CASCADE,
+      CONSTRAINT FK_civicrm_mailing_event_transactional_activity_id FOREIGN KEY (activity_id) REFERENCES civicrm_activity(id) ON DELETE CASCADE
+  )  ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC";
+    CRM_Core_DAO::executeQuery($sql);
+  }
 }
 
 function _neticrm_update_add_activity_type_x306($type, $component) {

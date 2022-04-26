@@ -808,7 +808,10 @@ function neticrm_update_update_7305() {
 }
 
 /**
- * refs #33948, add is_hidden field to contribution page, add activity types for transactional email
+ * refs #33948, add transactional email related db fields
+ * 
+ * Add is_hidden field to contribution page, add activity types for transactional email
+ * Add default hidden mailing for transactional email. Add a default job for that mailing.
  */
 function neticrm_update_update_7306() {
   return neticrm_update_load_include(__FUNCTION__);
