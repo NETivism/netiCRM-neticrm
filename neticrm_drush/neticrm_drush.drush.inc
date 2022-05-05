@@ -332,10 +332,12 @@ function drush_neticrm_process_recurring() {
     if (strtolower($ppName) == 'tappay' && $rId == 'ridIsEmpty') {
       CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
     }
-    else if (strtolower($ppName) == 'tappay' && empty ($rId)) {
-      CRM_Core_Error::debug_log_message('Recurring id is empty,please check');
+    else if (strtolower($ppName) == 'tappay' && empty($rId)) {
+      $str = "Recurring id is empty,please check\n";
+      print($str);
+      CRM_Core_Error::debug_log_message($str);
     }
-    else if (strtolower($ppName) == 'tappay' && !empty ($rId)) {
+    else if (strtolower($ppName) == 'tappay' && !empty($rId)) {
       CRM_Core_Payment_TapPay::doCheckRecur($rId, $time);
     }
   }
