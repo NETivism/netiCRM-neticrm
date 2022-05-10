@@ -534,8 +534,7 @@ function civicrm_spgateway_single_contribution_sync($trxn_id) {
 
       // Online contribution
       // Only trigger if there are pay time in result;
-      $payYear = substr($result->Result->PayTime, 0, 4);
-      if (!empty($result) && $result->Status == 'SUCCESS' && $payYear !== '0000') {
+      if (!empty($result) && $result->Status == 'SUCCESS' &&  $result->Result->TradeStatus !== '0') {
         // complex part to simulate spgateway ipn
         $ipn_get = $ipn_post = array();
 
