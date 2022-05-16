@@ -18,6 +18,7 @@ function _neticrm_update_update_x306() {
   _neticrm_update_add_activity_type_x306('Event Notification Email', 'CiviEvent');
   _neticrm_update_add_activity_type_x306('Membership Notification Email', 'CiviMember');
   _neticrm_update_add_activity_type_x306('PCP Notification Email', '');
+  _neticrm_update_add_activity_type_x306('Mailing Notification Email', '');
 
   // add default transactional mailing
   $mailing = new CRM_Mailing_DAO_Mailing();
