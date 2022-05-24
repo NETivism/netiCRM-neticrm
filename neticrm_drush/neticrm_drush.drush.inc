@@ -97,6 +97,7 @@ function neticrm_drush_drush_command() {
     'options' => array(
       'payment-processor' => 'The payment processor need to process.',
       'contribution-recur-id' => 'The recur payment processor need to process.',
+      'time' => 'Timestamp format. The recur simulated execute date.',
     ),
     'callback' => 'drush_neticrm_process_recurring',
   );
@@ -328,7 +329,7 @@ function drush_neticrm_process_recurring() {
   $ppName = drush_get_option('payment-processor', NULL);
   $rId = drush_get_option('contribution-recur-id', 'ridIsEmpty');
   if (!empty($ppName)) {
-    $time = CRM_REQUEST_TIME;
+    $time = drush_get_option('time', CRM_REQUEST_TIME);
     if (strtolower($ppName) == 'tappay' && $rId == 'ridIsEmpty') {
       CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
     }
