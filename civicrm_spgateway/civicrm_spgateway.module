@@ -499,7 +499,9 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
           $result->_get = $ipn_get;
           module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
           $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
-          if (!empty($contribution->contribution_recur_id) && $contribution->trxn_id != $trxn_id) {
+          $contribution = new CRM_Contribute_DAO_Contribution();
+          $contribution->trxn_id = $parent_trxn_id;
+          if ($contribution->find(TRUE) && strstr($trxn_id, '_1')) {
             // The case first contribution trxn_id not append '_1' in the end.
             CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
           }
