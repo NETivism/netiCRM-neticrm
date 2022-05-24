@@ -484,6 +484,12 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
           $result->_post = $ipn_post;
           $result->_get = $ipn_get;
           $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
+          $contribution = new CRM_Contribute_DAO_Contribution();
+          $contribution->trxn_id = $parent_trxn_id;
+          if ($contribution->find(TRUE) && strstr($trxn_id, '_1')) {
+            // The case first contribution trxn_id not append '_1' in the end.
+            CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
+          }
           return $result;
         }
         else {
