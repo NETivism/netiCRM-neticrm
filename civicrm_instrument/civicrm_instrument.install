@@ -7,6 +7,7 @@
 /**
  * Implementation of hook_schema().
  */
+/* moved to civicrm core
 function civicrm_instrument_schema() {
   $schema = array();
   $schema['civicrm_instrument'] = array(
@@ -35,6 +36,7 @@ function civicrm_instrument_schema() {
   );
   return $schema;
 }
+*/
 
 /**
  * Implementation of hook_install().
