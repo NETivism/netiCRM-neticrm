@@ -14,6 +14,7 @@ define('ALLPAY_URL_RECUR', '/Cashier/QueryCreditCardPeriodInfo');
 /**
  * Implementation of hook_schema()
  */
+/*
 function civicrm_allpay_schema(){
   $schema['civicrm_contribution_allpay'] = array(
     'fields' => array(
@@ -34,6 +35,7 @@ function civicrm_allpay_schema(){
   );
   return $schema;
 }
+*/
  
 /**
  * Implementation of hook_install()
