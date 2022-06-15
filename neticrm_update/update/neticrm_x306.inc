@@ -13,7 +13,7 @@ function _neticrm_update_update_x306() {
     CRM_Core_DAO::executeQuery($sql);
   }
 
-  // add activity types 
+  // add activity types
   _neticrm_update_add_activity_type_x306('Contribution Notification Email', 'CiviContribute');
   _neticrm_update_add_activity_type_x306('Event Notification Email', 'CiviEvent');
   _neticrm_update_add_activity_type_x306('Membership Notification Email', 'CiviMember');
@@ -25,7 +25,6 @@ function _neticrm_update_update_x306() {
   $mailing->is_hidden = 1;
   $mailing->name = 'Transactional Email';
   if (!$mailing->find(TRUE)) {
-    $systemContactId = CRM_Core_BAO_UFMatch::getContactId(1);
     $params = array(
       'header_id' => 'null',
       'footer_id' => 'null',
@@ -42,13 +41,13 @@ function _neticrm_update_update_x306() {
       'body_text' => 'null',
       'body_html' => 'null',
       //'body_json' => '',
-      'url_tracking' => TRUE,
+      'url_tracking' => FALSE,
       'forward_replies' => FALSE,
       'auto_responder' => FALSE,
       'open_tracking' => TRUE,
       'msg_template_id' => 'null',
       'override_verp' => FALSE,
-      'created_id' => $systemContactId,
+      'created_id' => 'null',
       'created_date' => date('YmdHis'),
       'scheduled_id' => 'null',
       'scheduled_date' => 'null',
