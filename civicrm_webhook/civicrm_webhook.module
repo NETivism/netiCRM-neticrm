@@ -50,11 +50,13 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
       $config = CRM_Core_Config::singleton();
       if (!empty($config->webhookDomain) && !empty($config->webhookSecret)) {
         $redirect = $form->get(CIVICRM_WEBHOOK_FIELD_REDIRECT);
-        if ($config->debug && CRM_Utils_Rule::url($redirect, $config->webhookDomain)) {
-          CRM_Utils_System::redirect($redirect);
-        }
-        elseif (CRM_Utils_Rule::url($redirect, $config->webhookDomain, TRUE)) {
-          CRM_Utils_System::redirect($redirect);
+        if (!empty($redirect)) {
+          if ($config->debug && CRM_Utils_Rule::url($redirect, $config->webhookDomain)) {
+            CRM_Utils_System::redirect($redirect);
+          }
+          elseif (CRM_Utils_Rule::url($redirect, $config->webhookDomain, TRUE)) {
+            CRM_Utils_System::redirect($redirect);
+          }
         }
       }
       break;
