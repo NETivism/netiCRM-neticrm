@@ -247,18 +247,20 @@ cj(document).ready(function($){';
       }
       if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
         $js = "
-        jQuery(document).ready(function($){
-          $('[class*=url_site]').hide();
-          $('[class*=url_api]').hide();
-          $('[class*=url_recur]').hide();
-        });
+        (function($){
+          $(function(){
+            $('[class*=url_site]').hide();
+            $('[class*=url_api]').hide();
+            $('[class*=url_recur]').hide();
+          });
+        })(cj);
         ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        drupal_add_js($js, 'inline', 'footer');
 
-        if (defined('NETICRM_SPGATEWAY_RECURRING_API_ENABLE') && NETICRM_SPGATEWAY_RECURRING_API_ENABLE) {
-          // Make Checkbox For Control Spgateway Recurring API Enable;
-          $js = "
-          jQuery(document).ready(function($){
+        // Make Checkbox For Control Spgateway Recurring API Enable;
+        $js = "
+        (function($){
+          $(function(){
             $('fieldset [class^=\"crm-paymentProcessor-\"]:last-child').each(function(i, e){
               var je = $(e);
               document.e = e;
@@ -279,19 +281,19 @@ cj(document).ready(function($){';
               });
             });
           });
-          ";
-          drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+        })(cj);
+        ";
+        drupal_add_js($js, 'inline', 'footer');
 
-          // Remove url_recur validation for url;
-          foreach ($form->_rules['url_recur'] as $key => $rule) {
-            if ($rule['type'] == 'url') {
-              unset($form->_rules['url_recur'][$key]);
-            }
+        // Remove url_recur validation for url;
+        foreach ($form->_rules['url_recur'] as $key => $rule) {
+          if ($rule['type'] == 'url') {
+            unset($form->_rules['url_recur'][$key]);
           }
-          foreach ($form->_rules['test_url_recur'] as $key => $rule) {
-            if ($rule['type'] == 'url') {
-              unset($form->_rules['test_url_recur'][$key]);
-            }
+        }
+        foreach ($form->_rules['test_url_recur'] as $key => $rule) {
+          if ($rule['type'] == 'url') {
+            unset($form->_rules['test_url_recur'][$key]);
           }
         }
       }

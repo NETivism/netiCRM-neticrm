@@ -390,6 +390,23 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
     $replace = '<fieldset id="tax-invoice-fieldset" class="crm-group tax-invoice-group"><legend>發票開立</legend>'.$replace.'</fieldset>';
     $replace = '<!--invpay2go-separator--><div id="invpay2go-section">'.$replace.'</div>';
     $content = str_replace('<!--payment-separator-->', $replace.'<!--payment-separator-->', $content);
+
+    // refs #34126, fixes special contribution page dones't load fields
+    if (strstr($content, 'loading-placeholder-wrapper')) {
+      $content .= '<script>cj(document).ready(function($){
+  let interval = setInterval(function(){
+    if ($(".contrib-step").length > 0) {
+      $(".contrib-step").each(function(i, e){
+        var $ele = $(e);
+        if ($ele.find("#crm-submit-buttons").length) {
+          $("#invpay2go-section").insertBefore($ele.find(".step-action-wrapper"));
+          clearInterval(interval);
+        }
+      });
+    }
+  }, 500);
+});</script>';
+    }
   }
 }
 
@@ -757,7 +774,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'ItemCount' => '1',
     'ItemUnit' => 'x',
     'ItemTaxType' => '', // TODO do not implement
-    'Comment' => truncate_utf8($contribution['source'], 30),
+    'Comment' => truncate_utf8($contribution['source'], 200),
   );
 
   $params = array_merge($params, $conditional_params);
