@@ -816,3 +816,10 @@ function neticrm_update_update_7305() {
 function neticrm_update_update_7306() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #35271, update allpay, instrument add id and primary
+ */
+function neticrm_update_update_7307() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
