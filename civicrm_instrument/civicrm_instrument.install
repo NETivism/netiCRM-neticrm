@@ -7,6 +7,7 @@
 /**
  * Implementation of hook_schema().
  */
+/*
 function civicrm_instrument_schema() {
   $schema = array();
   $schema['civicrm_instrument'] = array(
@@ -35,13 +36,14 @@ function civicrm_instrument_schema() {
   );
   return $schema;
 }
+ */
 
 /**
  * Implementation of hook_install().
  */
 function civicrm_instrument_install() {
   // Create tables.
-  drupal_install_schema('civicrm_instrument');
+  // drupal_install_schema('civicrm_instrument');
 
   // Save variables
   civicrm_initialize( );
@@ -260,3 +262,4 @@ function civicrm_instrument_update_6006() {
     }
   }
 }
+

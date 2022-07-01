@@ -810,3 +810,20 @@ function neticrm_update_update_6304() {
 function neticrm_update_update_6305() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #33948, add transactional email related db fields
+ *
+ * Add is_hidden field to contribution page, add activity types for transactional email
+ * Add default hidden mailing for transactional email. Add a default job for that mailing.
+ */
+function neticrm_update_update_6306() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #35271, update allpay, instrument add id and primary
+ */
+function neticrm_update_update_6307() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
