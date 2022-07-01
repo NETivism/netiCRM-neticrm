@@ -125,29 +125,53 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
   if (!empty($payment_processor)) {
 
     if (empty($recurNo)) {
+      $offset = variable_get("spgateway_neweb_resync_offset_{$ppid_new}", 0);
       $cycle_day = empty($day) ? date('j') : $day;
-      $sql = "SELECT GROUP_CONCAT(DISTINCT r.id) from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1";
-      $idsString = CRM_Core_DAO::singleValueQuery($sql, array(
-        1 => array($cycle_day, 'Integer')
-      ));
-      $recurNo = explode(',', $idsString);
+      $sql = "SELECT DISTINCT r.id AS rid from civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE c.trxn_id LIKE 'r_%' AND r.cycle_day = %1 AND c.payment_processor_id = %2 LIMIT 300  OFFSET %3";
+      $params = array(
+        1 => array($cycle_day, 'Integer'),
+        2 => array($ppid_new, 'Integer'),
+        3 => array($offset, 'Integer'),
+      );
+      $bao = CRM_Core_DAO::executeQuery($sql, $params);
+      if ($bao->N == 0) {
+        // offset variable roll back to zero.
+        variable_set("spgateway_neweb_resync_offset_{$ppid_new}", 0);
+        
+        // There are no recur need execute. return finished.
+        $message = "已無需要處理之捐款，結束PPID為{$ppid_new}的所有舊藍新同步。";
+        CRM_Core_Error::debug_log_message($message);
+        return TRUE;
+      }
+      while($bao->fetch()) {
+        $recurNo[] = $bao->rid;
+      }
     }
+    $total = count($recurNo);
+    $skip = $count = $alreadyExist = $transactFailed = $success = $queryFailed = 0;
 
     foreach ($recurNo as $recurId) {
-      $sql = "SELECT trxn_id, receive_date FROM civicrm_contribution WHERE id = (SELECT MAX(id) FROM civicrm_contribution WHERE trxn_id LIKE 'r_{$recurId}_%')";
-      $dao = CRM_Core_DAO::executeQuery($sql);
+      $sql = "SELECT id, last_receive_date , last_failed_date,  ltid.last_trxn_id FROM civicrm_contribution_recur AS r 
+LEFT JOIN (SELECT contribution_recur_id AS rid, MAX(receive_date) AS last_receive_date FROM civicrm_contribution WHERE contribution_status_id = 1 AND contribution_recur_id = %1 GROUP BY contribution_recur_id) lrd ON lrd.rid = r.id 
+LEFT JOIN (SELECT contribution_recur_id AS rid, MAX(cancel_date) AS last_failed_date FROM civicrm_contribution WHERE contribution_status_id = 4 AND contribution_recur_id = %1 GROUP BY contribution_recur_id) lfd ON lfd.rid = r.id 
+LEFT JOIN (SELECT contribution_recur_id AS rid, CONCAT('r_', contribution_recur_id, '_', MAX(CAST(REGEXP_SUBSTR(trxn_id, '[0-9]+$') as INT))) AS last_trxn_id FROM civicrm_contribution WHERE contribution_recur_id = %1 AND trxn_id LIKE CONCAT('r_', contribution_recur_id, '_%') GROUP BY contribution_recur_id) ltid ON ltid.rid = r.id 
+WHERE r.id = %1";
+      $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($recurId, 'Integer')));
       $dao->fetch();
 
       // Only execute the contributions last month have successed.
-      $lastReceiveMonth = date('Ym', strtotime($dao->receive_date));
+      $lastReceiveMonth = date('Ym', strtotime($dao->last_receive_date));
+      $lastCancelMonth = date('Ym', strtotime($dao->last_failed_date));
+      $lastExecuteMonth = max($lastReceiveMonth, $lastCancelMonth);
       $thisMonth = date('Ym');
-      $subtractMonth = $thisMonth - $lastReceiveMonth;
+      $subtractMonth = $thisMonth - $lastExecuteMonth;
       if (!in_array($subtractMonth, array(1, 89))) {
+        $skip++;
         continue;
       }
-      $output = '';
-      CRM_Core_Error::debug_log_message("Find not complete contribution in this month, recur_id = {$recurId}, trxn_id = {$dao->trxn_id}, receive_date = {$dao->receive_date}");
-      $lastTrxnId = $dao->trxn_id;
+      $output = 'Recur ID: '.$recurId;
+      CRM_Core_Error::debug_log_message("Find not complete contribution in this month, recur_id = {$recurId}, trxn_id = {$dao->last_trxn_id}, receive_date = {$dao->last_receive_date}, cancel_date = {$dao->last_failed_date}, last_execute_month = {$lastExecuteMonth}");
+      $lastTrxnId = $dao->last_trxn_id;
       $explodeTrxnId = explode('_', $lastTrxnId);
       $no = $explodeTrxnId[2]+1;
       $trxn_id = $recurId.'_'.$no;
@@ -234,8 +258,19 @@ function civicrm_spgateway_neweb_resync($ppid_new, $day = '', $recurNo = array()
       CRM_Core_Error::debug_log_message($output);
       
     }
-    CRM_Core_Error::debug_log_message("總共{$count}筆更新, {$alreadyExist}筆已存在, {$transactFailed}筆交易失敗, {$success}筆交易成功, {$queryFailed}筆查詢失敗");
-  
+    $message = "本次 cron 成果：";
+    $start = $offset+1;
+    $message .= "從第{$start}筆開始進行，";
+    if ($skip > 0) {
+      $message .= "跳過{$skip}筆本月已更新完成；";
+    }
+    $message .= "總共執行{$count}筆更新, {$alreadyExist}筆已存在, {$transactFailed}筆交易失敗, {$success}筆交易成功, {$queryFailed}筆查詢失敗";
+    if ($total > ($count+$skip)) {
+      $unexecuted = $total - $count - $skip;
+      $message .= "，剩{$unexecuted}筆未執行，移到下次進行。";
+    }
+    CRM_Core_Error::debug_log_message($message);
+    variable_set("spgateway_neweb_resync_offset_{$ppid_new}", $offset+300);
   }
 
 }  

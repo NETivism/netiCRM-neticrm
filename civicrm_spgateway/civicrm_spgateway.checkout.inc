@@ -41,9 +41,11 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
       $pstatus = CRM_Event_PseudoConstant::participantStatus();
       if($new_pstatus = array_search('Pending from pay later', $pstatus)){
         CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $vars['participantID'], 'status_id', $new_pstatus, 'id');
-        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
+        $cancelled_pstatus = array_search('Cancelled', $pstatus);
+        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1 AND status_id != %2';
         $params = array(
           1 => array($vars['participantID'], 'Integer'),
+          2 => array($cancelled_pstatus, 'Integer'),
         );
         $dao = CRM_Core_DAO::executeQuery($sql, $params);
         while($dao->fetch()){
@@ -196,7 +198,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $args['LangType'] = 'en';
     }
-  }else{
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $args);
+  }
+  else {
     $data = array(
       'MerchantID' => $payment_processor['user_name'],
       'RespondType' => SPGATEWAY_RESPONSE_TYPE,
@@ -242,6 +249,11 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $data['LangType'] = 'en';
     }
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $data);
+    // Encrypt Recurring Request.
     $str = http_build_query($data, '', '&');
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;

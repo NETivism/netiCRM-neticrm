@@ -49,7 +49,9 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
           case 'select':
             if(!empty($e->_options) && is_array($e->_options)){
               for($i = 0; $i < count($e->_options); $i++){
-                $form->_elements[$k]->_options[$i]['text'] = civicrm_field_i18n_t($e->_options[$i]['text']);
+                if (is_string($e->_options[$i]['text'])) {
+                  $form->_elements[$k]->_options[$i]['text'] = civicrm_field_i18n_t($e->_options[$i]['text']);
+                }
               }
             }
             break;
@@ -92,11 +94,57 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
       }
     }
   }
+
+  $backend = array(
+    'CRM_Contact_Form_Contact',
+    'CRM_Contribute_Form_Contribution',
+  );
+  $allowed_element = array(
+    'custom_.*',
+    'payment_instrument_id',
+  );
+  $pattern = '/^('.implode('|', $allowed_element).')$/';
+  if($language->language != 'en' && in_array($form_name, $backend)){
+    foreach ($form->_elements as $k => $e) {
+      $name = isset($e->_name) ? $e->_name : '';
+      $elementName = array_search($k, $form->_elementIndex);
+      if($e->_type != 'hidden' && $name != 'buttons' && !empty($elementName)){
+        if (preg_match($pattern, $elementName)) {
+          switch($e->_type){
+            case 'checkbox':
+              $form->_elements[$k]->_text = civicrm_field_i18n_t($e->_text);
+              break;
+            case 'select':
+              if(!empty($e->_options) && is_array($e->_options)){
+                for($i = 0; $i < count($e->_options); $i++){
+                  if (is_string($e->_options[$i]['text'])) {
+                    $form->_elements[$k]->_options[$i]['text'] = civicrm_field_i18n_t($e->_options[$i]['text']);
+                  }
+                }
+              }
+              break;
+            case 'group': // radios
+              if(!empty($e->_elements) && is_array($e->_elements)){
+                $first = reset($e->_elements);
+                if($first->_type == 'radio'){
+                  foreach($e->_elements as $i => $radio){
+                    $form->_elements[$k]->_elements[$i]->_text = civicrm_field_i18n_t($radio->_text);
+                  }
+                }
+              }
+              break;
+          }
+        }
+      }
+    }
+  }
 }
 
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
+  static $ran;
   global $language;
   if($language->language != 'en' ){
+    // profile
     $profiles = array('customPre', 'customPost');
     foreach ($profiles as $p) {
       $var_name = $p . '_grouptitle';
@@ -146,12 +194,46 @@ function civicrm_field_i18n_user($op, &$edit, &$user){
         }
       }
     }
+
+    // refs #32070, only translate specific vars
+    $allowed_element = array(
+      'viewCustomData',
+      'payment_instrument',
+    );
+    foreach($allowed_element as $var_name) {
+      if (is_string($vars[$var_name]) && !isset($ran[$var_name])) {
+        $vars[$var_name] = civicrm_field_i18n_t($vars[$var_name]);
+        $ran[$var_name] = TRUE;
+      }
+      else {
+        if ($var_name == 'viewCustomData' && !empty($vars[$var_name]) && !isset($ran[$var_name])) {
+          foreach($vars[$var_name] as &$custom_group) {
+            foreach($custom_group as &$g) {
+              foreach($g['fields'] as &$field) {
+                if ($field['field_data_type'] == 'String' && !empty($field['field_value']) && is_string($field['field_value'])) {
+                  $field['field_value'] = civicrm_field_i18n_t($field['field_value']);
+                }
+                elseif ($field['field_data_type'] == 'String' && !empty($field['field_value']) && is_array($field['field_value'])) {
+                  foreach($field['field_value'] as &$val) {
+                    if (is_string($val)) {
+                      $val = civicrm_field_i18n_t($val);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          $ran[$var_name] = TRUE;
+        }
+      }
+    }
   }
 }
 
 function civicrm_field_i18n_t($text){
   if(!empty($text) && civicrm_field_i18n_test($text) === $text){
-    return t($text, array());
+    $translated = t($text, array());
+    return $translated;
   }
   return empty($text) ? '' : $text;
 }

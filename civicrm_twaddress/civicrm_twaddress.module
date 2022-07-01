@@ -263,7 +263,10 @@ function checkForm(){
       print($js);
     }
     else{
-      _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
+      // Refs #33721, Except for batch update profiles condition.
+      if (get_class($form) != 'CRM_Contact_Form_Task_Batch') {
+        _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
+      }
     }
   }
 }
