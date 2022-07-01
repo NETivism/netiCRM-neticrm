@@ -77,7 +77,7 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   if(!$contrib_values['is_recur']){
     _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
   }
-  CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
+  CRM_Core_Error::debug_var('spgateway_post_data_', $arguments);
   // making redirect form
   $alter = array(
     'module' => 'civicrm_spgateway',
@@ -96,7 +96,8 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   // url 
   $notify_url = _civicrm_spgateway_notify_url($vars, 'spgateway/ipn/'.$instrument_code, $component);
   $civi_base_url = CRM_Utils_System::currentPath();
-  $thankyou_url = url($civi_base_url, array( 'query' => array( "_qf_ThankYou_display" => "1" , "qfKey" => $vars['qfKey'], ), 'absolute' => true));
+  $params = array( "_qf_ThankYou_display" => "1" , "qfKey" => $vars['qfKey'], );
+  $thankyou_url = CRM_Utils_System::url($civi_base_url, http_build_query($params), TRUE);
 
   // parameter
   if($component == 'event' && !empty($_SESSION['CiviCRM'][$form_key])){
@@ -334,12 +335,10 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
      }
   }
 
-  $url = url(
-    $path,
-    array(
-      'query'=> $query,
-      'absolute' => true,
-    )
+  $url = CRM_Utils_System::url(
+    $path, 
+    http_build_query($query), 
+    TRUE
   );
   if( ( !empty($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
     return str_replace('http://', 'https://', $url);
