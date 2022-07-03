@@ -11,35 +11,11 @@ define('ALLPAY_URL_RECUR', '/Cashier/QueryCreditCardPeriodInfo');
  *   Install file for civicrm_allpay module.
  */
 
-/**
- * Implementation of hook_schema()
- */
-function civicrm_allpay_schema(){
-  $schema['civicrm_contribution_allpay'] = array(
-    'fields' => array(
-      'cid' => array(
-        'description' => 'Contribution id for civicrm',
-        'type' => 'int',
-        'length' => '11',
-        'not null' => TRUE,
-      ),
-      'data' => array(
-        'description' => 'Whole response object from allpay.',
-        'type' => 'blob',
-        'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('cid'),
-    'mysql_suffix' => 'ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-  );
-  return $schema;
-}
  
 /**
  * Implementation of hook_install()
  */
 function civicrm_allpay_install() {
-  drupal_install_schema('civicrm_allpay');
   civicrm_initialize( );
 
   // new payment processor - credit card (allowed recurring)
