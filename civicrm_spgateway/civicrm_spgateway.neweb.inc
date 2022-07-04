@@ -116,6 +116,7 @@ function civicrm_spgateway_neweb_transfer($post = NULL, $get = NULL, $print = TR
     watchdog('civicrm_spgateway.neweb', $msg);
     echo $msg;
   }
+  CRM_Utils_System::civiBeforeShutdown();
 }
 
 
