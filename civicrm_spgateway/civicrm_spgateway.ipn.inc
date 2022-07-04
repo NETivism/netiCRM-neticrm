@@ -21,6 +21,7 @@ function civicrm_spgateway_ipn($instrument, $post = NULL, $get = NULL, $print = 
     if(!empty($component)){
       $ipn = new CRM_Core_Payment_SPGATEWAYIPN($post, $get);
       $result = $ipn->main($component, $instrument);
+      CRM_Utils_System::civiBeforeShutdown();
       if(!empty($result) && $print){
         echo $result;
       }
