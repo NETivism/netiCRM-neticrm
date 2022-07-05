@@ -26,6 +26,7 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
         $processor->processContribution($input);
       }
     }
+    CRM_Utils_System::civiBeforeShutdown();
   }
   if ($saved) {
     echo 'OK';
