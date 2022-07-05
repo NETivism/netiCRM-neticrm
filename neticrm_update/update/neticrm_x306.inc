@@ -9,6 +9,8 @@ function _neticrm_update_update_x306() {
   $dao = CRM_Core_DAO::executeQuery("SELECT data_type FROM information_schema.columns WHERE `table_name` = 'civicrm_mailing' AND column_name = 'is_hidden'");
   $dao->fetch();
   if ($dao->data_type !== 'tinyint' && empty($dao->data_type)) {
+    $sql = "ALTER TABLE `civicrm_mailing` CHANGE `scheduled_date` `scheduled_date` DATETIME NULL COMMENT 'Date and time this mailing was scheduled'";
+    CRM_Core_DAO::executeQuery($sql);
     $sql = "ALTER TABLE `civicrm_mailing` ADD `is_hidden` TINYINT DEFAULT '0' COMMENT 'Is this mailing hidden?' AFTER `sms_provider_id`";
     CRM_Core_DAO::executeQuery($sql);
   }
