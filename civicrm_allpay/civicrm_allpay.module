@@ -12,23 +12,7 @@ function civicrm_allpay_init(){
  * Implementation of hook_menu()
  */
 function civicrm_allpay_menu(){
-  return array(
-    'allpay/ipn/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_allpay_ipn',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_allpay.ipn.inc',
-    ),
-    'allpay/record/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_allpay_record',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-    ),
-  );
+  // refs #35271, #30837, move allpay routing to CRM core
 }
 
 /**
