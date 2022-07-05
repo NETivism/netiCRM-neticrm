@@ -54,6 +54,7 @@ function civicrm_esunbank_ipn($post = NULL, $slient = NULL){
       }
       if($slient){
         variable_set("civicrm_esunbank_sequence", "$payment_date:$sequence");
+        CRM_Utils_System::civiBeforeShutdown();
         return $return;
       }
       // after all script processed, we always output OK for esunbank https
