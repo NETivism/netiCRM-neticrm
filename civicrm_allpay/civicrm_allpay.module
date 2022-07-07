@@ -14,7 +14,7 @@ function civicrm_allpay_init(){
 function civicrm_allpay_menu(){
   // refs #35271, #30837, move allpay routing to CRM core
   return array(
-    'civicrm' => array(
+    'allpay' => array(
       'title'            => 'CiviCRM',
       'access callback'  => 'civicrm_checkmenu',
       'access arguments'  => array(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
