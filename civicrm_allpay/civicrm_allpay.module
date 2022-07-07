@@ -75,7 +75,7 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
               $ids = CRM_Contribute_BAO_Contribution::buildIds($contrib_values['id']);
               $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
               parse_str($query, $get);
-              $post = $_POST;
+              $post = $form->_submitValues;
               $result = civicrm_allpay_ipn('Credit', $post, $get, FALSE);
               if(strstr($result, 'OK')){
                 $status = 1;
