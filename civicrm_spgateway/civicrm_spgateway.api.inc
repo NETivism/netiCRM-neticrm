@@ -121,8 +121,10 @@ class spgateway_spgateway_api {
     $this->_request = $post;
     $this->_apiURL = $this->_urlDomain.self::$_apiTypes[$this->_apiType];
     $result = $this->_curlResult = $this->_curl();
+    CRM_Core_Error::debug('Spgateway_RecurChangeAPI_request', $this->_request);
     if ($result['status'] && !empty($this->_response)) {
 
+      CRM_Core_Error::debug('Spgateway_RecurChangeAPI_response', $this->_response);
       // Curl Correct and have response
 
       if ($this->_response->Status == 'SUCCESS') {
@@ -172,6 +174,7 @@ class spgateway_spgateway_api {
       else {
         $errResult['is_error'] = 1;
         $errResult['msg'] = $this->_response->Status.': '.$this->_response->Message;
+        CRM_Core_Error::debug('Spgateway_RecurChangeAPI_errResult', $errResult);
         return $errResult;
       }
 
