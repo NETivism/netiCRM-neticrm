@@ -85,26 +85,26 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
           }
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
-        else {
-          // non-direct payment
-          $saved_params = $form->controller->get('params');
-          if(!empty($saved_params['trxn_id'])){
-            $params['trxn_id'] = $saved_params['trxn_id'];
-  
-            // build notify billing info
-            module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
-            $info = civicrm_allpay_notify_bytrxn($params['trxn_id']);
-            if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
-              $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
-            }else{
-              $civicrm_instrument_id = $saved_params['civicrm_instrument_id'];
-            }
-            $display = civicrm_allpay_notify_display($info, $civicrm_instrument_id);
-            $form->assign('payment_instrument', $display); 
-  
-            // add result type
-            CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
+      }
+      else {
+        // non-direct payment
+        $saved_params = $form->controller->get('params');
+        if(!empty($saved_params['trxn_id'])){
+          $params['trxn_id'] = $saved_params['trxn_id'];
+
+          // build notify billing info
+          module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+          $info = civicrm_allpay_notify_bytrxn($params['trxn_id']);
+          if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
+            $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
+          }else{
+            $civicrm_instrument_id = $saved_params['civicrm_instrument_id'];
           }
+          $display = civicrm_allpay_notify_display($info, $civicrm_instrument_id);
+          $form->assign('payment_instrument', $display); 
+
+          // add result type
+          CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
       unset($_SESSION['allpay']);
