@@ -670,7 +670,7 @@ function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
   $iv = $payment_processor['signature'];
   _civicrm_spgateway_checkKeyIV($key);
   _civicrm_spgateway_checkKeyIV($iv);
-  $str = trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, _civicrm_spgateway_addpadding($str), MCRYPT_MODE_CBC, $iv)));
+  $str = trim(_civicrm_spgateway_encrypt($key, $iv, $str));
   return $str;
 }
 
@@ -679,7 +679,7 @@ function _civicrm_spgateway_recur_decrypt($str, $payment_processor){
   $iv = $payment_processor['signature'];
   _civicrm_spgateway_checkKeyIV($key);
   _civicrm_spgateway_checkKeyIV($iv);
-  $str = _civicrm_spgateway_strippadding(mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, hex2bin($str), MCRYPT_MODE_CBC, $iv));
+  $str = _civicrm_spgateway_decrypt($key, $iv, $str);
   return $str;
 }
 
@@ -886,4 +886,87 @@ function _civicrm_spgateway_error_msg($code){
   else{
     return t('Error when processing your payment.');
   }
+}
+
+function _civicrm_spgateway_encrypt($key, $iv, $str, $force = NULL) {
+  $data = _civicrm_spgateway_addpadding($str);
+  if ($force) {
+    if ($force == 'openssl') {
+      $openssl = TRUE;
+    }
+    elseif($force == 'mcrypt') {
+      $mcrypt = TRUE;
+    }
+  }
+  else {
+    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
+    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
+  }
+  if (empty($openssl) && empty($mcrypt)) {
+    return FALSE;
+  }
+
+  if ($openssl) {
+    $keyLen = strlen($key);
+    switch($keyLen) {
+      case 16:
+        $encoding = 'AES-128-CBC';
+        break;
+      case 24:
+        $encoding = 'AES-192-CBC';
+        break;
+      case 32:
+      default:
+        $encoding = 'AES-256-CBC';
+        break;
+    }
+    $encrypted = openssl_encrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
+  }
+  elseif ($mcrypt) {
+    $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
+  }
+  else {
+    return '';
+  }
+  return bin2hex($encrypted);
+}
+
+function _civicrm_spgateway_decrypt($key, $iv, $encrypted, $force = NULL) {
+  if ($force) {
+    if ($force == 'openssl') {
+      $openssl = TRUE;
+    }
+    elseif($force == 'mcrypt') {
+      $mcrypt = TRUE;
+    }
+  }
+  else {
+    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
+    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
+  }
+  if (empty($openssl) && empty($mcrypt)) {
+    return FALSE;
+  }
+
+  $data = hex2bin($encrypted);
+  if ($openssl) {
+    $keyLen = strlen($key);
+    switch($keyLen) {
+      case 16:
+        $encoding = 'AES-128-CBC';
+        break;
+      case 24:
+        $encoding = 'AES-192-CBC';
+        break;
+      case 32:
+      default:
+        $encoding = 'AES-256-CBC';
+        break;
+    }
+    $decrypted = openssl_decrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
+  }
+  elseif ($mcrypt) {
+    $decrypted = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
+  }
+  return _civicrm_spgateway_strippadding($decrypted);
 }
