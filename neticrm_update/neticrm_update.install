@@ -823,3 +823,10 @@ function neticrm_update_update_7306() {
 function neticrm_update_update_7307() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #34836, Update extends enum for recur in civicrm_custom_group
+ */
+function neticrm_update_update_7308() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
