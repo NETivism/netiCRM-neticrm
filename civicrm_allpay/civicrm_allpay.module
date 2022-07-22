@@ -1,4 +1,6 @@
 <?php
+module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+
 /**
  * Implementation of hook_init()
  */
