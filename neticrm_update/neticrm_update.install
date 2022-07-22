@@ -26,12 +26,7 @@
  * Implement hook_install()
  */
 function neticrm_update_install(){
-  // add more custom search
-  neticrm_update_update_7201();
-  neticrm_update_update_7202();
-  neticrm_update_update_7203();
-  // taiwanes tax
-  neticrm_update_update_7207();
+  // refs #35342, do not install preset here. may have error when civicrm not started
 }
 /**
  * Implement hook_uninstall()
