@@ -135,7 +135,8 @@ class NeticrmCommands extends DrushCommands {
    * @usage drush neticrm-pr --payment-processor=tappay
    *   Run current queuing batch process.
    */
-  public function process_recurring($options = ['payment-processor' => '']) {
+  public function process_recurring($options = ['payment-processor' => '', 'time' => '', 'contribution-recur-id' => '']) {
+    civicrm_initialize();
     $paymentProcessor = !empty($options['payment-processor']) ? $options['payment-processor'] : NULL;
     if (empty($paymentProcessor)) {
       $this->logger("neticrm_drush")->notice("You need specify payment processor to process recurring contribution.\neg. drush neticrm-pr --payment-processor=tappay");
