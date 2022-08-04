@@ -130,6 +130,8 @@ class NeticrmCommands extends DrushCommands {
    * @command neticrm:process-recurring
    * @aliases neticrm-process-recurring,neticrm-pr
    * @option payment-processor The payment processor need to process.
+   * @option time The time to execute tappay.
+   * @option contribution-recur-id The contribution recur id to process payment.
    * @usage drush neticrm-pr --payment-processor=tappay
    *   Run current queuing batch process.
    */
@@ -139,10 +141,12 @@ class NeticrmCommands extends DrushCommands {
       $this->logger("neticrm_drush")->notice("You need specify payment processor to process recurring contribution.\neg. drush neticrm-pr --payment-processor=tappay");
       return;
     }
+
     $paymentProcessor = strtolower($paymentProcessor);
-    $this->init();
-    if(strtolower($paymentProcessor) == 'tappay') {
-      $time = CRM_REQUEST_TIME;
+    $rid = !empty($options['contribution-recur-id']) && is_numeric($options['contribution-recur-id']) ? $options['contribution-recur-id'] : 'ridIsEmpty';
+    $time = is_numeric($options['time']) ? $options['time'] : CRM_REQUEST_TIME;
+
+    if($paymentProcessor == 'tappay' && $rid === 'ridIsEmpty') {
       $error = \CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
       if (!empty($error)) {
         throw new \Exception($error);
@@ -150,6 +154,14 @@ class NeticrmCommands extends DrushCommands {
       else {
         $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
       }
+    }
+    elseif ($paymentProcessor == 'tappay' && empty($rid)) {
+      $str = "Recurring id is empty,please check\n";
+      print($str);
+      \CRM_Core_Error::debug_log_message($str);
+    }
+    elseif ($paymentProcessor == 'tappay' && !empty($rid)) {
+      \CRM_Core_Payment_TapPay::doCheckRecur($rid, $time);
     }
   }
 
