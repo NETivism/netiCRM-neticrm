@@ -387,7 +387,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
 
 function civicrm_demo_create_custom_profile(){
   civicrm_initialize();
-  $group = _civicrm_demo_create_custom_group('receipt_info', '收據資訊');
+  $group = _civicrm_demo_create_custom_group('receipt_info', '收據需求欄位');
   $uf_group = _civicrm_demo_create_uf_group('receipt_infomation', '收據資訊');
 
   // custom fields
