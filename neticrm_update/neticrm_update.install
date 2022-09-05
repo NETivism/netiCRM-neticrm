@@ -825,3 +825,10 @@ function neticrm_update_update_7307() {
 function neticrm_update_update_7308() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #30350, update mcrypt to VER2(openssl)
+ */
+function neticrm_update_update_7309() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
