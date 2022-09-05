@@ -140,3 +140,24 @@ function neticrm_update_update_9305() {
 function neticrm_update_update_9306() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #35271, update allpay, instrument add id and primary
+ */
+function neticrm_update_update_9307() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #34836, Update extends enum for recur in civicrm_custom_group
+ */
+function neticrm_update_update_9308() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #30350, update mcrypt to VER2(openssl)
+ */
+function neticrm_update_update_9309() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
