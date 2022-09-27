@@ -1,0 +1,166 @@
+<?php
+
+use Drupal\Core\Url;
+
+/**
+ * Implement hook_theme()
+ */
+function esunbank_theme($existing, $type, $theme, $path){
+  return [
+    'esunbank_invoice' => [
+      'variables' => ['vars' => NULL],
+    ],
+  ];
+}
+
+function esunbank_api(&$vars){
+  $allowed_keys = [
+    'code' => '',
+    'number' => '',
+    'length' => '',
+    'price' => '',
+    'timestamp' => '',
+    'store' => '',
+    'type' => '',
+    'user' => '',
+    'item' => '',
+  ];
+  $params = array_intersect_key($vars, $allowed_keys);
+  $vars = $params;
+  esunbank_api_barcode('store', $vars);
+  esunbank_api_barcode('postoffice', $vars);
+
+  $element['esunbank_invoice'] = [
+    '#theme' => 'esunbank_invoice',
+    '#vars' => $vars,
+  ];
+  return \Drupal::service('renderer')->render($element);
+}
+
+function esunbank_api_link($vars){
+  if (is_string($vars)) {
+    $vars = explode('|', $vars);
+  }
+  $numeric_keys = 0;
+  foreach($vars as $key => $val) {
+    $vars[$key] = str_replace('|', '', $val);
+    if (is_numeric($key)) {
+      $numeric_keys++;
+    }
+  }
+  if ($numeric_keys > 1) {
+    $params = implode('|', $vars);
+  }
+  else {
+    extract($vars);
+    $params = "$code|$number|$length|$price|$timestamp|$store|$type|$user|$item";
+  }
+  $url = Url::fromRoute('esunbank.esunbank', [], ['query' => ['params' => $params], 'absolute' => TRUE]);
+  return $url->toString();
+}
+
+function esunbank_api_serial(&$vars){
+  \Drupal::moduleHandler()->loadInclude('esunbank', 'inc', 'esunbank.api');
+  switch($vars['type']) {
+    case 'price':
+    case 'price_date':
+    case 'price_hour':
+      $type = '_'.$vars['type'];
+      break;
+    default:
+      $vars['type'] = '';
+      $type = '';
+      break;
+  }
+  $variables = array(
+    $vars['code'],
+    $vars['number'],
+    $vars['length'],
+    $vars['price'],
+    $vars['timestamp'],
+  );
+  $vars['serial'] = call_user_func_array('esunbank_serial'.$type, $variables);
+  return $vars['serial'];
+}
+
+function esunbank_api_store(&$vars){
+  if(empty($vars['serial'])){
+    esunbank_api_serial($vars);
+  }
+  $o['a'] = esunbank_store_a($vars['timestamp'], $vars['store']);
+  $o['b'] = esunbank_store_b($vars['serial']);
+  $o['c'] = esunbank_store_c($vars['timestamp'], $vars['price'], $o['a'], $o['b']);
+  $vars['serial_store'] = $o;
+}
+
+function esunbank_api_postoffice(&$vars){
+  if(empty($vars['serial'])){
+    esunbank_api_serial($vars);
+  }
+  $o['a'] = esunbank_postoffice_a();
+  $o['c'] = esunbank_postoffice_c($vars['price']);
+  $o['b'] = esunbank_postoffice_b($vars['timestamp'], $vars['serial'], $o['a'], $o['c']);
+  $vars['serial_postoffice'] = $o;
+}
+
+function esunbank_api_barcode($type, &$vars){
+  if($type == 'store'){
+    esunbank_api_store($vars);
+  }
+  if($type == 'postoffice'){
+    esunbank_api_postoffice($vars);
+  }
+  ksort($vars['serial_'.$type]);
+  foreach($vars['serial_'.$type] as $k => $v){
+    $barcode[$k] = $v;
+  }
+  $vars['barcode_'.$type] = $barcode;
+}
+
+function esunbank_api_barcode_image($serial) {
+  \Drupal::moduleHandler()->loadInclude('esunbank', 'inc', 'barcode39');
+  $bar = new EsunbankBarcode39($serial);
+  $bar->barcode_text = false;
+  $bar->barcode_bar_thick = 3;
+  $bar->barcode_bar_thin = 1;
+  $bar->barcode_height = 80;
+  ob_start();
+  $bar->draw();
+  $image = ob_get_contents();
+  ob_end_clean();
+  return $image;
+}
+
+function template_preprocess_esunbank_invoice(&$variables){
+  global $base_url;
+
+  $url_options = [
+    'absolute' => TRUE,
+  ];
+
+  $variables['vars']['site_name'] =  \Drupal::config('system.site')->get('name');
+  $variables['vars']['logo'] = theme_get_setting('logo');
+  $esunbank_path = \Drupal::service('extension.list.module')->getPath('esunbank');
+  $variables['vars']['css'] = $base_url.base_path().$esunbank_path.'/invoice.css';
+  $variables['vars']['path'] = $base_url.base_path().$esunbank_path.'/';
+  if(empty($variables['vars']['order_number'])){
+    $variables['vars']['order_number'] = $variables['vars']['serial'];
+  }
+  if(!empty($variables['vars']['timestamp'])){
+    $variables['vars']['due_date'] = date('Y/m/d', $variables['vars']['timestamp']);
+  }
+  foreach($variables['vars']['barcode_store'] as $k => $v){
+    $url = Url::fromRoute('esunbank.barcode39', ['serial' => $v], $url_options);
+    $variables['vars']['barcode_store'][$k] = '<img src="'.$url->toString().'" style="max-height:40px" />';
+  }
+  foreach($variables['vars']['barcode_postoffice'] as $k => $v){
+    $url = Url::fromRoute('esunbank.barcode39', ['serial' => $v], $url_options);
+    $variables['vars']['barcode_postoffice'][$k] = '<img src="'.$url->toString().'" style="max-height: 40px" />';
+  }
+  /*
+  $variables['contact_info'] = '';
+  $variables['receipt_info'] = '';
+  $variables['postoffice_account'] = '';
+  $variables['account_name'] = '';
+  */
+}

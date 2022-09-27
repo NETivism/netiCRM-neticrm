@@ -1,0 +1,18 @@
+esunbank.esunbank:
+  path: '/esunbank'
+  defaults:
+    _controller: '\Drupal\esunbank\Controller\EsunbankController::esunbankAPI'
+    _title: ''
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+esunbank.barcode39:
+  path: '/esunbank/barcode39/{serial}'
+  defaults:
+    _controller: '\Drupal\esunbank\Controller\EsunbankController::barcode39'
+    _title: ''
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
