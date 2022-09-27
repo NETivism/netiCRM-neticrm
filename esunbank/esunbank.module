@@ -26,6 +26,12 @@ function esunbank_api(&$vars){
     'item' => '',
   ];
   $params = array_intersect_key($vars, $allowed_keys);
+  if (!preg_match('/\d{10}/', $params['timestamp'])) {
+    $timestamp = strtotime($params['timestamp']);
+    if ($timestamp) {
+      $params['timestamp'] = $timestamp;
+    }
+  }
   $vars = $params;
   esunbank_api_barcode('store', $vars);
   esunbank_api_barcode('postoffice', $vars);
