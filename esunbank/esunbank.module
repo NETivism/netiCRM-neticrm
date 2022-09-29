@@ -163,10 +163,12 @@ function template_preprocess_esunbank_invoice(&$variables){
     $url = Url::fromRoute('esunbank.barcode39', ['serial' => $v], $url_options);
     $variables['vars']['barcode_postoffice'][$k] = '<img src="'.$url->toString().'" style="max-height: 40px" />';
   }
-  /*
-  $variables['contact_info'] = '';
-  $variables['receipt_info'] = '';
-  $variables['postoffice_account'] = '';
-  $variables['account_name'] = '';
-  */
+
+  $config = \Drupal::config('esunbank.admin_settings');
+  $variables['vars']['contact_info'] = $config->get('contact_info');
+  $variables['vars']['receipt_info'] = $config->get('receipt_info');;
+  $variables['vars']['account_name'] = $config->get('bank_account_name');
+  $variables['vars']['bank_account_name'] = $config->get('bank_account_name');
+  $variables['vars']['postoffice_account'] = $config->get('postoffice_account_number');;
+  $variables['vars']['postoffice_account_number'] = $config->get('postoffice_account_number');;
 }

@@ -16,3 +16,10 @@ esunbank.barcode39:
     _access: 'TRUE'
   options:
     no_cache: 'TRUE'
+esunbank.admin_settings:
+  path: '/admin/config/user-interface/esunbank'
+  defaults:
+    _form: '\Drupal\esunbank\Form\EsunbankConfigurationForm'
+    _title: 'Esunbank Configuration'
+  requirements:
+    _permission: 'administer site configuration'

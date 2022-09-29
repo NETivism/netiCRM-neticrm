@@ -62,7 +62,7 @@
 <table class="bank" cellpadding="0" cellspacing="0">
 <tr>
   <td class="col1">戶名</td>
-  <td class="col2">{{ vars.account_name }}</td>
+  <td class="col2">{{ vars.bank_account_name }}</td>
 </tr>
 <tr>
   <td>銀行代碼</td>
@@ -83,7 +83,7 @@
 </div>
 <div class="payment-info payment-info-post-office">
 <h3>郵局專用 - 可至各郵局櫃臺繳納</h3>
-{% if var.spostoffice_account %}<div class="postoffice-account">{{ vars.postoffice_account }}</div>{% endif %}
+{% if vars.postoffice_account_number %}<div class="postoffice-account">{{ vars.postoffice_account_number }}</div>{% endif %}
 <div class="bar">{{ vars.barcode_postoffice.a | raw }}<div class="code"><label class="b">郵政劃撥：</label>*{{ vars.serial_postoffice.a }}*</div></div>
 <div class="bar">{{ vars.barcode_postoffice.b | raw }}<div class="code"><label class="b">繳款帳號：</label>*{{ vars.serial_postoffice.b }}*</div></div>
 <div class="bar">{{ vars.barcode_postoffice.c | raw }}<div class="code"><label class="b">繳款金額：</label>*{{ vars.serial_postoffice.c }}*</div></div>
