@@ -2,6 +2,8 @@
 
 use Drupal\Core\Url;
 
+const ESUNBANK_DEFUALT_EXPIRY_DAYS = 7;
+
 /**
  * Implement hook_theme()
  */

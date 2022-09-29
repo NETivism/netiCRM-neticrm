@@ -51,6 +51,11 @@ class EsunbankConfigurationForm extends ConfigFormBase {
       '#title' => $this->t('Postoffice Account Number'),
       '#default_value' => $config->get('postoffice_account_number'),
     ];
+    $form['expiry_days'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Invoice Expiry Days'),
+      '#default_value' => $config->get('expiry_days'),
+    ];
     return parent::buildForm($form, $form_state);
   }
 
@@ -63,6 +68,7 @@ class EsunbankConfigurationForm extends ConfigFormBase {
       ->set('receipt_info', $form_state->getValue('receipt_info'))
       ->set('bank_account_name', $form_state->getValue('bank_account_name'))
       ->set('postoffice_account_number', $form_state->getValue('postoffice_account_number'))
+      ->set('expiry_days', $form_state->getValue('expiry_days'))
       ->save();
     parent::submitForm($form, $form_state);
   }

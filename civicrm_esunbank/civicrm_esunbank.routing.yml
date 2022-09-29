@@ -1,0 +1,9 @@
+civicrm_esunbank.ipn:
+  path: '/payment-esunbank/ipn'
+  defaults:
+    _controller: '\Drupal\civicrm_esunbank\Controller\CivicrmEsunbankController::ipn'
+    _title: ''
+  requirements:
+    _access: 'TRUE'
+  options:
+    no_cache: 'TRUE'
