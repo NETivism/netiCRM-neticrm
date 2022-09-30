@@ -1,0 +1,5 @@
+invpay2go.settings:
+  title: 'Pay2go Tax Receipt Config'
+  description: 'Configure the Pay2go tax receipt'
+  route_name: invpay2go.admin_settings
+  parent: system.admin_config_ui

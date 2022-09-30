@@ -1,0 +1,7 @@
+invpay2go.admin_settings:
+  path: '/admin/config/system/invpay2go'
+  defaults:
+    _form: '\Drupal\invpay2go\Form\Invpay2goConfigurationForm'
+    _title: 'Pay2go Invoice Configuration'
+  requirements:
+    _permission: 'administer site configuration'

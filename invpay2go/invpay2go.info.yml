@@ -1,0 +1,9 @@
+name: Pay2Go Invoice API
+type: module
+description: Pay2Go Invoice API functions, this module only provide helper functions, and dependence from other module.
+package: netiCRM
+dependencies:
+  - civicrm
+version: 9.x-1.0
+core_version_requirement: ^8 || ^9
+configure: invpay2go.admin_settings
