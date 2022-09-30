@@ -384,7 +384,36 @@ class Pay2goInvoice {
    * Helper function for encrypt
    */
   static public function encrypt($string, $key, $iv){
-    return trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, self::padding($string), MCRYPT_MODE_CBC, $iv)));
+    $data = self::padding($string);
+    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
+    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
+    if (empty($openssl) && empty($mcrypt)) {
+      return FALSE;
+    }
+
+    if ($openssl) {
+      $keyLen = strlen($key);
+      switch($keyLen) {
+        case 16:
+          $encoding = 'AES-128-CBC';
+          break;
+        case 24:
+          $encoding = 'AES-192-CBC';
+          break;
+        case 32:
+        default:
+          $encoding = 'AES-256-CBC';
+          break;
+      }
+      $encrypted = openssl_encrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
+    }
+    elseif ($mcrypt) {
+      $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
+    }
+    else {
+      return '';
+    }
+    return trim(bin2hex($encrypted));
   }
 
   /**
