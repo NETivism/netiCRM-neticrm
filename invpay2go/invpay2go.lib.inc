@@ -57,10 +57,10 @@ class Pay2goInvoice {
       throw new Exception('Required parameters missing: merchantId, key, iv, isTest');
     }
     if ($isTest) {
-      $obj = db_query("SELECT pid, hashkey_test as hashkey, hashiv_test as hashiv FROM {invpay2go} WHERE merchantid_test = :mid", array(':mid' => $merchantId))->fetchObject();
+      $obj = \Drupal::database()->query("SELECT pid, hashkey_test as hashkey, hashiv_test as hashiv FROM {invpay2go} WHERE merchantid_test = :mid", array(':mid' => $merchantId))->fetchObject();
     }
     else {
-      $obj = db_query("SELECT pid, hashkey, hashiv FROM {invpay2go} WHERE merchantid = :mid", array(':mid' => $merchantId))->fetchObject();
+      $obj = \Drupal::database()->query("SELECT pid, hashkey, hashiv FROM {invpay2go} WHERE merchantid = :mid", array(':mid' => $merchantId))->fetchObject();
     }
     if (empty($obj->pid)) {
       throw new Exception('Specify merchant id  not found in db.');
@@ -98,7 +98,7 @@ class Pay2goInvoice {
       }
       else {
         if ($key == 'ItemName') {
-          $value = truncate_utf8($value, 28);
+          $value = \Drupal\Component\Utility\Unicode::truncate($value, 28);
         }
         $postData[$key] = $value;
       }
@@ -186,7 +186,7 @@ class Pay2goInvoice {
     $this->recordField = $recordField;
     return $recordField;
   }
-  
+
   /**
    * Base api url for api
    */
@@ -264,10 +264,10 @@ class Pay2goInvoice {
    */
   static public function getRecord($order_number = null, $invoice_number = null){
     if(!empty($order_number)) {
-      $record = db_query("SELECT * FROM {invpay2go_invoice} WHERE order_number = :or", array(':or' => $order_number))->fetchObject();
+      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE order_number = :or", array(':or' => $order_number))->fetchObject();
     }
     elseif(!empty($invoice_number)) {
-      $record = db_query("SELECT * FROM {invpay2go_invoice} WHERE invoice_number = :in", array(':in' => $invoice_number))->fetchObject();
+      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE invoice_number = :in", array(':in' => $invoice_number))->fetchObject();
     }
     if (!empty($record->order_number)) {
       $return = array();
@@ -324,15 +324,12 @@ class Pay2goInvoice {
    */
   static public function writeRecord($orderNumber = null, $record){
     if(!empty($orderNumber)) {
-      $exists = db_query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", array(':order_number' => $orderNumber))->fetchObject();
+      $exists = \Drupal::database()->query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", array(':order_number' => $orderNumber))->fetchObject();
     }
-    if(!empty($exists->order_number)){
-      $record['order_number'] = $exists->order_number;
-      drupal_write_record('invpay2go_invoice', $record, 'order_number');
-    }
-    else{
-      drupal_write_record('invpay2go_invoice', $record);
-    }
+    \Drupal::database()->merge('invpay2go_invoice')
+      ->keys(['order_number' => $exists->order_number])
+      ->fields($record)
+      ->execute();
   }
 
   /**
@@ -358,14 +355,18 @@ class Pay2goInvoice {
     }
     if (!empty($info['CreateTime']) && !empty($info['InvoiceNumber']) && !empty($info['RandomNum'])) {
       $create = strtotime($info['CreateTime']);
-      $cyear = (int) date('Y', $create); 
+      $cyear = (int) date('Y', $create);
       $cyear -= 1911;
       $cmonth = date('m', $create);
       $info['BarcodeCode'] = $cyear.$cmonth.$info['InvoiceNumber'].$info['RandomNum'];
       $info['Barcode'] = invpay2go_api_barcode($info['BarcodeCode']);
     }
     if (!empty($info['InvoiceNumber'])) {
-      $print = theme('invpay2go', array('receipt' => $info));
+      $element['invpay2go'] = [
+        '#theme' => 'invpay2go',
+        '#receipt' => $info,
+      ];
+      $print = \Drupal::service('renderer')->render($element);
     }
     return $print;
   }
@@ -384,7 +385,36 @@ class Pay2goInvoice {
    * Helper function for encrypt
    */
   static public function encrypt($string, $key, $iv){
-    return trim(bin2hex(mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, self::padding($string), MCRYPT_MODE_CBC, $iv)));
+    $data = self::padding($string);
+    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
+    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
+    if (empty($openssl) && empty($mcrypt)) {
+      return FALSE;
+    }
+
+    if ($openssl) {
+      $keyLen = strlen($key);
+      switch($keyLen) {
+        case 16:
+          $encoding = 'AES-128-CBC';
+          break;
+        case 24:
+          $encoding = 'AES-192-CBC';
+          break;
+        case 32:
+        default:
+          $encoding = 'AES-256-CBC';
+          break;
+      }
+      $encrypted = openssl_encrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
+    }
+    elseif ($mcrypt) {
+      $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
+    }
+    else {
+      return '';
+    }
+    return trim(bin2hex($encrypted));
   }
 
   /**

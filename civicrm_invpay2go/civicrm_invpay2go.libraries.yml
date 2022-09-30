@@ -1,0 +1,7 @@
+invpay2go:
+  version: VERSION
+  js:
+    civicrm_invpay2go.js: {}
+  dependencies:
+    - civicrm-js-packages
+  header: true

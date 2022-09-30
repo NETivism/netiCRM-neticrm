@@ -11,7 +11,7 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
     $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($object->trxn_id), NULL, 'force');
     $redirect = str_replace('sync=force', '', $_SERVER['REQUEST_URI']);
     $redirect = trim($redirect, '&');
-    drupal_set_message('同步成功。已完成同步本張發票的最新資訊。');
+    CRM_Core_Session::setStatus('同步成功。已完成同步本張發票的最新資訊。');
     CRM_Utils_System::redirect($redirect);
     return;
   }
@@ -120,7 +120,7 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
   // check first attempt response
   if (!$success && !empty($receipt['issue_response']->Message)) {
     if (!empty($_POST)) {
-      drupal_set_message(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', 'error');
+      CRM_Core_Session::setStatus(ts('Error'). ": ". $receipt['issue_response']->Message . ' ('.ts('Error Code:').$receipt['issue_response']->Status.')', TRUE, 'error');
     }
 
     return array('create' => TRUE);
@@ -133,7 +133,7 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
     if ($contribution->find(TRUE)) {
       if ($contribution->contribution_status_id == 2 || $contribution->contribution_status_id == 1) {
         if ($contribution->contribution_status_id == 2) {
-          drupal_set_message('注意：本項費用還未完成繳費', 'warning');
+          CRM_Core_Session::setStatus('注意：本項費用還未完成繳費', TRUE, 'warning');
         }
         return array('create' => TRUE);
       }
@@ -224,10 +224,10 @@ function civicrm_invpay2go_create_taxreceipt($contribution_id, &$req_result, &$o
               'entityID' => $contribution_id,
             );
             CRM_Core_BAO_CustomValueTable::setValues($invoice_number);
-            drupal_set_message('已成功紀錄發票序號為-'.$data->Result->InvoiceNumber);
+            CRM_Core_Session::setStatus('已成功紀錄發票序號為-'.$data->Result->InvoiceNumber);
           }
         }
-        drupal_set_message('已成功完成開立發票');
+        CRM_Core_Session::setStatus('已成功完成開立發票');
       }
     }
   }
@@ -261,7 +261,7 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
           $elements = _civcirm_invpay2go_form_elements($form_name, $form);
           $form->_invpay2goElements = $elements;
           if (!strstr($form_name, 'Confirm')) {
-            drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+            CRM_Utils_System::addJs(['library' => 'civicrm_invpay2go/invpay2go'], '');
           }
         }
       }
@@ -276,7 +276,7 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
         CRM_Core_DAO::commonRetrieve('CRM_Contact_DAO_Contact', $params, $contactInfo, $returnProperities);
         if ($contactInfo['contact_type'] == 'Organization' && !empty($contactInfo['sic_code'])) {
           $js = '
-jQuery(document).ready(function($){
+cj(document).ready(function($){
   var interval = window.setInterval(function(){
     if ($("input[data-invpay2go=taxReceiptSerial]").length) {
       window.clearInterval(interval);
@@ -289,7 +289,7 @@ jQuery(document).ready(function($){
   }, 800);
 });
 ';
-          drupal_add_js($js, 'inline');
+          CRM_Utils_System::addJs(array('type' => 'inline'), $js);
         }
       }
       if (!empty($_GET['snippet']) && $_GET['snippet'] == 4) {
@@ -347,7 +347,7 @@ jQuery(document).ready(function($){
         }
       }
       else {
-        drupal_add_js(drupal_get_path('module', 'civicrm_invpay2go').'/civicrm_invpay2go.js', array('scope' => 'footer'));
+        CRM_Utils_System::addJs(['library' => 'civicrm_invpay2go/invpay2go'], '');
         if (!empty($form->_values['trxn_id'])) {
           $exists = invpay2go_api_get(_civicrm_invpay2go_trxn_id($form->_values['trxn_id']));
           if (!empty($exists['order_number'])) {
@@ -375,7 +375,8 @@ jQuery(document).ready(function($){
 
 function civicrm_invpay2go_civicrm_alterTemplateVars(&$resourceName, &$vars) {
   if ($_GET['q'] == 'civicrm/contact/view/contribution' && $resourceName == 'CRM/common/drupal.tpl' && $vars['viewCustomData']) {
-    $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
+    $cfg = \Drupal::config('civicrm_invpay2go.settings');
+    $group_id = $cfg->get('invoice_group');
     if (!empty($vars['viewCustomData'][$group_id])) {
       $config = CRM_Core_Config::singleton();
       $cv_id = key($vars['viewCustomData'][$group_id]);
@@ -444,6 +445,23 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
     $replace = '<fieldset id="tax-invoice-fieldset" class="crm-group tax-invoice-group"><legend>發票開立</legend>'.$replace.'</fieldset>';
     $replace = '<!--invpay2go-separator--><div id="invpay2go-section">'.$replace.'</div>';
     $content = str_replace('<!--payment-separator-->', $replace.'<!--payment-separator-->', $content);
+
+    // refs #34126, fixes special contribution page dones't load fields
+    if (strstr($content, 'loading-placeholder-wrapper')) {
+      $content .= '<script>cj(document).ready(function($){
+  let interval = setInterval(function(){
+    if ($(".contrib-step").length > 0) {
+      $(".contrib-step").each(function(i, e){
+        var $ele = $(e);
+        if ($ele.find("#crm-submit-buttons").length) {
+          $("#invpay2go-section").insertBefore($ele.find(".step-action-wrapper"));
+          clearInterval(interval);
+        }
+      });
+    }
+  }, 500);
+});</script>';
+    }
   }
 }
 
@@ -658,8 +676,8 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   $errors = _civcirm_invpay2go_params_validation($field_info);
   if (!empty($errors)) {
     foreach ($errors as $k => $e) {
-      drupal_set_message($e, 'error');
-    } 
+      CRM_Core_Session::setStatus($e, TRUE, 'error');
+    }
     return;
   }
   $total_amt = round($contribution['total_amount']);
@@ -758,14 +776,14 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     'ItemCount' => '1',
     'ItemUnit' => 'x',
     'ItemTaxType' => '', // TODO do not implement
-    'Comment' => truncate_utf8($contribution['source'], 30),
+    'Comment' => CRM_Utils_String::truncate($contribution['source'], 200),
   );
 
   $params = array_merge($params, $conditional_params);
 
   // check error again for pay2go specific conditional required
   if (empty($params['BuyerEmail']) && $params['CarrierType'] == 2) {
-    drupal_set_message('聯絡人需要有電子郵件信箱，才能選擇「會員載具」來開立發票', 'error');
+    CRM_Core_Session::setStatus('聯絡人需要有電子郵件信箱，才能選擇「會員載具」來開立發票', TRUE, 'error');
     return;
   }
   return $params;

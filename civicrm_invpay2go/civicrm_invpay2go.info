@@ -1,7 +1,0 @@
-name = Pay2Go Invoice CiviCRM
-description = Pay2Go Invoice integration of CiviCRM.
-package = NetiCRM Payment Method
-core = 7.x
-version = 7.x-1.1
-dependencies[] = invpay2go
-dependencies[] = civicrm_demo

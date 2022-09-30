@@ -174,6 +174,7 @@ function civicrm_demo_process_contribution($vars){
     $count_contact++;
     $page_id = $contribution_page_id[$count_contact%$page_id_num];
     $contact_id = $dao->id;
+    $counter = 0;
     for($i = 0; $i < $contrib_per_contact; $i++){
       $counter++;
       if($counter > $contrib_limit) break;
@@ -765,14 +766,6 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
         if(is_numeric($result['id'])){
           $payment_processors[] = $result['id'];
-          if($class_name == 'Payment_Neweb'){
-            $ftp = array();
-            $ftp['ftp_host'] = $p['ftp_host'];
-            $ftp['ftp_user'] = $p['ftp_user'];
-            $ftp['ftp_password'] = $p['ftp_password'];
-            variable_set("civicrm_neweb_ftp_".$result['id'], $ftp);
-            $payment_processors[] = $result['id'];
-          }
         }
 
         $payment_processor['is_test'] = 1;
@@ -781,10 +774,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $payment_processor['url_recur'] = !empty($p['url_recur_test_default']) ? $p['url_recur_test_default'] : NULL;
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
         if(is_numeric($result['id'])){
-          if($class_name == 'Payment_Neweb'){
-            variable_set("civicrm_neweb_ftp_test_".$result['id'], $ftp);
-            $payment_processors[] = $result['id'];
-          }
+          $payment_processors[] = $result['id'];
         }
       }
     }
