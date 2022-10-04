@@ -1,131 +1,8 @@
 <?php
-function civicrm_statistics_fetch($debug = false){
-  $stat = array();
-  $sitekey = $_SERVER['HTTP_HOST'];
-  $tables = civicrm_statistics_table();
-  civicrm_initialize();
-  foreach($tables as $table => $t){
-    list($table, $sub) = explode('.', $table);
-    if($sub){
-      switch($t){
-        case 'cc.g':
-          $rows = civicrm_statistics_query("SELECT gender_id idx, count(id) counting FROM civicrm_contact WHERE gender_id IS NOT NULL AND is_deleted != 1 GROUP BY gender_id");
-          break;
-        case 'cc.b':
-          $rows = civicrm_statistics_query("SELECT year(birth_date) idx, count(id) counting FROM civicrm_contact WHERE birth_date IS NOT NULL AND is_deleted != 1 GROUP BY year(birth_date)");
-          break;
-        case 'ca.p':
-          $rows = civicrm_statistics_query("SELECT a.state_province_id idx, count(a.id) counting FROM civicrm_address a INNER JOIN civicrm_contact c ON c.id = a.contact_id WHERE a.state_province_id IS NOT NULL AND c.is_deleted != 1 group by a.state_province_id");
-          break;
-        case 'ccb.a':
-          $rows = CRM_Core_DAO::singleValueQuery("SELECT SUM(cc.total_amount) FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL");
-          $rows = (int) $rows;
-          break;
-        case 'ccb.h':
-          $rows = civicrm_statistics_query("SELECT HOUR(cf.receive_date) idx, count(cf.id) counting, round(sum(cf.total_amount)) as summ, round(avg(cf.total_amount)) as avgg FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL GROUP BY cc.contribution_recur_id ) cf GROUP BY HOUR(cf.receive_date)");
-          civicrm_statistics_normalize($rows, 24);
-          break;
-        case 'ccb.w':
-          $rows = civicrm_statistics_query("SELECT WEEKDAY(cf.receive_date) idx, count(cf.id) counting, round(sum(cf.total_amount)) as summ, round(avg(cf.total_amount)) as avgg FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND cc.contribution_recur_id IS NULL UNION SELECT cc.id, cc.total_amount, MIN(cc.receive_date) as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.receive_date > '1990-01-01 00:00:00' AND EXTRACT(HOUR_SECOND FROM cc.receive_date) != '000000' AND contribution_recur_id IS NOT NULL GROUP BY cc.contribution_recur_id ) cf GROUP BY WEEKDAY(cf.receive_date)");
-          civicrm_statistics_normalize($rows, 7);
-          break;
-        case 'ccb.r':
-          $rows = civicrm_statistics_query("
-          select t.idx, count(*) counting, round(sum(t.total_amount)) summ, round(avg(t.total_amount)) avgg
-          from (
-          select case
-          when total_amount between 0 and 100 then 100
-          when total_amount between 100 and 500 then 500
-          when total_amount between 500 and 1000 then 1000
-          when total_amount between 1000 and 2000 then 2000
-          when total_amount between 2000 and 5000 then 5000
-          when total_amount between 5000 and 10000 then 10000
-          when total_amount between 10000 and 20000 then 20000
-          else 20001
-          end idx,
-          total_amount
-          from civicrm_contribution
-          where contribution_status_id = 1 AND is_test != 1 AND payment_processor_id IS NOT NULL
-          ) t
-          group by t.idx
-          ");
-          break;
-        case 'cmeo.h':
-          $rows = civicrm_statistics_query("SELECT HOUR(time_stamp) idx, COUNT(time_stamp) as counting FROM civicrm_mailing_event_opened group by HOUR(time_stamp)");
-          civicrm_statistics_normalize($rows, 24);
-          break;
-        case 'cmeo.w':
-          $rows = civicrm_statistics_query("SELECT WEEKDAY(time_stamp) idx, COUNT(time_stamp) as counting FROM civicrm_mailing_event_opened group by WEEKDAY(time_stamp)");
-          civicrm_statistics_normalize($rows, 7);
-          break;
-        case 'cmeo.n':
-          $rows = civicrm_statistics_query("SELECT cc.counting as idx, count(cc.counting) as counting FROM (SELECT event_queue_id, count(event_queue_id) as counting FROM civicrm_mailing_event_opened group by event_queue_id having count(event_queue_id) > 1) as cc GROUP BY cc.counting");
-          break;
-        case 'cmet.h':
-          $rows = civicrm_statistics_query("SELECT HOUR(time_stamp) idx, COUNT(time_stamp) as counting FROM civicrm_mailing_event_trackable_url_open group by HOUR(time_stamp)");
-          civicrm_statistics_normalize($rows, 24);
-          break;
-        case 'cmet.w':
-          $rows = civicrm_statistics_query("SELECT WEEKDAY(time_stamp) idx, COUNT(time_stamp) as counting FROM civicrm_mailing_event_trackable_url_open group by WEEKDAY(time_stamp)");
-          civicrm_statistics_normalize($rows, 7);
-          break;
-        case 'cmet.n':
-          $rows = civicrm_statistics_query("SELECT cc.counting as idx, count(cc.counting) as counting FROM (SELECT event_queue_id, count(event_queue_id) as counting FROM civicrm_mailing_event_trackable_url_open group by event_queue_id having count(event_queue_id) > 1) as cc GROUP BY cc.counting");
-          break;
-      }
-    }
-    else{
-      switch($t){
-        case 'cc':
-          $rows = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE is_deleted != 1");
-          break;
-        default:
-          $has_test_field = CRM_Core_DAO::singleValueQuery("SHOW COLUMNS FROM $table LIKE 'is_test'");
-          if($has_test_field){
-            $rows = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE is_test != 1");
-          }
-          else{
-            $rows = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM $table WHERE 1");
-          }
-          break;
-      }
-    }
 
-    $url = civicrm_statistics_build_fetch_url($sitekey, $t);
-    if($debug){
-      $stat[$t] = $rows;
-    }
-    else{
-      $options = array(
-        'method' => 'POST',
-        'data' => http_build_query(array('stat' => json_encode($rows)), '', '&'),
-        'headers' => array('Content-Type' => 'application/x-www-form-urlencoded'),
-      );
-      $response = drupal_http_request($url, $options);
-      if($response->code == 200 && $response->data){
-        $stat[$t] = $response->data;
-      }
-      sleep(mt_rand(1, 3));
-    }
-  }
-
-  if(!empty($stat) && !$debug){
-    variable_set('civicrm_statistics_run', $_SERVER['REQUEST_TIME'] + 300*mt_rand(2, 20));
-    variable_set('civicrm_statistics', $stat);
-  }
-  elseif($debug){
-    print_r($stat);
-  }
-}
-
-function civicrm_statistics_build_fetch_url($sitekey, $type, $year = NULL){
+function civicrm_statistics_build_fetch_url($sitekey, $type = 'annual', $year = NULL){
   $base = 'https://neticrm.tw/neticrm/statistics';
-  if ($type == 'annual') {
-    return $base."/fetch?sitekey={$sitekey}&type={$type}&year={$year}";
-  }
-  else {
-    return $base."/fetch?sitekey={$sitekey}&type={$type}";
-  }
+  return $base."/fetch?sitekey={$sitekey}&type={$type}&year={$year}";
 }
 
 
@@ -158,23 +35,6 @@ function civicrm_statistics_table($flip = FALSE){
   return $tables;
 }
 
-function civicrm_statistics_query($query){
-  $q = CRM_Core_DAO::executeQuery($query);
-  $result = array();
-  while($q->fetch()){
-    if(isset($q->summ)){
-      $result[$q->idx] = array(
-        'count' => $q->counting,
-        'sum' => $q->summ,
-        'avg' => $q->avgg,
-      );
-    }
-    else{
-      $result[$q->idx] = $q->counting;
-    }
-  }
-  return $result;
-}
 function civicrm_statistics_normalize(&$rows, $num){
   $null = reset($rows);
   if(is_array($null)){
