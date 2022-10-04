@@ -529,12 +529,12 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
  * For sync single contribution (Non-recurring).
  * 
  */
-function civicrm_spgateway_single_contribution_sync($trxn_id) {
+function civicrm_spgateway_single_contribution_sync($input_trxn_id) {
   $payment_processor_id = 0;
 
   // Check contribution is exists
   $contribution = new CRM_Contribute_DAO_Contribution();
-  $contribution->trxn_id = $trxn_id;
+  $contribution->trxn_id = $input_trxn_id;
   if ($contribution->find(TRUE)) {
     $payment_processor_id = $contribution->payment_processor_id;
     if ($contribution->contribution_status_id == 1) {
@@ -548,6 +548,13 @@ function civicrm_spgateway_single_contribution_sync($trxn_id) {
 
     if (strstr($payment_processor['payment_processor_type'], 'SPGATEWAY') && !empty($payment_processor['user_name'])) {
       $amount = $contribution->total_amount;
+      if ($contribution->contribution_recur_id && !strstr($input_trxn_id, '_')) {
+        $trxn_id = $input_trxn_id.'_1';
+        $recurring_first_contribution = TRUE;
+      }
+      else {
+        $trxn_id = $input_trxn_id;
+      }
       $request_data = array(
         'Amt' => floor($amount),
         'MerchantID' => $payment_processor['user_name'],
@@ -575,7 +582,20 @@ function civicrm_spgateway_single_contribution_sync($trxn_id) {
         $ipn_result->Message = $result->Result->RespondMsg;
         // Pass CheckCode.
         unset($ipn_result->Result->CheckCode);
-        $ipn_result = json_encode($ipn_result);
+        $ipn_post = (array) $ipn_result;
+
+        if ($contribution->contribution_recur_id) {
+          $ipn_result->Result->AuthAmt = $result->Result->Amt;
+          unset($ipn_result->Result->Amt);
+          $ipn_result->Result->OrderNo = $result->Result->MerchantOrderNo;
+          list($first_id, $period_times) = explode('_', $result->Result->MerchantOrderNo);
+          if(!empty($period_times) && $period_times != 1){
+            $ipn_result->Result->AlreadyTimes = $period_times;
+          }
+          $ipn_result->Result->MerchantOrderNo = $first_id;
+          $ipn_result = json_encode($ipn_result);
+          $ipn_post = array('Period' => _civicrm_spgateway_recur_encrypt($ipn_result, $payment_processor));
+        }
 
         // prepare get
         $ids = CRM_Contribute_BAO_Contribution::buildIds($contribution->id);
@@ -583,10 +603,19 @@ function civicrm_spgateway_single_contribution_sync($trxn_id) {
         parse_str($query, $ipn_get);
 
         // create recurring record
-        $result->_post = $ipn_result;
+        $result->_post = $ipn_post;
         $result->_get = $ipn_get;
         module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
         $result->_response = civicrm_spgateway_ipn('Credit', $result->_post, $result->_get, FALSE);
+
+        if ($recurring_first_contribution) {
+          $contribution = new CRM_Contribute_DAO_Contribution();
+          $contribution->trxn_id = $input_trxn_id;
+          if ($contribution->find(TRUE) && strstr($trxn_id, '_1')) {
+            // The case first contribution trxn_id not append '_1' in the end.
+            CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
+          }
+        }
         return $result;
       }
     }
