@@ -5,12 +5,7 @@ function civicrm_statistics_cron(){
   if (empty($member['status'])) {
     return;
   }
-  module_load_include('inc', 'civicrm_statistics', 'civicrm_statistics.stat');
-
-  $last = \Drupal::state()->get('civicrm_statistics.last_cron', 0);
-  if($_SERVER['REQUEST_TIME'] - $last > 80000 && empty($member['optout_crm_stat'])){
-    civicrm_statistics_fetch();
-  }
+  \Drupal::moduleHandler()->loadInclude('civicrm_statistics', 'inc', 'civicrm_statistics.stat');
 
   $year = (int) date('Y');
   // only fetch last year at January
