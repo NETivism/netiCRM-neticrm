@@ -153,7 +153,7 @@ function civicrm_demo_process_contribution($vars){
   }
 
   // query exists contact
-  $contrib_per_contact = 5; // limit every contact only have num of contribution.
+  $contrib_per_contact = !empty($vars['contrib_per_contact']) ? $vars['contrib_per_contact'] : 5; // limit every contact only have num of contribution.
   $contrib_limit = $vars['limit']; // total limit this batch
   $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
   $dao = CRM_Core_DAO::executeQuery($sql);
@@ -165,12 +165,15 @@ function civicrm_demo_process_contribution($vars){
   // start
   $count_contact = 0;
   $page_id_num = count($contribution_page_id);
-  $types = CRM_Contribute_PseudoConstant::contributionType();
-  $contribution_type_id = reset(array_keys($types));
+  $types = array_keys(CRM_Contribute_PseudoConstant::contributionType());
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  $contribution_type_id = reset($types);
+  $counter = 0;
   while($dao->fetch()){
     $count_contact++;
     $page_id = $contribution_page_id[$count_contact%$page_id_num];
     $contact_id = $dao->id;
+    $insert = array();
     for($i = 0; $i < $contrib_per_contact; $i++){
       $counter++;
       if($counter > $contrib_limit) break;
@@ -186,22 +189,35 @@ function civicrm_demo_process_contribution($vars){
       else{
         $day = sprintf('%02s', mt_rand(1,date('j')));
       }
+      $hour = sprintf('%02s', mt_rand(0,23));
+      $min = sprintf('%02s', mt_rand(0,59));
+      $trxn_id = 'd-'.mt_rand(100,999).'-'.mt_rand(100, 999).'-'.CRM_Utils_String::createRandom(8);
 
-      $params = array(
+      $insert[$i] = array(
         'contact_id'             => $contact_id,
-        'created_date'           => $year.$month.$day,
-        'receive_date'           => $year.$month.$day,
+        'created_date'           => $year.$month.$day.$hour.$min.'00',
+        'receive_date'           => $year.$month.$day.$hour.$min.'00',
         'total_amount'           => $a,
-        'payment_instrument_id'  => $payment_instrument_id,
-        'fee_amount'             => $fee,
+        'payment_instrument_id'  => array_rand($instruments),
+        'trxn_id' => $trxn_id,
         'contribution_status_id' => 1,
         'contribution_type_id' => $contribution_type_id,
         'contribution_page_id' => $page_id,
         'is_test' => $is_test,
-        'version' => 3,
       );
-
-      civicrm_api('Contribution', 'create', $params);
+    }
+    if (!empty($insert)) {
+      $fields = array_keys($insert[0]);
+      $sql = "INSERT INTO civicrm_contribution (".implode(',', $fields).") \nVALUES \n";
+      $values = array();
+      foreach($insert as $idx => $val) {
+        $values[$idx] = "('".implode("','", $val)."')";
+      }
+      $sql .= implode(",\n", $values);
+      CRM_Core_DAO::executeQuery($sql);
+      if (php_sapi_name() === 'cli') {
+        echo $counter."\n";
+      }
     }
   }
 }
