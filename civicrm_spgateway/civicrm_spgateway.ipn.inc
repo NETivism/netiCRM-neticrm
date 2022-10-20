@@ -244,7 +244,20 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         }
         else{
           $contribution->contribution_status_id = 1; // Completed
-          $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+          // Check if trxn_id is existed or not.
+          $id_from_trxn_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(
+            1 => array($trxn_id, 'String'),
+          ));
+          if (!$id_from_trxn_id) {
+            // Trxn_id is not existed, clone contribution.
+            $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+          }
+          else {
+            // Sync contribution from given trxn_id. Usually used as syncing a recurring contribution.
+            $c = new CRM_Contribute_DAO_Contribution();
+            $c->id = $id_from_trxn_id;
+            $c->find(TRUE);
+          }
         }
         if(!empty($c)){
           unset($objects['contribution']);
