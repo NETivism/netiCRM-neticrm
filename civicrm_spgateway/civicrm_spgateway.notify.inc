@@ -41,7 +41,7 @@ function civicrm_spgateway_notify_info($cid){
       $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
     case 'CVS':
-      $help = l('» '.ts('Payment Instructions'), 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
+      $help = l('» '.ts('Payment Instructions'), 'https://www.newebpay.com/website/Page/content/cvs_intro', array('attributes' => array('target' => '_blank')));
       $return[ts('Convenience Store Payment Code')] = $json['CodeNo'];
       $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       $return[] = $help;
