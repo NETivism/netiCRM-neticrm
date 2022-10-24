@@ -59,11 +59,15 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     else{
       $recur = TRUE;
-      if(!empty($ids['paymentProcessor'])){
-        $ppid = $ids['paymentProcessor'];
-      }else{
+      // Refs #35316, recur.proessor_id => contribution.payment_processor_id => $_GET['ppid']
+      $sql = 'SELECT processor_id FROM civicrm_contribution_recur WHERE id = %1';
+      $ppid = CRM_Core_DAO::singleValueQuery($sql, array(1 => array($ids['contributionRecur'], 'Integer')));
+      if (empty($ppid)) {
         $sql = 'SELECT payment_processor_id FROM civicrm_contribution WHERE id = %1';
         $ppid = CRM_Core_DAO::singleValueQuery($sql, array(1 => array($ids['contribution'], 'Integer')));
+      }
+      if (empty($ppid)) {
+        $ppid = $ids['paymentProcessor'];
       }
       $is_test = CRM_Core_DAO::singleValueQuery("SELECT is_test FROM civicrm_payment_processor WHERE id = $ppid");
       $payment_processors = CRM_Core_BAO_PaymentProcessor::getPayment($ppid, $is_test?'test':'live');
