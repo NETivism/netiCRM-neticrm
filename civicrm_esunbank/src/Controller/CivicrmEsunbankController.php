@@ -11,6 +11,10 @@ class CivicrmEsunbankController extends ControllerBase {
     \Drupal::moduleHandler()->loadInclude('civicrm_esunbank', 'inc', 'civicrm_esunbank.ipn');
     $return = civicrm_esunbank_ipn(NULL, TRUE);
 
+    // we needs this because drupal will handle shutdown instead
+    \CRM_Utils_System::civiBeforeShutdown();
+
+    // drupal output
     $response = new Response();
     $response->headers->set('Cache-Control', 'private');
     $response->headers->set('Content-Type', 'text/plain');
