@@ -6,15 +6,12 @@
 .section1, .section2{
   margin: 0 20px;
 }
-img {
-  vertical-align: top;
-  border: 0;
-}
 p {
   margin: 0.5em;
 }
 .bar {
-  margin: 5px 0 0 30px;
+  margin: 5px 30px 10px 30px;
+  display: inline-block;
 }
 .bar .code {
   font-size: 13px;

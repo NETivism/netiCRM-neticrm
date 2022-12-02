@@ -1,7 +1,7 @@
 <?php
 /**
  * Barcode39 - Code 39 Barcode Image Generator
- *
+ * 
  * @package Barcode39
  * @category Barcode39
  * @name Barcode39
@@ -158,8 +158,8 @@ final class EsunbankBarcode39 {
         }
 
         // add start and stop symbols
-        //array_unshift($this->_code, "*");
-        //array_push($this->_code, "*");
+        array_unshift($this->_code, "*");
+        array_push($this->_code, "*");
     }
 
     /**
@@ -267,7 +267,8 @@ final class EsunbankBarcode39 {
 
         // add bars to barcode
         for($i = 0; $i < count($bars); $i++) {
-            imagefilledrectangle($img, $bars[$i][0], $bars[$i][1], $bars[$i][2], $bars[$i][3], ${$bars[$i][4]});
+            $barcode4 = $bars[$i][4];
+            imagefilledrectangle($img, $bars[$i][0], $bars[$i][1], $bars[$i][2], $bars[$i][3], $$barcode4);
         }
 
         // check if using barcode text

@@ -129,9 +129,9 @@ function esunbank_api_barcode_image($serial) {
   \Drupal::moduleHandler()->loadInclude('esunbank', 'inc', 'barcode39');
   $bar = new EsunbankBarcode39($serial);
   $bar->barcode_text = false;
-  $bar->barcode_bar_thick = 3;
+  $bar->barcode_bar_thick = 4;
   $bar->barcode_bar_thin = 1;
-  $bar->barcode_height = 80;
+  $bar->barcode_height = 60;
   ob_start();
   $bar->draw();
   $image = ob_get_contents();

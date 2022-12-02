@@ -48,9 +48,9 @@
 <h2>第二聯  代理收款傳票</h2>
 <div class="payment-info payment-info-store">
   <h3>便利商店專用（上限2萬元）- 可至統一超商/全家/OK/萊爾富便利商店繳納</h3>
-  <div class="bar">{{ vars.barcode_store.a | raw }}<div class="code"><label class="b">條碼1：</label>*{{ vars.serial_store.a }}*</div></div>
-  <div class="bar">{{ vars.barcode_store.b | raw }}<div class="code"><label class="b">條碼2：</label>*{{ vars.serial_store.b }}*</div></div>
-  <div class="bar">{{ vars.barcode_store.c | raw }}<div class="code"><label class="b">條碼3：</label>*{{ vars.serial_store.c }}*</div></div>
+  <div class="bar bar-a">{{ vars.barcode_store.a | raw }}<div class="code"><label class="a">條碼1：</label>*{{ vars.serial_store.a }}*</div></div>
+  <div class="bar bar-b">{{ vars.barcode_store.b | raw }}<div class="code"><label class="b">條碼2：</label>*{{ vars.serial_store.b }}*</div></div>
+  <div class="bar bar-c">{{ vars.barcode_store.c | raw }}<div class="code"><label class="c">條碼3：</label>*{{ vars.serial_store.c }}*</div></div>
 </div>
 <div class="payment-info payment-info-atm">
 <h3>ATM轉帳 - 可用網路ATM或實體ATM繳納</h3>
@@ -84,9 +84,9 @@
 <div class="payment-info payment-info-post-office">
 <h3>郵局專用 - 可至各郵局櫃臺繳納</h3>
 {% if vars.postoffice_account_number %}<div class="postoffice-account">{{ vars.postoffice_account_number }}</div>{% endif %}
-<div class="bar">{{ vars.barcode_postoffice.a | raw }}<div class="code"><label class="b">郵政劃撥：</label>*{{ vars.serial_postoffice.a }}*</div></div>
-<div class="bar">{{ vars.barcode_postoffice.b | raw }}<div class="code"><label class="b">繳款帳號：</label>*{{ vars.serial_postoffice.b }}*</div></div>
-<div class="bar">{{ vars.barcode_postoffice.c | raw }}<div class="code"><label class="b">繳款金額：</label>*{{ vars.serial_postoffice.c }}*</div></div>
+<div class="bar bar-a">{{ vars.barcode_postoffice.a | raw }}<div class="code"><label class="b">郵政劃撥：</label>*{{ vars.serial_postoffice.a }}*</div></div>
+<div class="bar bar-b">{{ vars.barcode_postoffice.b | raw }}<div class="code"><label class="b">繳款帳號：</label>*{{ vars.serial_postoffice.b }}*</div></div>
+<div class="bar bar-c">{{ vars.barcode_postoffice.c | raw }}<div class="code"><label class="b">繳款金額：</label>*{{ vars.serial_postoffice.c }}*</div></div>
 </div>
 </div><!-- section2 -->
 <div class="footer">{{ vars.contact_info }}</div>
