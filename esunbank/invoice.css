@@ -75,13 +75,27 @@ h3{
 }
 
 
+.payment-info-atm {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.payment-info-atm > h3 {
+  flex: 1 1 auto;
+  order: 1;
+  width: 100%;
+}
 div.bank-right {
-  float: right;
+  flex: 0 0 35%;
+  order: 3
 }
 table.bank {
   border-collapse:collapse;
+  margin: 0;
+  flex: 0 0 63%;
+  max-width: calc(63% - 20px);
   margin-left: 20px;
-  width: 450px;
+  order: 2;
 }
 table.bank td {
   border: 1px solid #999;
