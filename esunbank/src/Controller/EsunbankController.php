@@ -22,7 +22,7 @@ class EsunbankController extends ControllerBase {
       'user' => $params[7],
       'item' => $params[8],
     );
-    $html = esunbank_api($vars);
+    $html = esunbank_api($vars, 'markup');
     return new Response($html);
   }
 

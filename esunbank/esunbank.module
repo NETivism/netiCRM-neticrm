@@ -15,7 +15,7 @@ function esunbank_theme($existing, $type, $theme, $path){
   ];
 }
 
-function esunbank_api(&$vars){
+function esunbank_api(&$vars, $return = 'markup'){
   $allowed_keys = [
     'code' => '',
     'number' => '',
@@ -42,7 +42,11 @@ function esunbank_api(&$vars){
     '#theme' => 'esunbank_invoice',
     '#vars' => $vars,
   ];
-  return \Drupal::service('renderer')->render($element);
+  $render_result = \Drupal::service('renderer')->renderPlain($element);
+  if ($return != 'markup') {
+    return (string) $render_result;
+  }
+  return $render_result;
 }
 
 function esunbank_api_link($vars){
