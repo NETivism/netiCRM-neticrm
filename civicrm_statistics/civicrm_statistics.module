@@ -1,5 +1,8 @@
 <?php
 function civicrm_statistics_cron(){
+  if (!empty(variable_get('maintenance_mode', ''))) {
+    return;
+  }
   module_load_include('inc', 'civicrm_statistics', 'civicrm_statistics.stat');
 
   // only collect who has membership profile, because we need to know if they opt-out
