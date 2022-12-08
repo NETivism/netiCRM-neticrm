@@ -106,6 +106,9 @@ function neticrm_drush_drush_command() {
 }
 
 function drush_neticrm_schedule_job($function = NULL){
+  if (!empty(variable_get('maintenance_mode', ''))) {
+    return;
+  }
   $jobs = variable_get('drush_neticrm_schedule', array());
 
   $jobs_default = _drush_neticrm_schedule_default();
@@ -171,6 +174,9 @@ function drush_neticrm_schedule_job($function = NULL){
 
 /* Deprecated */
 function drush_neticrm_civimail() {
+  if (!empty(variable_get('maintenance_mode', ''))) {
+    return;
+  }
   _neticrm_drush_init();
 
   $file = drupal_get_path('module', 'civicrm').'/../bin/cron/run_civimail.inc';
@@ -313,6 +319,9 @@ function drush_neticrm_member_reminder_date($membership_type_id = NULL) {
 }
 
 function drush_neticrm_batch_run() {
+  if (!empty(variable_get('maintenance_mode', ''))) {
+    return;
+  }
   civicrm_initialize();
   $msg = CRM_Batch_BAO_Batch::runQueue();
   if ($msg) {
@@ -324,6 +333,9 @@ function drush_neticrm_batch_run() {
 }
 
 function drush_neticrm_process_recurring() {
+  if (!empty(variable_get('maintenance_mode', ''))) {
+    return;
+  }
   civicrm_initialize();
   watchdog('drush_neticrm', 'Executing drush neticrm-process-recurring');
   $ppName = drush_get_option('payment-processor', NULL);
