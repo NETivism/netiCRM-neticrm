@@ -178,6 +178,9 @@ function civicrm_allpay_error(){
  * Implementation of hook_cron()
  */
 function civicrm_allpay_cron(){
+  if (!empty(variable_get('site_offline', ''))) {
+    return;
+  }
   // every morning, we check allpay payment result
   $last = variable_get('civicrm_allpay_recur_sync', 0);
   $now = time();

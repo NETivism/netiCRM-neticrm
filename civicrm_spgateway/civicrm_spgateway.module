@@ -288,6 +288,9 @@ function civicrm_spgateway_record($cid, $data = null){
 }
 
 function civicrm_spgateway_cron() {
+  if (!empty(variable_get('site_offline', ''))) {
+    return;
+  }
   $now = time();
 
   // every nights, we check recurring payment result 
