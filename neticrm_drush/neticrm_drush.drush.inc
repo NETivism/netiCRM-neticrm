@@ -92,6 +92,7 @@ function neticrm_drush_drush_command() {
 
 function drush_neticrm_schedule_job($function = NULL){
   if (!empty(variable_get('site_offline', ''))) {
+    drush_log("Site in maintenance mode, no job execute.", "warning");
     return;
   }
   $jobs = variable_get('drush_neticrm_schedule', array());
@@ -143,6 +144,7 @@ function drush_neticrm_schedule_job($function = NULL){
 /* Deprecated */
 function drush_neticrm_civimail() {
   if (!empty(variable_get('site_offline', ''))) {
+    drush_log("Site in maintenance mode, no job execute.", "warning");
     return;
   }
   _neticrm_drush_init();
@@ -257,6 +259,7 @@ function drush_neticrm_member_reminder_date($membership_type_id = NULL) {
 
 function drush_neticrm_batch_run() {
   if (!empty(variable_get('site_offline', ''))) {
+    drush_log("Site in maintenance mode, no job execute.", "warning");
     return;
   }
   civicrm_initialize();
@@ -271,6 +274,7 @@ function drush_neticrm_batch_run() {
 
 function drush_neticrm_process_recurring() {
   if (!empty(variable_get('site_offline', ''))) {
+    drush_log("Site in maintenance mode, no job execute.", "warning");
     return;
   }
   civicrm_initialize();
