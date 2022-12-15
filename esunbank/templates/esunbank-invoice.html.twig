@@ -6,12 +6,14 @@
   <link type="text/css" rel="stylesheet" media="all" href="{{ vars.css }}" />
   <link type="text/css" rel="stylesheet" media="print" href="{{ vars.css }}" />
   <style>
-    @media {
-      img {
-        border: 0;
+    /* wkhtmltopdf specific style here */
+    @media screen {
+      body {
+        margin:0;
+        zoom: .9;
       }
-      button.{
-        display: none;
+      img {
+        zoom: 1.2;
       }
     }
   </style>
