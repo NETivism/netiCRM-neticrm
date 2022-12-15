@@ -52,8 +52,7 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   // Generate invoice in web and pdf
   $tpl = array();
   $tpl['invoice_link'] = esunbank_api_link($p);
-  $tpl['invoice_html'] = esunbank_api($p);
-  $tpl['invoice_html'] = civicrm_esunbank_convert_css($tpl['invoice_html']);
+  $tpl['invoice_html'] = esunbank_api($p, 'html_inline_css');
   // prevent pdf error, #18170
   $tpl['invoice_html'] = str_replace('window.print();', '', $tpl['invoice_html']);
 

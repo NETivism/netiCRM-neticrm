@@ -15,7 +15,14 @@ function esunbank_theme($existing, $type, $theme, $path){
   ];
 }
 
-function esunbank_api(&$vars, $return = 'markup'){
+/**
+ * api to retrieve invoice
+ *
+ * @param array &$vars
+ * @param string $render_type available type: markup(default)|html|html_inline_css
+ * @return void
+ */
+function esunbank_api(&$vars, $render_type = 'markup'){
   $allowed_keys = [
     'code' => '',
     'number' => '',
@@ -43,8 +50,22 @@ function esunbank_api(&$vars, $return = 'markup'){
     '#vars' => $vars,
   ];
   $render_result = \Drupal::service('renderer')->renderPlain($element);
-  if ($return != 'markup') {
-    return (string) $render_result;
+  if ($render_type != 'markup') {
+    $html = (string) $render_result;
+    if ($render_type === 'html_inline_css') {
+      preg_match('/text\/css.*href="([^"].+\.css)"/i', $html, $matches);
+      $css = file_get_contents($matches[1]);
+      $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+
+      \Drupal::moduleHandler()->loadInclude('civicrm_esunbank', 'inc', 'css_to_inline_styles');
+      $inline = new CSSToInlineStyles($html, $css); //class?
+      $inline->setEncoding('UTF-8');
+      $html = $inline->convert();
+      return $html;
+    }
+    else {
+      return $html;
+    }
   }
   return $render_result;
 }

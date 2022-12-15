@@ -53,33 +53,35 @@
   <div class="bar bar-c">{{ vars.barcode_store.c | raw }}<div class="code"><label class="c">條碼3：</label>*{{ vars.serial_store.c }}*</div></div>
 </div>
 <div class="payment-info payment-info-atm">
-<h3>ATM轉帳 - 可用網路ATM或實體ATM繳納</h3>
-<div class="bank-right">
-  <p><label>繳款人：</label>{{ vars.user }}</p>
-  <p><label>繳款日：</label>中華民國&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</p>
-  <div class="stamp">收迄戳記</div>
-</div>
-<table class="bank" cellpadding="0" cellspacing="0">
-<tr>
-  <td class="col1">戶名</td>
-  <td class="col2">{{ vars.bank_account_name }}</td>
-</tr>
-<tr>
-  <td>銀行代碼</td>
-  <td>808</td>
-</tr>
-<tr>
-  <td>帳號</td>
-  <td>{{ vars.serial }}</td>
-</tr>
-<tr>
-  <td>繳款金額</td>
-  <td>{{ vars.price }}</td>
-</tr>
-<tr>
-  <td colspan="2"><div class="blank">認證欄</div></td>
-</tr>
-</table>
+  <h3>ATM轉帳 - 可用網路ATM或實體ATM繳納</h3>
+  <div class="flex-wrapper">
+    <table class="bank" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="col1">戶名</td>
+      <td class="col2">{{ vars.bank_account_name }}</td>
+    </tr>
+    <tr>
+      <td>銀行代碼</td>
+      <td>808</td>
+    </tr>
+    <tr>
+      <td>帳號</td>
+      <td>{{ vars.serial }}</td>
+    </tr>
+    <tr>
+      <td>繳款金額</td>
+      <td>{{ vars.price }}</td>
+    </tr>
+    <tr>
+      <td colspan="2"><div class="blank">認證欄</div></td>
+    </tr>
+    </table>
+    <div class="bank-right">
+      <p><label>繳款人：</label>{{ vars.user }}</p>
+      <p><label>繳款日：</label>中華民國&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</p>
+      <div class="stamp">收迄戳記</div>
+    </div>
+  </div>
 </div>
 <div class="payment-info payment-info-post-office">
 <h3>郵局專用 - 可至各郵局櫃臺繳納</h3>
