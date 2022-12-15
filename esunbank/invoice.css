@@ -76,10 +76,6 @@ h3{
 
 
 .payment-info-atm .flex-wrapper{
-  /* for wkhtmltopdf */
-  display: -webkit-box;
-  -webkit-box-pack: space-between;
-
   display: flex;
   justify-content: space-between;
   flex-wrap: nowrap;
@@ -89,6 +85,9 @@ h3{
 }
 div.bank-right {
   flex: 0 0 35%;
+  order: 2;
+
+  /* for wkhtmltopdf */
   float: right;
 }
 table.bank {
@@ -98,6 +97,7 @@ table.bank {
   margin-right: 10px;
   flex: 0 0 63%;
   max-width: calc(63% - 20px);
+  order: 1;
 
   /* for wkhtmltopdf */
   width: 50%;

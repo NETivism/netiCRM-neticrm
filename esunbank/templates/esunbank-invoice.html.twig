@@ -57,6 +57,11 @@
 <div class="payment-info payment-info-atm">
   <h3>ATM轉帳 - 可用網路ATM或實體ATM繳納</h3>
   <div class="flex-wrapper">
+    <div class="bank-right">
+      <p><label>繳款人：</label>{{ vars.user }}</p>
+      <p><label>繳款日：</label>中華民國&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</p>
+      <div class="stamp">收迄戳記</div>
+    </div>
     <table class="bank" cellpadding="0" cellspacing="0">
     <tr>
       <td class="col1">戶名</td>
@@ -78,11 +83,6 @@
       <td colspan="2"><div class="blank">認證欄</div></td>
     </tr>
     </table>
-    <div class="bank-right">
-      <p><label>繳款人：</label>{{ vars.user }}</p>
-      <p><label>繳款日：</label>中華民國&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;月&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</p>
-      <div class="stamp">收迄戳記</div>
-    </div>
   </div>
 </div>
 <div class="payment-info payment-info-post-office">
