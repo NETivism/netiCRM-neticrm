@@ -89,6 +89,7 @@ h3{
 }
 div.bank-right {
   flex: 0 0 35%;
+  float: right;
 }
 table.bank {
   border-collapse:collapse;
