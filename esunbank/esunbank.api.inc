@@ -307,13 +307,7 @@ function _esunbank_year2roc($timestamp){
  * 條碼產生
  */
 function esunbank_barcode($serial){
-  if(module_exists('civicrm')){
-    civicrm_initialize();
-    require_once('barcode/barcode39.inc');
-  }
-  else{
-    module_load_include('inc', 'esunbank', 'barcode39');
-  }
+  module_load_include('inc', 'esunbank', 'barcode39');
 
   $bar = new Barcode39($serial);
   $bar->barcode_text = false;
