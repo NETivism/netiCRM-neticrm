@@ -161,3 +161,10 @@ function neticrm_update_update_9308() {
 function neticrm_update_update_9309() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #34844, add index for url search
+ */
+function neticrm_update_update_9310() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
