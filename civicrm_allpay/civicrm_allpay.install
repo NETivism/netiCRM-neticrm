@@ -3,7 +3,7 @@
 /**
  * Refs #30837, convert drupal table to crm table. We need to add id for crm compatibility
  */
-function civicrm_allpay_update_8000() {
+function civicrm_allpay_update_9000() {
   civicrm_initialize();
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution_allpay' AND column_name = 'id'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
