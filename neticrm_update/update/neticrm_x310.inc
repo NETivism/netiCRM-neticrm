@@ -10,7 +10,7 @@ function _neticrm_update_update_x310() {
 
   $dao->fetch();
   if ($dao->N <= 0) {
-    $sql = "ALTER TABLE `civicrm_mailing_trackable_url` ADD INDEX `index_trackable_url` (`id`)";
+    $sql = "ALTER TABLE `civicrm_mailing_trackable_url` ADD INDEX `index_trackable_url` (`url`)";
     CRM_Core_DAO::executeQuery($sql);
     return 'Index index_trackable_url created.';
   }
