@@ -172,7 +172,7 @@ function template_preprocess_esunbank_invoice(&$variables){
   ];
 
   $variables['vars']['site_name'] =  \Drupal::config('system.site')->get('name');
-  $variables['vars']['logo'] = theme_get_setting('logo');
+  $variables['vars']['logo'] = '';
   $esunbank_path = \Drupal::service('extension.list.module')->getPath('esunbank');
   $variables['vars']['css'] = $base_url.base_path().$esunbank_path.'/invoice.css';
   $variables['vars']['path'] = $base_url.base_path().$esunbank_path.'/';
