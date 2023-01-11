@@ -241,5 +241,14 @@ function civicrm_field_i18n_t($text){
 
 function civicrm_field_i18n_test($text){
   // prevent translate chinese.
-  return preg_replace('/[^a-zA-Z0-9\/_,\'|+ .-?!<>\n\t\s()&-]+/', '', $text);
+  $txt = preg_replace('/[^a-zA-Z0-9\/_,\'|+ .-?!<>\n\t\s()&-]+/', '', $text);
+
+  if ($txt === $text) {
+    // prevent translate date and phone
+    $txt = preg_replace('/[0-9\-]+/', '', $text);
+    if (!empty($txt)) {
+      return $text;
+    }
+  }
+  return FALSE;
 }
