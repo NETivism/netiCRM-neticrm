@@ -6,61 +6,13 @@
 function civicrm_annual_receipt_install() {
   // see if exists group
   civicrm_initialize();
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
-  if(empty($id)){
-    return FALSE;
-  }
 
-  $group_params = array(
-    'id' => $id,
-  );
-  $option_params = array(
-    'label' => '紙本收據 - 年度收據',
-    'name' => 'receipt_letter_annual',
-    'is_active' => TRUE,
-  );
-  if(variable_get('civicrm_annual_receipt_option_id', 0)){
-    $option_id = variable_get('civicrm_annual_receipt_option_id', 0);
-    $action = CRM_Core_Action::UPDATE;
-  }
-  else{
-    $option_id = NULL;
-    $action = CRM_Core_Action::ADD;
-  }
-  $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
-  variable_set('civicrm_annual_receipt_option_id', $option->id);
+  // add pdf receipt for both email and printing
+  _civicrm_annual_receipt_add_update_pdf_print_tpl();
+  _civicrm_annual_receipt_add_update_pdf_mail_tpl();
 
-  $html = _civicrm_annual_receipt_tpl();
-  $params = array(
-    'msg_title' => '紙本收據 - 年度整合收據',
-    'msg_subject' => '收據',
-    'msg_text' => '目前僅提供HTML版本收據',
-    'msg_html' => $html,
-    'is_active' => TRUE,
-    'workflow_id' => $option->id,
-    'is_default' => 1,
-    'is_reserved' => 0,
-  );
-  if(variable_get('civicrm_annual_receipt_default_tpl_id', 0)){
-    $params['id'] = variable_get('civicrm_annual_receipt_default_tpl_id', 0);
-  }
-  // add default template
-  $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-  variable_set('civicrm_annual_receipt_default_tpl_id', $default_tpl->id);
-
-  // add reserved template only when first time install. re-install will not change customize template
-  if(!variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
-    $params['is_default'] = 0;
-    $params['is_reserved'] = 1;
-    if(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
-      $params['id'] = variable_get('civicrm_annual_receipt_reserved_tpl_id', 0);
-    }
-    $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-    variable_set('civicrm_annual_receipt_reserved_tpl_id', $reserved_tpl->id);
-  }
-
-  // Refs #34226, Add email annual receipt msg tpl
-  _civicrm_annual_receipt_add_email_msg_tpl();
+  // add email content msg tpl
+  _civicrm_annual_receipt_add_update_email_tpl();
 
   // add custom search
   $custom_search = array();
@@ -135,9 +87,6 @@ function civicrm_annual_receipt_uninstall(){
   if(variable_get('civicrm_annual_receipt_custom_search_id', 0)){
     CRM_Core_BAO_OptionValue::setIsActive(variable_get('civicrm_annual_receipt_custom_search_id', 0), 0);
   }
-
-  // We don't need to delete variable. For next time we enable module, we need id to check.
-  //variable_del('civicrm_annual_receipt_option_id');
 }
 
 /**
@@ -145,7 +94,8 @@ function civicrm_annual_receipt_uninstall(){
  */
 function civicrm_annual_receipt_update_7202(){
   civicrm_initialize();
-  $html = _civicrm_annual_receipt_tpl();
+  $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
+  $html = file_get_contents($path.'/receipt_letter_annual_html.zh_TW.tpl');
   $default_id = variable_get('civicrm_annual_receipt_default_tpl_id', 0);
   $reserved_id = variable_get('civicrm_annual_receipt_reserved_tpl_id', 0);
   $dao = CRM_Core_DAO::executeQuery("
@@ -186,182 +136,118 @@ function civicrm_annual_receipt_update_7202(){
  * Add email receipt message template, #34226
  */
 function civicrm_annual_receipt_update_7203(){
-  $result = _civicrm_annual_receipt_add_email_msg_tpl();
-  CRM_Core_Error::debug("civicrm_annual_receipt_update_7203", $result);
-  if (empty($result)) {
-    return '[error] coudn\'t find option_group id.';
+  $result = _civicrm_annual_receipt_add_update_pdf_mail_tpl();
+  if ($result) {
+    $result = _civicrm_annual_receipt_add_update_email_tpl();
+    if ($result) {
+      return 'Successful added annual pdf mail and email template';
+    }
+    else {
+      throw new DrupalUpdateException("pdf mail updated, but email template not updated");
+    }
+  }
+  else {
+    throw new DrupalUpdateException("pdf mail and email template not updated");
   }
 }
 
-/**
- * The function add email receipt message template, Refs #34226
- */
-function _civicrm_annual_receipt_add_email_msg_tpl() {
-  civicrm_initialize();
-  $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
-  if(empty($id)){
+function _civicrm_annual_receipt_add_update_pdf_print_tpl() {
+  $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
+  if(empty($option_group_id)){
     return FALSE;
   }
 
+  $group_name = 'msg_tpl_workflow_receipt';
+  $group_values = CRM_Core_OptionGroup::values($group_name, FALSE, FALSE, FALSE, NULL, 'name', FALSE, FALSE, 'id');
+  $tpl_path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
   $group_params = array(
-    'id' => $id,
+    'id' => $option_group_id,
   );
   $option_params = array(
-    'label' => '電子郵件收據 - 年度收據',
-    'name' => 'email_receipt_letter_annual',
+    'label' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
+    'name' => 'receipt_letter_annual',
     'is_active' => TRUE,
   );
-  if (variable_get('civicrm_annual_receipt_email_option_id', 0)) {
-    $option_id = variable_get('civicrm_annual_receipt_email_option_id', 0);
+
+  $option_id = array_search('receipt_letter_annual', $group_values);
+  if(!empty($option_id)){
     $action = CRM_Core_Action::UPDATE;
-    $option_msg = 'Option existed, UPdate the option.';
   }
-  else {
+  else{
     $option_id = NULL;
     $action = CRM_Core_Action::ADD;
   }
   $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
-  variable_set('civicrm_annual_receipt_email_option_id', $option->id);
+  variable_set('civicrm_annual_receipt_option_id', $option->id);
 
-  $path = drupal_get_path('module', 'civicrm_annual_receipt').'/email_annual_receipt.tpl';
-  $html = file_get_contents($path);
+  // check if default being customized
+  // query borrow FROM CRM_Admin_Page_MessageTemplates
+  $diverted_query = '
+SELECT diverted.id
+FROM civicrm_msg_template diverted JOIN civicrm_msg_template orig ON (
+  diverted.workflow_id = orig.workflow_id AND
+  orig.is_reserved = 1                    AND (
+    diverted.msg_subject != orig.msg_subject OR
+    diverted.msg_text    != orig.msg_text    OR
+    diverted.msg_html    != orig.msg_html
+  )
+)
+WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig.workflow_id = %1
+  ';
+  $diverted = CRM_Core_DAO::singleValueQuery($diverted_query, array(
+    1 => array($option->id, 'Integer'),
+  ));
+
+  $html = file_get_contents($tpl_path.'/receipt_letter_annual_html.zh_TW.tpl');
   $params = array(
-    'msg_title' => '電子郵件收據 - 年度收據',
-    'msg_subject' => '收據',
+    'msg_title' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
+    'msg_subject' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
     'msg_text' => '目前僅提供HTML版本收據',
     'msg_html' => $html,
     'is_active' => TRUE,
     'workflow_id' => $option->id,
-    'is_default' => 1,
-    'is_reserved' => 0,
+    'is_default' => 0,
+    'is_reserved' => 1,
   );
-  if (variable_get('civicrm_annual_receipt_email_default_tpl_id', 0)) {
-    $params['id'] = variable_get('civicrm_annual_receipt_email_default_tpl_id', 0);
-    $default_msg = 'email_default_tpl_id is already existed.';
-  }
-  // add default template
-  $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-  variable_set('civicrm_annual_receipt_email_default_tpl_id', $default_tpl->id);
 
-  // add reserved template only when first time install. re-install will not change customize template
-  if(!variable_get('civicrm_annual_receipt_email_reserved_tpl_id', 0)){
-    $params['is_default'] = 0;
-    $params['is_reserved'] = 1;
-    if(variable_get('civicrm_annual_receipt_email_reserved_tpl_id', 0)){
-      $params['id'] = variable_get('civicrm_annual_receipt_email_reserved_tpl_id', 0);
-      $reserved_msg = 'email_reserved_tpl_id is already existed.';
-    }
-    else {
-      unset($params['id']);
-    }
-    $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
-    variable_set('civicrm_annual_receipt_email_reserved_tpl_id', $reserved_tpl->id);
-  }
-  // Prepare return msg.
-  $returnArray = array(
-    'option_id' => $option->id,
-    'default_tpl_id' => $default_tpl->id,
-  );
-  if (!empty($reserved_tpl)) {
-    $returnArray['reserved_tpl_id'] = $reserved_tpl->id;
-  }
-  if (!empty($option_msg)) {
-    $returnArray['option_msg'] = $option_msg;
-  }
-  if (!empty($default_msg)) {
-    $returnArray['default_msg'] = $default_msg;
-  }
-  if (!empty($reserved_msg)) {
-    $returnArray['reserved_msg'] = $reserved_msg;
+  $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", array(
+    1 => array($option->id, 'Integer'),
+  ));
+  if($reserved_id){
+    $params['id'] = $reserved_id;
   }
 
-  return $returnArray;
+  // add or update reserved template
+  $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
+  variable_set('civicrm_annual_receipt_reserved_tpl_id', $reserved_tpl->id);
+
+  if(!$diverted){
+    $params['is_default'] = 1;
+    $params['is_reserved'] = 0;
+    $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", array(
+      1 => array($option->id, 'Integer'),
+    ));
+    if($default_id){
+      $params['id'] = $default_id;
+    }
+    $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
+    variable_set('civicrm_annual_receipt_default_tpl_id', $default_tpl->id);
+  }
+
 }
 
-function _civicrm_annual_receipt_tpl() {
-  return '{foreach from=$contact_info key=contact_name item=info name=annual}
 
-<div class="wrapper">
-<div class="single-page-header">
-  <div class="info">
-    <div class="address">{$address}</div>
-    <div><span class="web-name">{$info.addressee}收</span></div>
-  </div>
-</div>
+function _civicrm_annual_receipt_add_update_pdf_mail_tpl() {
+  // we don't need to setting variable anymore, use demo utils to handling update instead
+  module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW');
+}
 
-<div class="receipt">
-  <div class="receipt-head">
-    <div class="logo"><img src="{$logo}" height="30" /></div>
-    <div class="title">收據</div>
-  </div>
-  <div class="receipt-body">
-    <table>
-      <tr>
-        <td class="col-1 align-right">姓名/抬頭</td>
-        <td class="col-2">{$info.sort_name}</td>
-      </tr>
-      <tr>
-        <td class="col-1 align-right">身份證字號/統一編號</td>
-        <td class="col-2">{$info.serial_id}</td>
-      </tr>
-    </table>
-  </div>
-  <div class="receipt-signature">
-    <table>
-      <tr>
-        <td>
-          <table>
-            <tr>
-              <td class="label">組織簽章</td>
-              <td class="value stamp-wrapper"><img class="big-stamp stamp-img" src="{$imageBigStampUrl}"/></td>
-            </tr>
-          </table>
-        </td>
-        <td>
-          <table>
-            <tr>
-              <td class="label">經辦人</td>
-              <td class="value stamp-wrapper"><img class="small-stamp stamp-img" src="{$imageSmallStampUrl}"/></td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-  </div>
-  <div class="receipt-record">
-    <table>
-      <tr>
-        {foreach from=$recordHeader item=th}
-          <th>{$th}</th>
-        {/foreach}
-      </tr>
-      {foreach from=$record.$contact_name item=row}
-      <tr>
-         <td class="align-right">{$row.receipt_id}</td>
-         <td>{$row.contribution_type}</td>
-         <td>{$row.instrument}</td>
-         <td>{$row.receipt_date}</td>
-         <td class="align-right">{$row.total_amount}</td>
-      </tr>
-      {/foreach}
-    </table>
-    <div class="annual-total align-right">總金額： {$info.total}</div>
-  </div>
-  <div class="receipt-footer">
-    <table>
-      <tr>
-        <td class="col-1">組織資訊</td>
-        <td class="col-2">{$receiptOrgInfo}</td>
-        <td class="col-3">備註說明</td>
-        <td class="col-4">{$receiptDescription}</td>
-      </tr>
-    </table>
-  </div>
-</div>
-
-</div><!-- wrapper -->
-{if $contact_info|@count gt $smarty.foreach.annual.index + 1 }<div style="page-break-after: always;"></div>{/if}
-
-{/foreach}
-';
+function _civicrm_annual_receipt_add_update_email_tpl() {
+  module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
+  $params = array(
+    'option_label' => '電子郵件收據 - 年度整合收據信件內容',
+    'msg_title' => '電子郵件收據 - 年度整合收據信件內容',
+  );
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_content_annual', 'zh_TW', $params);
 }
