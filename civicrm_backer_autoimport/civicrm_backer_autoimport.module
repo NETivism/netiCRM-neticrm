@@ -12,3 +12,16 @@ function civicrm_backer_autoimport_menu() {
   );
   return $items;
 }
+
+function civicrm_backer_autoimport_civicrm_alterTemplateVars($resource, &$vars) {
+  if (preg_match('/^string:/', $resource)) {
+    if (strstr($resource, 'msg_tpl_workflow_contribution-contribution_online_receipt-html') ||
+    strstr($resource, 'msg_tpl_workflow_contribution-contribution_offline_receipt-html') ) {
+      if (!empty($vars['amount_level']) && strstr($vars['amount_level'], CRM_Core_BAO_CustomOption::VALUE_SEPERATOR)) {
+        $amount_level = trim($vars['amount_level'], CRM_Core_BAO_CustomOption::VALUE_SEPERATOR);
+        list($amount_level) = explode(CRM_Core_BAO_CustomOption::VALUE_SEPERATOR, $amount_level);
+        $vars['amount_level'] = $amount_level;
+      }
+    }
+  }
+}

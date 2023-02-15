@@ -47,7 +47,7 @@ function civicrm_spgateway_notify_info($cid){
       $return[] = $help;
       break;
     case 'BARCODE':
-      $barcodepath = 'https://core.spgateway.com/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcodepath = SPGATEWAY_REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
       $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';

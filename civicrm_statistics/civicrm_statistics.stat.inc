@@ -146,8 +146,15 @@ function civicrm_statistics_annual_data($base_year, $run_only = array()) {
           }
           if (!empty($num)) {
             foreach($num['delivered'] as $level => $val) {
-              $num['opened_rate'][$level] = $num['opened'][$level] / $num['delivered'][$level];
-              $num['clicked_rate'][$level] = $num['url_opened'][$level] / $num['delivered'][$level];
+              $val = !empty($val) ? $val : 0;
+              $num['opened_rate'][$level] = ($val > 0 && $num['opened'][$level] > 0) ? $num['opened'][$level] / $val : 0.0;
+              $num['clicked_rate'][$level] = ($val > 0 && $num['url_opened'][$level] > 0) ? $num['url_opened'][$level] / $val : 0.0;
+              if (is_nan($num['opened_rate'][$level]) || is_infinite($num['opened_rate'][$level])) {
+                $num['opened_rate'][$level] = 0.0;
+              }
+              if (is_nan($num['clicked_rate'][$level]) || is_infinite($num['clicked_rate'][$level])) {
+                $num['clicked_rate'][$level] = 0.0;
+              }
             }
             foreach($num as $type => $level) {
               $result['mailing_'.$type.'_'.$y] = $level;
