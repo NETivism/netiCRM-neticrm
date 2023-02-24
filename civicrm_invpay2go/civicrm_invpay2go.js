@@ -61,7 +61,7 @@ $(document).ready(function(){
         case '0':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
           $('input[data-invpay2go=taxReceiptDeviceNumber]').prop('placeholder', '/1234567');
-          $desc.html('總長度為8碼字元，第一碼必為『/』，在此<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請條碼</a>');
+          $desc.html('總長度為8碼字元，第一碼必為『/』，在此<a href="https://www.einvoice.nat.gov.tw/APCONSUMER/BTC501W/" target="_blank">申請條碼</a>');
           break;
         case '1':
           showEle($('input[data-invpay2go=taxReceiptDeviceNumber]'));
@@ -128,7 +128,7 @@ $(document).ready(function(){
     if ($('input[data-invpay2go=taxReceiptType]').length) {
       triggerReceiptType();
       clearInterval(checkExist);
-      $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+      $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APCONSUMER/BTC501W/" target="_blank">申請</a>)</span>');
       $('input[data-invpay2go=taxReceiptDeviceNumber]').blur(function(){
         $(this).val($(this).val().toUpperCase());
         if ($('input[data-invpay2go=taxReceiptDeviceType]:checked').val() == "0") {
@@ -150,7 +150,7 @@ $(document).ready(function(){
     $(document).ajaxComplete(function(event, xhr, settings) {
       if ( settings.url.indexOf('type=Contribution&subType=')) {
         triggerReceiptType();
-        $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APMEMBERVAN/GeneralCarrier/generalCarrier" target="_blank">申請</a>)</span>');
+        $('input[data-invpay2go=taxReceiptDeviceNumber]').closest('.crm-form-elem').find('.elem-label').append(' <span>(<a href="https://www.einvoice.nat.gov.tw/APCONSUMER/BTC501W/" target="_blank">申請</a>)</span>');
       }
     });
   }
