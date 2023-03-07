@@ -213,7 +213,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
         // refs #29628, we can't really detect default instrument_id
         // change back to 1 for further postprocess handling
-        $form->addElement('hidden', 'civicrm_instrument_id', 1);
+        if (!empty($form->_paymentProcessors)) {
+          $default_instrument_id = array();
+          foreach($form->_paymentProcessors as $processor) {
+            $radios = _civicrm_instrument_radios($processor['payment_processor_type'], $all_instruments, $active_instruments);
+            $default_instrument_id[] = key($radios);
+          }
+          sort($default_instrument_id);
+          $form->addElement('hidden', 'civicrm_instrument_id', reset($default_instrument_id));
+        }
       }
       break;
     case 'CRM_Admin_Form_PaymentProcessor':
