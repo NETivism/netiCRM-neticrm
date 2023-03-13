@@ -798,29 +798,15 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_recur_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_RECUR;
   }
 
-  if($class_name == 'Payment_Neweb'){
-    $default['user_name'] = '758200';
-    $default['password'] = '456608';
-    $default['signature'] = 'abcd1234';
-    $default['subject'] = 'abcd1234';
-    $default['url_site_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_api_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
-    $default['url_recur_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_site_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_api_test_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
-    $default['url_recur_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['ftp_host'] = '127.0.0.1';
-    $default['ftp_user'] = 'user';
-    $default['ftp_password'] = 'abcd1234';
-  }
-
+  /*
   if($class_name == 'Payment_SPGATEWAY'){
-    module_load_include('install', 'civicrm_spgateway', 'civicrm_spgateway');
+    \Drupal::moduleHandler()->loadInclude('civicrm_spgateway', 'install', 'civicrm_spgateway');
     $default['user_name'] = 'MS3240578';
     $default['password'] = 'DLJ2NeCY3FY54ahvmZGHVW7POQIcz48c';
     $default['signature'] = 'QReE6RCaxBgCLx78';
     $default['subject'] = '';
   }
+  */
   return $default;
 }
 
