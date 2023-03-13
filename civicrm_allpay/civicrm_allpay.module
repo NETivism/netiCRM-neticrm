@@ -86,7 +86,8 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
           $params['trxn_id'] = $saved_params['trxn_id'];
 
           // build notify billing info
-          module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+          \Drupal::moduleHandler()->loadInclude('civicrm_allpay', "inc", 'civicrm_allpay.notify');
+
           $info = civicrm_allpay_notify_bytrxn($params['trxn_id']);
           if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
             $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
@@ -145,7 +146,7 @@ function civicrm_allpay_civicrm_prepareInvoice($contribution_id, &$tplParams){
     WHERE c.id = $contribution_id";
   $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
   if(preg_match('/ALLPAY/', $payment_process_type)){
-    module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.notify');
+    \Drupal::moduleHandler()->loadInclude('civicrm_allpay', "inc", 'civicrm_allpay.notify');
     $tplParams = civicrm_allpay_notify_generate($contribution_id, FALSE);
   }
 }

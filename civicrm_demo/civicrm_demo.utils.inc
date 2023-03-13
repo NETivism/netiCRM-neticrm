@@ -785,7 +785,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
 function _civicrm_demo_processor_default($class_name){
   $default = array();
   if($class_name == 'Payment_ALLPAY'){
-    module_load_include('install', 'civicrm_allpay', 'civicrm_allpay');
+    \Drupal::moduleHandler()->loadInclude('civicrm_allpay', 'install', 'civicrm_allpay');
     $default['user_name'] = '2000132';
     $default['password'] = '5294y06JbISpM5x9';
     $default['signature'] = 'v77hoKGq4kWxNNIS';

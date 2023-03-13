@@ -34,7 +34,7 @@ function neticrm_update_load_include($func){
     $n = substr($func, strrpos($func, '_')+1);
     if(is_numeric($n)){
       civicrm_initialize();
-      module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
+      \Drupal::moduleHandler()->loadInclude('neticrm_update', 'inc', 'neticrm_update.lib');
       $path = dirname(__FILE__).'/update/';
 
       $neticrm_update = $path . 'neticrm_x'.substr($n, 1).'.inc'; # eg. neticrm_x300.inc

@@ -4,7 +4,7 @@
  * Implementation of hook_install()
  */
 function civicrm_demo_install() {
-  module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
+  \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
   include_once __DIR__."/civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
   civicrm_initialize();
