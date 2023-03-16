@@ -5,8 +5,7 @@ function civicrm_backer_autoimport_install() {
   
   $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor_type WHERE class_name LIKE 'Payment_Backer'");
   if (!$exists){
-    $nameLabel = ts('Contribution Page');
-    $sql = "INSERT INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur ) VALUES ('BACKER', '".ts("Backer Founder")."', NULL, 1, 0, {$nameLabel}, 'Secret Key', NULL, NULL, 'Payment_Backer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 7, 0)";
+    $sql = "INSERT INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur ) VALUES ('BACKER', '".ts("Backer Founder")."', NULL, 1, 0, '".ts('Contribution Page')."', 'Secret Key', NULL, NULL, 'Payment_Backer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 7, 0)";
     CRM_Core_DAO::executeQuery($sql);
   }
 
