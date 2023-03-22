@@ -84,5 +84,16 @@ function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
         'result' => TRUE,
       );
     }
+    if (CRM_Core_Permission::access('CiviContribute') && variable_get('civicrm_annual_receipt_email', 0)) {
+      $tasks[] = array(
+        'title' => ts('Send Annual Receipt Email'),
+        'class' => array(
+          'CRM_Contact_Form_Task_AnnualReceiptEmail_SearchOption',
+          'CRM_Contact_Form_Task_AnnualReceiptEmail_MailingOption',
+          'CRM_Contact_Form_Task_AnnualReceiptEmail_Finish',
+        ),
+        'result' => FALSE,
+      );
+    }
   }
 }
