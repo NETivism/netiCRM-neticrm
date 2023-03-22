@@ -84,7 +84,7 @@ function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
         'result' => TRUE,
       );
     }
-    if (CRM_Core_Permission::access('CiviContribute')) {
+    if (CRM_Core_Permission::access('CiviContribute') && variable_get('civicrm_annual_receipt_email', 0)) {
       $tasks[] = array(
         'title' => ts('Send Annual Receipt Email'),
         'class' => array(
