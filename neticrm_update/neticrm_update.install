@@ -841,3 +841,10 @@ function neticrm_update_update_6308() {
 function neticrm_update_update_6309() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #34844, add index for url search
+ */
+function neticrm_update_update_6310() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
