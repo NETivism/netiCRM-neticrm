@@ -103,7 +103,7 @@ function civicrm_demo_process_event($vars){
     $event_id = $result['id'];
     // refs #36118, Add new profiles form to registration.
     $profile_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_uf_group WHERE name = 'participants_information_proflie'");
-    if (!empty($profile_id)) {
+    if (!empty($profile_id) && !variable_get('civicrm_demo_sample_data_ci', 0)) {
       CRM_Core_DAO::executeQuery("INSERT INTO civicrm_uf_join (is_active, module, entity_table, entity_id, weight, uf_group_id) VALUES ('1', 'CiviEvent', 'civicrm_event', %1, '1', %2)", array(
         1 => array($event_id, 'String'),
         2 => array($profile_id, 'String'),
