@@ -181,6 +181,25 @@ function civicrm_annual_receipt_update_6102(){
   return array('success' => FALSE, 'query' => 'Successful update annual receipt.');
 }
 
+/**
+ * Add email receipt message template, #34226
+ */
+function civicrm_annual_receipt_update_6103(){
+  $result = _civicrm_annual_receipt_add_update_pdf_mail_tpl();
+  if ($result) {
+    $result = _civicrm_annual_receipt_add_update_email_tpl();
+    if ($result) {
+      return array('success' => TRUE, 'query' => 'Successful update annual receipt email.');
+    }
+    else {
+      return array('success' => FALSE, 'query' => 'Failed at update annual receipt email. No update procceed');
+    }
+  }
+  else {
+    return array('success' => FALSE, 'query' => 'Failed at update annual receipt email. No update procceed');
+  }
+}
+
 function _civicrm_annual_receipt_tpl() {
   return '{foreach from=$contact_info key=contact_name item=info name=annual}
 
@@ -267,4 +286,19 @@ function _civicrm_annual_receipt_tpl() {
 
 {/foreach}
 ';
+}
+
+function _civicrm_annual_receipt_add_update_email_tpl() {
+  module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
+  $params = array(
+    'option_label' => '電子郵件收據 - 年度整合收據信件內容',
+    'msg_title' => '電子郵件收據 - 年度整合收據信件內容',
+  );
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_content_annual', 'zh_TW', $params);
+}
+
+function _civicrm_annual_receipt_add_update_pdf_mail_tpl() {
+  // we don't need to setting variable anymore, use demo utils to handling update instead
+  module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW');
 }
