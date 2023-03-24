@@ -83,6 +83,20 @@ function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
         'class' => 'CRM_Contact_Form_Task_AnnualReceipt',
         'result' => TRUE,
       );
+      // refs #34226, only enable this function when tracking email open enabled
+      $config = CRM_Core_Config::singleton();
+      $hasEmailReceiptOption = CRM_Core_OptionGroup::getValue('activity_type', 'Email Receipt', 'name');
+      if ($config->enableTransactionalEmail && $hasEmailReceiptOption) {
+        $tasks[] = array(
+          'title' => ts('Send Annual Receipt Email'),
+          'class' => array(
+            'CRM_Contact_Form_Task_AnnualReceiptEmail_SearchOption',
+            'CRM_Contact_Form_Task_AnnualReceiptEmail_MailingOption',
+            'CRM_Contact_Form_Task_AnnualReceiptEmail_Finish',
+          ),
+          'result' => FALSE,
+        );
+      }
     }
   }
 }

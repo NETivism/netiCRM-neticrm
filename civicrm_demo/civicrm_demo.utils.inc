@@ -964,3 +964,137 @@ function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
   );
   civicrm_api('uf_join', 'create', $params);
 }
+
+/**
+ * Update message template via workflow
+ *
+ * @param string $group_name workflow group name
+ * @param string $value_name
+ *   Workflow value name. Will using this name to lookup template in civicrm/xml/templates/$value_name.tpl
+ * @param string $tpl_language
+ *   CRM template language, will fetch language specific file from civicrm/xml/templates/$value_name.$tpl_language.tpl for update.
+ *   Fallback to non-language specific template if not found.
+ * @param array $additional_params
+ *   associative array for update tpl, will fallback to tpl file if not specify params
+ *     option_label => option value lable at civicrm_option_value
+ *     msg_title => message/workflow title at civicrm_msg_template
+ *     msg_subject => message subject (when sending mail) at civicrm_msg_template
+ *     msg_text => message text at civicrm_msg_template
+ *     msg_html => message html at civicrm_msg_template
+ * @return bool
+ */
+function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_language = NULL, $additional_params = array()){
+  civicrm_initialize();
+  if (empty($group_name)) {
+    return FALSE;
+  }
+  if (empty($value_name)) {
+    return FALSE;
+  }
+
+  $tpl = array();
+  $tpl_path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
+  foreach(array('subject', 'text', 'html') as $tpl_type) {
+    if ($tpl_language) {
+      $tmp_path = $tpl_path.$value_name.'_'.$tpl_type.'.'.$tpl_language.'.tpl';
+      if (file_exists($tmp_path)) {
+        $tpl[$tpl_type] = file_get_contents($tmp_path);
+        continue;
+      }
+    }
+
+    // fallback to no-language specific tpl
+    $tmp_path = $tpl_path.$value_name.'_'.$tpl_type.'.tpl';
+    if (file_exists($tmp_path)) {
+      $tpl[$tpl_type] = file_get_contents($tmp_path);
+    }
+  }
+
+  $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = %1", array(
+    1 => array($group_name, 'String'),
+  ));
+  if(empty($option_group_id)){
+    return FALSE;
+  }
+
+  $group_values = CRM_Core_OptionGroup::values($group_name, FALSE, FALSE, FALSE, NULL, 'name', FALSE, FALSE, 'id');
+  $group_params = array(
+    'id' => $option_group_id,
+  );
+  $option_params = array(
+    'label' => !empty($additional_params['option_label']) ? $additional_params['option_label'] : $tpl['subject'],
+    'name' => $value_name,
+    'is_active' => TRUE,
+  );
+
+  $option_id = array_search($value_name, $group_values);
+  if(!empty($option_id)){
+    $action = CRM_Core_Action::UPDATE;
+  }
+  else{
+    $option_id = NULL;
+    $action = CRM_Core_Action::ADD;
+  }
+  $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
+
+  // check if default being customized
+  // query borrow FROM CRM_Admin_Page_MessageTemplates
+  $diverted_query = '
+SELECT diverted.id
+FROM civicrm_msg_template diverted JOIN civicrm_msg_template orig ON (
+  diverted.workflow_id = orig.workflow_id AND
+  orig.is_reserved = 1                    AND (
+    diverted.msg_subject != orig.msg_subject OR
+    diverted.msg_text    != orig.msg_text    OR
+    diverted.msg_html    != orig.msg_html
+  )
+)
+WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig.workflow_id = %1
+  ';
+  $diverted = CRM_Core_DAO::singleValueQuery($diverted_query, array(
+    1 => array($option->id, 'Integer'),
+  ));
+
+  $params = array(
+    'msg_title' => !empty($additional_params['msg_title']) ? $additional_params['msg_title'] : $tpl['subject'],
+    'msg_subject' => !empty($additional_params['msg_subject']) ? $additional_params['msg_subject'] : $tpl['subject'],
+    'msg_text' => !empty($additional_params['msg_text']) ? $additional_params['msg_text'] : $tpl['text'],
+    'msg_html' => !empty($additional_params['msg_html']) ? $additional_params['msg_html'] : $tpl['html'],
+    'is_active' => TRUE,
+    'workflow_id' => $option->id,
+    'is_default' => 0,
+    'is_reserved' => 1,
+  );
+
+  $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", array(
+    1 => array($option->id, 'Integer'),
+  ));
+  if($reserved_id){
+    $params['id'] = $reserved_id;
+  }
+
+  // add or update reserved template
+  $reserved = CRM_Core_BAO_MessageTemplates::add($params);
+
+  if(!$diverted){
+    $params['is_default'] = 1;
+    $params['is_reserved'] = 0;
+    $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", array(
+      1 => array($option->id, 'Integer'),
+    ));
+    if($default_id){
+      $params['id'] = $default_id;
+    }
+    $default = CRM_Core_BAO_MessageTemplates::add($params);
+    if ($reserved->id && $default->id) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+  else {
+    if ($reserved->id) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
