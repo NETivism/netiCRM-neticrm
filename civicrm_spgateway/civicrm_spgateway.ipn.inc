@@ -98,10 +98,8 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
     else{
       // start validation
-      require_once 'CRM/Core/Transaction.php';
-      $transaction = new CRM_Core_Transaction();
       $note = '';
-      if( $this->validateOthers($input, $ids, $objects, $transaction, $note, $instrument) ){
+      if( $this->validateOthers($input, $ids, $objects, $note, $instrument) ){
         $contribution =& $objects['contribution'];
         if(empty($contribution->receive_date)){
           if(!empty($input['PayTime'])){
@@ -129,6 +127,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         else {
           $input['trxn_id'] = $objects['contribution']->trxn_id;
         }
+        $transaction = new CRM_Core_Transaction();
         $this->completeTransaction( $input, $ids, $objects, $transaction, $recur );
         $note .= ts('Completed')."\n";
         $this->addNote($note, $contribution);
@@ -162,7 +161,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
   }
 
-  function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note, $instrument){
+  function validateOthers( &$input, &$ids, &$objects, &$note, $instrument){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
     $valid_value = array();
@@ -299,6 +298,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       elseif ($input['AuthDate']) {
         $objects['contribution']->cancel_date = $input['AuthDate'];
       }
+      $transaction = new CRM_Core_Transaction();
       $this->failed($objects, $transaction, $failed_reason);
       $pass = FALSE;
     }
@@ -320,7 +320,9 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
       $c->trxn_id = $trxn_id;
       $time = strtotime(self::$_input['AuthDate']);
       $c->created_date = date('YmdHis');
+      $transaction = new CRM_Core_Transaction('READ COMMITTED');
       $c->save();
+      $transaction->commit();
       CRM_Contribute_BAO_ContributionRecur::syncContribute($rid, $c->id);
       return $c;
     }
