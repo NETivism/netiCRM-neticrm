@@ -441,8 +441,21 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
     case 'CRM_Contribute_Form_Contribution_Confirm':
       $cid = $form->_values['contribution_id'];
       $iid = $form->_params['civicrm_instrument_id'];
-      if($cid && $iid){
-        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = {$iid} WHERE id = {$cid}");
+      if(!empty($cid) && !empty($iid) && CRM_Utils_Rule::positiveInteger($cid) && CRM_Utils_Rule::positiveInteger($iid)){
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = %1 WHERE id = %2", array(
+          1 => array($iid, 'Integer'),
+          2 => array($cid, 'Integer'),
+        ));
+      }
+      break;
+    case 'CRM_Event_Form_Registration_Confirm':
+      $contributionId = $form->_params['contributionID'];
+      $instrumentId = $form->_params['civicrm_instrument_id'];
+      if(!empty($contributionId) && !empty($instrumentId) && CRM_Utils_Rule::positiveInteger($contributionId) && CRM_Utils_Rule::positiveInteger($instrumentId)){
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = %1 WHERE id = %2", array(
+          1 => array($instrumentId, 'Integer'),
+          2 => array($contributionId, 'Integer'),
+        ));
       }
       break;
   }
