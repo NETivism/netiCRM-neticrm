@@ -129,10 +129,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         return;
       }
       else{
+        $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+        if (empty($credit_card_iid)) {
+          $credit_card_iid = '1';
+        }
         $js = '
         cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
+            var credit_card_iid = "'.$credit_card_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
               // display "need creditcard" message
@@ -146,7 +151,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
               if($creditCardInput.length > 0) {
                 $creditCardInput.attr("checked", true);
-                $("input[name=civicrm_instrument_id]").val("1");
+                $("input[name=civicrm_instrument_id]").val(credit_card_iid);
               }
               else {
                 $notCreditCardInput.attr("checked", false);
