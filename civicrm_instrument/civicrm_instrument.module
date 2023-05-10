@@ -439,7 +439,7 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
       break;
     // save instrument
     case 'CRM_Contribute_Form_Contribution_Confirm':
-      $cid = $form->_values['contribution_id'];
+      $cid = $form->_params['contributionID'];
       $iid = $form->_params['civicrm_instrument_id'];
       if(!empty($cid) && !empty($iid) && CRM_Utils_Rule::positiveInteger($cid) && CRM_Utils_Rule::positiveInteger($iid)){
         CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = %1 WHERE id = %2", array(
@@ -807,14 +807,11 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
   }
   elseif (strstr($processor_type, 'PayPal')) {
     $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
-    if (empty($credit_card_iid)) {
-      $credit_card_iid = 1;
-    }
     $enabled_instruments = array(
       'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
-      $_POST['civicrm_instrument_id'] = 1;
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
@@ -836,7 +833,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
-      $_POST['civicrm_instrument_id'] = 1;
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
