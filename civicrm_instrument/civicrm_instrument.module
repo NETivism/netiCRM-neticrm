@@ -793,8 +793,12 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif (strstr($processor_type, 'PayPal')) {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+    if (empty($credit_card_iid)) {
+      $credit_card_iid = 1;
+    }
     $enabled_instruments = array(
-      'Credit Card' =>  array('label' => '信用卡', 'desc' => '', 'code' => 'Credit', 'value' => 1),
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
       $_POST['civicrm_instrument_id'] = 1;
@@ -811,8 +815,12 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif ($processor_type === 'TapPay') {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+    if (empty($credit_card_iid)) {
+      $credit_card_iid = 1;
+    }
     $enabled_instruments = array(
-      'Credit Card' =>  array('label' => '信用卡', 'desc' => '', 'code' => 'Credit', 'value' => 1),
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
       $_POST['civicrm_instrument_id'] = 1;
