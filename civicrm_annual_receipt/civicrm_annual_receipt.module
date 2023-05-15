@@ -88,7 +88,7 @@ function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
       $hasEmailReceiptOption = CRM_Core_OptionGroup::getValue('activity_type', 'Email Receipt', 'name');
       if ($config->enableTransactionalEmail && $hasEmailReceiptOption) {
         $tasks[] = array(
-          'title' => ts('Send Annual Receipt Email'),
+          'title' => ts('Send Annual Receipt Email').' (beta)',
           'class' => array(
             'CRM_Contact_Form_Task_AnnualReceiptEmail_SearchOption',
             'CRM_Contact_Form_Task_AnnualReceiptEmail_MailingOption',

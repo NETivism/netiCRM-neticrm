@@ -262,3 +262,27 @@ function civicrm_instrument_update_7106() {
     }
   }
 }
+
+/**
+ * refs #37667, update missing payment_instrument_id
+ */
+function civicrm_instrument_update_7107() {
+  civicrm_initialize();
+
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  // Credit card enabled
+  if (!empty($instruments[1]) && ($instruments[1] == 'Credit Card' || $instruments[1] == ts('Credit Card'))) {
+    $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = %1", array(
+      1 => array('TapPay', 'String')
+    ));
+    $processorIds = array();
+    while($dao->fetch()) {
+      $processorIds[] = $dao->id;
+    }
+    if (!empty($processorIds)) {
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = 1 WHERE payment_instrument_id IS NULL AND payment_processor_id IN (%1)", array(
+        1 => array(implode(',', $processorIds), 'CSInts')
+      ));
+    }
+  }
+}

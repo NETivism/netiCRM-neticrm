@@ -129,10 +129,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         return;
       }
       else{
+        $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+        if (empty($credit_card_iid)) {
+          $credit_card_iid = '1';
+        }
         $js = '
         cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
+            var credit_card_iid = "'.$credit_card_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
               // display "need creditcard" message
@@ -146,7 +151,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
               $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
               if($creditCardInput.length > 0) {
                 $creditCardInput.attr("checked", true);
-                $("input[name=civicrm_instrument_id]").val("1");
+                $("input[name=civicrm_instrument_id]").val(credit_card_iid);
               }
               else {
                 $notCreditCardInput.attr("checked", false);
@@ -439,10 +444,23 @@ function civicrm_instrument_civicrm_postProcess($form_name, &$form){
       break;
     // save instrument
     case 'CRM_Contribute_Form_Contribution_Confirm':
-      $cid = $form->_values['contribution_id'];
+      $cid = $form->_params['contributionID'];
       $iid = $form->_params['civicrm_instrument_id'];
-      if($cid && $iid){
-        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = {$iid} WHERE id = {$cid}");
+      if(!empty($cid) && !empty($iid) && CRM_Utils_Rule::positiveInteger($cid) && CRM_Utils_Rule::positiveInteger($iid)){
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = %1 WHERE id = %2", array(
+          1 => array($iid, 'Integer'),
+          2 => array($cid, 'Integer'),
+        ));
+      }
+      break;
+    case 'CRM_Event_Form_Registration_Confirm':
+      $contributionId = $form->_params['contributionID'];
+      $instrumentId = $form->_params['civicrm_instrument_id'];
+      if(!empty($contributionId) && !empty($instrumentId) && CRM_Utils_Rule::positiveInteger($contributionId) && CRM_Utils_Rule::positiveInteger($instrumentId)){
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = %1 WHERE id = %2", array(
+          1 => array($instrumentId, 'Integer'),
+          2 => array($contributionId, 'Integer'),
+        ));
       }
       break;
   }
@@ -553,7 +571,7 @@ function _civicrm_instrument_form_name($name){
 function civicrm_instrument_by_id($id, $field = NULL){
   $gid = variable_get('civicrm_instrument_gid', 0);
   if(!$field){
-    $query = CRM_Core_DAO::exetuteQuery("SELECT * FROM civicrm_option_value WHERE id = {$id} AND option_group_id = {$gid}");
+    $query = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE id = {$id} AND option_group_id = {$gid}");
     return $query->fetch();
   }
   else{
@@ -564,7 +582,7 @@ function civicrm_instrument_by_id($id, $field = NULL){
 function civicrm_instrument_by_name($name, $field = NULL){
   $gid = variable_get('civicrm_instrument_gid', 0);
   if(!$field){
-    $query = CRM_Core_DAO::exetuteQuery("SELECT * FROM civicrm_option_value WHERE name = '{$name}' AND option_group_id = {$gid}");
+    $query = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE name = '{$name}' AND option_group_id = {$gid}");
     return $query->fetch();
   }
   else{
@@ -793,11 +811,12 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif (strstr($processor_type, 'PayPal')) {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
     $enabled_instruments = array(
-      'Credit Card' =>  array('label' => '信用卡', 'desc' => '', 'code' => 'Credit', 'value' => 1),
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
-      $_POST['civicrm_instrument_id'] = 1;
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
@@ -811,11 +830,15 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif ($processor_type === 'TapPay') {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+    if (empty($credit_card_iid)) {
+      $credit_card_iid = 1;
+    }
     $enabled_instruments = array(
-      'Credit Card' =>  array('label' => '信用卡', 'desc' => '', 'code' => 'Credit', 'value' => 1),
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
     );
     if(!empty($_GET['id'])){
-      $_POST['civicrm_instrument_id'] = 1;
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
