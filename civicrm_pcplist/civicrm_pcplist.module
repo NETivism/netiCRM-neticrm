@@ -43,7 +43,7 @@ function civicrm_pcplist_page($contribution_page_id){
 
     // set title
     require_once 'CRM/Contribute/DAO/ContributionPage.php';
-    $contrib_page =& new CRM_Contribute_DAO_ContributionPage();
+    $contrib_page = new CRM_Contribute_DAO_ContributionPage();
     $contrib_page->id = $contribution_page_id;
     if ( $contrib_page->find( true ) ) { 
       drupal_set_title($contrib_page->title. ' - ' . t('Personal Campaign Page'));
