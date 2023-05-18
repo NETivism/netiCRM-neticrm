@@ -76,7 +76,7 @@ function civicrm_secure_group_civicrm_aclWhereClause( $type, &$tables, &$whereTa
   // if the contact has spcific role, dont modify the clause
   $groups = explode(',', CIVICRM_SECURE_GROUP_GID);
 
-  if( array_key_exists(CIVICRM_SECURE_GROUP_RID, $user->roles) ) {
+  if( isset($user->roles[CIVICRM_SECURE_GROUP_RID]) ) {
     if(variable_get('civicrm_secure_group_reverse', 0)){
       $groupTable = 'secure_group';
       $tables[$groupTable] = $whereTables[$groupTable] =
