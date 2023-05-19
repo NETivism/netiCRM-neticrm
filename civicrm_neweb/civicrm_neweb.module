@@ -352,12 +352,13 @@ function _civicrm_neweb_ftp($mode, $local, $remote, $host, $user, $pass){
  * mode - put / get / list
  */
 function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_test){
+  /* remove unused libraries
   if(empty($host)){
     watchdog('civicrm_neweb', "SFTP setup error. host: {$host} , user: {$user}", WATCHDOG_ERROR);  
     return FALSE;
   }
-  $path = drupal_get_path('module', 'civicrm_neweb'). '/phpseclib/';
-  set_include_path(get_include_path() . PATH_SEPARATOR . getcwd().base_path().rtrim($path, '/'));
+  // $path = drupal_get_path('module', 'civicrm_neweb'). '/phpseclib/';
+  // set_include_path(get_include_path() . PATH_SEPARATOR . getcwd().base_path().rtrim($path, '/'));
 
   include_once($path.'Net/SSH2.php');
   include_once($path.'Net/SFTP.php');
@@ -404,12 +405,6 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
     }
   }
   // debug usage
-  /*
-  print '<pre>';
-  print_r($sftp->getSFTPLog());
-  print_r($sftp->getSFTPErrors());
-  print '</pre>';
-  */
   // call destructor to close connection
   unset($sftp);
 
@@ -419,6 +414,7 @@ function _civicrm_neweb_sftp($mode, $local, $remote, $host, $user, $pass, $is_te
   else{
     return false;
   }
+  */
 }
 
 /**
