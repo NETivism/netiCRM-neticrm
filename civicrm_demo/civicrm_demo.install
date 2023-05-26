@@ -18,6 +18,9 @@ function civicrm_demo_install() {
     $vars['limit'] = 50;
     civicrm_demo_process_contribution($vars);
     civicrm_demo_create_custom_profile();
+
+    $vars['limit'] = 3;
+    civicrm_demo_process_membership($vars);
   }
   else{
     $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
