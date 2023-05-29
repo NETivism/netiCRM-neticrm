@@ -22,7 +22,7 @@ class NeticrmCommands extends DrushCommands {
   public function job($function = '', $options = ['force' => FALSE]) {
     $jobs = \Drupal::config('neticrm_drush.settings')->get('drush_neticrm_schedule');
     $error = FALSE;
-    $function_file = drupal_get_path('module', 'civicrm').'/../bin/cron/'.$function.'.inc';
+    $function_file = \Drupal::service('extension.list.module')->getPath('civicrm').'/../bin/cron/'.$function.'.inc';
     if(empty($function)){
       $error = "You need to specify first argument. Possible values:\n  ".implode("\n  ", array_keys($jobs));
     }
@@ -85,6 +85,51 @@ class NeticrmCommands extends DrushCommands {
     $this->logger("neticrm_drush")->success("netiCRM menu rebuilt.");
   }
 
+
+  /**
+   * Set civicrm doamin and drupal site-wide email
+   *
+   * @command neticrm:set-domain
+   * @aliases neticrm-set-domain
+   * @usage drush neticrm-set-domain
+   *   Set civicrm domain info and drupal site-wide email.
+   *
+   * @return void
+   */
+  public function set_domain(){
+    $smtp_settings = \Drupal::config('smtp.settings');
+    if (!empty($smtp_settings->get('smtp_username'))) {
+      $smtp_mail = $smtp_settings->get('smtp_username');
+      \Drupal::configFactory()->getEditable('system.site')->set('mail', $smtp_mail);
+
+      civicrm_initialize();
+      \Drupal::moduleHandler()->loadInclude('neticrm_preset', 'utils.inc');
+      _neticrm_preset_domain_info();
+      $this->logger("neticrm_drush")->success("netiCRM domain setted");
+    }
+  }
+
+  /**
+   * Send welcome email to user account 3
+   *
+   * @command neticrm:send-welcome-mail
+   * @aliases neticrm-send-welcome
+   * @usage drush neticrm-send-welcome
+   *   Send welcome email to user account 3.
+   *
+   * @return void
+   */
+  public function send_welcome_mail(){
+    $account = \Drupal\user\Entity\User::load(3);
+    $smtp_settings = \Drupal::config('smtp.settings');
+    if (!empty($account) && !empty($smtp_settings->get('smtp_username'))) {
+      $op = 'register_no_approval_required';
+      // Send an email.
+      _user_mail_notify($op, $account);
+      $this->logger("neticrm_drush")->success("netiCRM welcome mail sent");
+    }
+  }
+
   /**
    * Run neticrm cache clear
    *
@@ -103,6 +148,50 @@ class NeticrmCommands extends DrushCommands {
     // refs #31419, instead cleanup template compiler dir, we clear IDS config
     \CRM_Core_IDS::initConfig(NULL, TRUE);
     $this->logger("neticrm_drush")->success("netiCRM cache cleared");
+  }
+
+  /**
+   * Update specific membership type reminder date
+   *
+   * @command neticrm:member-reminder-date
+   * @aliases neticrm-member-rdate
+   * @usage drush neticrm-member-rdate <membership_type_id:optional>
+   *   Update membership reminder date on given type.
+   */
+  public function member_reminder_date($membership_type_id = NULL) {
+    civicrm_initialize();
+    if ($membership_type_id && is_numeric($membership_type_id)) {
+      $sql = "SELECT * FROM civicrm_membership WHERE membership_type_id = %1";
+      $dao = \CRM_Core_DAO::executeQuery($sql, array(
+        1 => array($membership_type_id, 'Integer'),
+      ));
+    }
+    else {
+      $sql = "SELECT * FROM civicrm_membership WHERE 1";
+      $dao = \CRM_Core_DAO::executeQuery($sql);
+    }
+    while($dao->fetch()) {
+      $calcDates = \CRM_Member_BAO_MembershipType::getDatesForMembershipType($dao->membership_type_id, $dao->join_date, $dao->start_date, $dao->end_date);
+      $params = array();
+      if (!empty($calcDates['reminder_date'])) {
+        $params['reminder_date'] = $calcDates['reminder_date'];
+        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = %2 WHERE id = %1", array(
+          1 => array($dao->id, 'Integer'),
+          2 => array($calcDates['reminder_date'], 'Date'),
+        ));
+      }
+      elseif ($dao->reminder_date) {
+        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = NULL WHERE id = %1", array(
+          1 => array($dao->id, 'Integer'),
+        ));
+      }
+    }
+    if ($membership_type_id) {
+      $this->logger("neticrm_drush")->success("Updated reminder date of $dao->N members for membership type id $membership_type_id");
+    }
+    else {
+      $this->logger("neticrm_drush")->success("Updated reminder date of $dao->N members for all membership");
+    }
   }
 
   /**
