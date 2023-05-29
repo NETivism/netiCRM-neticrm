@@ -256,6 +256,59 @@ class NeticrmCommands extends DrushCommands {
   }
 
   /**
+   * Set CiviCRM config
+   *
+   * @command neticrm:config-set
+   *
+   * @param string $name
+   *   Name of civicrm config to search
+   *
+   * @param string $value
+   *   Value of civicrm config to set
+   *
+   * @aliases neticrm-config-set,ncset
+   * @option new Add new config which not exists in current object. Will not touch exists config.
+   * @option force Force update current config to assign value. Use with --new for add non-exists or update.
+   * @option contribution-recur-id The contribution recur id to process payment.
+   * @usage drush ncset <name> <value>
+   *   Update exist config to given value.
+   * @usage drush ncset <name> <value> --new
+   *   Add non-exist config to given value. Will not update exists config.
+   * @usage drush ncset <name> <value> --force
+   *   Add new config or update exists config to given value.
+   */
+  function config_set($name, $value, $options = ['new' => FALSE, 'force' => FALSE]) {
+    civicrm_initialize();
+    $params = array();
+    $params[$name] = $value;
+    $new = $options['new'];
+    $force = $options['force'];
+    $config = \CRM_Core_Config::singleton();
+    $success = TRUE;
+
+    if ($force) {
+      \CRM_Core_BAO_ConfigSetting::add($params);
+    }
+    elseif ($new && !isset($config->$name)) {
+      \CRM_Core_BAO_ConfigSetting::add($params);
+    }
+    elseif (empty($new) && isset($config->$name)) {
+      \CRM_Core_BAO_ConfigSetting::add($params);
+    }
+    else {
+      $success = FALSE;
+    }
+
+    if ($success) {
+      $config = \CRM_Core_Config::singleton(TRUE, TRUE);
+      $this->logger('neticrm_drush')->success(sprintf("Successful set config %s to value %s", $name, $config->$name));
+    }
+    else {
+      $this->logger('neticrm_drush')->failed(sprintf("Skip set %s to value %s because using --new with exists config, or update on non-exists config.", $name, $value));
+    }
+  }
+
+  /**
    * Bootstrap function for civicrm
    */
   private function init(){
