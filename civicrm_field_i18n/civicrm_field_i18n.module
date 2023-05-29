@@ -144,6 +144,23 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   static $ran;
   global $language;
   if($language->language != 'en' ){
+    // receipt one time
+    if (strstr($resourceName, 'msg_tpl_workflow_receipt-receipt_letter-html')) {
+      $vars['instrument'] = civicrm_field_i18n_t($vars['instrument']);
+    }
+    // receipt annual
+    if (strstr($resourceName, 'msg_tpl_workflow_receipt-receipt_letter_annual-html')) {
+      foreach($vars['record'] as &$contact) {
+        $ids = array_keys($contact);
+        if (!empty($ids)) {
+          $sql = "SELECT id, contribution_page_id FROM civicrm_contribution WHERE id IN (".implode(',', $ids).")";
+          $dao = CRM_Core_DAO::executeQuery($sql);
+          while($dao->fetch()) {
+            $contact[$dao->id]['instrument'] = civicrm_field_i18n_t($contact[$dao->id]['instrument']);
+          }
+        }
+      }
+    }
     // profile
     $profiles = array('customPre', 'customPost');
     foreach ($profiles as $p) {
