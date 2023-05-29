@@ -226,20 +226,14 @@ function civicrm_demo_process_membership($vars){
   // create organization for membership
   $org_id = 0;
   if (empty($results['id'])) {
-    $params = array( 
-		  'version' => 3,
-		);
-    $organization_name = $results['values'][$results['id']]['name'];
-    if ($organization_name) {
-      $params = array(
-        'contact_type' => 'Organization',
-        'organization_name' => $organization_name,
-        'version' => 3,
-      );
-      $org = civicrm_api('Contact', 'create', $params);
-      if (!empty($org['id'])) {
-        $org_id = $org['id'];
-      }
+    $params = array(
+      'contact_type' => 'Organization',
+      'organization_name' => '示範組織聯絡人',
+      'version' => 3,
+    );
+    $org = civicrm_api('Contact', 'create', $params);
+    if (!empty($org['id'])) {
+      $org_id = $org['id'];
     }
   }
   else {
