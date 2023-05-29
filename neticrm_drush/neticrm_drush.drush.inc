@@ -90,8 +90,7 @@ function neticrm_drush_drush_command() {
   $items['neticrm-process-recurring'] = array(
     'description' => "Process recurring of certain payment processor.",
     'examples' => array(
-      'drush neticrm-process-recurring' =>
-      'Process all recurring',
+      'drush neticrm-process-recurring' => 'Process all recurring',
       'drush neticrm-process-recurring --payment-processor=tappay' => 'Process tappey recurring',
     ),
     'options' => array(
@@ -100,6 +99,23 @@ function neticrm_drush_drush_command() {
       'time' => 'Timestamp format. The recur simulated execute date.',
     ),
     'callback' => 'drush_neticrm_process_recurring',
+  );
+  $items['neticrm-config-set'] = array(
+    'description' => 'Set CiviCRM CRM_Core_Config object parameter',
+    'examples' => array(
+      'drush neticrm-config-set <name> <value>' => 'Update config to new value. Empty string clear config.',
+      'drush neticrm-config-set <name> <value> --new' => 'Add new config, will not change current config when exists.',
+    ),
+    'aliases' => array('ncset'),
+    'arguments' => array(
+      'name' => 'The config name to find',
+      'value' => 'The config value to set',
+    ),
+    'options' => array(
+      'new' => 'Add new config which not exists in current object. Will not touch exists config.',
+      'force' => 'Force update current config to assign value. Use with --new for add non-exists or update',
+    ),
+    'callback' => 'drush_neticrm_config_set',
   );
 
   return $items;
@@ -361,5 +377,36 @@ function drush_neticrm_process_recurring() {
   else {
     $msg = "Please input with payment processor type name\nExample: \n drush neticrm-process-recurring --payment-processor=tappay\n";
     print($msg);
+  }
+}
+
+function drush_neticrm_config_set($name, $value) {
+  civicrm_initialize();
+  $params = array();
+  $params[$name] = $value;
+  $new = drush_get_option('new');
+  $force = drush_get_option('force');
+  $config = CRM_Core_Config::singleton();
+  $success = TRUE;
+
+  if ($force) {
+    CRM_Core_BAO_ConfigSetting::add($params);
+  }
+  elseif ($new && !isset($config->$name)) {
+    CRM_Core_BAO_ConfigSetting::add($params);
+  }
+  elseif (empty($new) && isset($config->$name)) {
+    CRM_Core_BAO_ConfigSetting::add($params);
+  }
+  else {
+    $success = FALSE;
+  }
+
+  if ($success) {
+    $config = CRM_Core_Config::singleton(TRUE);
+    drush_log(sprintf("Successful set config %s to value %s", $name, $config->$name), "ok");
+  }
+  else {
+    drush_log(sprintf("Skip set %s to value %s because using --new with exists config, or update on non-exists config.", $name, $value), "error");
   }
 }
