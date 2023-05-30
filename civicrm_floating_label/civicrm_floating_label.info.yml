@@ -3,4 +3,4 @@ type: module
 description: 'Replace class of QuickForm to implement floating label'
 package: netiCRM
 version: 9.x-develop
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^9 || ^10
