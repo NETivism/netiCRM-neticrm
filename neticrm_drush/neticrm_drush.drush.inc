@@ -403,7 +403,7 @@ function drush_neticrm_config_set($name, $value) {
   }
 
   if ($success) {
-    $config = CRM_Core_Config::singleton(TRUE);
+    $config = CRM_Core_Config::singleton(TRUE, TRUE);
     drush_log(sprintf("Successful set config %s to value %s", $name, $config->$name), "ok");
   }
   else {
