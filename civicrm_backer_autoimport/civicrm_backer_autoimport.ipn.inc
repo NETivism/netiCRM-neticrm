@@ -23,7 +23,8 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
 
       // second, try to process contribution and contact record
       if ($check_result) {
-        $processor->processContribution($input);
+        $result = array();
+        $processor->processContribution($input, $result);
       }
     }
     CRM_Utils_System::civiBeforeShutdown();
