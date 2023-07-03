@@ -279,7 +279,7 @@
         if(admin){
           $("#addEmail,#addPhone").click(function(){
             setTimeout(function(){
-              $("#"+formid+" input[name*=email]:not(#email_1_email)").each(function(){
+              $("#"+formid+" input[name*=email]:not(#email_1_email,#email_greeting_custom)").each(function(){
                 $(this).rules("add", {required:false,email:true});
               });
               $("#"+formid+" input[name$='[phone]']:not(#phone_1_phone)").each(function(){
