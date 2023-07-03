@@ -987,7 +987,7 @@ function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_lang
   }
 
   $tpl = array();
-  $tpl_path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
+  $tpl_path = \Drupal::service('extension.list.module')->getPath('civicrm').'/../xml/templates/message_templates/';
   foreach(array('subject', 'text', 'html') as $tpl_type) {
     if ($tpl_language) {
       $tmp_path = $tpl_path.$value_name.'_'.$tpl_type.'.'.$tpl_language.'.tpl';
