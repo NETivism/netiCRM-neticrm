@@ -4,6 +4,7 @@ description: Generate receipt token per year for civicrm, and add task in contac
 dependencies:
   - civicrm
   - neticrm_preset
+  - civicrm_demo
 package: netiCRM
 core: 8.x
 version: 8.x-3.0
