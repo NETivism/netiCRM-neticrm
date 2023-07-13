@@ -839,3 +839,10 @@ function neticrm_update_update_7309() {
 function neticrm_update_update_7310() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #37730, Create aicompletion table
+ */
+function neticrm_update_update_7311() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

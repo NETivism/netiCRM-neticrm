@@ -281,7 +281,7 @@
             }
           }
         });
-        $("#"+formid+" input[name*=email]").each(function(){
+        $("#"+formid+" input[name*=email]:not(#email_greeting_custom)").each(function(){
           $(this).rules("add", {required:false,email:true});
         });
 
