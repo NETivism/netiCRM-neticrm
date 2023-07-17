@@ -577,7 +577,7 @@ cj(document).ready(function($){
   });
 });
 ';
-  drupal_addCRM_Utils_System::addJs_js(array('type' => 'inline', 'scope' => 'footer'), $js);
+  CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), $js);
 }
 
 /**
@@ -617,7 +617,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
   if(!empty($radios)){
     if(count($radios) && $js){
       // attach by js
-      drupal_CRM_Utils_System::addJsadd_js(array('type' => 'inline', 'scope' => 'footer'), _civicrm_instrument_js_page($radios, $form, $default_instrument));
+      CRM_Utils_System::addJs(array('type' => 'inline', 'scope' => 'footer'), _civicrm_instrument_js_page($radios, $form, $default_instrument));
     }
     else{
       // attach by html
@@ -756,7 +756,6 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
             </style>");
         }else{
           CRM_Utils_System::addJs(array('type' => 'inline'), $js);
-          // drupal_add_css($css, 'inline');
         }
       }
       $radio_name = _civicrm_instrument_form_name($name);
@@ -877,7 +876,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
         $css
         </style>");
     }else{
-      drupal_add_css($css, 'inline');
+      CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+
     }
   }
 
