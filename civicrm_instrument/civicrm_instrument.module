@@ -841,7 +841,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
 
   if($processor_type == 'Mobile'){
     $mobile_instruments = _civicrm_instrument_get_mobile_instruments();
-    $path = drupal_get_path('module', 'civicrm_instrument').'/images/';
+    $path = \Drupal::service('extension.list.module')->getPath('civicrm_instrument').'/images/';
     foreach ($mobile_instruments as $name) {
       $radio_name = _civicrm_instrument_form_name($name);
       if(!empty($active_instruments[$radio_name])){
