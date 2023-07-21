@@ -24,4 +24,66 @@ function civicrm_backer_autoimport_civicrm_alterTemplateVars($resource, &$vars) 
       }
     }
   }
+  if (!empty($vars['tplFile']) && $vars['tplFile'] == 'CRM/Contribute/Form/Contribution/Main.tpl') {
+    $contribution_page = $vars['id'];
+    $is_test = ($_GET['action'] == 'preview') ? 1 : 0;
+    $params = array(
+      1 => array($is_test, 'Integer'),
+      2 => array($contribution_page, 'String'),
+    );
+    $sql = "SELECT * FROM civicrm_payment_processor WHERE payment_processor_type = 'BACKER' AND is_active = 1 AND is_test = %1 AND user_name = %2 AND url_site IS NOT NULL AND url_api IS NOT NULL";
+    $dao = CRM_Core_DAO::executeQuery($sql, $params);
+    while ($dao->fetch()) {
+      if (!empty($vars['achievement'])) {
+        $url = $dao->url_api;
+        $APIResult = _civicrm_backer_autoimport_retrieve_API($url);
+        if ($vars['achievement']['type'] == "recurring") {
+          if ($APIResult['backer_count']) {
+            $current = $vars['achievement']['current'] += $APIResult['backer_count'];
+          }
+        }
+        if ($vars['achievement']['type'] == "amount") {
+          if ($APIResult['money_pledged']) {
+            $current = $vars['achievement']['current'] += $APIResult['money_pledged'];
+          }
+        }
+
+        $goal = $vars['achievement']['goal'];
+        $percent = round(ceil(($current/$goal)*100));
+        if ($current > 0 && $percent < 1) {
+          $percent = 1; // when there is value, we have at least 1 percent
+        }
+        $vars['achievement']['percent'] = $percent;
+      }
+    }
+  }
 }
+
+function _civicrm_backer_autoimport_retrieve_API($url) {
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  $result = curl_exec($ch);
+
+  // Check Error
+  if (curl_errno($ch)) {
+      CRM_Core_Error::debug_log_message('cURL Error: ' . curl_error($ch));
+  } else {
+    curl_close($ch);
+
+    // Transfer to PHP array
+    $data = json_decode($result, true);
+
+    // Valid JSON
+    if (json_last_error() === JSON_ERROR_NONE) {
+        print_r($data);
+    } else {
+      CRM_Core_Error::debug_log_message("JSON Parse Error: " . json_last_error_msg());
+    }
+  }
+  // $data = [
+  return $data;
+}
+  //   "money_pledged" => 10000,
+  //   "backer_count" => 100,
+  // ];
