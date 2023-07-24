@@ -2,8 +2,7 @@ name: Payment Method of Esunbank easyfee
 description: Esunbank easyfee payment gateway.
 type: module
 package: netiCRM
+core_version_requirement: ^9 || ^10
 dependencies:
   - civicrm
   - esunbank
-version: 9.x-1.0
-core_version_requirement: ^9 || ^10

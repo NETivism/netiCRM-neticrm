@@ -1,8 +1,7 @@
 name: CiviCRM Legal ID
 type: module
 description: This module is used for display / save / edit personal legal identification on contact edition.
+package: netiCRM
+core_version_requirement: ^9 || ^10
 dependencies:
   - civicrm
-package: netiCRM
-core: 8.x
-core_version_requirement: ^9 || ^10

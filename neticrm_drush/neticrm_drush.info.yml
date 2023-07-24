@@ -2,8 +2,7 @@ name: netiCRM drush
 type: module
 description: Port some of drush command from civicrm to netiCRM
 version: 3.0
+core_version_requirement: ^9 || ^10
 dependencies:
   - civicrm
 package: netiCRM
-core: 8.x
-core_version_requirement: ^9 || ^10

@@ -1,8 +1,7 @@
 name: Demo data of CiviCRM
 type: module
 description: Random generate chinese demo data of CiviCRM
+package: netiCRM
+core_version_requirement: ^9.5 || ^10
 dependencies:
   - civicrm
-package: netiCRM
-core: 8.x
-core_version_requirement: ^9.5 || ^10

@@ -1,11 +1,10 @@
 name: Annual Receipt
 type: module
 description: Generate receipt token per year for civicrm, and add task in contact search to generate annual receipt PDF
+package: netiCRM
+core_version_requirement: ^9 || ^10
 dependencies:
   - civicrm
   - neticrm_preset
   - civicrm_demo
-package: netiCRM
-core: 8.x
 version: 8.x-3.0
-core_version_requirement: ^9 || ^10
