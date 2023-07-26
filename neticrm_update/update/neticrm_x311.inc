@@ -1,5 +1,5 @@
 <?php
-function _neticrm_update_update_7311() {
+function _neticrm_update_update_x311() {
   $exists = CRM_Core_DAO::singleValueQuery("SHOW Tables LIKE 'civicrm_aicompletion'");
   if (!$exists) {
     $sql = "CREATE TABLE civicrm_aicompletion (
