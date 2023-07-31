@@ -35,4 +35,11 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
   else {
     echo '0';
   }
+
+  // if ($_SERVER['REQUEST_METHOD'] == "GET") {
+  //   if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+
+  //   }
+
+  // }
 }

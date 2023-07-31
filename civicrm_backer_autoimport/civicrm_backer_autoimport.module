@@ -10,6 +10,13 @@ function civicrm_backer_autoimport_menu() {
     'weight' => 0,
     'file' => 'civicrm_backer_autoimport.ipn.inc',
   );
+  $items['civicrm/contribute/status'] = array(
+    'access callback' => true,
+    'page callback' => 'civicrm_backer_autoimport_ipn',
+    'type' => MENU_CALLBACK,
+    'weight' => 0,
+    'file' => 'civicrm_backer_autoimport.ipn.inc',
+  );
   return $items;
 }
 
