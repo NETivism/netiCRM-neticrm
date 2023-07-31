@@ -2,8 +2,8 @@ name: Esunbank Helper API
 description: Calculation, validation, barcode generator for esunbank.
 type: module
 package: netiCRM
+core_version_requirement: ^9 || ^10
 dependencies:
   - civicrm
 version: 9.x-1.0
-core_version_requirement: ^9 || ^10
 configure: esunbank.admin_settings
