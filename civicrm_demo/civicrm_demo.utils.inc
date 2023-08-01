@@ -50,6 +50,7 @@ function civicrm_demo_process_event($vars){
   CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
   $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
 
   // create 5 events
   $title = array(
@@ -68,7 +69,7 @@ function civicrm_demo_process_event($vars){
     $params['is_monetory'] = 0;
     $params['event_type_id'] = 1;
     $params['is_show_location'] = 0;
-    if($sample){
+    if($sample || $sample_ci){
       $params['start_date'] = date('Ymd', $now+$i*86400*5);
       $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
       $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
