@@ -13,6 +13,7 @@ function civicrm_backer_autoimport_menu() {
   $items['civicrm/contribute/status'] = array(
     'access callback' => true,
     'page callback' => 'civicrm_backer_autoimport_ipn',
+    'page arguments' => array('civicrm_contribute_status'),
     'type' => MENU_CALLBACK,
     'weight' => 0,
     'file' => 'civicrm_backer_autoimport.ipn.inc',

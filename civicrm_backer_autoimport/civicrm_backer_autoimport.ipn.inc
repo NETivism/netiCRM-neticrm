@@ -59,8 +59,8 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
 
       if (!empty($donationAmountSum) && !empty($donationPeopleSum)) {
         $data = array(
-          'people' => $donationAmountSum,
-          'amount' => $donationPeopleSum,
+          'people' => $donationPeopleSum,
+          'amount' => $donationAmountSum,
         );
         echo json_encode($data);
         CRM_Utils_System::civiExit();
@@ -74,6 +74,14 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
         CRM_Utils_System::civiExit();
       }
     }
-
+    else
+    {
+      $error = array(
+        'message' => 'Contribution page id is empty',
+      );
+      http_response_code(400);
+      echo json_encode($error);
+      CRM_Utils_System::civiExit();
+    }
   }
 }
