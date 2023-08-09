@@ -1,0 +1,7 @@
+.progress-extends-backer {
+  text-align: right;
+  padding-top: 3px;
+}
+.progress-extends-backer a {
+  font-weight: bold;
+}

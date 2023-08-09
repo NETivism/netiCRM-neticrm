@@ -21,6 +21,28 @@ function civicrm_backer_autoimport_menu() {
   return $items;
 }
 
+function civicrm_backer_autoimport_civicrm_buildForm($form_name, &$form) {
+  if ($form_name == 'CRM_Contribute_Form_Contribution_Main') {
+    $isTest = ($form->_mode == 'test') ? 1 : 0;
+    $params = array(
+      1 => array($isTest, 'String'),
+      2 => array($form->_id, 'String'),
+    );
+    $sql = "SELECT url_site, url_button FROM civicrm_payment_processor WHERE payment_processor_type = 'BACKER' AND is_active = 1 AND is_test = %1 AND user_name = %2 AND url_site IS NOT NULL AND url_api IS NOT NULL";
+    $dao = CRM_Core_DAO::executeQuery($sql, $params);
+    if ($dao->fetch()) {
+      $path = drupal_get_path('module', 'civicrm_backer_autoimport');
+      drupal_add_js($path . '/civicrm_backer_autoimport.js');
+      drupal_add_css($path . '/civicrm_backer_autoimport.css');
+      $settings = array(
+        'url' => $dao->url_site,
+        'label' => $dao->url_button,
+      );
+      drupal_add_js(array('backer' => $settings), 'setting');
+    }
+  }
+}
+
 function civicrm_backer_autoimport_civicrm_alterTemplateVars($resource, &$vars) {
   if (preg_match('/^string:/', $resource)) {
     if (strstr($resource, 'msg_tpl_workflow_contribution-contribution_online_receipt-html') ||
