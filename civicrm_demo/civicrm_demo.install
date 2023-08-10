@@ -10,6 +10,7 @@ function civicrm_demo_install() {
   civicrm_initialize();
   
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
   if($sample) {
     $vars['limit'] = 20;
     civicrm_demo_process_contact($vars);
@@ -23,6 +24,17 @@ function civicrm_demo_install() {
     $vars['limit'] = 3;
     civicrm_demo_process_membership($vars);
 
+    civicrm_demo_create_custom_profile();
+  }
+  elseif($sample_ci) {
+    $vars['limit'] = 20;
+    civicrm_demo_process_contact($vars);
+
+    $vars['limit'] = 5;
+    civicrm_demo_process_event($vars);
+
+    $vars['limit'] = 1;
+    civicrm_demo_process_contribution($vars);
     civicrm_demo_create_custom_profile();
   }
   else{
