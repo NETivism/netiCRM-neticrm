@@ -48,9 +48,9 @@ function civicrm_demo_process_event($vars){
 
   civicrm_initialize();
   CRM_Core_DAO::executeQuery("UPDATE civicrm_participant_status_type SET is_active = 1 WHERE is_active = 0");
-  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
+  $is_test = $sample || $sample_ci ? 0 : 1;
 
   // create 5 events
   $title = array(
@@ -141,8 +141,8 @@ function civicrm_demo_process_event($vars){
 function civicrm_demo_process_contribution($vars){
   civicrm_initialize();
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
-  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
+  $is_test = $sample || $sample_ci ? 0 : 1;
 
   // ci testing needed
   if ($sample_ci) {
@@ -213,7 +213,9 @@ function civicrm_demo_process_contribution($vars){
 
 function civicrm_demo_process_membership($vars){
   civicrm_initialize();
-  $is_test = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE) ? 0 : 1;
+  $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
+  $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
+  $is_test = $sample || $sample_ci ? 0 : 1;
   $domain_id = CRM_Core_Config::domainID();
 
   // check if any organization contact exists
