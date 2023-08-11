@@ -128,7 +128,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
   $itemDescription = $vars['description'];
   $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
-  $itemDescription .= ':'.$vars['amount'];
+  $itemDescription .= ':'.floatval($vars['amount']);
   $itemDescription = preg_replace('/[^[:alnum:][:space:]]/u', ' ', $itemDescription);
 
   if(!$vars['is_recur']){
