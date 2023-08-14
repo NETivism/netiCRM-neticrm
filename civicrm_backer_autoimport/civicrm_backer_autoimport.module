@@ -10,13 +10,13 @@ function civicrm_backer_autoimport_menu() {
     'weight' => 0,
     'file' => 'civicrm_backer_autoimport.ipn.inc',
   );
-  $items['civicrm/contribute/status'] = array(
+  $items['civicrm/contribute/stat'] = array(
     'access callback' => true,
-    'page callback' => 'civicrm_backer_autoimport_ipn',
+    'page callback' => 'civicrm_backer_autoimport_get_contribution_page_info',
     'page arguments' => array('civicrm_contribute_status'),
     'type' => MENU_CALLBACK,
     'weight' => 0,
-    'file' => 'civicrm_backer_autoimport.ipn.inc',
+    'file' => 'civicrm_backer_autoimport.module',
   );
   return $items;
 }
@@ -111,6 +111,63 @@ function _civicrm_backer_autoimport_retrieve_API($url) {
     }
     else {
       CRM_Core_Error::debug_log_message("JSON Parse Error: " . json_last_error_msg());
+    }
+  }
+}
+
+/**
+ * This function is used to get the contribution page information
+ * excluding contributions made through the 'Backer' payment processor
+ *
+ * @return array
+ */
+function civicrm_backer_autoimport_get_contribution_page_info() {
+  if ($_SERVER['REQUEST_METHOD'] == "GET") {
+    if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+      $params = array( 1 => array($_GET['id'], 'Integer')) ;
+      $donation_query = "SELECT SUM(total_amount)  FROM civicrm_contribution
+      WHERE contribution_page_id = %1
+      AND contribution_status_id = '1'
+      AND payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
+                                    WHERE payment_processor_type = 'Backer'
+                                    AND is_test = '0')
+      AND is_test = '0'";
+
+      $people_query = "SELECT count(contact_id)  FROM civicrm_contribution
+      WHERE contribution_page_id = %1
+      AND contribution_status_id = '1'
+      AND payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
+                                    WHERE payment_processor_type = 'Backer'
+                                    AND is_test = '0')
+      AND is_test = '0'";
+      $donationAmountSum = CRM_Core_DAO::singleValueQuery($donation_query, $params);
+      $donationPeopleSum = CRM_Core_DAO::singleValueQuery($people_query, $params);
+
+      if (!empty($donationAmountSum) && !empty($donationPeopleSum)) {
+        $data = array(
+          'people' => $donationPeopleSum,
+          'amount' => $donationAmountSum,
+        );
+        echo json_encode($data);
+        CRM_Utils_System::civiExit();
+      }
+      else {
+        $error = array(
+          'message' => 'An error occurred during processing.',
+        );
+        http_response_code(400);
+        echo json_encode($error);
+        CRM_Utils_System::civiExit();
+      }
+    }
+    else
+    {
+      $error = array(
+        'message' => 'Contribution page id is empty',
+      );
+      http_response_code(400);
+      echo json_encode($error);
+      CRM_Utils_System::civiExit();
     }
   }
 }
