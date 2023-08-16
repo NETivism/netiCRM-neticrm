@@ -2,7 +2,7 @@
   text-align: right;
   padding-top: 3px;
 }
-.progress-extends-backer a {
+.progress-extends-backer a, .progress-extends-backer a:hover {
   font-weight: bold;
   color: var(--color-crm-special-contribute-primary);
 }
