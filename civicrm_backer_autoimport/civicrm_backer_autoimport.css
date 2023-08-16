@@ -4,4 +4,5 @@
 }
 .progress-extends-backer a {
   font-weight: bold;
+  color: var(--color-crm-special-contribute-primary);
 }
