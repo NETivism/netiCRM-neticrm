@@ -13,10 +13,8 @@ function civicrm_backer_autoimport_menu() {
   $items['civicrm/contribute/stat'] = array(
     'access callback' => true,
     'page callback' => 'civicrm_backer_autoimport_get_contribution_page_info',
-    'page arguments' => array('civicrm_contribute_status'),
     'type' => MENU_CALLBACK,
     'weight' => 0,
-    'file' => 'civicrm_backer_autoimport.module',
   );
   return $items;
 }
@@ -122,7 +120,8 @@ function _civicrm_backer_autoimport_retrieve_API($url) {
  * @return array
  */
 function civicrm_backer_autoimport_get_contribution_page_info() {
-  if ($_SERVER['REQUEST_METHOD'] == "GET") {
+  civicrm_initialize();
+  if ($_SERVER['REQUEST_METHOD'] == "GET" && $_SERVER['HTTP_X_CIVICRM_ACCESS_FROM'] == "backer") {
     if (isset($_GET['id']) && is_numeric($_GET['id'])) {
       $params = array( 1 => array($_GET['id'], 'Integer')) ;
       $donation_query = "SELECT SUM(total_amount)  FROM civicrm_contribution
