@@ -239,7 +239,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         $trxn_id = $input['OrderNo'];
         if($input['Status'] != 'SUCCESS'){
           $contribution->contribution_status_id = 4; // Failed
-          $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+          $c = self::copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
         }
         else{
           $contribution->contribution_status_id = 1; // Completed
@@ -249,7 +249,7 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
           ));
           if (!$id_from_trxn_id) {
             // Trxn_id is not existed, clone contribution.
-            $c = $this->copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+            $c = self::copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
           }
           else {
             // Sync contribution from given trxn_id. Usually used as syncing a recurring contribution.
@@ -318,29 +318,6 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
     }
 
     return $pass;
-  }
-
-  function copyContribution(&$contrib, $rid, $trxn_id){
-    if(is_object($contrib)){
-      $c = clone $contrib;
-      unset($c->id);
-      unset($c->receive_date);
-      unset($c->cancel_date);
-      unset($c->cancel_reason);
-      unset($c->invoice_id);
-      unset($c->receipt_id);
-      unset($c->receipt_date);
-      $c->contribution_status_id = 2;
-      $c->trxn_id = $trxn_id;
-      $time = strtotime(self::$_input['AuthDate']);
-      $c->created_date = date('YmdHis');
-      $transaction = new CRM_Core_Transaction('READ COMMITTED');
-      $c->save();
-      $transaction->commit();
-      CRM_Contribute_BAO_ContributionRecur::syncContribute($rid, $c->id);
-      return $c;
-    }
-    return FALSE;
   }
 
   function addNote($note, &$contribution){
