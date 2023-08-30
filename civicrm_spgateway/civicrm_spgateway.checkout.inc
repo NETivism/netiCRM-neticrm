@@ -42,9 +42,11 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
       $pstatus = CRM_Event_PseudoConstant::participantStatus();
       if($new_pstatus = array_search('Pending from pay later', $pstatus)){
         CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $vars['participantID'], 'status_id', $new_pstatus, 'id');
-        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
+        $cancelled_pstatus = array_search('Cancelled', $pstatus);
+        $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1 AND status_id != %2';
         $params = array(
           1 => array($vars['participantID'], 'Integer'),
+          2 => array($cancelled_pstatus, 'Integer'),
         );
         $dao = CRM_Core_DAO::executeQuery($sql, $params);
         while($dao->fetch()){
@@ -75,7 +77,7 @@ function civicrm_spgateway_do_transfer_checkout(&$vars, &$component, &$payment_p
   if(!$contrib_values['is_recur']){
     _civicrm_spgateway_checkmacvalue($arguments, $payment_processor);
   }
-  CRM_Core_Error::debug_var('spgateway_post_data', $arguments);
+  CRM_Core_Error::debug_var('spgateway_post_data_', $arguments);
   // making redirect form
   $alter = array(
     'module' => 'civicrm_spgateway',
@@ -94,7 +96,8 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
   // url 
   $notify_url = _civicrm_spgateway_notify_url($vars, 'spgateway/ipn/'.$instrument_code, $component);
   $civi_base_url = CRM_Utils_System::currentPath();
-  $thankyou_url = url($civi_base_url, array( 'query' => array( "_qf_ThankYou_display" => "1" , "qfKey" => $vars['qfKey'], ), 'absolute' => true));
+  $params = array( "_qf_ThankYou_display" => "1" , "qfKey" => $vars['qfKey'], );
+  $thankyou_url = CRM_Utils_System::url($civi_base_url, http_build_query($params), TRUE);
 
   // parameter
   if($component == 'event' && !empty($_SESSION['CiviCRM'][$form_key])){
@@ -127,7 +130,7 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
 
   $itemDescription = $vars['description'];
   $itemDescription .= ($vars['description'] == $vars['item_name'])?'':':'.$vars['item_name'];
-  $itemDescription .= ':'.$vars['amount'];
+  $itemDescription .= ':'.floatval($vars['amount']);
   $itemDescription = preg_replace('/[^[:alnum:][:space:]]/u', ' ', $itemDescription);
 
   if(!$vars['is_recur']){
@@ -197,7 +200,12 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $args['LangType'] = 'en';
     }
-  }else{
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $args);
+  }
+  else{
     $data = array(
       'MerchantID' => $payment_processor['user_name'],
       'RespondType' => SPGATEWAY_RESPONSE_TYPE,
@@ -243,6 +251,11 @@ function _civicrm_spgateway_order(&$vars, $component, &$payment_processor, $inst
     if($language->language == 'en'){
       $data['LangType'] = 'en';
     }
+    // Use hook_civicrm_alterPaymentProcessorParams
+    $mode = $payment_processor['is_test'] ? 'test' : 'live';
+    $paymentClass = CRM_Core_Payment::singleton($mode, $payment_processor, CRM_Core_DAO::$_nullObject);
+    CRM_Utils_Hook::alterPaymentProcessorParams($paymentClass, $vars, $data);
+    // Encrypt Recurring Request.
     $str = http_build_query($data, '', '&');
     $strPost = _civicrm_spgateway_recur_encrypt($str, $payment_processor);
     $args['PostData_'] = $strPost;
@@ -322,12 +335,10 @@ function _civicrm_spgateway_notify_url(&$vars, $path, $component){
      }
   }
 
-  $url = url(
-    $path,
-    array(
-      'query'=> $query,
-      'absolute' => true,
-    )
+  $url = CRM_Utils_System::url(
+    $path, 
+    http_build_query($query), 
+    TRUE
   );
   if( ( !empty($_SERVER['HTTP_HTTPS']) && $_SERVER['HTTP_HTTPS'] == 'on' ) || ( !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ){
     return str_replace('http://', 'https://', $url);

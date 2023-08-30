@@ -41,13 +41,13 @@ function civicrm_spgateway_notify_info($cid){
       $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
     case 'CVS':
-      $help = l('» '.ts('Payment Instructions'), 'https://www.spgateway.com/info/site_description/transation_convenience', array('attributes' => array('target' => '_blank')));
+      $help = l('» '.ts('Payment Instructions'), 'https://www.newebpay.com/website/Page/content/cvs_intro', array('attributes' => array('target' => '_blank')));
       $return[ts('Convenience Store Payment Code')] = $json['CodeNo'];
       $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       $return[] = $help;
       break;
     case 'BARCODE':
-      $barcodepath = 'https://core.spgateway.com/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcodepath = SPGATEWAY_REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
       $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';

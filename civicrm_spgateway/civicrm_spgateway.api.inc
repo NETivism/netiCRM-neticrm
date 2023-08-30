@@ -32,7 +32,7 @@ class spgateway_spgateway_api {
 
 
   /**
-   * $apiParams must has these fields: 
+   * $apiParams must has these fields:
    *   apiType
    *   paymentProcessorId or paymentProcessor
    *   isTest
@@ -62,18 +62,18 @@ class spgateway_spgateway_api {
 
   /*
    *
-   * ########  ########  #######  ##     ## ########  ######  ######## 
-   * ##     ## ##       ##     ## ##     ## ##       ##    ##    ##    
-   * ##     ## ##       ##     ## ##     ## ##       ##          ##    
-   * ########  ######   ##     ## ##     ## ######    ######     ##    
-   * ##   ##   ##       ##  ## ## ##     ## ##             ##    ##    
-   * ##    ##  ##       ##    ##  ##     ## ##       ##    ##    ##    
-   * ##     ## ########  ##### ##  #######  ########  ######     ##    
+   * ########  ########  #######  ##     ## ########  ######  ########
+   * ##     ## ##       ##     ## ##     ## ##       ##    ##    ##
+   * ##     ## ##       ##     ## ##     ## ##       ##          ##
+   * ########  ######   ##     ## ##     ## ######    ######     ##
+   * ##   ##   ##       ##  ## ## ##     ## ##             ##    ##
+   * ##    ##  ##       ##    ##  ##     ## ##       ##    ##    ##
+   * ##     ## ########  ##### ##  #######  ########  ######     ##
    *
    * Required field:
    * * MerOrderNo
    * * PeriodNo
-   * 
+   *
    */
   public function request($params) {
     $allowedFields = self::fields($this->_apiType);
@@ -121,8 +121,10 @@ class spgateway_spgateway_api {
     $this->_request = $post;
     $this->_apiURL = $this->_urlDomain.self::$_apiTypes[$this->_apiType];
     $result = $this->_curlResult = $this->_curl();
+    CRM_Core_Error::debug('Spgateway_RecurChangeAPI_request', $this->_request);
     if ($result['status'] && !empty($this->_response)) {
 
+      CRM_Core_Error::debug('Spgateway_RecurChangeAPI_response', $this->_response);
       // Curl Correct and have response
 
       if ($this->_response->Status == 'SUCCESS') {
@@ -157,12 +159,22 @@ class spgateway_spgateway_api {
         if (!empty($apiResult->NewNextTime)) {
           $recurResult['next_sched_contribution'] = $apiResult->NewNextTime;
         }
+        if (!empty($apiResult->PeriodTimes)) {
+          $recurResult['installments'] = $apiResult->PeriodTimes;
+        }
 
+        return $recurResult;
+      }
+      else if ( in_array($this->_response->Status, array('PER10061', 'PER10063', 'PER10062', 'PER10064')) ) {
+        // Refs #30842, Status is already changed in NewebPay.
+        $recurResult['response_status'] = $this->_response->Status;
+        $recurResult['msg'] = $recurResult['note_body'] = ts('NewebPay response:') . $this->_response->Message;
         return $recurResult;
       }
       else {
         $errResult['is_error'] = 1;
         $errResult['msg'] = $this->_response->Status.': '.$this->_response->Message;
+        CRM_Core_Error::debug('Spgateway_RecurChangeAPI_errResult', $errResult);
         return $errResult;
       }
 
@@ -191,15 +203,15 @@ class spgateway_spgateway_api {
   }
 
   /*
-   * 
-   *  ######  ##     ## ########  ##       
-   * ##    ## ##     ## ##     ## ##       
-   * ##       ##     ## ##     ## ##       
-   * ##       ##     ## ########  ##       
-   * ##       ##     ## ##   ##   ##       
-   * ##    ## ##     ## ##    ##  ##       
-   *  ######   #######  ##     ## ######## 
-   * 
+   *
+   *  ######  ##     ## ########  ##
+   * ##    ## ##     ## ##     ## ##
+   * ##       ##     ## ##     ## ##
+   * ##       ##     ## ########  ##
+   * ##       ##     ## ##   ##   ##
+   * ##    ## ##     ## ##    ##  ##
+   *  ######   #######  ##     ## ########
+   *
    */
   private function _curl() {
     $this->_success = FALSE;
@@ -276,13 +288,13 @@ class spgateway_spgateway_api {
 
   /*
    *
-   * ########  ########  ######   #######  ########  ########  
-   * ##     ## ##       ##    ## ##     ## ##     ## ##     ## 
-   * ##     ## ##       ##       ##     ## ##     ## ##     ## 
-   * ########  ######   ##       ##     ## ########  ##     ## 
-   * ##   ##   ##       ##       ##     ## ##   ##   ##     ## 
-   * ##    ##  ##       ##    ## ##     ## ##    ##  ##     ## 
-   * ##     ## ########  ######   #######  ##     ## ########  
+   * ########  ########  ######   #######  ########  ########
+   * ##     ## ##       ##    ## ##     ## ##     ## ##     ##
+   * ##     ## ##       ##       ##     ## ##     ## ##     ##
+   * ########  ######   ##       ##     ## ########  ##     ##
+   * ##   ##   ##       ##       ##     ## ##   ##   ##     ##
+   * ##    ##  ##       ##    ## ##     ## ##    ##  ##     ##
+   * ##     ## ########  ######   #######  ##     ## ########
    *
    */
   public function writeRecord($logId, $data) {
