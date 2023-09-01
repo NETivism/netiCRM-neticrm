@@ -64,13 +64,13 @@ if ($odecrypt === $str) {
 echo "\n\n";
 
 echo "===============BEGIN SPGATEWAY TEST================\n";
-if (!function_exists('_civicrm_spgateway_encrypt')) {
+if (!function_exists('CRM_Core_Payment_SPGATEWAYAPI::encrypt')) {
   echo "Warning: You should use 'drush scr encryptiontest.inc' to run test below\n";
   echo "Exit program\n";
   exit();
 }
-$mcrypt = _civicrm_spgateway_encrypt($key, $iv, $str, 'mcrypt');
-$ocrypt = _civicrm_spgateway_encrypt($key, $iv, $str, 'openssl');
+$mcrypt = CRM_Core_Payment_SPGATEWAYAPI::encrypt($key, $iv, $str, 'mcrypt');
+$ocrypt = CRM_Core_Payment_SPGATEWAYAPI::encrypt($key, $iv, $str, 'openssl');
 echo $mcrypt."\n";
 echo $ocrypt."\n";
 if ($ocrypt === $mcrypt) {
@@ -81,8 +81,8 @@ else {
 }
 
 
-$mdecrypted = _civicrm_spgateway_decrypt($key, $iv, $mcrypt, 'mcrypt');
-$odecrypted = _civicrm_spgateway_decrypt($key, $iv, $ocrypt, 'openssl');
+$mdecrypted = CRM_Core_Payment_SPGATEWAYAPI::decrypt($key, $iv, $mcrypt, 'mcrypt');
+$odecrypted = CRM_Core_Payment_SPGATEWAYAPI::decrypt($key, $iv, $ocrypt, 'openssl');
 if ($mdecrypted === $odecrypted) {
   echo "### BOTH decryption have same result! ####\n";
 }

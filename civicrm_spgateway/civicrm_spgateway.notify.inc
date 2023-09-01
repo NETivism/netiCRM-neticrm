@@ -30,7 +30,7 @@ function civicrm_spgateway_notify_bytrxn($trxn_id){
 
 function civicrm_spgateway_notify_info($cid){
   $data = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
-  $json = _civicrm_spgateway_post_decode($data);
+  $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($data);
   $type = $json['PaymentType'];
   $return = array();
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
@@ -47,7 +47,7 @@ function civicrm_spgateway_notify_info($cid){
       $return[] = $help;
       break;
     case 'BARCODE':
-      $barcodepath = SPGATEWAY_REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcodepath = CRM_Core_Payment_SPGATEWAY::REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
       $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';

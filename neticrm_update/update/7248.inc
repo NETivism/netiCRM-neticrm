@@ -42,7 +42,7 @@ function _neticrm_update_update_7248($force = false) {
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_spgateway} WHERE data IS NOT NULL");
     while($result = $query->fetchObject()){
       $expire_date = NULL;
-      $data = _civicrm_spgateway_post_decode($result->data);
+      $data = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($result->data);
       if(!empty($data['ExpireDate'])){
         $expire_date = $data['ExpireDate'].' 23:59:59';
       }

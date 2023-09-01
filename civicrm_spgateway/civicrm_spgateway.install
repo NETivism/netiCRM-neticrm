@@ -46,7 +46,7 @@ function civicrm_spgateway_install() {
 
   // new payment instrument
   include_once "civicrm_spgateway.module";
-  $new_instrument = _civicrm_spgateway_instrument();
+  $new_instrument = CRM_Core_Payment_SPGATEWAY::instruments();
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
   $next = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE option_group_id = {$gid} ORDER BY value DESC");
   

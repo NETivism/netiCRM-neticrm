@@ -770,7 +770,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif(strstr($processor_type, 'SPGATEWAY')){
-    $enabled_instruments = _civicrm_spgateway_instrument();
+    $enabled_instruments = CRM_Core_Payment_SPGATEWAY::instruments();
     $enabled_instruments = array_intersect_key($all_instruments, $enabled_instruments);
     if($processor_type == 'SPGATEWAY'){
       $credit_card = $enabled_instruments['Credit Card'];
