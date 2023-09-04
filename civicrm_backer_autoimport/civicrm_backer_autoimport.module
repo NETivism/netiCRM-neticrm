@@ -11,12 +11,10 @@ function civicrm_backer_autoimport_menu() {
     'file' => 'civicrm_backer_autoimport.ipn.inc',
   );
   $items['civicrm/contribute/stat'] = array(
-    'access callback' => true,
+    'access callback' => 'civicrm_backer_autoimport_check_contribution_page',
     'page callback' => 'civicrm_backer_autoimport_get_contribution_page_info',
-    'page arguments' => array('civicrm_contribute_status'),
     'type' => MENU_CALLBACK,
     'weight' => 0,
-    'file' => 'civicrm_backer_autoimport.module',
   );
   return $items;
 }
@@ -122,7 +120,8 @@ function _civicrm_backer_autoimport_retrieve_API($url) {
  * @return array
  */
 function civicrm_backer_autoimport_get_contribution_page_info() {
-  if ($_SERVER['REQUEST_METHOD'] == "GET") {
+  civicrm_initialize();
+  if ($_SERVER['REQUEST_METHOD'] == "GET" && $_SERVER['HTTP_X_CIVICRM_ACCESS_FROM'] == "backer") {
     if (isset($_GET['id']) && is_numeric($_GET['id'])) {
       $params = array( 1 => array($_GET['id'], 'Integer')) ;
       $donation_query = "SELECT SUM(total_amount)  FROM civicrm_contribution
@@ -168,6 +167,30 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
       http_response_code(400);
       echo json_encode($error);
       CRM_Utils_System::civiExit();
+    }
+  }
+}
+
+/**
+ * This function is used to check contribution page have 'Backer' payment or not
+ *
+ * @return boolean: true if success, else false
+ */
+function civicrm_backer_autoimport_check_contribution_page() {
+  civicrm_initialize();
+  //Get contribution page id that use backer payment
+  $pageIds = array();
+  $sql = "SELECT user_name FROM civicrm_payment_processor WHERE payment_processor_type = 'Backer' AND is_test = '0'";
+  $dao = CRM_Core_DAO::executeQuery($sql);
+  while ($dao->fetch()) {
+    $pageIds[] = $dao->user_name;
+  }
+  if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+    if (in_array($_GET['id'],$pageIds)) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
     }
   }
 }
