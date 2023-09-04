@@ -37,27 +37,6 @@ function civicrm_spgateway_menu(){
  */
 function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
   switch($form_name){
-    case 'CRM_Contribute_Form_Contribution_Main':
-    case 'CRM_Event_Form_Registration_Register':
-      $session = CRM_Core_Session::singleton();
-      $submitted = $session->get('submitted');
-      $session->set('submitted', FALSE);
-      if($submitted){
-        if($_SESSION['spgateway']['instrument'] == 'Credit'){
-          drupal_set_message(t("This message indicate your last payment may not success because you didn't submit credit card information. If you are sure you have completed the transaction, please contact us. Otherwise, you can retry again."), 'error');
-        }
-        else{
-          drupal_set_message(t("You just submit a payment. You may want to check your email to follow payment instruction, or try submit this form again."), 'error');
-        }
-      }
-      if(isset($_GET['id']) && $_GET['id']!== NULL){
-        $parsed = parse_url($_SERVER['REQUEST_URI']);
-        $_SESSION['spgateway'] = array(
-          'path' => $_GET['q'],
-          'query' => $parsed['query'],
-        );
-      }
-      break;
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
       if(!preg_match("/SPGATEWAY/",$form->_paymentProcessor['payment_processor_type'])){
@@ -127,7 +106,6 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
-      unset($_SESSION['spgateway']);
       break;
   }
 }
@@ -267,8 +245,7 @@ function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActiv
 }
 
 function civicrm_spgateway_mobile_checkout($type, $post, $objects){
-  module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.checkout');
-  $return = _civicrm_spgateway_mobile_checkout($type, $post, $objects);
+  $return = CRM_Core_Payment_SPGATEWAY::mobileCheckout($type, $post, $objects);
   return $return;
 }
 
