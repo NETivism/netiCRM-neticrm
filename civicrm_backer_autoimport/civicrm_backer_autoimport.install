@@ -43,4 +43,43 @@ function civicrm_backer_autoimport_install() {
     'backerFounderRelationship' => $rtypeId,
   );
   CRM_Core_BAO_ConfigSetting::add($params);
+
+  // Add backer custom receipt options. Refs #38459.
+  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $config = CRM_Core_Config::singleton();
+  $fieldId = $config->receiptYesNo;
+  $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
+  $params = array( 1 => array($fieldId, 'Positive'));
+  $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
+  foreach ($backerReceiptOptions as $option_value => $option_lebel) {
+    $optionValue = new CRM_Core_DAO_OptionValue();
+    $optionValue->option_group_id = $groupId;
+    $optionValue->value = $option_value;
+    $optionValue->label = $option_lebel;
+    $optionValue->weight = 1000;
+    $optionValue->is_active = 0;
+    $optionValue->save();
+  }
+}
+
+/**
+ * Add backer custom receipt options. Refs #38459.
+ */
+function civicrm_backer_autoimport_update_7101(){
+  civicrm_initialize();
+  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $config = CRM_Core_Config::singleton();
+  $fieldId = $config->receiptYesNo;
+  $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
+  $params = array( 1 => array($fieldId, 'Positive'));
+  $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
+  foreach ($backerReceiptOptions as $option_value => $option_lebel) {
+    $optionValue = new CRM_Core_DAO_OptionValue();
+    $optionValue->option_group_id = $groupId;
+    $optionValue->value = $option_value;
+    $optionValue->label = $option_lebel;
+    $optionValue->weight = 1000;
+    $optionValue->is_active = 0;
+    $optionValue->save();
+  }
 }
