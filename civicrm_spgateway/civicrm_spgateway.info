@@ -4,4 +4,4 @@ package = NetiCRM Payment Method
 dependencies[] = civicrm
 dependencies[] = civicrm_instrument
 core = 7.x
-version = 7.x-1.1
+version = 7.x-1.2

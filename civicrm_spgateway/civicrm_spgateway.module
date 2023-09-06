@@ -1,16 +1,4 @@
 <?php
-define('SPGATEWAY_EXPIRE_DAY', 7);
-define('SPGATEWAY_MAX_EXPIRE_DAY', 180);
-define('SPGATEWAY_RESPONSE_TYPE', 'JSON');
-define('SPGATEWAY_MPG_VERSION','1.2');
-define('SPGATEWAY_RECUR_VERSION','1.0');
-define('SPGATEWAY_QUERY_VERSION','1.1');
-define('SPGATEWAY_REAL_DOMAIN', 'https://core.newebpay.com');
-define('SPGATEWAY_TEST_DOMAIN', 'https://ccore.newebpay.com');
-define('SPGATEWAY_URL_SITE', '/MPG/mpg_gateway');
-define('SPGATEWAY_URL_API', '/API/QueryTradeInfo');
-define('SPGATEWAY_URL_RECUR', '/MPG/period');
-define('SPGATEWAY_URL_CREDITBG', "/API/CreditCard");
 
 /**
  * Implementation of hook_init()
@@ -22,54 +10,10 @@ function civicrm_spgateway_init(){
 }
 
 /**
- * Implementation of hook_menu()
- */
-function civicrm_spgateway_menu(){
-  return array(
-    'spgateway/ipn/%' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_spgateway_ipn',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_spgateway.ipn.inc',
-    ),
-    'spgateway/neweb-transfer' => array(
-      'access callback' => true,
-      'page callback' => 'civicrm_spgateway_neweb_transfer',
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_spgateway.neweb.inc',
-    ),
-  );
-}
-
-/**
  * Implementation of hook_civicrm_buildForm()
  */
 function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
   switch($form_name){
-    case 'CRM_Contribute_Form_Contribution_Main':
-    case 'CRM_Event_Form_Registration_Register':
-      $session = CRM_Core_Session::singleton();
-      $submitted = $session->get('submitted');
-      $session->set('submitted', FALSE);
-      if($submitted){
-        if($_SESSION['spgateway']['instrument'] == 'Credit'){
-          drupal_set_message(t("This message indicate your last payment may not success because you didn't submit credit card information. If you are sure you have completed the transaction, please contact us. Otherwise, you can retry again."), 'error');
-        }
-        else{
-          drupal_set_message(t("You just submit a payment. You may want to check your email to follow payment instruction, or try submit this form again."), 'error');
-        }
-      }
-      if(isset($_GET['id']) && $_GET['id']!== NULL){
-        $parsed = parse_url($_SERVER['REQUEST_URI']);
-        $_SESSION['spgateway'] = array(
-          'path' => $_GET['q'],
-          'query' => $parsed['query'],
-        );
-      }
-      break;
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
       if(!preg_match("/SPGATEWAY/",$form->_paymentProcessor['payment_processor_type'])){
@@ -77,13 +21,13 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       $msg = NULL;
       $status = 2; // Pending
-      $params = array();
+      $params = $return_params = array();
       if (!empty($form->_submitValues['JSONData'])) {
-        $return_params = _civicrm_spgateway_post_decode($form->_submitValues['JSONData']);
+        $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($form->_submitValues['JSONData']);
       }
       if(!empty($form->_submitValues['Period']) && empty($return_params)){
-        $return_params_decrypt = _civicrm_spgateway_recur_decrypt($form->_submitValues['Period'], $form->_paymentProcessor);
-        $return_params = _civicrm_spgateway_post_decode($return_params_decrypt);
+        $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['Period'], $form->_paymentProcessor);
+        $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
       }
       CRM_Core_Error::debug_var('Neweb Notify Post Params', $return_params);
       // Credit card have result immediately
@@ -113,7 +57,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
-          civicrm_spgateway_record($contrib_values['id'], $_POST);
+          CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $_POST);
         }
 
         if(!empty($saved_params['trxn_id'])){
@@ -139,7 +83,6 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
         }
       }
-      unset($_SESSION['spgateway']);
       break;
   }
 }
@@ -177,116 +120,108 @@ function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams)
     WHERE c.id = $contribution_id";
   $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
   if(preg_match('/SPGATEWAY/', $payment_process_type)){
-    module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
     $tplParams = civicrm_spgateway_notify_generate($contribution_id, FALSE);
   }
 }
 
+function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
+  civicrm_initialize();
+  $info = civicrm_spgateway_notify_info($cid);
+  if(!empty($info)){
+    $info['display'] = civicrm_spgateway_notify_display($info);
+    if($info['#type'] == 'BARCODE'){
+      $info['has_receipt'] = 1;
+      $info['display'] = civicrm_spgateway_notify_display_barcode($info);
+    }
 
-function civicrm_spgateway_error(){
-  $msg = $_SESSION['spgateway']['error'];
-  if(!count($msg)){
-    drupal_access_denied();
+    if($send_mail){
+      $message = '';
+      CRM_Contribute_BAO_Contribution::getInvoice($cid, $info, $message, $send_mail);
+    }
+    else{
+      return $info;
+    }
   }
-  $output .= '<div class="spgateway-error">';
-  $output .= '<div class="spgateway-error-first">'.array_shift($msg).'</div>';
-  foreach($msg as $m){
-    $items[] = $m;
+}
+
+function civicrm_spgateway_notify_bytrxn($trxn_id){
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", array(
+    1 => array($trxn_id, 'String'),
+    2 => array($trxn_id.'_1', 'String'),
+  ));
+  return civicrm_spgateway_notify_info($cid);
+}
+
+function civicrm_spgateway_notify_info($cid){
+  $data = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
+  $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($data);
+  $type = $json['PaymentType'];
+  $return = array();
+  $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
+  switch($type){
+    case 'VACC':
+      $return[ts('Bank code')] = $json['BankCode'];
+      $return[ts('Virtual account number')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
+    case 'CVS':
+      $help = l('» '.ts('Payment Instructions'), 'https://www.newebpay.com/website/Page/content/cvs_intro', array('attributes' => array('target' => '_blank')));
+      $return[ts('Convenience Store Payment Code')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $return[] = $help;
+      break;
+    case 'BARCODE':
+      $barcodepath = CRM_Core_Payment_SPGATEWAY::REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
+      foreach($barcode as $k => $b){
+        $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
+      }
+      $return[ts('Payment slip')] = '<a href="'.$invoice_link.'" target="_blank">» '.ts('Print payment slip').'</a>';
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
   }
-  $output .= theme('item_list', array('items' => $items));
-  $output .= '</div>';
+  if(!empty($return)){
+    $return['#type'] = $type;
+    $return['#expire'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+    $return['#invoice'] = $invoice_link;
+    return $return;
+  }
+
+  // error fallback
+  return array();
+}
+
+function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL){
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  $output = '';
+  foreach($info as $label => $value){
+    if(preg_match('/^#/', $label)){
+      continue;
+    }
+    elseif(is_numeric($label)){
+      $output .= '<dd>'.' <span>'.$value.'</span></dd>';
+    }
+    else{
+      $output .= '<dd><label>'.$label.':</label>'.' <span>'.$value.'</span></dd>';
+    }
+  }
+  $payment_instrument = !empty($payment_instrument_id) ? '<strong>'.$instruments[$payment_instrument_id].'</strong>' : '';
+  $output = $payment_instrument.'<dl>'.$output.'</dl>';
   return $output;
 }
 
-function _civicrm_spgateway_instrument($type = 'normal'){
-  $i = array(
-    'Credit Card' => array('label' => '信用卡', 'desc' => '', 'code' => 'Credit'),
-    'ATM' => array('label' => 'ATM 轉帳', 'desc' => '', 'code' => 'ATM'),
-    'Web ATM' => array('label' => 'Web ATM', 'desc' => '', 'code' => 'WebATM'),
-    'Convenient Store' => array('label' => '超商條碼繳費', 'desc'=>'', 'code' => 'BARCODE'),
-    'Convenient Store (Code)' => array('label'=>'超商代碼','desc' => '', 'code' => 'CVS'),
-  );
-  if($type == 'form_name'){
-    foreach($i as $name => $data){
-      $form_name = preg_replace('/[^0-9a-z]+/i', '_', strtolower($name));
-      $instrument[$form_name] = $data;
+function civicrm_spgateway_notify_display_barcode($info){
+  $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">代收店舖章</div>';
+  foreach($info as $label => $v){
+    if(preg_match('/^#barcode/', $label)){
+      $output .= '<div>'.$v.'</div>';
     }
-    return $instrument;
   }
-  elseif($type == 'code'){
-    foreach($i as $name =>  $data){
-      $instrument[$name] = $data['code'];
-    }
-    return $instrument;
-  }
-  else{
-    return $i;
-  }
+  $output .= '<p><label>'.ts('Payment deadline').':</label> <span>'.$info['#expire'].'</span></p>';
+  $output .= '<p><span style="font-size: 9px;">'.ts('Note: Payment confirmation takes 3-4 working days.').'</span></p>';
+  return $output;
 }
 
-/**
- * Help function for generate post string
- */
-function _civicrm_spgateway_vars2str($post){
-  $array = array();
-  foreach($post as $name => $value){
-    if($value){
-      $array[] = $name."=".urlencode($value);
-    }
-  }
-  return implode('&', $array);
-}
-
-function civicrm_spgateway_record($cid, $data = null){
-  if(is_numeric($cid)){
-    if(empty($data) && !empty($_POST)){
-      $data = $_POST;
-    }
-
-    if(!empty($data['JSONData'])){
-      $data = $data['JSONData'];
-    }
-    // $json = $data['JSONData'];
-    $exists = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject();
-    if(!empty($exists->data)){
-      if($exists->data == $data){
-        watchdog('civicrm_spgateway', "Data is exists which cid = $cid, but data = $exists .");
-      }else{
-        watchdog('civicrm_spgateway', "Data is exists which cid = $cid, and data is the same.");
-      }
-    }
-    $record = array(
-      'cid' => $cid,
-      'data' => json_encode($data),
-    );
-    // update
-    if(db_query("SELECT cid FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchObject()){
-      drupal_write_record('civicrm_contribution_spgateway', $record, 'cid');
-    }
-    else{
-      drupal_write_record('civicrm_contribution_spgateway', $record);
-    }
-
-    // Set expire time
-    $dataObj = _civicrm_spgateway_post_decode($data);
-    if(!empty($dataObj['ExpireDate'])){
-      $expire_date = $dataObj['ExpireDate'];
-      if(!empty($dataObj['ExpireTime'])){
-        $expire_date .= ' '.$dataObj['ExpireTime'];
-      }else{
-        $expire_date .= ' 23:59:59';
-      }
-    }
-    if(!empty($expire_date)){
-      $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
-      $params = array(
-        1 => array( $expire_date, 'String'),
-        2 => array( $cid, 'Integer'),
-      );
-      CRM_Core_DAO::executeQuery($sql, $params);
-    }
-  }
-}
 
 function civicrm_spgateway_cron() {
   if (!empty(variable_get('maintenance_mode', ''))) {
@@ -303,8 +238,7 @@ function civicrm_spgateway_cron() {
     $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
     $dao = CRM_Core_DAO::executeQuery($query);
     while($dao->fetch()) {
-      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
-      civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+      CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
     }
 
     variable_set('civicrm_spgateway_recur_sync', $now);
@@ -363,7 +297,7 @@ function civicrm_spgateway_recur_sync($days = array()){
     while($result->fetch()){
       if(empty($result->contribution_count)){
         // check if is next day of expect recurring
-        civicrm_spgateway_recur_check($result->id);
+        CRM_Core_Payment_SPGATEWAY::recurSync($result->id);
         usleep(300000); // sleep 0.3 second
       }
     }
@@ -371,261 +305,6 @@ function civicrm_spgateway_recur_sync($days = array()){
     $result = NULL;
   }
 }
-
-/**
- * Always trying to fetch next trxn_id which not appear in CRM
- */
-function civicrm_spgateway_recur_check($recurring_id) {
-  civicrm_initialize();
-  module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
-   
-  // get latest trxn_id civicrm_contribution
-  // whatever contribution success or not, trxn_id will increase number
-  // we dont limit recurring status to make sure when ever recurring stopped, we still can syncronize contribution
-  $query = "SELECT trxn_id, CAST(REGEXP_REPLACE(trxn_id, '^[0-9]+_?', '') as UNSIGNED) as number FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY number DESC";
-  $result = CRM_Core_DAO::executeQuery($query, array(1 => array($recurring_id, 'Integer')));
-  $result->fetch();
-  if(!empty($result->N)){
-    // when recurring trxn_id have underline, eg oooo_1
-    if (strstr($result->trxn_id, '_')) {
-      list($parent_trxn_id, $recurring_installment) = explode('_', $result->trxn_id);
-      if (is_numeric($recurring_installment)) {
-        $recurring_installment++;
-        civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
-      }
-    }
-    // when first recurring trxn_id record without underline
-    else {
-      $parent_trxn_id = $result->trxn_id;
-      $recurring_installment = 2;
-      civicrm_spgateway_single_check($parent_trxn_id, $create_contribution = TRUE);
-    }
-  }
-}
-
-/**
- * For sync single contrib of recurring contribution.
- */
-function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, $order = NULL) {
-  $parent_trxn_id = 0;
-  $payment_processor_id = 0;
-  if (strstr($trxn_id, '_')) {
-    list($parent_trxn_id, $recurring_installment) = explode('_', $trxn_id);
-  }
-  $contribution = new CRM_Contribute_DAO_Contribution();
-  $contribution->trxn_id = $trxn_id;
-  if ($contribution->find(TRUE)) {
-    $payment_processor_id = $contribution->payment_processor_id;
-    if ($contribution->contribution_status_id == 1) {
-      $create_contribution = FALSE; // Found, And contribution is already success.
-    }
-    elseif (empty($parent_trxn_id) && $create_contribution) {
-      // First recurring or single contribution.
-      $contribution = new CRM_Contribute_DAO_Contribution();
-      $contribution->id = $trxn_id;
-      if ($contribution->find(TRUE)) {
-        $payment_processor_id = $contribution->payment_processor_id;
-        if (!empty($contribution->contribution_recur_id)) {
-          // First recurring contribution
-          $trxn_id = $trxn_id.'_1';
-        }
-      }
-    }
-  }
-  elseif($create_contribution) {
-    // recurring contribution
-    if ($parent_trxn_id) {
-      $contribution = new CRM_Contribute_DAO_Contribution();
-      $contribution->trxn_id = $parent_trxn_id.'_1';
-      if ($contribution->find(TRUE)) {
-        $payment_processor_id = $contribution->payment_processor_id;
-      }
-      else {
-        $contribution = new CRM_Contribute_DAO_Contribution();
-        $contribution->trxn_id = $parent_trxn_id;
-        if ($contribution->find(TRUE)) {
-          $payment_processor_id = $contribution->payment_processor_id;
-        }
-      }
-    }
-  }
-
-  // we can't support single contribution check because lake of payment processor id #TODO - logic to get payment processor id
-  if (!empty($payment_processor_id)) {
-    $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($payment_processor_id, $contribution->is_test ? 'test': 'live');
-
-    if (!empty($payment_processor['user_name'])) {
-      if ($order) {
-        // this is for ci testing or something we already had response
-        // should be object or associated array
-        $result = $order;
-      }
-      else {
-        $amount = CRM_Core_DAO::singleValueQuery('SELECT amount FROM civicrm_contribution_recur WHERE id = %1', array(1 => array($contribution->contribution_recur_id, 'Positive')));
-        $request_data = array(
-          'Amt' => floor($amount),
-          'MerchantID' => $payment_processor['user_name'],
-          'MerchantOrderNo' => $trxn_id,
-          'RespondType' => SPGATEWAY_RESPONSE_TYPE,
-          'TimeStamp' => REQUEST_TIME,
-          'Version' => SPGATEWAY_QUERY_VERSION,
-        );
-        $used_args = array('IV','Amt','MerchantID','MerchantOrderNo', 'Key');
-        _civicrm_spgateway_encode($request_data, $payment_processor, $used_args);
-        $urlApi = $contribution->is_test ? SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_API : SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_API;
-        $result = _civicrm_spgateway_postdata($urlApi, $request_data);
-      }
-
-      // Online contribution
-      if (!empty($result) && $result->Status == 'SUCCESS') {
-        if ($create_contribution && $contribution->id) {
-          // complex part to simulate spgateway ipn
-          $ipn_get = $ipn_post = array();
-
-          // prepare post, complex logic because recurring have different variable names
-          $ipn_result = clone $result;
-          if ($result->Result->TradeStatus != 1) {
-            $ipn_result->Status =$result->Result->RespondCode;
-          }
-          $ipn_result->Message = $result->Result->RespondMsg;
-
-          $ipn_result->Result->AuthAmt = $result->Result->Amt;
-          unset($ipn_result->Result->Amt);
-          unset($ipn_result->Result->CheckCode);
-          $ipn_result->Result->OrderNo = $result->Result->MerchantOrderNo;
-          list($first_id, $period_times) = explode('_', $result->Result->MerchantOrderNo);
-          if(!empty($period_times) && $period_times != 1){
-            $ipn_result->Result->AlreadyTimes = $period_times;
-          }
-          $ipn_result->Result->MerchantOrderNo = $first_id;
-          $ipn_result = json_encode($ipn_result);
-          $ipn_post = array('Period' => _civicrm_spgateway_recur_encrypt($ipn_result, $payment_processor));
-
-          // prepare get
-          $ids = CRM_Contribute_BAO_Contribution::buildIds($contribution->id);
-          $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
-          parse_str($query, $ipn_get);
-
-          // create recurring record
-          $result->_post = $ipn_post;
-          $result->_get = $ipn_get;
-          module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
-          $result->_response = civicrm_spgateway_ipn('Credit', $ipn_post, $ipn_get, FALSE);
-          $contribution = new CRM_Contribute_DAO_Contribution();
-          $contribution->trxn_id = $parent_trxn_id;
-          if ($contribution->find(TRUE) && strstr($trxn_id, '_1')) {
-            // The case first contribution trxn_id not append '_1' in the end.
-            CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
-          }
-          return $result;
-        }
-        else {
-          return $result;
-        }
-      }
-    }
-  }
-  return FALSE;
-}
-
-/**
- * For sync single contribution (Non-recurring).
- * 
- */
-function civicrm_spgateway_single_contribution_sync($input_trxn_id) {
-  $payment_processor_id = 0;
-
-  // Check contribution is exists
-  $contribution = new CRM_Contribute_DAO_Contribution();
-  $contribution->trxn_id = $input_trxn_id;
-  if ($contribution->find(TRUE)) {
-    $payment_processor_id = $contribution->payment_processor_id;
-    if ($contribution->contribution_status_id == 1) {
-      $message = ts('There are no any change.');
-      return $message;
-    }
-  }
-  // we can't support single contribution check because lake of payment processor id #TODO - logic to get payment processor id
-  if (!empty($payment_processor_id)) {
-    $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($payment_processor_id, $contribution->is_test ? 'test': 'live');
-
-    if (strstr($payment_processor['payment_processor_type'], 'SPGATEWAY') && !empty($payment_processor['user_name'])) {
-      $amount = $contribution->total_amount;
-      if ($contribution->contribution_recur_id && !strstr($input_trxn_id, '_')) {
-        $trxn_id = $input_trxn_id.'_1';
-        $recurring_first_contribution = TRUE;
-      }
-      else {
-        $trxn_id = $input_trxn_id;
-      }
-      $request_data = array(
-        'Amt' => floor($amount),
-        'MerchantID' => $payment_processor['user_name'],
-        'MerchantOrderNo' => $trxn_id,
-        'RespondType' => SPGATEWAY_RESPONSE_TYPE,
-        'TimeStamp' => REQUEST_TIME,
-        'Version' => SPGATEWAY_QUERY_VERSION,
-      );
-      $used_args = array('IV','Amt','MerchantID','MerchantOrderNo', 'Key');
-      _civicrm_spgateway_encode($request_data, $payment_processor, $used_args);
-      $urlApi = $contribution->is_test ? SPGATEWAY_TEST_DOMAIN.SPGATEWAY_URL_API : SPGATEWAY_REAL_DOMAIN.SPGATEWAY_URL_API;
-      $result = _civicrm_spgateway_postdata($urlApi, $request_data);
-
-      // Online contribution
-      // Only trigger if there are pay time in result;
-      if (!empty($result) && $result->Status == 'SUCCESS' && $result->Result->TradeStatus !== '0') {
-        // complex part to simulate spgateway ipn
-        $ipn_get = $ipn_post = array();
-
-        // prepare post, complex logic because recurring have different variable names
-        $ipn_result = clone $result;
-        if ($result->Result->TradeStatus != 1) {
-          $ipn_result->Status =$result->Result->RespondCode;
-        }
-        $ipn_result->Message = $result->Result->RespondMsg;
-        // Pass CheckCode.
-        unset($ipn_result->Result->CheckCode);
-        $ipn_post = (array) $ipn_result;
-
-        if ($contribution->contribution_recur_id) {
-          $ipn_result->Result->AuthAmt = $result->Result->Amt;
-          unset($ipn_result->Result->Amt);
-          $ipn_result->Result->OrderNo = $result->Result->MerchantOrderNo;
-          list($first_id, $period_times) = explode('_', $result->Result->MerchantOrderNo);
-          if(!empty($period_times) && $period_times != 1){
-            $ipn_result->Result->AlreadyTimes = $period_times;
-          }
-          $ipn_result->Result->MerchantOrderNo = $first_id;
-          $ipn_result = json_encode($ipn_result);
-          $ipn_post = array('Period' => _civicrm_spgateway_recur_encrypt($ipn_result, $payment_processor));
-        }
-
-        // prepare get
-        $ids = CRM_Contribute_BAO_Contribution::buildIds($contribution->id);
-        $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, TRUE);
-        parse_str($query, $ipn_get);
-
-        // create recurring record
-        $result->_post = $ipn_post;
-        $result->_get = $ipn_get;
-        module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
-        $result->_response = civicrm_spgateway_ipn('Credit', $result->_post, $result->_get, FALSE);
-
-        if ($recurring_first_contribution) {
-          $contribution = new CRM_Contribute_DAO_Contribution();
-          $contribution->trxn_id = $input_trxn_id;
-          if ($contribution->find(TRUE) && strstr($trxn_id, '_1')) {
-            // The case first contribution trxn_id not append '_1' in the end.
-            CRM_Core_DAO::setFieldValue('CRM_Contribute_DAO_Contribution', $contribution->id, 'trxn_id', $trxn_id);
-          }
-        }
-        return $result;
-      }
-    }
-  }
-  return FALSE;
-}
-
 
 function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActive) {
   if ($recordBAO == 'CRM_Contribute_BAO_ContributionRecur' && empty($isActive)) {
@@ -639,203 +318,8 @@ function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActiv
   }
 }
 
-/**
- * return Array;
- */
-function _civicrm_spgateway_post_decode($post = null){
-  $data = empty($post) ? $_POST : $post;
-  if (is_object($data)) {
-    $data = (array) $data;
-  }
-  if (is_array($data) && !empty($data['JSONData'])){
-    // decode JSONData
-    $data = $data['JSONData'];
-  }
-  if (is_string($data) && json_decode($data)){
-    $data = json_decode($data, TRUE);
-    if (is_string($data) && json_decode($data)) {
-      // Sometimes, neweb will return 2 times encode json.
-      $data = json_decode($data, TRUE);
-    }
-  }
-
-  $return = $data;
-
-  // flatten the jsonData object to 1-dimension array.
-  if(isset($data['Result'])){
-    if(is_string($data['Result']) && json_decode($data['Result'], true)){
-      $return = $dataResult = json_decode($data['Result'], true);
-    }
-    else {
-      $return = $dataResult = (array) $data['Result'];
-    }
-    if (!empty($data['Status'])) {
-      if (empty($return['Status'])) {
-        $return['Status'] = $data['Status'];
-        // status is in origin data, not in 'Result' object.
-      }
-      else {
-        $return['_RequestStatus'] = $data['Status'];
-        // The condition jsonData status is success, but the error status is in 'Result' attribute.
-      }
-    }
-    if (empty($dataResult['Message']) && !empty($data['Message'])) {
-      // 'Result' has no 'Message', use original 'Message'.
-      $return['Message'] = $data['Message'];
-    }
-  }
-  return $return;
-}
-
-function _civicrm_spgateway_checkmacvalue(&$args, $payment_processor){
-  $used_args = array('HashKey','Amt','MerchantID','MerchantOrderNo','TimeStamp','Version','HashIV');
-  return _civicrm_spgateway_encode($args, $payment_processor, $used_args);
-}
-
-function _civicrm_spgateway_checkcode(&$args, $payment_processor){
-  $used_args = array('HashIV','Amt','MerchantID','MerchantOrderNo','TradeNo','HashKey');
-  return _civicrm_spgateway_encode($args, $payment_processor, $used_args);
-}
-
-function _civicrm_spgateway_recur_encrypt($str, $payment_processor){
-  $key = $payment_processor['password'];
-  $iv = $payment_processor['signature'];
-  _civicrm_spgateway_checkKeyIV($key);
-  _civicrm_spgateway_checkKeyIV($iv);
-  $str = trim(_civicrm_spgateway_encrypt($key, $iv, $str));
-  return $str;
-}
-
-function _civicrm_spgateway_recur_decrypt($str, $payment_processor){
-  $key = $payment_processor['password'];
-  $iv = $payment_processor['signature'];
-  _civicrm_spgateway_checkKeyIV($key);
-  _civicrm_spgateway_checkKeyIV($iv);
-  $str = _civicrm_spgateway_decrypt($key, $iv, $str);
-  return $str;
-}
-
-function _civicrm_spgateway_addpadding($string, $blocksize = 32) {
-  $len = strlen($string);
-  $pad = $blocksize - ($len % $blocksize);
-  $string .= str_repeat(chr($pad), $pad);
-  return $string;
-}
-
-function _civicrm_spgateway_strippadding($string) {
-    $slast = ord(substr($string, -1));
-    $slastc = chr($slast);
-    if (preg_match("/$slastc{" . $slast . "}/", $string)) {
-        $string = substr($string, 0, strlen($string) - $slast);
-        return $string;
-    } else {
-        return false;
-    }
-}
-
-function _civicrm_spgateway_encode(&$args, $payment_processor, $checkArgs = array()){
-  // remove empty arg
-  if(is_array($args)){
-    foreach($args as $k => $v){
-      if($k == 'CheckValue'){
-        unset($args[$k]);
-      }
-    }
-  }
-  elseif(is_string($args)){
-    $tmp = explode('&', $args);
-    $args = array();
-    foreach($tmp as $v){
-      list($key, $value) = explode('=', $v);
-      $args[$key] = $value;
-    }
-  }
-  if(count($checkArgs) == 0){
-    $checkArgs = array('HashKey','Amt','MerchantID','MerchantOrderNo','TimeStamp','Version','HashIV');
-  }
-  foreach($checkArgs as $k){
-    switch ($k) {
-      case 'HashIV':
-      case 'IV':
-        $v = $payment_processor['signature'];
-        _civicrm_spgateway_checkKeyIV($v);
-        break;
-      case 'HashKey':
-      case 'Key':
-        $v = $payment_processor['password'];
-        _civicrm_spgateway_checkKeyIV($v);
-        break;
-      default:
-        $v = $args[$k];
-        break;
-    }
-    $a[] = $k.'='.$v;
-  }
-  $keystr = implode('&', $a);
-
-  $checkvalue = strtoupper(hash("sha256", $keystr));
-  $args['CheckValue'] = $checkvalue;
-  return $checkvalue;
-}
-
-function _civicrm_spgateway_trxn_id($is_test, $id){
-  if($is_test){
-    $id = 'test' . substr(str_replace(array('.','-'), '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. mt_rand(100, 999);
-  }
-  return $id;
-}
-function _civicrm_spgateway_recur_trxn($parent, $gwsr){
-  if(empty($gwsr)){
-    return $parent;
-  }
-  else{
-    return $parent . '-' . $gwsr;
-  }
-}
-
-function _civicrm_spgateway_checkKeyIV($v){
-  if(empty($v)){
-    CRM_Core_Error::fatal(ts('KEY and IV should have value.'));
-  }
-}
-
-function _civicrm_spgateway_postdata($url, $post_data){
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-  curl_setopt($ch, CURLOPT_POST, 1);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $post_data);
-  curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
-  $response = curl_exec($ch);
-  if(curl_errno($ch)){
-    watchdog('civicrm_spgateway', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch), 'error');
-  }
-  else{
-    $field_string = http_build_query($post_data, '', '&');
-    watchdog('civicrm_spgateway', 'Request:'.$url."?".$field_string);
-    if (strlen($response) > 1000) {
-      $logs = str_split($response, 1000);
-      foreach($logs as $l) {
-        watchdog('civicrm_spgateway', $l);
-      }
-    }
-    else {
-      watchdog('civicrm_spgateway', $response);
-    }
-  }
-  curl_close($ch);
-  if(!empty($response)){
-    return json_decode($response);
-  }
-  else{
-    return FALSE;
-  }
-}
-
 function civicrm_spgateway_mobile_checkout($type, $post, $objects){
-  module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.checkout');
-  $return = _civicrm_spgateway_mobile_checkout($type, $post, $objects);
+  $return = CRM_Core_Payment_SPGATEWAY::mobileCheckout($type, $post, $objects);
   return $return;
 }
 
@@ -918,87 +402,4 @@ function _civicrm_spgateway_error_msg($code){
   else{
     return t('Error when processing your payment.');
   }
-}
-
-function _civicrm_spgateway_encrypt($key, $iv, $str, $force = NULL) {
-  $data = _civicrm_spgateway_addpadding($str);
-  if ($force) {
-    if ($force == 'openssl') {
-      $openssl = TRUE;
-    }
-    elseif($force == 'mcrypt') {
-      $mcrypt = TRUE;
-    }
-  }
-  else {
-    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
-    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
-  }
-  if (empty($openssl) && empty($mcrypt)) {
-    return FALSE;
-  }
-
-  if ($openssl) {
-    $keyLen = strlen($key);
-    switch($keyLen) {
-      case 16:
-        $encoding = 'AES-128-CBC';
-        break;
-      case 24:
-        $encoding = 'AES-192-CBC';
-        break;
-      case 32:
-      default:
-        $encoding = 'AES-256-CBC';
-        break;
-    }
-    $encrypted = openssl_encrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
-  }
-  elseif ($mcrypt) {
-    $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
-  }
-  else {
-    return '';
-  }
-  return bin2hex($encrypted);
-}
-
-function _civicrm_spgateway_decrypt($key, $iv, $encrypted, $force = NULL) {
-  if ($force) {
-    if ($force == 'openssl') {
-      $openssl = TRUE;
-    }
-    elseif($force == 'mcrypt') {
-      $mcrypt = TRUE;
-    }
-  }
-  else {
-    $openssl = extension_loaded('openssl') ? TRUE : FALSE;
-    $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
-  }
-  if (empty($openssl) && empty($mcrypt)) {
-    return FALSE;
-  }
-
-  $data = hex2bin($encrypted);
-  if ($openssl) {
-    $keyLen = strlen($key);
-    switch($keyLen) {
-      case 16:
-        $encoding = 'AES-128-CBC';
-        break;
-      case 24:
-        $encoding = 'AES-192-CBC';
-        break;
-      case 32:
-      default:
-        $encoding = 'AES-256-CBC';
-        break;
-    }
-    $decrypted = openssl_decrypt($data, $encoding, $key, OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $iv);
-  }
-  elseif ($mcrypt) {
-    $decrypted = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $key, $data, MCRYPT_MODE_CBC, $iv);
-  }
-  return _civicrm_spgateway_strippadding($decrypted);
 }
