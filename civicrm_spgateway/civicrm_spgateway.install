@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_install().
+ */
+function civicrm_spgateway_install() {
+  // inital civicrm spgateway table if not exists
+  civicrm_spgateway_update_9000();
+}
+
+/**
+ * Refs #30837, convert drupal table to crm table. We need to add id for crm compatibility
+ */
+function civicrm_spgateway_update_9000() {
+  civicrm_initialize();
+  $check_query = "SELECT count(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution_spgateway'";
+  $exists = CRM_Core_DAO::singleValueQuery($check_query);
+  if (!$exists) {
+    $createTable = <<<EOT
+CREATE TABLE civicrm_contribution_spgateway (
+  id int unsigned NOT NULL AUTO_INCREMENT,
+  cid int unsigned    COMMENT 'FK to contribution table',
+  data blob    COMMENT 'Spgateway return data',
+  PRIMARY KEY (id),
+  UNIQUE INDEX UI_spgateway_id(cid),
+  CONSTRAINT FK_civicrm_contribution_spgateway_cid FOREIGN KEY (cid) REFERENCES civicrm_contribution(id) ON DELETE SET NULL
+)  ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+EOT;
+    CRM_Core_DAO::executeQuery($createTable);
+  }
+  else {
+    $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution_spgateway' AND column_name = 'id'";
+    $existsId = CRM_Core_DAO::singleValueQuery($check_query);
+    if (!$existsId) {
+      CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_spgateway` DROP PRIMARY KEY");
+      CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_spgateway` ADD `id` INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`id`)");
+      CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_spgateway` CHANGE `cid` `cid` INT(10) UNSIGNED NULL DEFAULT NULL COMMENT 'Contribution id for civicrm'");
+      CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_contribution_spgateway` ADD CONSTRAINT `FK_civicrm_contribution_spgateway_cid` FOREIGN KEY (`cid`) REFERENCES `civicrm_contribution`(`id`) ON DELETE SET NULL ON UPDATE RESTRICT");
+    }
+  }
+}

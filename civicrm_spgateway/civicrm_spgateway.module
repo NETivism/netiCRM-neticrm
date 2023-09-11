@@ -1,38 +1,6 @@
 <?php
 
 /**
- * Implementation of hook_init()
- */
-function civicrm_spgateway_init(){
-  if(strstr($_GET['q'], 'spgateway')){
-    $GLOBALS['conf']['cache'] = FALSE;
-  }
-}
-
-/**
- * Implementation of hook_menu()
- */
-function civicrm_spgateway_menu(){
-  return array(
-    'spgateway/ipn/%' => array(
-      'access callback' => true,
-      'page callback' => 'CRM_Core_Payment_SPGATEWAY::doIPN',
-      'page arguments' => array(2),
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_spgateway.ipn.inc',
-    ),
-    'spgateway/neweb-transfer' => array(
-      'access callback' => true,
-      'page callback' => 'CRM_Core_Payment_SPGATEWAYNeweb::transfer',
-      'type' => MENU_CALLBACK,
-      'weight' => 0,
-      'file' => 'civicrm_spgateway.neweb.inc',
-    ),
-  );
-}
-
-/**
  * Implementation of hook_civicrm_buildForm()
  */
 function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
@@ -44,7 +12,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       $msg = NULL;
       $status = 2; // Pending
-      $params = array();
+      $params = $return_params = array();
       if (!empty($form->_submitValues['JSONData'])) {
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($form->_submitValues['JSONData']);
       }
@@ -87,7 +55,6 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           $params['trxn_id'] = $saved_params['trxn_id'];
 
           // build notify billing info
-          module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
           $info = civicrm_spgateway_notify_bytrxn($params['trxn_id']);
           if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
             $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
@@ -143,20 +110,120 @@ function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams)
     WHERE c.id = $contribution_id";
   $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
   if(preg_match('/SPGATEWAY/', $payment_process_type)){
-    module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
     $tplParams = civicrm_spgateway_notify_generate($contribution_id, FALSE);
   }
 }
 
+function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
+  civicrm_initialize();
+  $info = civicrm_spgateway_notify_info($cid);
+  if(!empty($info)){
+    $info['display'] = civicrm_spgateway_notify_display($info);
+    if($info['#type'] == 'BARCODE'){
+      $info['has_receipt'] = 1;
+      $info['display'] = civicrm_spgateway_notify_display_barcode($info);
+    }
+
+    if($send_mail){
+      $message = '';
+      CRM_Contribute_BAO_Contribution::getInvoice($cid, $info, $message, $send_mail);
+    }
+    else{
+      return $info;
+    }
+  }
+}
+
+function civicrm_spgateway_notify_bytrxn($trxn_id){
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", array(
+    1 => array($trxn_id, 'String'),
+    2 => array($trxn_id.'_1', 'String'),
+  ));
+  return civicrm_spgateway_notify_info($cid);
+}
+
+function civicrm_spgateway_notify_info($cid){
+  $data = CRM_Core_DAO::singleValueQuery("SELECT data FROM civicrm_contribution_spgateway WHERE cid = %1", array(
+    1 => array($cid, 'Integer'),
+  ));
+  $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($data);
+  $type = $json['PaymentType'];
+  $return = array();
+  $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
+  switch($type){
+    case 'VACC':
+      $return[ts('Bank code')] = $json['BankCode'];
+      $return[ts('Virtual account number')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
+    case 'CVS':
+      $help = '<a href="'.CRM_Utils_System::url('https://www.newebpay.com/website/Page/content/cvs_intro').'" target="_blank">» '.ts('Payment Instructions')."</a>";
+      $return[ts('Convenience Store Payment Code')] = $json['CodeNo'];
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      $return[] = $help;
+      break;
+    case 'BARCODE':
+      $barcodepath = CRM_Core_Payment_SPGATEWAY::REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
+      $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
+      foreach($barcode as $k => $b){
+        $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
+      }
+      $return[ts('Payment slip')] = '<a href="'.$invoice_link.'" target="_blank">» '.ts('Print payment slip').'</a>';
+      $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
+      break;
+  }
+  if(!empty($return)){
+    $return['#type'] = $type;
+    $return['#expire'] = $json['ExpireDate'].' '.$json['ExpireTime'];
+    $return['#invoice'] = $invoice_link;
+    return $return;
+  }
+
+  // error fallback
+  return array();
+}
+
+function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL){
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  $output = '';
+  foreach($info as $label => $value){
+    if(preg_match('/^#/', $label)){
+      continue;
+    }
+    elseif(is_numeric($label)){
+      $output .= '<dd>'.' <span>'.$value.'</span></dd>';
+    }
+    else{
+      $output .= '<dd><label>'.$label.':</label>'.' <span>'.$value.'</span></dd>';
+    }
+  }
+  $payment_instrument = !empty($payment_instrument_id) ? '<strong>'.$instruments[$payment_instrument_id].'</strong>' : '';
+  $output = $payment_instrument.'<dl>'.$output.'</dl>';
+  return $output;
+}
+
+function civicrm_spgateway_notify_display_barcode($info){
+  $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">代收店舖章</div>';
+  foreach($info as $label => $v){
+    if(preg_match('/^#barcode/', $label)){
+      $output .= '<div>'.$v.'</div>';
+    }
+  }
+  $output .= '<p><label>'.ts('Payment deadline').':</label> <span>'.$info['#expire'].'</span></p>';
+  $output .= '<p><span style="font-size: 9px;">'.ts('Note: Payment confirmation takes 3-4 working days.').'</span></p>';
+  return $output;
+}
+
 
 function civicrm_spgateway_cron() {
-  if (!empty(variable_get('maintenance_mode', ''))) {
+  $is_maintenance = \Drupal::state()->get('system.maintenance_mode');
+  if ($is_maintenance) {
     return;
   }
   $now = time();
 
-  // every nights, we check recurring payment result 
-  $last = variable_get('civicrm_spgateway_recur_sync', 0);
+  // every nights, we check recurring payment result
+  $last = \Drupal::state()->get('civicrm_spgateway.recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
 
@@ -167,24 +234,23 @@ function civicrm_spgateway_cron() {
       CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
     }
 
-    variable_set('civicrm_spgateway_recur_sync', $now);
+    \Drupal::state()->set('civicrm_spgateway.recur_sync', $now);
   }
 
   // For old neweb.
-  $last = variable_get('civicrm_spgateway_neweb_recur_sync', 0);
+  $last = \Drupal::state()->get('civicrm_spgateway.neweb_recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '24'){
     $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
     $dao = CRM_Core_DAO::executeQuery($query);
     $finishedAll = TRUE;
     while($dao->fetch()) {
-      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
-      $finished = civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+      $finished = CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
       if (!$finished) {
         $finishedAll = FALSE;
       }
     }
     if ($finishedAll) {
-      variable_set('civicrm_spgateway_neweb_recur_sync', $now);
+      \Drupal::state()->set('civicrm_spgateway.neweb_recur_sync', $now);
     }
   }
 
@@ -213,7 +279,7 @@ function civicrm_spgateway_recur_sync($days = array()){
   ORDER BY r.create_date ASC";
   foreach($days as $d){
     $d = (string) $d;
-    watchdog('civicrm_spgateway', 'Start to sync recurring for day '.$d);
+    CRM_Core_Error::debug_log_message('civicrm_spgateway: Start to sync recurring for day '.$d);
     $query_params = array(
       1 => array($d, 'String'),
       2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),

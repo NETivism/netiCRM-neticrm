@@ -1,7 +1,9 @@
-name = Payment Method for Spgateway
-description = Spgateway payment functions for civicrm.
-package = NetiCRM Payment Method
-dependencies[] = civicrm
-dependencies[] = civicrm_instrument
-core = 7.x
-version = 7.x-1.1
+name: Payment Method for Neweb(Spgateway)
+description: Spgateway / Neweb payment functions for civicrm.
+type: module
+package: netiCRM
+core_version_requirement: ^9.5 || ^10
+dependencies:
+  - civicrm
+  - civicrm_instrument
+version: 9.x-1.1
