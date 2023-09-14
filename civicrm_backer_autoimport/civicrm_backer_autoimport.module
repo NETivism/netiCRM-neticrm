@@ -127,17 +127,17 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
       $donation_query = "SELECT COALESCE(SUM(total_amount),0) FROM civicrm_contribution
       WHERE contribution_page_id = %1
       AND contribution_status_id = '1'
-      AND payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
+      AND (payment_processor_id IS NULL OR payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
                                     WHERE payment_processor_type = 'Backer'
-                                    AND is_test = '0')
+                                    AND is_test = '0'))
       AND is_test = '0'";
       $donationAmountSum = CRM_Core_DAO::singleValueQuery($donation_query, $params);
       $people_query = "SELECT count(contact_id) FROM civicrm_contribution
       WHERE contribution_page_id = %1
       AND contribution_status_id = '1'
-      AND payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
+      AND (payment_processor_id IS NULL OR payment_processor_id NOT IN (SELECT id FROM civicrm_payment_processor
                                     WHERE payment_processor_type = 'Backer'
-                                    AND is_test = '0')
+                                    AND is_test = '0'))
       AND is_test = '0'";
       $donationPeopleSum = CRM_Core_DAO::singleValueQuery($people_query, $params);
       $donationAmountSum = (int) ($donationAmountSum);
