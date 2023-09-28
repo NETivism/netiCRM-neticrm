@@ -259,7 +259,6 @@ function checkForm(){
     }
 
     if( (!empty($_GET['snippet']) && $_GET['block'] == 'Address' ) || $is_popup){
-      reset($form->_fields);
       $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
       $js = implode("\n", $js);
       $js = '<script type="text/javascript">'.$js.'</script>';
