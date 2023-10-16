@@ -31,6 +31,7 @@ function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
         foreach($override as $k => $v){
           foreach($v as $kk => $vv){
             $override[$k][$kk]['default'] = _civicrm_twaddress_search_value($vv['key'], $form_state['post']);
+            $override[$k][$kk]['default'] = CRM_Utils_String::xssFilter($override[$k][$kk]['default']);
           }
         }
       }
@@ -119,7 +120,8 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   }
   // we don't change form on step 2 / 3 / 4
   if(strpos($formName, 'Confirm') || strpos($formName, 'ThankYou')){
-    $js = 'jQuery(function($){
+    $js = <<<EOT
+jQuery(function($){
 var arrChecked = [];
 $(".custom_pre-group fieldset").children().each(checkForm);
 $(".custom_post-group fieldset").children().each(checkForm);
@@ -144,14 +146,14 @@ function checkForm(){
       type = match[2];
       classname = match[0];
       arrChecked.push(classname);
-      $current = $(this).next();
+      current = $(this).next();
       arrItems = [];
-      while($current.next().length!==0){
-        match = $current.attr("class").match(RegExp("(state_province-|postal_code-|city-)" + type + "-section"));
+      while(current.next().length!==0){
+        match = current.attr("class").match(RegExp("(state_province-|postal_code-|city-)" + type + "-section"));
         if(match && match.length>=2){
-          arrItems.push($current);
+          arrItems.push(current);
         }
-        $current = $current.next();
+        current = current.next();
       }
       if(arrItems.length>=2){
         for (var i = 0; i < arrItems.length; i++) {
@@ -162,8 +164,8 @@ function checkForm(){
       }
     }
   }
-            
-        });';
+});
+EOT;
         drupal_add_js($js , 'inline');
     return;
   }
@@ -182,11 +184,12 @@ function checkForm(){
   }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
+    $default = '';
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
       $key = _civicrm_twaddress_key($name);
       $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $override['zipName'][$key]['key'] = $name;
-      $override['zipName'][$key]['default'] = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+      $override['zipName'][$key]['default'] = $default ? CRM_Utils_String::xssFilter($default) : $form->getElement($name)->_findValue($form->_defaultValues);
     }
     if(strstr($name, 'state_province')){
       $key = _civicrm_twaddress_key($name);
@@ -200,7 +203,7 @@ function checkForm(){
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
       $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
       // Find that default value is depands on zip code. The code here is no use.
-      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : $default;
+      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : CRM_Utils_String::xssFilter($default);
     }
     if(strstr($name, 'city')){
       $key = _civicrm_twaddress_key($name);
@@ -212,7 +215,7 @@ function checkForm(){
       // Find that default value is depands on zip code. The code here is no use.
       $override['areaName'][$key]['key'] = '_'.$name;
       $override['areaName'][$key]['name'] = $name;
-      $override['areaName'][$key]['default'] = $default;
+      $override['areaName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
     if(strstr($name, 'country')){
       $key = _civicrm_twaddress_key($name);
@@ -223,7 +226,7 @@ function checkForm(){
       // Find that default value is depands on zip code. The code here is no use.
       $override['country'][$key]['key'] = '_'.$name;
       $override['country'][$key]['name'] = $name;
-      $override['country'][$key]['default'] = $default;
+      $override['country'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
   }
 
@@ -335,7 +338,7 @@ function _civicrm_twaddress_webform_key($name){
 }
 
 function _civicrm_twaddress_grouping_js(){
-  $js = '
+  $js = <<<EOT
     jQuery(function($){
       // find a address group to collapsed to single line
       var ids = {};
@@ -362,11 +365,11 @@ function _civicrm_twaddress_grouping_js(){
         }
       });
 
-      for(property in ids) {  
+      for(property in ids) {
         if(ids[property] == 3){
           var id = property.replace("g", "");
           // this the right group
-          $("[rel=\'"+property+"\']").each(function(){
+          $("[rel='"+property+"']").each(function(){
             var classes = $(this).attr("class");
             if(!classes.match(/state_province/g)){
               var html = $(this).find(".content>*");
@@ -379,7 +382,7 @@ function _civicrm_twaddress_grouping_js(){
         }
       }
     });
-  ';
+EOT;
   drupal_add_js($js , 'inline');
 
   return $js;
@@ -392,65 +395,74 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $random_id = mt_rand(1000, 9999);
     $count++;
     $select_id = "twaddr-area-{$k}-{$random_id}";
-    $insert = "<div class='crm-form-elem crm-form-select crm-form-select-single'><select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select></div>";
-
-    $js = '
-    jQuery(function($){
-      if( $("form#'.$form_name.' input[name=\''.$field['areaName'][$k]['name'].'\']").length ){
-        ';
-    $address_info_json = '{
-      zipField:"'.$field['zipName'][$k]['name'].'",
-      countyField:"'.$field['countyName'][$k]['name'].'",
-      areaField:"'.$field['areaName'][$k]['name'].'",
-      zipName:"'.$field['zipName'][$k]['key'].'",
-      countyName:"'.$field['countyName'][$k]['key'].'",
-      areaName:"'.$field['areaName'][$k]['key'].'",
-      zipSel:"'.$field['zipName'][$k]['default'].'",
-      countySel:"'.$field['countyName'][$k]['default'].'",
-      areaSel:"'.$field['areaName'][$k]['default'].'"
-    }';
-
+    $address_info_array = array(
+      'zipField' => $field['zipName'][$k]['name'],
+      'countyField' => $field['countyName'][$k]['name'],
+      'areaField' => $field['areaName'][$k]['name'],
+      'zipName' => $field['zipName'][$k]['key'],
+      'countyName' => $field['countyName'][$k]['key'],
+      'areaName' => $field['areaName'][$k]['key'],
+      'zipSel' => $field['zipName'][$k]['default'],
+      'countySel' => $field['countyName'][$k]['default'],
+      'areaSel' => $field['areaName'][$k]['default'],
+    );
+    $address_info_array = array_map('strval', $address_info_array);
+    $address_info_json = json_encode($address_info_array);
+    $js = '';
     if( !empty($field['country'][$k])){
-      $js .= '
-      if( $("form#'.$form_name.' select[name=\''.$field['country'][$k]['name'].'\']").length ){
-            $("select[name=\''.$field['country'][$k]['name'].'\']").change(function(){
-              var language = Drupal.settings.language;
-              if($(this).val() == "1208" && (language == "zh-hant" || typeof language == undefined)){
-                applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
-              }else{
-                cancelTWZIPAddress("'.$select_id.'",'.$address_info_json.');
-              }
-            }).trigger("change");
-            var countryID       = "#'.$field['country'][$k]['name'].'"
-            var stateProvinceID = "#'.$field['countyName'][$k]['key'].'"
-            var callbackURL     = "/civicrm/ajax/jqState"
-            cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"'._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).'"} );
-
+      $province_id = _civicrm_twaddress_get_province_id($field['countyName'][$k]['default']);
+      $js .= <<<EOT
+      if( $("form#{$form_name} select[name='{$field['country'][$k]['name']}'").length ){
+        $("select[name='{$field['country'][$k]['name']}']").change(function(){
+          var language = Drupal.settings.language;
+          var addressInfo = JSON.parse('{$address_info_json}');
+          if($(this).val() == "1208" && (language == "zh-hant" || typeof language == undefined)){
+            applyTWZIPAddress("{$select_id}", addressInfo);
+          }else{
+            cancelTWZIPAddress("{$select_id}", addressInfo);
           }
-      ';
-    }else{
-      $js .= 'applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');';
+        }).trigger("change");
+        var countryID       = "#{$field['country'][$k]['name']}";
+        var stateProvinceID = "#{$field['countyName'][$k]['key']}";
+        var callbackURL     = "/civicrm/ajax/jqState";
+        cj(countryID).chainSelect(stateProvinceID, callbackURL, {defaultValue:"{$province_id}"} );
+      }
+
+EOT;
+    }
+    else{
+      $js .= <<<EOT
+      var addressInfo = JSON.parse('{$address_info_json}');
+      applyTWZIPAddress("{$select_id}", addressInfo);
+
+EOT;
     }
 
-
-    $js .= '
-        cj(document).ajaxComplete(function(event, xhr, settings){
-          var url = settings.url;
-          if(url.match("/civicrm/ajax/jqState")){
-            var reg_country_no = /_id=country-' .$k. '/;
-            if(url.match("'.$field['country'][$k]['name'].'") && url.match("_value=1208")){
-              $("#'.$field['countyName'][$k]['key'].'").val('._civicrm_twaddress_get_province_id($field['countyName'][$k]['default']).');
-            }else if(reg_country_no.test(url)){
-
-              $("#'.$field['areaName'][$k]['name'].'").val("");
-              $("#'.$field['zipName'][$k]['key'].'").val("");
-            }
+    $province_id = _civicrm_twaddress_get_province_id($field['countyName'][$k]['default']);
+    $js .= <<<EOT
+      cj(document).ajaxComplete(function(event, xhr, settings){
+        var url = settings.url;
+        if(url.match("/civicrm/ajax/jqState")){
+          var reg_country_no = /_id=country-{$k} '/;
+          if(url.match("{$field['country'][$k]['name']}") && url.match("_value=1208")){
+            $("#{$field['countyName'][$k]['key']}").val("{$province_id}");
           }
-        });
-      }
-    });
+          else if(reg_country_no.test(url)){
+            $("#{$field['areaName'][$k]['name']}").val("");
+            $("#{$field['zipName'][$k]['key']}").val("");
+          }
+        }
+      });
 
-    ';
+EOT;
+
+    $js = <<<EOT
+  jQuery(function($){
+    if( $("form#{$form_name} input[name='{$field['areaName'][$k]['name']}']").length ){
+{$js}
+    }
+  });
+EOT;
     if($add_js){
       drupal_add_js($js , 'inline');
     }
@@ -458,43 +470,40 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
       $return[$k] = $js;
     }
   }
-  $js = '
+  $js = <<<EOT
     (function($){
       applyTWZIPAddress = function(select_id, address_info){
-        var $form = $("form#'.$form_name.'");
-        $("[for=\'"+address_info.areaField+"\'].error").remove();
-        $("[for=\'"+address_info.countyName+"\'].error").remove();
-        $("[for=\'"+address_info.zipName+"\'].error").remove();
+        var formEle = $("form#{$form_name}");
+        $("[for='"+address_info.areaField+"'].error").remove();
+        $("[for='"+address_info.countyName+"'].error").remove();
+        $("[for='"+address_info.zipName+"'].error").remove();
         if(!$("#"+select_id).length){
-          var select = "<div class=\'crm-form-elem crm-form-select crm-form-select-single\'><select id=\'"+select_id+"\' name=\'" + address_info.areaName + "\' class=\'form-select\'></select></div>";
-          $(select).insertAfter($("form#'.$form_name.' input[name=\'" + address_info.areaField + "\']").parent());
+          var select = "<div class='crm-form-elem crm-form-select crm-form-select-single'><select id='"+select_id+"' name='" + address_info.areaName + "' class='form-select'></select></div>";
+          $(select).insertAfter($("form#{$form_name} input[name='" + address_info.areaField + "']").parent());
         }else if(!$("#"+select_id).is(":visible")){
           $("#"+select_id).parent().show();
 
         }
-        $("input[name=\'" + address_info.areaField + "\']").parent().hide();
-        $("select[name=\'" + address_info.areaName + "\']").change(function(){
+        $("input[name='" + address_info.areaField + "']").parent().hide();
+        $("select[name='" + address_info.areaName + "']").change(function(){
           var v = $(this).val();
-          $("input[name=\'" + address_info.areaField + "\']").val(v);
+          $("input[name='" + address_info.areaField + "']").val(v);
         });
-        $("input[name=\'" + address_info.zipName + "\']").addClass("readonly post-code").wrap("<div class=\'crm-form-post-code crm-form-elem crm-form-textfield crm-form-readonly\'></div>");
-
-        $form.twzipcode(address_info);
+        $("input[name='" + address_info.zipName + "']").addClass("readonly post-code").wrap("<div class='crm-form-post-code crm-form-elem crm-form-textfield crm-form-readonly'></div>");
+        formEle.twzipcode(address_info);
       }
 
       cancelTWZIPAddress = function(select_id, address_info){
-
-        var $form = $("form#'.$form_name.'");
-        $("input[name=\'" + address_info.areaField + "\']").parent().show();
-        $("select[name=\'" + address_info.areaName + "\']").parent().hide();
-        var $zipName = $("input[name=\'" + address_info.zipName + "\']").removeClass("readonly post-code").removeAttr("readonly");
-        if($zipName.parent().hasClass("crm-form-post-code")){
-          $zipName.unwrap();
+        var formEle = $("form#{$form_name}");
+        $("input[name='" + address_info.areaField + "']").parent().show();
+        $("select[name='" + address_info.areaName + "']").parent().hide();
+        var zipName = $("input[name='" + address_info.zipName + "']").removeClass("readonly post-code").removeAttr("readonly");
+        if(zipName.parent().hasClass("crm-form-post-code")){
+          zipName.unwrap();
         }
-
       }
     })(jQuery);
-  ';
+EOT;
 
   if($add_js){
     drupal_add_js($js , 'inline');
@@ -508,35 +517,43 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
 
 function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
   $return = array();
+  $count = 0;
   foreach($field['areaName'] as $k => $v){
     $count++;
     $insert = "<select name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
 
-    $js = '
+    $address_info_array = array(
+      'zipField' => $field['zipName'][$k]['name'],
+      'countyField' => $field['countyName'][$k]['name'],
+      'areaField' => $field['areaName'][$k]['name'],
+      'zipName' => $field['zipName'][$k]['key'],
+      'countyName' => $field['countyName'][$k]['key'],
+      'areaName' => $field['areaName'][$k]['key'],
+      'zipSel' => $field['zipName'][$k]['default'],
+      'countySel' => $field['countyName'][$k]['default'],
+      'areaSel' => $field['areaName'][$k]['default'],
+    );
+    $address_info_array = array_map('strval', $address_info_array);
+    $address_info_json = json_encode($address_info_array);
+    $js = <<<EOT
     jQuery(function($){
-      if( $("input[name*=\''.$field['areaName'][$k]['name'].'\']").length ){
-        $("'.$insert.'").insertAfter("input[name*=\''.$field['areaName'][$k]['name'].'\']");
-        $("input[name*=\''.$field['areaName'][$k]['name'].'\']").hide();
-        $("select[name*=\''.$field['areaName'][$k]['key'].'\']").change(function(){
+      var addressInfo = JSON.parse('{$address_info_json}');
+      if( $("input[name*='{$field['areaName'][$k]['name']}']").length ){
+        $("{$insert}").insertAfter("input[name*='{$field['areaName'][$k]['name']}']");
+        $("input[name*='{$field['areaName'][$k]['name']}']").hide();
+        $("select[name*='{$field['areaName'][$k]['key']}']").change(function(){
           var v = $(this).val();
-          $("input[name*=\''.$field['areaName'][$k]['name'].'\']").val(v);
+          $("input[name*='{$field['areaName'][$k]['name']}']").val(v);
         });
-        $("input[name*=\''.$field['zipName'][$k]['key'].'\']").addClass("readonly post-code");
-        var zipname = $("input[name*=\''.$field['zipName'][$k]['key'].'\']").attr("name");
-        var areaname = $("select[name*=\''.$field['areaName'][$k]['key'].'\']").attr("name");
-        var countyname = $("select[name*=\''.$field['countyName'][$k]['key'].'\']").attr("name");
+        $("input[name*='{$field['zipName'][$k]['key']}']").addClass("readonly post-code");
+        var zipname = $("input[name*='{$field['zipName'][$k]['key']}']").attr("name");
+        var areaname = $("select[name*='{$field['areaName'][$k]['key']}']").attr("name");
+        var countyname = $("select[name*='{$field['countyName'][$k]['key']}']").attr("name");
 
-        $("form[name=\''.$form_name.'\']").twzipcode({
-          zipName:zipname,
-          countyName:countyname,
-          areaName:areaname,
-          zipSel:"'.$field['zipName'][$k]['default'].'",
-          countySel:"'.$field['countyName'][$k]['default'].'",
-          areaSel:"'.$field['areaName'][$k]['default'].'"
-        });
+        $("form[name='{$form_name}']").twzipcode(addressInfo);
       }
     });
-    ';
+EOT;
     if($add_js){
       drupal_add_js($js , 'inline');
     }
