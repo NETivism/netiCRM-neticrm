@@ -31,6 +31,7 @@ function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
         foreach($override as $k => $v){
           foreach($v as $kk => $vv){
             $override[$k][$kk]['default'] = _civicrm_twaddress_search_value($vv['key'], $form_state['post']);
+            $override[$k][$kk]['default'] = CRM_Utils_String::xssFilter($override[$k][$kk]['default']);
           }
         }
       }
@@ -182,11 +183,13 @@ function checkForm(){
   }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
+    $default = '';
     if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
       $key = _civicrm_twaddress_key($name);
       $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $override['zipName'][$key]['key'] = $name;
       $override['zipName'][$key]['default'] = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+      $override['zipName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
     if(strstr($name, 'state_province')){
       $key = _civicrm_twaddress_key($name);
@@ -201,6 +204,7 @@ function checkForm(){
       $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
       // Find that default value is depands on zip code. The code here is no use.
       $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : $default;
+      $override['countyName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
     if(strstr($name, 'city')){
       $key = _civicrm_twaddress_key($name);
@@ -212,7 +216,7 @@ function checkForm(){
       // Find that default value is depands on zip code. The code here is no use.
       $override['areaName'][$key]['key'] = '_'.$name;
       $override['areaName'][$key]['name'] = $name;
-      $override['areaName'][$key]['default'] = $default;
+      $override['areaName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
     if(strstr($name, 'country')){
       $key = _civicrm_twaddress_key($name);
@@ -223,7 +227,7 @@ function checkForm(){
       // Find that default value is depands on zip code. The code here is no use.
       $override['country'][$key]['key'] = '_'.$name;
       $override['country'][$key]['name'] = $name;
-      $override['country'][$key]['default'] = $default;
+      $override['country'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
   }
 
