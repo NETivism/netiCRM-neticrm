@@ -853,3 +853,10 @@ function neticrm_update_update_7311() {
 function neticrm_update_update_7312() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #37017, Change of pcp message template
+ */
+function neticrm_update_update_7313() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
