@@ -203,6 +203,7 @@ function civicrm_neweb_civicrm_prepareInvoice($contribution_id, &$tplParams){
  * Implementation of hook_cron()
  */
 function civicrm_neweb_cron(){
+  /*
   require_once("civicrm_neweb.cron.inc");
   module_load_include("inc", 'civicrm_neweb', 'civicrm_neweb.cron');
   $hour = date('G');
@@ -221,6 +222,7 @@ function civicrm_neweb_cron(){
     _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid);
     _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterday, $pid);
   }
+  */
 }
 
 function _civicrm_neweb_process_all($is_test, $now, $hour, $yesterday, $pid){
