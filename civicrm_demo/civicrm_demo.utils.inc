@@ -795,15 +795,12 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_recur_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_RECUR;
   }
 
-  /*
   if($class_name == 'Payment_SPGATEWAY'){
-    \Drupal::moduleHandler()->loadInclude('civicrm_spgateway', 'install', 'civicrm_spgateway');
     $default['user_name'] = 'MS3240578';
     $default['password'] = 'DLJ2NeCY3FY54ahvmZGHVW7POQIcz48c';
     $default['signature'] = 'QReE6RCaxBgCLx78';
     $default['subject'] = '';
   }
-  */
   return $default;
 }
 
