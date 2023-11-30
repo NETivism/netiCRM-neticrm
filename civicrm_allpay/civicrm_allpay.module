@@ -155,6 +155,10 @@ function civicrm_allpay_civicrm_prepareInvoice($contribution_id, &$tplParams){
  * Implementation of hook_cron()
  */
 function civicrm_allpay_cron(){
+  $is_maintenance = \Drupal::state()->get('system.maintenance_mode');
+  if ($is_maintenance) {
+    return;
+  }
   // every morning, we check allpay payment result
   $last = \Drupal::state()->get('civicrm_allpay.recur_sync', 0);
   $now = time();
