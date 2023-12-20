@@ -342,13 +342,23 @@ function civicrm_spgateway_recur_sync($days = array()){
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND (DAY(r.start_date) = %1 OR r.cycle_day = %1)
   ORDER BY r.create_date ASC";
   foreach($days as $d){
-    $d = (string) $d;
     watchdog('civicrm_spgateway', 'Start to sync recurring for day '.$d);
-    $query_params = array(
-      1 => array($d, 'String'),
-      2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
-      3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
-    );
+    if ($d >= 29) {
+      $d = (string) $d;
+      $query_params = array(
+        1 => array($d, 'String'),
+        2 => array(date('Y-m-28').' 00:00:00', 'String'),
+        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+      );
+    }
+    else {
+      $d = (string) $d;
+      $query_params = array(
+        1 => array($d, 'String'),
+        2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
+        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+      );
+    }
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
       if(empty($result->contribution_count)){
