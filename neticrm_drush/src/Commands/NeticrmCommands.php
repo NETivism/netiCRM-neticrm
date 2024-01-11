@@ -97,16 +97,19 @@ class NeticrmCommands extends DrushCommands {
    * @return void
    */
   public function set_domain(){
-    $smtp_settings = \Drupal::config('smtp.settings');
-    if (!empty($smtp_settings->get('smtp_username'))) {
+    civicrm_initialize();
+    $smtp_mail = \CRM_Mailing_BAO_Mailing::defaultFromMail();
+    if (empty($smtp_mail)) {
+      $smtp_settings = \Drupal::config('smtp.settings');
       $smtp_mail = $smtp_settings->get('smtp_username');
-      \Drupal::configFactory()->getEditable('system.site')->set('mail', $smtp_mail);
-
-      civicrm_initialize();
-      \Drupal::moduleHandler()->loadInclude('neticrm_preset', 'utils.inc');
-      _neticrm_preset_domain_info();
-      $this->logger("neticrm_drush")->success("netiCRM domain setted");
     }
+    $site_info = \Drupal::configFactory()->getEditable('system.site');
+    $site_info->set('mail', $smtp_mail);
+    $site_info->save();
+
+    \Drupal::moduleHandler()->loadInclude('neticrm_preset', 'utils.inc');
+    _neticrm_preset_domain_info();
+    $this->logger("neticrm_drush")->success("netiCRM domain setted");
   }
 
   /**
