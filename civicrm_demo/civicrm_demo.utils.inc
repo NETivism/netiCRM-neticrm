@@ -786,14 +786,6 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
         if(is_numeric($result['id'])){
           $payment_processors[] = $result['id'];
-          if($class_name == 'Payment_Neweb'){
-            $ftp = array();
-            $ftp['ftp_host'] = $p['ftp_host'];
-            $ftp['ftp_user'] = $p['ftp_user'];
-            $ftp['ftp_password'] = $p['ftp_password'];
-            variable_set("civicrm_neweb_ftp_".$result['id'], $ftp);
-            $payment_processors[] = $result['id'];
-          }
         }
 
         $payment_processor['is_test'] = 1;
@@ -802,10 +794,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $payment_processor['url_recur'] = !empty($p['url_recur_test_default']) ? $p['url_recur_test_default'] : NULL;
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
         if(is_numeric($result['id'])){
-          if($class_name == 'Payment_Neweb'){
-            variable_set("civicrm_neweb_ftp_test_".$result['id'], $ftp);
-            $payment_processors[] = $result['id'];
-          }
+          $payment_processors[] = $result['id'];
         }
       }
     }
@@ -827,22 +816,6 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_site_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE;
     $default['url_api_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_API;
     $default['url_recur_test'] = ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR;
-  }
-
-  if($class_name == 'Payment_Neweb'){
-    $default['user_name'] = '758200';
-    $default['password'] = '456608';
-    $default['signature'] = 'abcd1234';
-    $default['subject'] = 'abcd1234';
-    $default['url_site_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_api_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
-    $default['url_recur_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_site_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['url_api_test_default'] = 'http://testmaple2.neweb.com.tw/CashSystemFrontEnd/';
-    $default['url_recur_test_default'] = 'https://testmaple2.neweb.com.tw/NewebmPP/cdcard.jsp';
-    $default['ftp_host'] = '127.0.0.1';
-    $default['ftp_user'] = 'user';
-    $default['ftp_password'] = 'abcd1234';
   }
 
   if($class_name == 'Payment_SPGATEWAY'){
