@@ -147,9 +147,8 @@ function civicrm_demo_process_contribution($vars){
   // ci testing needed
   if ($sample_ci) {
     $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
-    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
-    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
-    $contribution_page_id[3] = civicrm_demo_create_contribution_page('Payment_Mobile');
+    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
+    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_Mobile');
   }
   else {
     // demo site or normal site
