@@ -861,3 +861,10 @@ function neticrm_update_update_7313() {
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #39632, add sync fields to civicrm_group
+ */
+function neticrm_update_update_7314() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
