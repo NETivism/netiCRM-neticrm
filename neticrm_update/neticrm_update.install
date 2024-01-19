@@ -863,7 +863,7 @@ function neticrm_update_update_7313() {
 }
 
 /**
- * refs #39632, add sync fields to civicrm_group
+ * refs #39632, add sync fields to 'civicrm_group' and add new SMS provider 'Flydove'
  */
 function neticrm_update_update_7314() {
   return neticrm_update_load_include(__FUNCTION__);
