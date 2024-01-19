@@ -15,7 +15,7 @@ function _neticrm_update_update_x314() {
   $query = "SHOW COLUMNS FROM `civicrm_group` LIKE 'sync_data'";
   $result = CRM_Core_DAO::executeQuery($query);
   if ($result->N == 0) {
-    $sql = "ALTER TABLE `civicrm_group` ADD `sync_data` blob COMMENT 'Stores JSON format data from the remote group, such as remote group ID, name, creation time.'";
+    $sql = "ALTER TABLE `civicrm_group` ADD `sync_data` text COMMENT 'Stores JSON format data from the remote group, such as remote group ID, name, creation time.'";
     CRM_Core_DAO::executeQuery($sql);
   }
 
