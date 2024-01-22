@@ -37,10 +37,21 @@ function _neticrm_update_update_x314() {
 
   // If 'Flydove' SMS provider does not exist, insert it as a new option
   if (!$exists) {
-    $insert_query = "INSERT INTO
-       `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`)
-      VALUES
-       ($sms_provider_name_group_id, 'Flydove', 'CRM_SMS_Provider_Flydove', NULL, NULL, 0, NULL, 2, NULL, 0, 1, 1, NULL, NULL);";
-    CRM_Core_DAO::executeQuery($insert_query);
+    $group_params = array('name' => 'sms_provider_name');
+    $action = CRM_Core_Action::ADD;
+    $option_value_id = 0;
+    $params = array(
+      'option_group_id' => $sms_provider_name_group_id,
+      'label' => 'Flydove',
+      'value' => 'CRM_SMS_Provider_Flydove',
+      'weight' => 2,
+      'is_reserved' => 1,
+      'is_active' => 1,
+    );
+
+    CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
+
+    // Clear cache
+    CRM_Core_OptionGroup::values('sms_provider_name', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
   }
 }
