@@ -1,9 +1,9 @@
 <?php
 /**
  * netiCRM update main install file
- * 
+ *
  * Every file in update/*.inc should use this style to handling update success or not
- * 
+ *
  * ```php
  * // success
  * #return 'Messages';     # drupal 6,7,9: this will display success message
@@ -12,21 +12,21 @@
 
  * // failed, error,  schema_version will not be update
  * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
- * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+ * #return FALSE;          # drupal 6,7,9: this will trigger error,
 
  * // should never use
  * #throw UpdateException  # drupal 9 only, will be fatal error on drupal 6,7
  * #throw DrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
  * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
  * ```
- * 
+ *
  */
 
 use Drupal\Core\Utility\UpdateException;
 
 /**
  * Include correct file for update
- * 
+ *
  * @return mixed
  */
 function neticrm_update_load_include($func){
@@ -89,7 +89,7 @@ function neticrm_update_load_include($func){
 
 /**
  * refs #31657, First update function for drupal 9.
- * 
+ *
  * Only for test propose
  */
 function neticrm_update_update_9300() {
@@ -173,5 +173,27 @@ function neticrm_update_update_9310() {
  * refs #37730, Create aicompletion table
  */
 function neticrm_update_update_9311() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #37300, Add new pcp status draft
+ */
+function neticrm_update_update_9312() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #37017, Change of pcp message template
+ */
+function neticrm_update_update_9313() {
+  \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #39632, add sync fields to 'civicrm_group' and add new SMS provider 'Flydove'
+ */
+function neticrm_update_update_9314() {
   return neticrm_update_load_include(__FUNCTION__);
 }
