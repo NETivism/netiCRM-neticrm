@@ -44,6 +44,8 @@ function _neticrm_update_update_x314() {
         'option_group_id' => $group_type_group_id,
         'label' => 'Flydove Smart Marketing',
         'value' => '3',
+        'name' => NULL,
+        'is_default' => NULL,
         'weight' => 3,
       );
 
@@ -70,6 +72,8 @@ function _neticrm_update_update_x314() {
       'option_group_id' => $sms_provider_name_group_id,
       'label' => 'Flydove',
       'value' => 'CRM_SMS_Provider_Flydove',
+      'name' => 'http',
+      'is_default' => NULL,
       'weight' => 2,
       'is_reserved' => 1,
       'is_active' => 1,
