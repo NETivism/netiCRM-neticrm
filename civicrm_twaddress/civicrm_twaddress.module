@@ -227,24 +227,7 @@ function checkForm(){
     }
   }
 
-  $allow_load_js = array(
-    'CRM_Contribute_Form_Contribution',
-    'CRM_Event_Form_Participant',
-    'CRM_Member_Form_Membership',
-    'CRM_Grant_Form_Grant',
-    'CRM_Contact_Form_Edit_Address',
-    'CRM_Case_Form_Activity_OpenCase',
-    'CRM_Pledge_Form_Pledge',
-  );
-
-  // if(in_array($formName, $allow_load_js)){
-  //   $add = _civicrm_twaddress_add_zipcode_js();
-  // }
-  
   if(count($override)>=3 && $enable){
-    // if(!$add){
-    //   $add = _civicrm_twaddress_add_zipcode_js();
-    // }
     $current_path = \Drupal::service('path.current')->getPath();
     $path_args = explode('/', ltrim($current_path, '/'));
 
@@ -259,10 +242,14 @@ function checkForm(){
     }
 
     if( (!empty($_GET['snippet']) && $_GET['block'] == 'Address' ) || $is_popup){
-      $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
-      $js = implode("\n", $js);
-      $js = '<script type="text/javascript">'.$js.'</script>';
-      print($js);
+      // #39697, only add js when press "add address button" on contact page
+      $areaDefaultDetect = reset($override['areaName']);
+      if (empty($areaDefaultDetect['default'])) {
+        $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
+        $js = implode("\n", $js);
+        $js = '<script type="text/javascript">'.$js.'</script>';
+        print($js);
+      }
     }
     else{
       _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
@@ -388,7 +375,6 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $random_id = mt_rand(1000, 9999);
     $count++;
     $select_id = "twaddr-area-{$k}-{$random_id}";
-    $insert = "<div class='crm-form-elem crm-form-select crm-form-select-single'><select id='{$select_id}' name='{$field['areaName'][$k]['key']}' class='form-select'></select></div>";
 
     $js = '
     cj(function($){
