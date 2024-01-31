@@ -861,3 +861,10 @@ function neticrm_update_update_7313() {
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #37017, Change of pcp message template
+ */
+function neticrm_update_update_7316() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
