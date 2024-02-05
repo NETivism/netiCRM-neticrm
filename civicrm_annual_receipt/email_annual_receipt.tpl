@@ -72,6 +72,6 @@
 </div>
 
 </div><!-- wrapper -->
-{if $contact_info|@count ffffgt $smarty.foreach.annual.index + 1 }<div style="page-break-after: always;"></div>{/if}
+{if $contact_info|@count gt $smarty.foreach.annual.index + 1 }<div style="page-break-after: always;"></div>{/if}
 
 {/foreach}
