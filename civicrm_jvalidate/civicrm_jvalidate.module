@@ -38,7 +38,7 @@ function civicrm_jvalidate_library_info_alter(&$libraries, $extension) {
       'weight' => -5,
       'header' => true,
       'dependencies' => [
-        'civicrm-js-packages',
+        'civicrm/civicrm-js-packages',
       ],
     ];
 
