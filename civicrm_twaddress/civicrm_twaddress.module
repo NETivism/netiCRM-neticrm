@@ -1,51 +1,63 @@
 <?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Render\Markup;
+
 /**
  * Implementation of hook_form_alter
  *
  * Support webform_civicrm address
  */
-/*
-function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
-  static $add;
-  $override = array();
-  if (substr($form['#id'], 0, 20) == 'webform-client-form-') {
+function civicrm_twaddress_form_alter(&$form, FormStateInterface $form_state, $form_id){
+  if (preg_match('/^webform_submission_.*_add_form$/', $form_id)) {
     // for now we only support field below 2 fieldset
-    foreach($form['submitted'] as $k => $c){
-      if(!is_array($c)) continue;
-      $children = element_children($c);
-      if(count($children)){
-        foreach($children as $name){
-          $cchildren = element_children($form['submitted'][$k][$name]);
-          if(count($cchildren)){
-            foreach($cchildren as $nname){
-              _civicrm_twaddress_is_addr_field($nname, $form['submitted'][$k][$name][$nname], $override);
+    $override = [];
+    foreach($form['elements'] as $field_key => $fieldset) {
+      if (strstr($field_key, 'civicrm_') && !strstr($field_key, 'fieldset')){
+        _civicrm_twaddress_is_addr_field($field_key, $override);
+      }
+      elseif (strstr($field_key, 'fieldset')){
+        $children = Element::children($fieldset);
+        if(!empty($children)){
+          foreach($children as $name){
+            $subchildren= Element::children($form['elements'][$field_key][$name]);
+            if(!empty($subchildren)){
+              foreach($subchildren as $subname){
+                _civicrm_twaddress_is_addr_field($subname,  $override);
+              }
+            }
+            else {
+              _civicrm_twaddress_is_addr_field($name, $override);
             }
           }
-          _civicrm_twaddress_is_addr_field($name, $form['submitted'][$k][$name], $override);
         }
       }
-      _civicrm_twaddress_is_addr_field($name, $form['submitted'][$k][$key], $override);
     }
     if(count($override)>=3){
-      // check post value
-      if(!empty($form_state['post'])){
-        foreach($override as $k => $v){
-          foreach($v as $kk => $vv){
-            $override[$k][$kk]['default'] = _civicrm_twaddress_search_value($vv['key'], $form_state['post']);
-          }
-        }
-      }
+      // attach twddr js
+      /* should be attached at webform_civicrm form_alter
+      $form['#attached']['library'][] = 'civicrm/civicrm-css-core';
+      $form['#attached']['library'][] = 'civicrm/civicrm-css-packages';
+      $form['#attached']['library'][] = 'civicrm/civicrm-js-core';
+      $form['#attached']['library'][] = 'civicrm/civicrm-js-packages';
+      $form['#attached']['library'][] = 'civicrm/civicrm-js-noconflict';
+      */
+      $inlines = _civicrm_twaddress_webform_js($override, $form['#id'], TRUE);
 
-      if(!$add){
-        $add = _civicrm_twaddress_add_zipcode_js();
+      foreach($inlines as $js_name => $js) {
+        $script = [
+          '#type'   => 'html_tag',
+          '#tag' => 'script',
+          '#value' => Markup::create($js),
+        ];
+        $form['inline_'.$js_name] = $script;
       }
-      _civicrm_twaddress_webform_js($override, $add_js = TRUE);
     }
   }
 }
-*/
 
-function _civicrm_twaddress_is_addr_field($name, &$obj, &$override){
+function _civicrm_twaddress_is_addr_field($name, &$override){
   if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
     $key = _civicrm_twaddress_webform_key($name);
     $override['zipName'][$key]['key'] = $name;
@@ -71,7 +83,6 @@ function _civicrm_twaddress_is_addr_field($name, &$obj, &$override){
     $override['areaName'][$key]['name'] = $name;
     // $override['areaName'][$key]['default'] = $default;
   }
-  return $override;
 }
 
 
@@ -488,10 +499,9 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   return $return;
 }
 
-function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
-  $return = array();
+function _civicrm_twaddress_webform_js($field, $form_name){
+  $return = [];
   foreach($field['areaName'] as $k => $v){
-    $count++;
     $insert = "<select name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
 
     $js = '
@@ -508,7 +518,7 @@ function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
         var areaname = $("select[name*=\''.$field['areaName'][$k]['key'].'\']").attr("name");
         var countyname = $("select[name*=\''.$field['countyName'][$k]['key'].'\']").attr("name");
 
-        $("form[name=\''.$form_name.'\']").twzipcode({
+        $("form[id=\''.$form_name.'\']").twzipcode({
           zipName:zipname,
           countyName:countyname,
           areaName:areaname,
@@ -519,12 +529,7 @@ function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
       }
     });
     ';
-    if($add_js){
-      CRM_Utils_System::addJs(array('type' => 'inline'), $js);
-    }
-    else{
-      $return[$k] = $js;
-    }
+    $return[$k] = $js;
   }
   return $return;
 }
