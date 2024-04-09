@@ -868,3 +868,10 @@ function neticrm_update_update_7313() {
 function neticrm_update_update_7315() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #38829, Add qpdf path
+ */
+function neticrm_update_update_7317() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
