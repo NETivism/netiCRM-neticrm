@@ -177,15 +177,31 @@ function neticrm_update_update_9311() {
 }
 
 /**
- *  refs #39662, Update Alishan township district
+ *  refs #37300, Add new pcp status draft
  */
 function neticrm_update_update_9312() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
 /**
- *  refs #38829, Add qpdf path
+ * refs #37017, Change of pcp message template
  */
 function neticrm_update_update_9313() {
+  \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #39662, Update Alishan township district
+ */
+function neticrm_update_update_9315() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #38829, Add qpdf path, add tpls for pdf receipt encrypt
+ */
+function neticrm_update_update_9317() {
+  \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
   return neticrm_update_load_include(__FUNCTION__);
 }
