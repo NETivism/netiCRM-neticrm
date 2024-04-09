@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Update Alishan township district
+ * Add qpdf path
  *
  */
 function _neticrm_update_update_x313() {
