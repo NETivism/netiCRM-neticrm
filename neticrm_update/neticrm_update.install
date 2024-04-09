@@ -870,8 +870,9 @@ function neticrm_update_update_7315() {
 }
 
 /**
- * refs #38829, Add qpdf path
+ * refs #38829, Add qpdf path, add tpls for pdf receipt encrypt
  */
 function neticrm_update_update_7317() {
+  module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
   return neticrm_update_load_include(__FUNCTION__);
 }
