@@ -332,11 +332,14 @@ function civicrm_spgateway_cron() {
 
 function civicrm_spgateway_recur_sync($days = array()){
   civicrm_initialize();
+
   if(empty($days)){
     $days = array(
       date('j'),
-      date('j', strtotime('-1 day')),
     );
+    if (date('j') != 1) {
+      $days[] = date('j', strtotime('-1 day'));
+    }
 
     // when end of month
 		$end_this_month = date('j', strtotime('last day of this month'));
@@ -346,29 +349,48 @@ function civicrm_spgateway_recur_sync($days = array()){
       }
     }
     $days = array_unique($days);
+    CRM_Core_Error::debug_var('spgateway_recur_sync_days', $days);
   }
 
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND (DAY(r.start_date) = %1 OR r.cycle_day = %1)
   ORDER BY r.create_date ASC";
   foreach($days as $d){
-    $d = (string) $d;
     watchdog('civicrm_spgateway', 'Start to sync recurring for day '.$d);
-    $query_params = array(
-      1 => array($d, 'String'),
-      2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
-      3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
-    );
+    if ($d >= 29) {
+      $d = (string) $d;
+      $query_params = array(
+        1 => array($d, 'String'),
+        2 => array(date('Y-m-28').' 00:00:00', 'String'),
+        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+      );
+    }
+    else {
+      $d = (string) $d;
+      $query_params = array(
+        1 => array($d, 'String'),
+        2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
+        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
+      );
+    }
+    CRM_Core_Error::debug_var('spgateway_recur_sync_query_params', $query_params);
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
+      CRM_Core_Error::debug_log_message("count: {$result->contribution_count}, recur_id: {$result->id}, recur start_date: {$result->start_date}, recur cycle_day: {$result->cycle_day};");
       if(empty($result->contribution_count)){
+        CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
         // check if is next day of expect recurring
         civicrm_spgateway_recur_check($result->id);
         usleep(300000); // sleep 0.3 second
+        CRM_Core_Error::debug_log_message("Finished checking recur_id: {$result->id};");
+      }
+      else {
+        CRM_Core_Error::debug_log_message("This month is already executed: {$result->id};");
       }
     }
     $result->free();
     $result = NULL;
+    CRM_Core_Error::debug_log_message("Finished all spgateway recurring executed for day: {$d}");
   }
 }
 
@@ -378,18 +400,24 @@ function civicrm_spgateway_recur_sync($days = array()){
 function civicrm_spgateway_recur_check($recurring_id) {
   civicrm_initialize();
   module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.ipn');
-   
+
   // get latest trxn_id civicrm_contribution
   // whatever contribution success or not, trxn_id will increase number
   // we dont limit recurring status to make sure when ever recurring stopped, we still can syncronize contribution
-  $query = "SELECT trxn_id, CAST(REGEXP_REPLACE(trxn_id, '^[0-9]+_?', '') as UNSIGNED) as number FROM civicrm_contribution WHERE contribution_recur_id = %1 ORDER BY number DESC";
+  $query = "SELECT trxn_id, CAST(REGEXP_REPLACE(trxn_id, '^[0-9_r]+_([0-9]+)$', '\\\\1') as UNSIGNED) as number FROM civicrm_contribution WHERE contribution_recur_id = %1 AND CAST(trxn_id as UNSIGNED) < 900000000 ORDER BY number DESC;";
   $result = CRM_Core_DAO::executeQuery($query, array(1 => array($recurring_id, 'Integer')));
   $result->fetch();
   if(!empty($result->N)){
     // when recurring trxn_id have underline, eg oooo_1
     if (strstr($result->trxn_id, '_')) {
-      list($parent_trxn_id, $recurring_installment) = explode('_', $result->trxn_id);
-      if (is_numeric($recurring_installment)) {
+      list($parent_trxn_id, $recurring_installment, $old_recur_installment) = explode('_', $result->trxn_id);
+      if ($parent_trxn_id == 'r' && is_numeric($old_recur_installment)) {
+        // for old recurring. trxn_id like 'r_12_3', $parent_trxn_id = 'r', $recurring_installment = 12, $old_recur_installment = 3
+        $old_recur_installment++;
+        civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment.'_'.$old_recur_installment, $create_contribution = TRUE);
+      }
+      elseif (is_numeric($recurring_installment)) {
+        // for current recurring, for trxn_id like 123_4, $parent_trxn_id = 123, $recurring_installment = 4
         $recurring_installment++;
         civicrm_spgateway_single_check($parent_trxn_id.'_'.$recurring_installment, $create_contribution = TRUE);
       }
@@ -410,7 +438,15 @@ function civicrm_spgateway_single_check($trxn_id, $create_contribution = FALSE, 
   $parent_trxn_id = 0;
   $payment_processor_id = 0;
   if (strstr($trxn_id, '_')) {
-    list($parent_trxn_id, $recurring_installment) = explode('_', $trxn_id);
+    list($recur_id, $installment, $old_installment) = explode('_', $trxn_id);
+    if ($recur_id == 'r' && !empty($old_installment)) {
+      // Old newebpay recurring, format: r_123_4
+      $parent_trxn_id = $recur_id.'_'.$installment;
+    }
+    else {
+      // Current spgateway recurring, format: 1234_5
+      $parent_trxn_id = $recur_id;
+    }
   }
   $contribution = new CRM_Contribute_DAO_Contribution();
   $contribution->trxn_id = $trxn_id;
