@@ -351,6 +351,13 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
           );
         }
       }
+      if ($form_name == 'CRM_Contribute_Form_Contribution_Main' && $processor_type == 'TapPay' && isset($fields['frequency_unit'])) {
+        if ($fields['frequency_unit'] == 'year') {
+          return array(
+            'frequency_unit' => ts("The payment processor you choose does not support annual recurring payments."),
+          );
+        }
+      }
       break;
     // contribution page settings
     case 'CRM_Contribute_Form_ContributionPage_Amount':
@@ -395,6 +402,18 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
           drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
         }
       }
+
+      // check payment processor
+      if (!empty($fields['recur_frequency_unit']) && !empty($fields['payment_processor'])) {
+        $processors = array_keys($fields['payment_processor']);
+        $hasTapPay = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE id IN(%1) AND payment_processor_type = 'TapPay'", array(
+          1 => array(implode(',', $processors), 'CommaSeperatedIntegers'),
+        ));
+        if ($hasTapPay && !empty($fields['recur_frequency_unit']['year'])) {
+          $errors['recur_frequency_unit'] = ts('%1 only supports monthly recurring payments.', array(1 => 'TapPay'));
+        }
+      }
+      return $errors;
       // continue validate with fee
     case 'CRM_Event_Form_ManageEvent_Fee':
       if (!empty($fields['is_monetary']) && !empty($fields['payment_processor'])) {
