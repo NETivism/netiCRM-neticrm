@@ -263,6 +263,9 @@ function civicrm_spgateway_recur_sync($days = array()){
       date('j'),
       date('j', strtotime('-1 day')),
     );
+    if (date('j') != 1) {
+      $days[] = date('j', strtotime('-1 day'));
+    }
 
     // when end of month
 		$end_this_month = date('j', strtotime('last day of this month'));
@@ -272,6 +275,7 @@ function civicrm_spgateway_recur_sync($days = array()){
       }
     }
     $days = array_unique($days);
+    CRM_Core_Error::debug_var('spgateway_recur_sync_days', $days);
   }
 
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
@@ -285,16 +289,20 @@ function civicrm_spgateway_recur_sync($days = array()){
       2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
       3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
     );
+    CRM_Core_Error::debug_var('spgateway_recur_sync_query_params', $query_params);
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
       if(empty($result->contribution_count)){
+        CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
         // check if is next day of expect recurring
         CRM_Core_Payment_SPGATEWAY::recurSync($result->id);
         usleep(300000); // sleep 0.3 second
+        CRM_Core_Error::debug_log_message("Finished checking recur_id: {$result->id};");
       }
     }
     $result->free();
     $result = NULL;
+    CRM_Core_Error::debug_log_message("Finished all spgateway recurring executed for day: {$d}");
   }
 }
 
