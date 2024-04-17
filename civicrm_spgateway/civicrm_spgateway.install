@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Refs #30837, convert drupal table to crm table. We need to add id for crm compatibility
+ * Refs #38634, convert drupal table to crm table. We need to add id for crm compatibility
  */
 function civicrm_spgateway_update_7102() {
   civicrm_initialize();
