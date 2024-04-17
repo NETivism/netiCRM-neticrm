@@ -1,15 +1,6 @@
 <?php
 
 /**
- * Implementation of hook_init()
- */
-function civicrm_spgateway_init(){
-  if(strstr($_GET['q'], 'spgateway')){
-    $GLOBALS['conf']['cache'] = FALSE;
-  }
-}
-
-/**
  * Implementation of hook_civicrm_buildForm()
  */
 function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
@@ -64,7 +55,6 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           $params['trxn_id'] = $saved_params['trxn_id'];
 
           // build notify billing info
-          module_load_include("inc", 'civicrm_spgateway', 'civicrm_spgateway.notify');
           $info = civicrm_spgateway_notify_bytrxn($params['trxn_id']);
           if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
             $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
@@ -77,7 +67,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             civicrm_spgateway_notify_generate($contrib_values['id'], TRUE); // send mail
             $form->set('invoice_sended', TRUE);
           }
-          $form->assign('payment_instrument', $display); 
+          $form->assign('payment_instrument', $display);
 
           // add result type
           CRM_Contribute_BAO_Contribution_Utils::paymentResultType($form, $params, $status, $msg);
@@ -233,14 +223,6 @@ function civicrm_spgateway_cron() {
   $last = variable_get('civicrm_spgateway_recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
-
-    // For old neweb.
-    $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
-    $dao = CRM_Core_DAO::executeQuery($query);
-    while($dao->fetch()) {
-      CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
-    }
-
     variable_set('civicrm_spgateway_recur_sync', $now);
   }
 
@@ -252,7 +234,7 @@ function civicrm_spgateway_cron() {
     $finishedAll = TRUE;
     while($dao->fetch()) {
       module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
-      $finished = civicrm_spgateway_neweb_resync($dao->payment_processor_id);
+      $finished = CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
       if (!$finished) {
         $finishedAll = FALSE;
       }
