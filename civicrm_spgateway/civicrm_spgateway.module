@@ -304,16 +304,16 @@ function civicrm_spgateway_recur_sync($days = array()){
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
     while($result->fetch()){
       if(empty($result->contribution_count)){
-        CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
+        CRM_Core_Error::debug_log_message("civicrm_spgateway: Executing check for recur_id: {$result->id};");
         // check if is next day of expect recurring
         CRM_Core_Payment_SPGATEWAY::recurSync($result->id);
         usleep(300000); // sleep 0.3 second
-        CRM_Core_Error::debug_log_message("Finished checking recur_id: {$result->id};");
+        CRM_Core_Error::debug_log_message("civicrm_spgateway: Finished checking recur_id: {$result->id};");
       }
     }
     $result->free();
     $result = NULL;
-    CRM_Core_Error::debug_log_message("Finished all spgateway recurring executed for day: {$d}");
+    CRM_Core_Error::debug_log_message("civicrm_spgateway: Finished all spgateway recurring executed for day: {$d}");
   }
 }
 
