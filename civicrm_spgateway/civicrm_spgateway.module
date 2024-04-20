@@ -352,6 +352,7 @@ function civicrm_spgateway_recur_sync($days = array()){
     CRM_Core_Error::debug_var('spgateway_recur_sync_days', $days);
   }
 
+  // Query for the recurring need to do checking.
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND (DAY(r.start_date) = %1 OR r.cycle_day = %1)
   ORDER BY r.create_date ASC";
@@ -375,14 +376,32 @@ function civicrm_spgateway_recur_sync($days = array()){
     }
     CRM_Core_Error::debug_var('spgateway_recur_sync_query_params', $query_params);
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
+
+    // Don't process for the recurring which having long time not synced.
+    $queryBefore3Monthes = "SELECT GROUP_CONCAT(cr_id) FROM (SELECT cr.id AS cr_id, c.id, cr.start_date, cr.contribution_status_id, GROUP_CONCAT(co.id) as contribution_ids, MAX(co.created_date) as last_created_date
+      FROM civicrm_contribution_recur cr
+      LEFT JOIN civicrm_contribution co ON cr.id = co.contribution_recur_id
+      LEFT JOIN civicrm_contact c ON co.contact_id = c.id
+      WHERE cr.contribution_status_id = 5
+      GROUP BY cr.id
+      HAVING MAX(co.created_date) < DATE_SUB(CURDATE(), INTERVAL 3 MONTH)) contribution";
+    $cridBefore3Monthes = CRM_Core_DAO::singleValueQuery($queryBefore3Monthes);
+    CRM_Core_Error::debug_var("do_not_execute_crids", $cridBefore3Monthes);
+    $cridsArrayBefore3Monthes = explode(',', $cridBefore3Monthes);
     while($result->fetch()){
       CRM_Core_Error::debug_log_message("count: {$result->contribution_count}, recur_id: {$result->id}, recur start_date: {$result->start_date}, recur cycle_day: {$result->cycle_day};");
       if(empty($result->contribution_count)){
-        CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
-        // check if is next day of expect recurring
-        civicrm_spgateway_recur_check($result->id);
-        usleep(300000); // sleep 0.3 second
-        CRM_Core_Error::debug_log_message("Finished checking recur_id: {$result->id};");
+        // Check if last created date is before 3 monthes
+        if (!in_array($result->id, $cridsArrayBefore3Monthes)) {
+          CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
+          // check if is next day of expect recurring
+          civicrm_spgateway_recur_check($result->id);
+          usleep(300000); // sleep 0.3 second
+          CRM_Core_Error::debug_log_message("Finished checking recur_id: {$result->id};");
+        }
+        else {
+          CRM_Core_Error::debug_log_message("The recur doesn't get transaction for over 3 month. Do not execute checking. recur_id: {$result->id}");
+        }
       }
       else {
         CRM_Core_Error::debug_log_message("This month is already executed: {$result->id};");
