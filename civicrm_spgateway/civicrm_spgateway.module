@@ -378,7 +378,7 @@ function civicrm_spgateway_recur_sync($days = array()){
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
 
     // Don't process for the recurring which having long time not synced.
-    $queryBefore3Monthes = "SELECT GROUP_CONCAT(cr_id) FROM (SELECT cr.id AS cr_id, c.id, cr.start_date, cr.contribution_status_id, GROUP_CONCAT(co.id) as contribution_ids, MAX(co.created_date) as last_created_date
+    $queryBefore3Monthes = "SELECT GROUP_CONCAT(cr_id) as crids FROM (SELECT cr.id AS cr_id, c.id, cr.start_date, cr.contribution_status_id, MAX(co.created_date) as last_created_date
       FROM civicrm_contribution_recur cr
       LEFT JOIN civicrm_contribution co ON cr.id = co.contribution_recur_id
       LEFT JOIN civicrm_contact c ON co.contact_id = c.id
