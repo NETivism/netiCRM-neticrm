@@ -185,16 +185,10 @@ function civicrm_allpay_cron(){
   $last = variable_get('civicrm_allpay_recur_sync', 0);
   $now = time();
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
-    civicrm_allpay_recur_sync();
+    civicrm_initialize();
+    CRM_Core_Payment_ALLPAY::recurSync();
     variable_set('civicrm_allpay_recur_sync', $now);
   }
-  /* // TODO: confirm allpay has no problem at this
-  $last_fee_sync = variable_get('civicrm_allpay_fee_sync', 0);
-  if($now - $last > 60000 && date('G') > '3' && date('G') < '9'){
-    civicrm_allpay_fee_sync();
-    variable_set('civicrm_allpay_fee_sync', $now);
-  }
-  */
 }
 
 function _civicrm_allpay_instrument($type = 'normal'){
@@ -225,399 +219,103 @@ function _civicrm_allpay_instrument($type = 'normal'){
   }
 }
 
-/**
- * Help function for generate post string
- */
-function _civicrm_allpay_vars2str($post){
-  $array = array();
-  foreach($post as $name => $value){
-    if($value){
-      $array[] = $name."=".urlencode($value);
-    }
-  }
-  return implode('&', $array);
-}
-
-function civicrm_allpay_record($cid, $data = null){
-  civicrm_initialize();
-  return CRM_Core_Payment_ALLPAYIPN::doRecordData($cid, $data);
-}
-
-function civicrm_allpay_recur_sync($days = array()){
-  civicrm_initialize();
-  module_load_include("inc", 'civicrm_allpay', 'civicrm_allpay.ipn');
-  if(empty($days)){
-    $days = array(
-      date('j'),
-      date('j', strtotime('-1 day')),
-    );
-
-    // when end of month
-		$end_this_month = date('j', strtotime('last day of this month'));
-    if (date('j') == $end_this_month) {
-      for($i = $end_this_month; $i <= 31; $i++) {
-        $days[] = $i;
-      }
-    }
-    $days = array_unique($days);
-  }
-
-  $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
-  WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND DAY(r.start_date) = %1
-  ORDER BY r.create_date ASC";
-  foreach($days as $d){
-    $d = (string) $d;
-    watchdog('civicrm_allpay', 'Start to sync recurring for day '.$d);
-    $query_params = array(
-      1 => array($d, 'String'),
-      2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
-      3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
-    );
-    $result = CRM_Core_DAO::executeQuery($query, $query_params);
-    while($result->fetch()){
-      if(empty($result->contribution_count)){
-        // check if is next day of expect recurring
-        civicrm_allpay_recur_check($result->id);
-        usleep(300000); // sleep 0.3 second
-      }
-    }
-    $result->free();
-    $result = NULL;
-  }
-}
-
-function civicrm_allpay_recur_check($rid, $order = NULL){
-  civicrm_initialize();
-  $now = time();
-  $query = "SELECT c.id as cid, c.contact_id, c.is_test, c.trxn_id, c.payment_processor_id as pid, c.contribution_status_id, r.id as rid, r.contribution_status_id as recurring_status FROM civicrm_contribution_recur r INNER JOIN civicrm_contribution c ON r.id = c.contribution_recur_id WHERE r.id = %1 ORDER BY c.id ASC";
-  $result = CRM_Core_DAO::executeQuery($query, array(1 => array($rid, 'Integer')));
-
-  // fetch first contribution
-  $result->fetch();
-  if(!empty($result->N)){
-    $first_contrib_id = $result->cid;
-    $is_test = $result->is_test;
-    $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($result->pid, $is_test ? 'test' : 'live');
-    if($payment_processor['payment_processor_type'] != 'ALLPAY'){
-      return;
-    }
-
-    if(!empty($payment_processor['url_recur']) && !empty($payment_processor['user_name'])){
-      $processor = array(
-        'password' => $payment_processor['password'],
-        'signature' => $payment_processor['signature'],
-      );
-      $post_data = array(
-        'MerchantID' => $payment_processor['user_name'],
-        'MerchantTradeNo' => $result->trxn_id,
-        'TimeStamp' => $now,
-      );
-      _civicrm_allpay_checkmacvalue($post_data, $processor);
-      if(empty($order)){
-        $order = _civicrm_allpay_postdata($payment_processor['url_recur'], $post_data);
-      }
-      if(!empty($order) && $order->MerchantTradeNo == $result->trxn_id && count($order->ExecLog > 1)){
-        // update recur status
-        $recur = $order->ExecStatus;
-        if(isset($order->ExecStatus)){
-          $update_status = NULL;
-          $recur_param = $null = array();
-          if($order->ExecStatus == 0 && $result->recurring_status != 3){
-            // cancelled
-            $update_status = 3;
-            $recur_param = array(
-              'id' => $rid,
-              'modified_date' => date('YmdHis'),
-              'cancel_date' => date('YmdHis'),
-              'contribution_status_id' => 3, // cancelled
-            );
-            CRM_Contribute_BAO_ContributionRecur::add($recur_param, $null);
-          }
-          elseif($order->ExecStatus == 2 && $result->recurring_status != 1){
-            // completed
-            $recur_param = array(
-              'id' => $rid,
-              'modified_date' => date('YmdHis'),
-              'end_date' => date('YmdHis'),
-              'contribution_status_id' => 1, // completed
-            );
-            CRM_Contribute_BAO_ContributionRecur::add($recur_param, $null);
-          }
-          elseif($order->ExecStatus == 1){
-            // current running, should be 5, do nothing
-          }
-        }
-
-        $orders = array();
-        foreach($order->ExecLog as $o){
-          // skip first recorded contribution
-          if($order->gwsr == $o->gwsr){
-            continue;
-          }
-          $noid = _civicrm_allpay_noid_hash($o, $order->MerchantTradeNo);
-          if (!empty($noid)) {
-            if($o->RtnCode == 1 && empty($o->gwsr)){
-              continue; // skip, not normal
-            }
-            $trxn_id = _civicrm_allpay_recur_trxn($order->MerchantTradeNo, $noid);
-            $orders[$trxn_id] = $o;
-          }
-        }
-        // remove exists records
-        while($result->fetch()){
-          unset($orders[$result->trxn_id]);
-        }
-        // real record to add
-        if(!empty($orders)){
-          foreach($orders as $trxn_id => $o){
-            $get = $post = $ids = array();
-            list($main_trxn, $noid) = explode('-', $trxn_id);
-            $ids = CRM_Contribute_BAO_Contribution::buildIds($first_contrib_id);
-            $query = CRM_Contribute_BAO_Contribution::makeNotifyUrl($ids, NULL, $return_query = TRUE);
-            parse_str($query, $get);
-            $get['is_recur'] = 1;
-            $post = array(
-              'MerchantID' => $order->MerchantID,
-              'MerchantTradeNo' => $order->MerchantTradeNo,
-              'RtnCode' => $o->RtnCode,
-              'RtnMsg' => !empty($o->RtnMsg) ? t($o->RtnMsg) : _civicrm_allpay_error_msg($o->RtnCode),
-              'PeriodType' => $order->PeriodType,
-              'Frequency' => $order->Frequency,
-              'ExecTimes' => $order->ExecTimes,
-              'Amount' => !empty($o->amount) ? $o->amount : $order->amount,
-              'Gwsr' => $noid,
-              'ProcessDate' => $o->process_date,
-              'AuthCode' => !empty($o->auth_code) ? $o->auth_code : '',
-              'FirstAuthAmount' => $order->PeriodAmount,
-              'TotalSuccessTimes' => $order->TotalSuccessTimes,
-              //'SimulatePaid' => $order->SimulatePaid,
-            );
-
-            // manually trigger ipn
-            civicrm_allpay_ipn('Credit', $post, $get, FALSE);
-          }
-        }
-      }
-    }
-  }
-}
-
-function civicrm_allpay_fee_sync(){
-  civicrm_initialize();
-  $limit = 100;
-  $check_start_date = date('Y-m-d', strtotime('-60 days'));
-  $check_end_date = date('Y-m-d', strtotime('-8 days'));
-  $query = "SELECT id, created_date, receive_date, total_amount, fee_amount, net_amount, trxn_id, payment_processor_id as pid FROM civicrm_contribution WHERE is_test = 0 AND receive_date > %1 AND receive_date < %2 AND contribution_status_id = 1 AND payment_processor_id IS NOT NULL AND (fee_amount IS NULL OR fee_amount = 0) ORDER BY receive_date DESC LIMIT 0, $limit";
-  $result = CRM_Core_DAO::executeQuery($query, array(
-    1 => array($check_start_date, 'String'),
-    2 => array($check_end_date, 'String'),
-  ));
-
-  while($result->fetch()){
-    if(!isset($payment_processors[$result->pid])){
-      $payment_processors[$result->pid] = CRM_Core_BAO_PaymentProcessor::getPayment($result->pid, 'live');
-    }
-    $payment_processor = $payment_processors[$result->pid];
-    if($payment_processor['payment_processor_type'] != 'ALLPAY'){
-      continue;
-    }
-    else{
-      if(!empty($payment_processor['url_recur']) && !empty($payment_processor['user_name'])){
-        $net_amount = $fee_amount = NULL;
-        $processor = array(
-          'password' => $payment_processor['password'],
-          'signature' => $payment_processor['signature'],
-        );
-        $post_data = array(
-          'MerchantID' => $payment_processor['user_name'],
-          'MerchantTradeNo' => $result->trxn_id,
-          'TimeStamp' => time(),
-        );
-        _civicrm_allpay_checkmacvalue($post_data, $processor);
-        $response = _civicrm_allpay_postdata($payment_processor['url_api'], $post_data, FALSE);
-        if(!empty($response) && $response->MerchantTradeNo == $result->trxn_id && !empty($response->HandlingCharge)){
-          $fee_amount = (float)$response->HandlingCharge;
-          $net_amount = $result->total_amount - $fee_amount;
-          CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET fee_amount = %1, net_amount = %2 WHERE id = %3", array(
-            1 => array($fee_amount, 'Float'),
-            2 => array($net_amount, 'Float'),
-            3 => array($result->id, 'Integer'),
-          ));
-        }
-        usleep(200000); // sleep 0.2 second
-      }
-    }
-  }
-}
-
-function _civicrm_allpay_checkmacvalue(&$args, $payment_processor){
-  // remove empty arg
-  if(is_array($args)){
-    foreach($args as $k => $v){
-      if($k == 'CheckMacValue'){
-        unset($args[$k]);
-      }
-    }
-  }
-  elseif(is_string($args)){
-    $tmp = explode('&', $args);
-    $args = array();
-    foreach($tmp as $v){
-      list($key, $value) = explode('=', $v);
-      $args[$key] = $value;
-    }
-  }
-  uksort($args, 'strnatcasecmp');
-  $a = array(
-    'HashKey='.$payment_processor['password'],
-  );
-  foreach($args as $k => $v){
-    $a[] = $k.'='.$v;
-  }
-  $a[] = 'HashIV='.$payment_processor['signature'];
-  $keystr = implode('&', $a);
-  $keystr = urlencode($keystr);
-  $keystr = strtolower($keystr);
-
-  $special_char_allpay = array(
-    '%2d' => '-',
-    '%5f' => '_',
-    '%2e' => '.',
-    '%21' => '!',
-    '%2a' => '*',
-    '%28' => '(',
-    '%29' => ')',
-    '%20' => '+',
-  );
-  $keystr = str_replace(array_keys($special_char_allpay), $special_char_allpay, $keystr);
-
-  $checkmacvalue = md5($keystr);
-  $args['CheckMacValue'] = $checkmacvalue;
-  return $checkmacvalue;
-}
-
-function _civicrm_allpay_trxn_id($is_test, $id){
-  if($is_test){
-    $id = 'test' . substr(str_replace(array('.','-'), '', $_SERVER['HTTP_HOST']), 0, 3) . $id. 'T'. mt_rand(100, 999);
-  }
-  return $id;
-}
-function _civicrm_allpay_recur_trxn($parent, $gwsr){
-  if(empty($gwsr)){
-    return $parent;
-  }
-  else{
-    return $parent . '-' . $gwsr;
-  }
-}
-
-function _civicrm_allpay_postdata($url, $post_data, $json = TRUE){
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 1);
-  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-  curl_setopt($ch, CURLOPT_POST, 1);
-  $field_string = http_build_query($post_data, '', '&');
-  curl_setopt($ch, CURLOPT_POSTFIELDS, $field_string);
-  curl_setopt($ch, CURLOPT_HEADER, 0);  // DO NOT RETURN HTTP HEADERS
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);  // RETURN THE CONTENTS OF THE CALL
-  $receive = curl_exec($ch);
-  if(curl_errno($ch)){
-    watchdog('civicrm_allpay', 'Fetch recuring error: curl_errno: '.curl_errno($ch).' / '. curl_error($ch), 'error');
-  }
-  else{
-    watchdog('civicrm_allpay', 'Request:'.$url."?".$field_string);
-
-    if (strlen($receive) > 1000) {
-      $logs = str_split($receive, 1000);
-      foreach($logs as $l) {
-        watchdog('civicrm_allpay', $l);
-      }
-    }
-    else {
-      watchdog('civicrm_allpay', $receive);
-    }
-  }
-  curl_close($ch);
-  if(!empty($receive)){
-    if($json){
-      return json_decode($receive);
-    }
-    else{
-      $return = array();
-      parse_str($receive, $return);
-      return $return;
-    }
-  }
-  else{
-    return FALSE;
-  }
-}
-
 function _civicrm_allpay_cancel_recuring_message(){
   $js = '<p>因綠界並未提供取消定期定額的介接，<br/>因此無法從 CRM 後台取消。<br/>請到<a target="_blank" href="https://vendor.ecpay.com.tw/">綠界的後台</a>進行取消之操作，確認取消後，系統會於下次該捐款的扣款日時，自動同步綠界上的定期定額訂單狀態，這段時間的資料以綠界後台的狀態為主</p><p style="font-size:0.5em;">更詳細的內容請參考我們的<a target="_blank" href="https://neticrm.tw/resources/2497">手冊說明</a>。</p><script>cj(".ui-dialog-buttonset button").hide();</script>';
   return $js;
 }
 
+function civicrm_allpay_notify_generate($cid, $send_mail = FALSE){
+  civicrm_initialize();
+  $info = civicrm_allpay_notify_info($cid);
+  if(!empty($info)){
+    $info['display'] = civicrm_allpay_notify_display($info);
+    if($info['#type'] == 'BAR'){
+      $info['has_receipt'] = 1;
+      $info['display'] = civicrm_allpay_notify_display_barcode($info);
+    }
 
-function _civicrm_allpay_error_msg($code){
-  $code = (string) $code;
-  // success
-  if($code == '1' || $code == '2'){
-    return;
-  }
-
-  // error
-  $msg = array(
-    '10100001' => 'IP Access Denied.',
-    '10100050' => 'Parameter Error.',
-    '10100054' => 'Trading Number Repeated.',
-    '10100055' => 'Create Trade Fail.',
-    '10100058' => 'Pay Fail.',
-    '10100059' => 'Trading Number cannot Be Found.',
-    '10200001' => 'Can not use trade service.',
-    '10200002' => 'Trade has been updated before.',
-    '10200003' => 'Trade Status Error.',
-    '10200005' => 'Price Format Error.',
-    '10200007' => 'ItemURL Format Error.',
-    '10200047' => 'Cant not find the trade data.',
-    '10200050' => 'AllPayTradeID Error.',
-    '10200051' => 'MerchantID Error.',
-    '10200052' => 'MerchantTradeNo Error.',
-    '10200073' => 'CheckMacValue Error',
-    '10200124' => 'TopUpUsedESUN Trade Error',
-    'uncertain' => 'Please login your payment processor system to check problem.',
-    '0' => 'Please login your payment processor system to check problem.',
-  );
-  if(!empty($msg[$code])){
-    return t($msg[$code]);
-  }
-  else{
-    return t('Error when processing your payment.');
+    if($send_mail){
+      $message = '';
+      CRM_Contribute_BAO_Contribution::getInvoice($cid, $info, $message, $send_mail);
+    }
+    else{
+      return $info;
+    }
   }
 }
 
-function _civicrm_allpay_noid_hash($o, $main_trxn){
-  // check database for this
-  $lookup = array(
-    1 => array('%TradeNo":"'.$main_trxn.'"%ProcessDate":"'.str_replace('/', '\\\\\\\\', $o->process_date).'"%', 'String'),
-  );
-  $cid = CRM_Core_DAO::singleValueQuery("SELECT cid FROM civicrm_contribution_allpay WHERE data LIKE %1", $lookup);
-  if ($cid) {
-    $trxn_id = CRM_Core_DAO::singleValueQuery("SELECT trxn_id FROM civicrm_contribution WHERE id = %1", array(1 => array($cid, 'Integer')));
-    list($main_trxn, $noid) = explode('-', $trxn_id);
-    if ($noid) {
-      return $noid;
+function civicrm_allpay_notify_bytrxn($trxn_id){
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(1 => array($trxn_id, 'String')));
+  return civicrm_allpay_notify_info($cid);
+}
+
+function civicrm_allpay_notify_info($cid){
+  $data = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
+  $json = json_decode($data, TRUE);
+  if(!empty($json['#info'])){
+    $info =& $json['#info'];
+    $type = substr($info['PaymentType'], 0, 3);
+    $return = array();
+    $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
+    switch($type){
+      case 'ATM':
+        $return['繳費銀行代碼'] = $info['BankCode'];
+        $return['繳費虛擬帳號'] = $info['vAccount'];
+        $return['繳費期限'] = $info['ExpireDate'];
+        break;
+      case 'CVS':
+        $help = l('» 步驟說明', 'https://www.ecpay.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
+        $return['便利商店繳費代碼'] = $info['PaymentNo'];
+        $return['繳費期限'] = $info['ExpireDate'];
+        $return[] = $help;
+        break;
+      case 'BAR':
+        $barcodepath = 'https://pay.ecpay.com.tw/bank/tcbank/cnt/GenerateBarcode?barcode=';
+        $barcode = array($info['Barcode1'], $info['Barcode2'], $info['Barcode3']);
+        foreach($barcode as $k => $b){
+          $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
+        }
+        $return['繳費單'] = '<a href="'.$invoice_link.'" target="_blank">» 列印繳費單</a>';
+        $return['繳費期限'] = $info['ExpireDate'];
+        break;
     }
-    else {
-      return;
+    if(!empty($return)){
+      $return['#type'] = $type;
+      $return['#expire'] = $info['ExpireDate'];
+      $return['#invoice'] = $invoice_link;
+      return $return;
     }
   }
-  elseif (!empty($o->process_date)) {
-    if (!empty($o->gwsr)) {
-      return $o->gwsr;
+
+  // error fallback
+  return array();
+}
+
+function civicrm_allpay_notify_display($info, $payment_instrument_id = NULL){
+  $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
+  foreach($info as $label => $value){
+    if(preg_match('/^#/', $label)){
+      continue;
     }
-    else {
-      return substr(md5(implode('', (array)$o)), 0, 8);
+    elseif(is_numeric($label)){
+      $output .= '<dd>'.' <span>'.$value.'</span></dd>';
+    }
+    else{
+      $output .= '<dd><label>'.$label.':</label>'.' <span>'.$value.'</span></dd>';
     }
   }
+  $payment_instrument = !empty($payment_instrument_id) ? '<strong>'.$instruments[$payment_instrument_id].'</strong>' : '';
+  $output = $payment_instrument.'<dl>'.$output.'</dl>';
+  return $output;
+}
+
+function civicrm_allpay_notify_display_barcode($info){
+  $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">代收店舖章</div>';
+  foreach($info as $label => $v){
+    if(preg_match('/^#barcode/', $label)){
+      $output .= '<div>'.$v.'</div>';
+    }
+  }
+  $output .= '<p><label>繳費期限:</label> <span>'.$info['#expire'].'</span></p>';
+  return $output;
 }
