@@ -239,7 +239,20 @@ class CRM_Core_Payment_SPGATEWAYIPN extends CRM_Core_Payment_BaseIPN {
         $trxn_id = $input['OrderNo'];
         if($input['Status'] != 'SUCCESS'){
           $contribution->contribution_status_id = 4; // Failed
-          $c = self::copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+          // Check trxn_id is exist
+          $id_from_trxn_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(
+            1 => array($trxn_id, 'String'),
+          ));
+          if (!$id_from_trxn_id) {
+            // Trxn_id is not existed, clone contribution.
+            $c = self::copyContribution($contribution, $ids['contributionRecur'], $trxn_id);
+          }
+          else {
+            // Sync contribution from given trxn_id. Usually used as syncing a recurring contribution.
+            $c = new CRM_Contribute_DAO_Contribution();
+            $c->id = $id_from_trxn_id;
+            $c->find(TRUE);
+          }
         }
         else{
           $contribution->contribution_status_id = 1; // Completed
