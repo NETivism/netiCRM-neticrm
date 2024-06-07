@@ -152,9 +152,8 @@ function civicrm_demo_process_contribution($vars){
   // ci testing needed
   if (variable_get('civicrm_demo_sample_data_ci', 0)) {
     $contribution_page_id[0] = civicrm_demo_create_contribution_page('Payment_ALLPAY');
-    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_Neweb');
-    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
-    $contribution_page_id[3] = civicrm_demo_create_contribution_page('Payment_Mobile');
+    $contribution_page_id[1] = civicrm_demo_create_contribution_page('Payment_SPGATEWAY');
+    $contribution_page_id[2] = civicrm_demo_create_contribution_page('Payment_Mobile');
   }
   else {
     // demo site or normal site
@@ -1073,8 +1072,11 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
     1 => array($option->id, 'Integer'),
   ));
 
+  $tpl['title'] = CRM_Core_DAO::singleValueQuery("SELECT msg_title FROM civicrm_msg_template WHERE workflow_id = %1", array(
+    1 => array($option->id, 'Integer'),
+  ));
   $params = array(
-    'msg_title' => !empty($additional_params['msg_title']) ? $additional_params['msg_title'] : $tpl['subject'],
+    'msg_title' => !empty($additional_params['msg_title']) ? $additional_params['msg_title'] : $tpl['title'],
     'msg_subject' => !empty($additional_params['msg_subject']) ? $additional_params['msg_subject'] : $tpl['subject'],
     'msg_text' => !empty($additional_params['msg_text']) ? $additional_params['msg_text'] : $tpl['text'],
     'msg_html' => !empty($additional_params['msg_html']) ? $additional_params['msg_html'] : $tpl['html'],
