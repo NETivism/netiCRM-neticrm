@@ -1,6 +1,6 @@
 <?php
 
-function _neticrm_update_update_x314() {
+function _neticrm_update_update_x318() {
   civicrm_initialize();
 
   // Add 'is_sync' column to 'civicrm_group' table if it doesn't exist

@@ -863,13 +863,6 @@ function neticrm_update_update_7313() {
 }
 
 /**
- * refs #39632, add sync fields to 'civicrm_group' and add new SMS provider 'Flydove'
- */
-function neticrm_update_update_7314() {
-  return neticrm_update_load_include(__FUNCTION__);
-}
-
-/**
  * refs #39662, Update Alishan township district
  */
 function neticrm_update_update_7315() {
@@ -881,5 +874,12 @@ function neticrm_update_update_7315() {
  */
 function neticrm_update_update_7317() {
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #39632, add sync fields to 'civicrm_group' and add new SMS provider 'Flydove'
+ */
+function neticrm_update_update_7318() {
   return neticrm_update_load_include(__FUNCTION__);
 }
