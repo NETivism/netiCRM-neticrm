@@ -222,7 +222,7 @@ function civicrm_spgateway_cron() {
   // every nights, we check recurring payment result 
   // First, check the recur which had received ipn notify today.
   $last = variable_get('civicrm_spgateway_recur_from_ipn_sync', 0);
-  if($now - $last > 60000 && date('G') > '17' && date('G') < '18'){
+  if($now - $last > 60000 && date('G') > '17' && date('G') <= '18'){
     $filterDatetime = date('Ymd');
     CRM_Core_Payment_SPGATEWAY::syncTransactionWebLog($filterDatetime);
     variable_set('civicrm_spgateway_recur_from_ipn_sync', $now);

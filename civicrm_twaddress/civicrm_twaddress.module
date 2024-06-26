@@ -262,12 +262,10 @@ EOT;
       if (is_array($form->_fields)) {
         reset($form->_fields);
       }
-      else {
-        $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
-        $js = implode("\n", $js);
-        $js = '<script type="text/javascript">'.$js.'</script>';
-        print($js);
-      }
+      $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
+      $js = implode("\n", $js);
+      $js = '<script type="text/javascript">'.$js.'</script>';
+      print($js);
     }
     else{
       // Refs #33721, Except for batch update profiles condition.
