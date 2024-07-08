@@ -223,6 +223,15 @@ function civicrm_spgateway_cron() {
   $now = time();
 
   // every nights, we check recurring payment result
+  // First, check the recur which had received ipn notify today.
+  $last = \Drupal::state()->get('civicrm_spgateway_recur_from_ipn_sync', 0);
+  if($now - $last > 60000 && date('G') > '17' && date('G') <= '18'){
+    $filterDatetime = date('Ymd');
+    CRM_Core_Payment_SPGATEWAY::syncTransactionWebLog($filterDatetime);
+    \Drupal::state()->set('civicrm_spgateway_recur_from_ipn_sync', $now);
+  }
+
+  // Then check all possible recurring to sync.
   $last = \Drupal::state()->get('civicrm_spgateway.recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
