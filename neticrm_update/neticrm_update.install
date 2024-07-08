@@ -205,3 +205,10 @@ function neticrm_update_update_9317() {
   \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #39632, add sync fields to 'civicrm_group' and add new SMS provider 'Flydove'
+ */
+function neticrm_update_update_9318() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
