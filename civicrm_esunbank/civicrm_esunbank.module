@@ -49,6 +49,7 @@ function civicrm_esunbank_cron(){
 function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$selector){
   if($context == 'contribution' && !empty($rows)){
     $instrument_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', 'Esunbank', 'value', 'name');
+    $ids = [];
     foreach($rows as $k => $r){
       if($r['contribution_status_id'] == 2){
         $ids[$k] = $r['contribution_id'];
