@@ -409,8 +409,11 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
             $("select[name=\''.$field['country'][$k]['name'].'\']").change(function(){
               var language = drupalSettings.path.currentLanguage;
               if($(this).val() == "1208" && (language == "zh-hant" || typeof language == undefined)){
-                applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
-              }else{
+                setTimeout(function(){
+                  applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');
+                }, 1000);
+              }
+              else{
                 cancelTWZIPAddress("'.$select_id.'",'.$address_info_json.');
               }
             }).trigger("change");
