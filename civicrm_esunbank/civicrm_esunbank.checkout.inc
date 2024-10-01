@@ -147,7 +147,12 @@ EOT;
 function civicrm_esunbank_convert_css($html){
   preg_match('/text\/css.*href="([^"].+\.css)"/i', $html, $matches);
   $css = file_get_contents($matches[1]);
-  $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+
+  // to convert all chars to &# format html entities
+  $html = preg_replace_callback('/[\x{80}-\x{10FFFF}]/u', function ($m) {
+    $char = $m[0];
+    return sprintf("&#%d;", mb_ord($char, 'UTF-8'));
+  }, $html);
 
   \Drupal::moduleHandler()->loadInclude('civicrm_esunbank', 'inc', 'css_to_inline_styles');
   $inline = new CSSToInlineStyles($html, $css); //class?
