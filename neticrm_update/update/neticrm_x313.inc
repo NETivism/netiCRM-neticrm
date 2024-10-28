@@ -1,9 +1,6 @@
 <?php
 
 function _neticrm_update_update_x313() {
-  civicrm_initialize();
-
-  $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
   $tpls = array(
     array(
       'workflow' => 'msg_tpl_workflow_contribution',
