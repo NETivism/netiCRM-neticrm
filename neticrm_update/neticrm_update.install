@@ -862,6 +862,7 @@ function neticrm_update_update_7313() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
+/**
  * refs #39662, Update Alishan township district
  */
 function neticrm_update_update_7315() {
