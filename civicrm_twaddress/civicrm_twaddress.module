@@ -171,64 +171,9 @@ EOT;
   }
 
   $enable = TRUE;
-  $override = array();
-  $form_name = $form->_attributes['name'];
-  // For user edit -> profile edit page, Dynamic panel.
-  if($form_name == 'Dynamic'){
-    $is_dynamic = true;
-    if(is_numeric(strpos($_GET['q'], 'user/register'))){
-      $form_name = 'user-register-form';
-    }else{
-      $form_name = 'user-profile-form';
-    }
-  }
-  foreach ($form->_elements as $k => $e) {
-    $name = $e->_attributes['name'];
-    $default = '';
-    if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
-      $key = _civicrm_twaddress_key($name);
-      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
-      $override['zipName'][$key]['key'] = $name;
-      $override['zipName'][$key]['default'] = $default ? CRM_Utils_String::xssFilter($default) : $form->getElement($name)->_findValue($form->_defaultValues);
-    }
-    if(strstr($name, 'state_province')){
-      $key = _civicrm_twaddress_key($name);
-      $override['countyName'][$key]['key'] = $name;
-      foreach($e->_options as $v){
-        if($v['attr']['value']){
-          $county_options[$v['attr']['value']] = $v['text'];
-        }
-      }
-      $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL; 
-      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
-      // Find that default value is depands on zip code. The code here is no use.
-      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : CRM_Utils_String::xssFilter($default);
-    }
-    if(strstr($name, 'city')){
-      $key = _civicrm_twaddress_key($name);
-      // hide field
-
-      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
-      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
-      // Find that default value is depands on zip code. The code here is no use.
-      $override['areaName'][$key]['key'] = '_'.$name;
-      $override['areaName'][$key]['name'] = $name;
-      $override['areaName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
-    }
-    if(strstr($name, 'country')){
-      $key = _civicrm_twaddress_key($name);
-
-      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
-      $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
-      // Find that default value is depands on zip code. The code here is no use.
-      $override['country'][$key]['key'] = '_'.$name;
-      $override['country'][$key]['name'] = $name;
-      $override['country'][$key]['default'] = CRM_Utils_String::xssFilter($default);
-    }
-  }
+  $form_info = _civicrm_twaddress_get_form_address_info($form);
+  $override = $form_info['override'];
+  $form_name = $form_info['form_name'];
 
   $allow_load_js = array(
     'CRM_Contribute_Form_Contribution',
@@ -276,6 +221,25 @@ EOT;
   }
 }
 
+function civicrm_twaddress_civicrm_alterTemplateVars(&$resourceName, &$vars) {
+  if ($resourceName == 'CRM/common/Embed.tpl') {
+    if ($vars['tplFile'] == 'CRM/Profile/Form/Edit.tpl') {
+      $js = _civicrm_twaddress_add_zipcode_js(FALSE);
+      $vars['embedBody'] .= $js;
+
+      $form = $vars['form'];
+      $form_info = _civicrm_twaddress_get_form_address_info($form);
+      $override = $form_info['override'];
+      $form_name = $form_info['form_name'];
+
+      $js = _civicrm_twaddress_common_js($override, $form_name, FALSE);
+      $js = implode("\n", $js);
+      $js = '<script type="text/javascript">'.$js.'</script>';
+      $vars['embedBody'] .= $js;
+    }
+  }
+}
+
 function civicrm_twaddress_extract(&$options){
   foreach($options as &$o){
     $return[$o['text']] = $o;
@@ -313,15 +277,31 @@ function civicrm_twaddress_order(){
   );
 }
 
-function _civicrm_twaddress_add_zipcode_js(){
+function _civicrm_twaddress_add_zipcode_js($add_js = TRUE) {
   global $language;
   $setting['language'] = $language->language;
-  drupal_add_js($setting, 'setting');
 
-  $path = drupal_get_path("module",'civicrm_twaddress');
-  drupal_add_js($path."/twzipcode.js");
-  $add = 1;
-  return $add;
+  if ($add_js) {
+    drupal_add_js($setting, 'setting');
+
+    $path = drupal_get_path("module", 'civicrm_twaddress');
+    drupal_add_js($path . "/twzipcode.js");
+    $add = 1;
+
+    return $add;
+  }
+  else {
+    $output = '<script type="text/javascript">';
+    $output .= '(function ($) {';
+    $output .= 'window.Drupal = window.Drupal || {};';
+    $output .= 'window.Drupal.settings = window.Drupal.settings || {};';
+    $output .= 'jQuery.extend(true, Drupal.settings, ' . drupal_json_encode($setting) . ');';
+    $output .= '})(jQuery);';
+    $output .= file_get_contents(drupal_get_path("module", 'civicrm_twaddress') . "/twzipcode.js");
+    $output .= '</script>';
+
+    return $output;
+  }
 }
 
 function _civicrm_twaddress_key($name){
@@ -633,4 +613,144 @@ function _civicrm_twaddress_reorder($options) {
   else {
     return $neworder;
   }
+}
+
+/**
+ * Helper function to get address field information from either form object or template form array
+ *
+ * @param mixed $source Either CRM_Core_Form object or template vars array
+ * @return array Associated array containing address field information
+ */
+function _civicrm_twaddress_get_form_address_info($source) {
+  $override = array();
+  $is_form_object = is_object($source) && $source instanceof CRM_Core_Form;
+
+  // Get form name
+  if ($is_form_object) {
+    $form_name = $source->_attributes['name'];
+    if ($form_name == 'Dynamic') {
+      if (is_numeric(strpos($_GET['q'], 'user/register'))) {
+        $form_name = 'user-register-form';
+      }
+      else {
+        $form_name = 'user-profile-form';
+      }
+    }
+  }
+  else {
+    $form_name = $source['formName'];
+  }
+
+  // Get fields to process
+  $fields = array();
+  if ($is_form_object) {
+    foreach ($source->_elements as $k => $e) {
+      if (!isset($e->_attributes['name'])) {
+        continue;
+      }
+      $fields[] = array(
+        'name' => $e->_attributes['name'],
+        'element' => $e,
+        'form' => $source
+      );
+    }
+  }
+  else {
+    foreach ($source as $field_name => $field) {
+      if (!is_array($field) || empty($field['name'])) {
+        continue;
+      }
+      $fields[] = $field;
+    }
+  }
+
+  // Process each field
+  foreach ($fields as $field) {
+    $name = $field['name'];
+
+    // Handle postal code fields
+    if (strstr($name, 'postal_code') && !strstr($name, 'postal_code_suffix')) {
+      $key = _civicrm_twaddress_key($name);
+      $override['zipName'][$key]['key'] = $name;
+
+      if ($is_form_object) {
+        $form = $field['form'];
+        $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
+        $override['zipName'][$key]['default'] = $default ? CRM_Utils_String::xssFilter($default) : $form->getElement($name)->_findValue($form->_defaultValues);
+      }
+      else {
+        $override['zipName'][$key]['default'] = isset($field['value']) ? CRM_Utils_String::xssFilter($field['value']) : '';
+      }
+    }
+
+    // Handle state/province fields
+    if (strstr($name, 'state_province')) {
+      $key = _civicrm_twaddress_key($name);
+      $override['countyName'][$key]['key'] = $name;
+
+      if ($is_form_object) {
+        $form = $field['form'];
+        $element = $field['element'];
+        foreach ($element->_options as $v) {
+          if ($v['attr']['value']) {
+            $county_options[$v['attr']['value']] = $v['text'];
+          }
+        }
+        $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL;
+        $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+        $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      }
+      else {
+        if (preg_match_all('/<option value="([^"]*)"[^>]*>([^<]*)<\/option>/', $field['html'], $matches)) {
+          $county_options = array_combine($matches[1], $matches[2]);
+        }
+        $default = isset($field['value']) ? (is_array($field['value']) ? reset($field['value']) : $field['value']) : '';
+      }
+
+      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : CRM_Utils_String::xssFilter($default);
+    }
+
+    // Handle city fields
+    if (strstr($name, 'city')) {
+      $key = _civicrm_twaddress_key($name);
+      $override['areaName'][$key]['key'] = '_'.$name;
+      $override['areaName'][$key]['name'] = $name;
+
+      if ($is_form_object) {
+        $form = $field['form'];
+        $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
+        $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+        $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      }
+      else {
+        $default = isset($field['value']) ? $field['value'] : '';
+      }
+
+      $override['areaName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
+    }
+
+    // Handle country fields
+    if (strstr($name, 'country')) {
+      $key = _civicrm_twaddress_key($name);
+      $override['country'][$key]['key'] = '_'.$name;
+      $override['country'][$key]['name'] = $name;
+
+      if ($is_form_object) {
+        $form = $field['form'];
+        $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
+        $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
+        $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      }
+      else {
+        $default = isset($field['value']) ? $field['value'] : '';
+      }
+
+      $override['country'][$key]['default'] = CRM_Utils_String::xssFilter($default);
+    }
+  }
+
+  return array(
+    'override' => $override,
+    'form_name' => $form_name
+  );
 }
