@@ -220,6 +220,15 @@ function civicrm_spgateway_cron() {
   $now = time();
 
   // every nights, we check recurring payment result 
+  // First, check the recur which had received ipn notify today.
+  $last = variable_get('civicrm_spgateway_recur_from_ipn_sync', 0);
+  if($now - $last > 60000 && date('G') > '17' && date('G') <= '18'){
+    $filterDatetime = date('Ymd');
+    CRM_Core_Payment_SPGATEWAY::syncTransactionWebLog($filterDatetime);
+    variable_set('civicrm_spgateway_recur_from_ipn_sync', $now);
+  }
+
+  // Then check all possible recurring to sync.
   $last = variable_get('civicrm_spgateway_recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
     civicrm_spgateway_recur_sync();
@@ -227,13 +236,13 @@ function civicrm_spgateway_cron() {
   }
 
   // For old neweb.
+  /* use above sync instead
   $last = variable_get('civicrm_spgateway_neweb_recur_sync', 0);
   if($now - $last > 60000 && date('G') > '18' && date('G') < '24'){
     $query = "SELECT payment_processor_id FROM civicrm_contribution c INNER JOIN civicrm_payment_processor p ON c.payment_processor_id = p.id WHERE trxn_id LIKE 'r_%' AND payment_processor_type = 'SPGATEWAY' GROUP BY payment_processor_id;";
     $dao = CRM_Core_DAO::executeQuery($query);
     $finishedAll = TRUE;
     while($dao->fetch()) {
-      module_load_include('inc', 'civicrm_spgateway', 'civicrm_spgateway.neweb');
       $finished = CRM_Core_Payment_SPGATEWAYNeweb::resync($dao->payment_processor_id);
       if (!$finished) {
         $finishedAll = FALSE;
@@ -243,7 +252,7 @@ function civicrm_spgateway_cron() {
       variable_set('civicrm_spgateway_neweb_recur_sync', $now);
     }
   }
-
+  */
 }
 
 function civicrm_spgateway_recur_sync($days = array()){
