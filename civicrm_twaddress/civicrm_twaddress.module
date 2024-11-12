@@ -3,6 +3,8 @@
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Markup;
+use Drupal\Core\Extension\ExtensionDiscovery;
+use Drupal\Core\Extension\Extension;
 
 /**
  * Implementation of hook_form_alter
@@ -264,6 +266,54 @@ function checkForm(){
     }
     else{
       _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_alterTemplateVars().
+ */
+function civicrm_twaddress_civicrm_alterTemplateVars(&$resourceName, &$vars) {
+  if ($resourceName == 'CRM/common/Embed.tpl') {
+    if ($vars['tplFile'] == 'CRM/Profile/Form/Edit.tpl') {
+      $formData = $vars['form'];
+
+      // Find field names that match our required prefixes
+      $stateField = _civicrm_twaddress_find_field($formData, 'state_province');
+      $cityField = _civicrm_twaddress_find_field($formData, 'city');
+      $postalField = _civicrm_twaddress_find_field($formData, 'postal_code');
+
+      // Create the new data structure with dynamic field names
+      $override = [
+        'countyName' => [
+          1 => [
+            'key' => $stateField ? $formData[$stateField]['name'] : null,
+            'default' => null
+          ]
+        ],
+        'areaName' => [
+          1 => [
+            'key' => $cityField ? '_' . $formData[$cityField]['name'] : null,
+            'name' => $cityField ? $formData[$cityField]['name'] : null,
+            'default' => null
+          ]
+        ],
+        'zipName' => [
+          1 => [
+            'key' => $postalField ? $formData[$postalField]['name'] : null,
+            'default' => null
+          ]
+        ]
+      ];
+
+      $module_path = \Drupal::service('extension.list.module')->getPath('civicrm_twaddress');
+      $js = '<script type="text/javascript" src="/' . $module_path . '/twzipcode.js"></script>';
+      $vars['embedBody'] .= $js;
+
+      $js = _civicrm_twaddress_common_js($override, $formData['formName'], FALSE);
+      $js = implode("\n", $js);
+      $js = '<script type="text/javascript">' . $js . '</script>';
+      $vars['embedBody'] .= $js;
     }
   }
 }
@@ -604,4 +654,29 @@ function _civicrm_twaddress_reorder($options) {
   else {
     return $neworder;
   }
+}
+
+/**
+ * Find a field in form data that matches a base name
+ * Checks both exact match and prefix with number suffix
+ * Example: 'city' will match both 'city' and 'city-1'
+ *
+ * @param array $formData The original form data array
+ * @param string $baseName The base name to search for
+ * @return string|null Returns matched field name or null if not found
+ */
+function _civicrm_twaddress_find_field($formData, $baseName) {
+  // Check for exact match first
+  if (isset($formData[$baseName])) {
+    return $baseName;
+  }
+
+  // Then check for name with suffix (e.g., baseName-1)
+  foreach ($formData as $key => $value) {
+    if (preg_match("/^{$baseName}-\d+$/", $key)) {
+      return $key;
+    }
+  }
+
+  return null;
 }
