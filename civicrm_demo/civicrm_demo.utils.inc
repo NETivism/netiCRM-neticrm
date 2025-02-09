@@ -557,7 +557,14 @@ function _civicrm_demo_rand_email(){
     'example.com','test.tw','ilovecivicrm.com','netivism-is-best.com.tw',
   );
   $key = array_rand($company);
-  return $name.'@'.$company[$key];
+  
+  $email = $name.'@'.$company[$key];
+  // Convert Unicode characters to their ASCII equivalents
+  $convertEmail = iconv('UTF-8', 'ASCII//TRANSLIT', $email);
+  if (!$convertEmail) {
+    $convertEmail = preg_replace('/[^\x00-\x7F]/', '', $email);
+  }
+  return $convertEmail;
 }
 
 function _civicrm_demo_rand_addr($type = 'chinese'){
