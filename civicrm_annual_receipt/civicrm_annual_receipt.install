@@ -150,7 +150,11 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
 function _civicrm_annual_receipt_add_update_pdf_mail_tpl() {
   // we don't need to setting variable anymore, use demo utils to handling update instead
   \Drupal::moduleHandler()->loadInclude('civicrm_demo', 'inc', 'civicrm_demo.utils');
-  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW');
+  $params = array(
+    'option_label' => '電子郵件收據 - 年度整合收據PDF',
+    'msg_title' => '電子郵件收據 - 年度整合收據PDF',
+  );
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW', $params);
 }
 
 function _civicrm_annual_receipt_add_update_email_tpl() {
