@@ -212,3 +212,10 @@ function neticrm_update_update_9317() {
 function neticrm_update_update_9318() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #41281, add index to civicrm_mailing/_job for increase performance
+ */
+function neticrm_update_update_9319() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
