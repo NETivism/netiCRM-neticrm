@@ -219,3 +219,10 @@ function neticrm_update_update_9318() {
 function neticrm_update_update_9319() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #39156, add do_not_notify for civicrm contact
+ */
+function neticrm_update_update_9320() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
