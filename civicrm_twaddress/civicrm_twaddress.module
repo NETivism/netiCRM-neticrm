@@ -202,6 +202,10 @@ EOT;
       $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL; 
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
       $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      // Refs #40341, Check default value to avoid empty array.
+      if (empty($default) || !is_scalar($default)) {
+        $default = '';
+      }
       // Find that default value is depands on zip code. The code here is no use.
       $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : CRM_Utils_String::xssFilter($default);
     }
