@@ -897,3 +897,10 @@ function neticrm_update_update_7319() {
 function neticrm_update_update_7320() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #42336, add created_id for civicrm_contribution_tappay
+ */
+function neticrm_update_update_7321() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
