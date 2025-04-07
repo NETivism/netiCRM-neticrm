@@ -604,7 +604,7 @@ function _civicrm_twaddress_search_value($key, $array){
   return $return;
 }
 
-function _civicrm_twaddress_get_province_id($name){
+function _civicrm_twaddress_get_province_id($name = NULL) {
   $arr = array(
     "南投縣"=> "4855",
     "臺中市"=> "5219",
