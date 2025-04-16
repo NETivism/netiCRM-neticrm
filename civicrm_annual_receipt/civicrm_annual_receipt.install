@@ -151,6 +151,28 @@ function civicrm_annual_receipt_update_7203(){
   }
 }
 
+/**
+ * refs #41940, update missing annual msg template label
+ */
+function civicrm_annual_receipt_update_7204(){
+  civicrm_initialize();
+  $sql = "SELECT * FROM `civicrm_msg_template` WHERE `msg_subject` LIKE '電子郵件收據 - 年度整合收據PDF' AND IFNULL(msg_title, '') = ''";
+
+  $result = CRM_Core_DAO::executeQuery($sql);
+
+  $updatedCount = 0;
+
+  while ($result->fetch()) {
+    $updateSql = "UPDATE civicrm_msg_template SET msg_title = '電子郵件收據 - 年度整合收據PDF' WHERE id = %1";
+    $params = [
+        1 => [$result->id, 'Integer']
+    ];
+    CRM_Core_DAO::executeQuery($updateSql, $params);
+    $updatedCount++;
+  }
+  return "Successful update $updatedCount annual receipt template";
+}
+
 function _civicrm_annual_receipt_add_update_pdf_print_tpl() {
   $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
   if(empty($option_group_id)){
@@ -240,7 +262,11 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
 function _civicrm_annual_receipt_add_update_pdf_mail_tpl() {
   // we don't need to setting variable anymore, use demo utils to handling update instead
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
-  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW');
+  $params = array(
+    'option_label' => '電子郵件收據 - 年度整合收據PDF',
+    'msg_title' => '電子郵件收據 - 年度整合收據PDF',
+  );
+  return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW', $params);
 }
 
 function _civicrm_annual_receipt_add_update_email_tpl() {
