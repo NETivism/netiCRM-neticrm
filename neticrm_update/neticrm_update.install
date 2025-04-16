@@ -883,3 +883,24 @@ function neticrm_update_update_7317() {
 function neticrm_update_update_7318() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #41281, add index to civicrm_mailing/_job for increase performance
+ */
+function neticrm_update_update_7319() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #39156, add do_not_notify for civicrm contact
+ */
+function neticrm_update_update_7320() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #42336, add created_id for civicrm_contribution_tappay
+ */
+function neticrm_update_update_7321() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

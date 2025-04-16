@@ -587,8 +587,9 @@ function _civicrm_twaddress_search_value($key, $array){
   return $return;
 }
 
-function _civicrm_twaddress_get_province_id($name){
-  $arr = array( "南投縣"=> "4855",
+function _civicrm_twaddress_get_province_id($name = NULL) {
+  $arr = array(
+    "南投縣"=> "4855",
     "臺中市"=> "5219",
     "臺北市"=> "5221",
     "臺南市"=> "5224",
@@ -611,30 +612,68 @@ function _civicrm_twaddress_get_province_id($name){
     "雲林縣"=> "4863",
     "高雄市"=> "5220",
   );
-  return $arr[$name];
+
+  // If name is provided, return the ID for that specific county/city
+  if ($name !== NULL) {
+    return isset($arr[$name]) ? $arr[$name] : NULL;
+  }
+
+  // If no name is provided, return the entire mapping table
+  return $arr;
 }
 
 function _civicrm_twaddress_reorder($options) {
-  $order = civicrm_twaddress_order();
-  $neworder = array();
+  global $language;
 
-  $duplicatedOption = array();
-  foreach ($options as $value) {
-    $duplicatedOption[$value['text']] = $value;
+  // Get complete county/city mapping table
+  $mapping_array = _civicrm_twaddress_get_province_id();
+  $taiwan_province_ids = array_values($mapping_array);
+
+  if (empty($options)) {
+    return array();
   }
 
-  foreach($order as $k => $v){
-    if ($k == 0 && empty($options[$k]['attr']['value'])) {
-      // if option is '-- select --', skip to next.
-      $neworder[$k] = $options[$k];
-      continue;
+  if ($language->language === 'zh-hant') {
+    // zh-hant environment: Use original sorting logic
+    $order = civicrm_twaddress_order();
+    $neworder = array();
+
+    $duplicatedOption = array();
+    foreach ($options as $value) {
+      if (!empty($value['text'])) {
+        $duplicatedOption[$value['text']] = $value;
+      }
     }
-    $neworder[$k] = $duplicatedOption[$v];
-  }
-  if (empty($neworder)) {
-    return $options;
+
+    foreach($order as $k => $v) {
+      if ($k == 0 && isset($options[$k]) && empty($options[$k]['attr']['value'])) {
+        // Keep the '-- select --' option
+        $neworder[$k] = $options[$k];
+        continue;
+      }
+      if (isset($duplicatedOption[$v])) {
+        $neworder[$k] = $duplicatedOption[$v];
+      }
+    }
+
+    return empty($neworder) ? $options : $neworder;
   }
   else {
-    return $neworder;
+    // For non zh-hant environments: Only keep Taiwan county/city options
+    $filtered_options = array();
+
+    // Keep the '-- select --' option
+    foreach ($options as $option) {
+      if (empty($option['attr']['value'])) {
+        $filtered_options[] = $option;
+        continue;
+      }
+
+      if (in_array($option['attr']['value'], $taiwan_province_ids)) {
+        $filtered_options[] = $option;
+      }
+    }
+
+    return $filtered_options;
   }
 }
