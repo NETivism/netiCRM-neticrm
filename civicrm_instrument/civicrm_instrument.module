@@ -870,6 +870,28 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       }
     }
   }
+  elseif ($processor_type === 'MyPay') {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+    if (empty($credit_card_iid)) {
+      $credit_card_iid = 1;
+    }
+    $enabled_instruments = array(
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
+    );
+    if(!empty($_GET['id'])){
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
+    }
+    foreach($enabled_instruments as $name => $i){
+      $radio_name = _civicrm_instrument_form_name($name);
+      if(!empty($active_instruments[$radio_name])){
+        $radios[$i['value']] = array(
+          'form_name'=> $radio_name,
+          'name'=> $name,
+          'label' => ts($name),
+        );
+      }
+    }
+  }
 
   if($processor_type == 'Mobile'){
     $mobile_instruments = _civicrm_instrument_get_mobile_instruments();
