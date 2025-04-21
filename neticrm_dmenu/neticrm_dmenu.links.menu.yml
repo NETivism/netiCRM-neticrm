@@ -1,0 +1,774 @@
+civicrm.civicrm_autocomplete_search:
+  title: Search
+  route_name: <nolink>
+  menu_name: neticrm_dmenu
+  weight: -50
+civicrm.civicrm_search_advanced:
+  title: Advanced Search
+  route_name: civicrm.civicrm_contact_search_advanced
+  parent: civicrm.civicrm_autocomplete_search
+  menu_name: neticrm_dmenu
+  weight: -3
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_search_context:
+  title: Full-text Search
+  route_name: civicrm.civicrm_contact_search_custom
+  parent: civicrm.civicrm_autocomplete_search
+  menu_name: neticrm_dmenu
+  url: internal:/civicrm/search/FullText
+  weight: -2
+civicrm.civicrm_search_custom:
+  title: Custom Search
+  route_name: civicrm.civicrm_contact_search_builder
+  parent: civicrm.civicrm_autocomplete_search
+  menu_name: neticrm_dmenu
+  weight: -1
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_parent:
+  title: Contact
+  route_name: civicrm.civicrm_contact_search
+  menu_name: neticrm_dmenu
+  weight: -49
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_contact_parent
+  weight: -55
+civicrm.civicrm_contact_add_individual:
+  title: New Individual
+  route_name: civicrm.civicrm_contact_add
+  parent: civicrm.civicrm_contact_add
+  weight: -54
+  options:
+    query:
+      reset: 1
+      ct: Individual
+civicrm.civicrm_contact_add_organization:
+  title: New Organization
+  route_name: civicrm.civicrm_contact_add
+  parent: civicrm.civicrm_contact_add
+  weight: -53
+  options:
+    query:
+      reset: 1
+      ct: Organization
+civicrm.civicrm_contact_add_household:
+  title: New Household
+  route_name: civicrm.civicrm_contact_add
+  parent: civicrm.civicrm_contact_add
+  weight: -52
+  options:
+    query:
+      reset: 1
+      ct: Household
+civicrm.civicrm_contact_add_activity:
+  title: New Activity
+  route_name: civicrm.civicrm_activity
+  parent: civicrm.civicrm_contact_add
+  weight: -51
+  options:
+    query:
+      reset: 1
+      action: add
+      context: standalone
+civicrm.civicrm_contact_admin:
+  title: Admin
+  route_name: <nolink>
+  parent: civicrm.civicrm_contact_parent
+  weight: -50
+civicrm.civicrm_contact_admin_group:
+  title: Groups and Mailing Groups
+  route_name: civicrm.civicrm_group
+  parent: civicrm.civicrm_contact_admin
+  weight: -49
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_admin_tag:
+  title: Tag
+  route_name: civicrm.civicrm_admin_tag
+  parent: civicrm.civicrm_contact_admin
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_admin_rel:
+  title: Relationship Type
+  route_name: civicrm.civicrm_admin_reltype
+  parent: civicrm.civicrm_contact_admin
+  weight: -47
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_admin_custom_value:
+  title: Custom Field
+  route_name: civicrm.civicrm_admin_custom_group
+  parent: civicrm.civicrm_contact_admin
+  weight: -46
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_admin_uf_group:
+  title: Profile
+  route_name: civicrm.civicrm_admin_uf_group
+  parent: civicrm.civicrm_contact_admin
+  weight: -45
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_import:
+  title: Import
+  route_name: <nolink>
+  parent: civicrm.civicrm_contact_parent
+  weight: -44
+civicrm.civicrm_contact_import_contact:
+  title: Import Contacts
+  route_name: civicrm.civicrm_import_contact
+  parent: civicrm.civicrm_contact_import
+  weight: -43
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_import_activity:
+  title: Import Activities
+  route_name: civicrm.civicrm_import_activity
+  parent: civicrm.civicrm_contact_import
+  weight: -42
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_settings:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_contact_parent
+  weight: -41
+civicrm.civicrm_contact_settings_sendmail:
+  title: Send an email
+  route_name: civicrm.civicrm_activity_add
+  parent: civicrm.civicrm_contact_settings
+  weight: -39
+  options:
+    query:
+      atype: 3
+      action: add
+      reset: 1
+      context: standalone
+civicrm.civicrm_contact_settings_search_activity:
+  title: Activity Search
+  route_name: civicrm.civicrm_activity_search
+  parent: civicrm.civicrm_contact_settings
+  weight: -38
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contact_settings_deduperules:
+  title: Merge Duplicate Contacts
+  route_name: civicrm.civicrm_contact_deduperules
+  parent: civicrm.civicrm_contact_settings
+  weight: -37
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute:
+  title: Contribution
+  route_name: civicrm.civicrm_contribute
+  menu_name: neticrm_dmenu
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_contribute
+  weight: -56
+civicrm.civicrm_contribute_add_contribution:
+  title: New Contribution
+  route_name: civicrm.civicrm_contribute_add
+  parent: civicrm.civicrm_contribute_add
+  weight: -55
+  options:
+    query:
+      reset: 1
+      action: add
+      context: standalone
+civicrm.civicrm_contribute_add_page:
+  title: Add Contribution Page
+  route_name: civicrm.civicrm_admin_contribute_add
+  parent: civicrm.civicrm_contribute_add
+  weight: -54
+  options:
+    query:
+      reset: 1
+      action: add
+civicrm.civicrm_contribute_add_import:
+  title: Import Contributions
+  route_name: civicrm.civicrm_contribute_import
+  parent: civicrm.civicrm_contribute_add
+  weight: -52
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_search:
+  title: Search
+  route_name: <nolink>
+  parent: civicrm.civicrm_contribute
+  weight: -49
+civicrm.civicrm_contribute_search_contribution:
+  title: Search Contribution
+  route_name: civicrm.civicrm_contribute_search
+  parent: civicrm.civicrm_contribute_search
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_search_booster:
+  title: Contribution Booster
+  route_name: civicrm.civicrm_contribute_booster
+  parent: civicrm.civicrm_contribute_search
+  weight: -47
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_search_recur:
+  title: Recurring Contributions
+  parent: civicrm.civicrm_contribute_search
+  url: internal:/civicrm/search/RecurSearch
+  weight: -46
+civicrm.civicrm_contribute_search_aggregate:
+  title: Contribution Aggregate Search
+  route_name: civicrm.civicrm_contact_search_custom
+  parent: civicrm.civicrm_contribute_search
+  url: internal:/civicrm/search/ContributionAggregate
+  weight: -45
+civicrm.civicrm_contribute_search_priceset:
+  title: Price Set of Contribution
+  parent: civicrm.civicrm_contribute_search
+  url: internal:/civicrm/search/PriceSetContribution
+  weight: -44
+civicrm.civicrm_contribute_search_annualreceipt:
+  title: Print Annual Receipt
+  parent: civicrm.civicrm_contribute_search
+  url: internal:/civicrm/search/AnnualReceipt
+  weight: -43
+civicrm.civicrm_contribute_admin:
+  title: Admin
+  route_name: <nolink>
+  parent: civicrm.civicrm_contribute
+  weight: -39
+civicrm.civicrm_contribute_admin_page:
+  title: Manage Contribution Page
+  route_name: civicrm.civicrm_admin_contribute
+  parent: civicrm.civicrm_contribute_admin
+  weight: -38
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_admin_pcp:
+  title: Manage Personal Campaign Pages
+  route_name: civicrm.civicrm_admin_pcp
+  parent: civicrm.civicrm_contribute_admin
+  weight: -36
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_admin_premium:
+  title: Configure Premium
+  route_name: civicrm.civicrm_admin_contribute_managePremiums
+  parent: civicrm.civicrm_contribute_admin
+  weight: -35
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_admin_price:
+  title: Manage Price Sets
+  route_name: civicrm.civicrm_admin_price
+  parent: civicrm.civicrm_contribute_admin
+  weight: -34
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_fee_import:
+  title: Import Fee and Transaction Date
+  route_name: civicrm.civicrm_contribute_fee_import
+  parent: civicrm.civicrm_contribute_admin
+  menu_name: neticrm_dmenu
+  weight: -33
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_setting:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_contribute
+  weight: -29
+civicrm.civicrm_contribute_setting_receipt:
+  title: Receipt Settings
+  route_name: civicrm.civicrm_admin_receipt
+  parent: civicrm.civicrm_contribute_setting
+  weight: -28
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_setting_type:
+  title: Contribution Type
+  route_name: civicrm.civicrm_admin_contribute_contributionType
+  parent: civicrm.civicrm_contribute_setting
+  weight: -27
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_contribute_setting_instrument:
+  title: Payment Instrument
+  route_name: civicrm.civicrm_admin_options_payment_instrument
+  parent: civicrm.civicrm_contribute_setting
+  weight: -26
+  options:
+    query:
+      group: payment_instrument
+      reset: 1
+civicrm.civicrm_event:
+  title: Event
+  route_name: civicrm.civicrm_event
+  menu_name: neticrm_dmenu
+  weight: -47
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_event
+  weight: -56
+civicrm.civicrm_event_add_event:
+  title: New Event
+  route_name: civicrm.civicrm_event_add
+  parent: civicrm.civicrm_event_add
+  weight: -55
+  options:
+    query:
+      reset: 1
+      action: add
+civicrm.civicrm_event_add_participant:
+  title: Register Event Participant
+  route_name: civicrm.civicrm_participant_add
+  parent: civicrm.civicrm_event_add
+  weight: -54
+  options:
+    query:
+      reset: 1
+      action: add
+      context: standalone
+civicrm.civicrm_event_add_import:
+  title: Import Participant
+  route_name: civicrm.civicrm_event_import
+  parent: civicrm.civicrm_event_add
+  weight: -53
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_search:
+  title: Search
+  route_name: <nolink>
+  parent: civicrm.civicrm_event
+  weight: -53
+civicrm.civicrm_event_search_participant:
+  title: Find Participants
+  route_name: civicrm.civicrm_event_search
+  parent: civicrm.civicrm_event_search
+  weight: -52
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_search_priceset:
+  title: Price Set of Event
+  route_name: civicrm.civicrm_event_search_priceset
+  parent: civicrm.civicrm_event_search
+  url: internal:/civicrm/search/PriceSet
+  weight: -51
+civicrm.civicrm_event_admin:
+  title: Admin
+  route_name: <nolink>
+  parent: civicrm.civicrm_event
+  weight: -50
+civicrm.civicrm_event_admin_event:
+  title: Event
+  route_name: civicrm.civicrm_event
+  parent: civicrm.civicrm_event_admin
+  weight: -49
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_admin_template:
+  title: Event Templates
+  route_name: civicrm.civicrm_admin_eventTemplate
+  parent: civicrm.civicrm_event_admin
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_admin_price:
+  title: Manage Price Sets
+  route_name: civicrm.civicrm_admin_price
+  parent: civicrm.civicrm_event_admin
+  weight: -47
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_admin_coupon:
+  title: Configure Coupon
+  route_name: civicrm.civicrm_admin_coupon
+  parent: civicrm.civicrm_event_admin
+  weight: -46
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_setting:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_event
+  weight: -44
+civicrm.civicrm_event_setting_eventType:
+  title: Event Type
+  route_name: civicrm.civicrm_admin_options_event_type
+  parent: civicrm.civicrm_event_setting
+  weight: -43
+  options:
+    query:
+      group: event_type
+      reset: 1
+civicrm.civicrm_event_setting_participantStatus:
+  title: Participant Status
+  route_name: civicrm.civicrm_admin_participant_status
+  parent: civicrm.civicrm_event_setting
+  weight: -42
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_event_setting_role:
+  title: Participant Role
+  route_name: civicrm.civicrm_admin_options_participant_role
+  parent: civicrm.civicrm_event_setting
+  weight: -41
+  options:
+    query:
+      group: participant_role
+      reset: 1
+civicrm.civicrm_event_setting_contributionType:
+  title: Contribution Type
+  route_name: civicrm.civicrm_admin_contribute_contributionType
+  parent: civicrm.civicrm_event_setting
+  weight: -40
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_mailing:
+  title: Mailing
+  route_name: civicrm.civicrm_mailing
+  menu_name: neticrm_dmenu
+  weight: -46
+  options:
+    query:
+      reset: 1
+      scheduled: true
+civicrm.civicrm_mailing_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_mailing
+  weight: -56
+civicrm.civicrm_mailing_add_mail:
+  title: New Mailing
+  route_name: civicrm.civicrm_mailing_send
+  parent: civicrm.civicrm_mailing_add
+  weight: -55
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_mailing_browse:
+  title: Records
+  route_name: <nolink>
+  parent: civicrm.civicrm_mailing
+  weight: -54
+civicrm.civicrm_mailing_browse_unscheduled:
+  title: Draft and Unscheduled Mailings
+  route_name: civicrm.civicrm_mailing_browse_unscheduled
+  parent: civicrm.civicrm_mailing_browse
+  weight: -53
+  options:
+    query:
+      reset: 1
+      scheduled: false
+civicrm.civicrm_mailing_browse_scheduled:
+  title: Scheduled and Sent Mailings
+  route_name: civicrm.civicrm_mailing_browse_scheduled
+  parent: civicrm.civicrm_mailing_browse
+  weight: -52
+  options:
+    query:
+      reset: 1
+      scheduled: true
+civicrm.civicrm_mailing_browse_archived:
+  title: Archived Mailings
+  route_name: civicrm.civicrm_mailing_browse_archived
+  parent: civicrm.civicrm_mailing_browse
+  weight: -51
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_mailing_setting:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_mailing
+  weight: -50
+civicrm.civicrm_mailing_setting_messageTemplate:
+  title: Message Template
+  route_name: civicrm.civicrm_admin_messageTemplates
+  parent: civicrm.civicrm_mailing_setting
+  weight: -49
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_mailing_setting_component:
+  title: Headers, Footers, and Automated Messages
+  route_name: civicrm.civicrm_admin_component
+  parent: civicrm.civicrm_mailing_setting
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_mailing_setting_optionsFromEmail:
+  title: FROM Email Addresses
+  route_name: civicrm.civicrm_admin_options_from_email
+  parent: civicrm.civicrm_mailing_setting
+  weight: -47
+  options:
+    query:
+      group: from_email_address
+      reset: 1
+civicrm.civicrm_mailing_setting_emailGreeting:
+  title: Email Greetings
+  route_name: civicrm.civicrm_admin_options_email_greeting
+  parent: civicrm.civicrm_mailing_setting
+  weight: -46
+  options:
+    query:
+      group: email_greeting
+      reset: 1
+civicrm.civicrm_member:
+  title: Membership
+  route_name: civicrm.civicrm_member
+  menu_name: neticrm_dmenu
+  weight: -45
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_member_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_member
+  weight: -56
+civicrm.civicrm_member_add_membership:
+  title: New Membership
+  route_name: civicrm.civicrm_member_add
+  parent: civicrm.civicrm_member_add
+  weight: -55
+  options:
+    query:
+      reset: 1
+      action: add
+      context: standalone
+civicrm.civicrm_member_search:
+  title: Search
+  route_name: <nolink>
+  parent: civicrm.civicrm_member
+  weight: -54
+civicrm.civicrm_member_search_membership:
+  title: Find Members
+  route_name: civicrm.civicrm_member_search
+  parent: civicrm.civicrm_member_search
+  weight: -53
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_member_admin:
+  title: Admin
+  route_name: <nolink>
+  parent: civicrm.civicrm_member
+  weight: -52
+civicrm.civicrm_member_admin_import:
+  title: Import Memberships
+  route_name: civicrm.civicrm_member_import
+  parent: civicrm.civicrm_member_admin
+  weight: -51
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_member_setting:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_member
+  weight: -50
+civicrm.civicrm_member_setting_membershipType:
+  title: Membership Type
+  route_name: civicrm.civicrm_admin_member_membershipType
+  parent: civicrm.civicrm_member_setting
+  weight: -49
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_member_setting_membershipStatus:
+  title: Membership Status
+  route_name: civicrm.civicrm_admin_member_membershipStatus
+  parent: civicrm.civicrm_member_setting
+  weight: -48
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_report:
+  title: Report
+  route_name: civicrm.civicrm_report_summary
+  menu_name: neticrm_dmenu
+  weight: -44
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_report_add:
+  title: Add
+  route_name: <nolink>
+  parent: civicrm.civicrm_report
+  weight: -56
+civicrm.civicrm_report_add_templateList:
+  title: Create Reports from Templates
+  route_name: civicrm.civicrm_admin_report_template_list
+  parent: civicrm.civicrm_report_add
+  weight: -55
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_report_setting:
+  title: Configure
+  route_name: <nolink>
+  parent: civicrm.civicrm_report
+  weight: -54
+civicrm.civicrm_report_setting_template:
+  title: Registered Templates
+  route_name: civicrm.civicrm_admin_report_options_report_template
+  parent: civicrm.civicrm_report_setting
+  weight: -53
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_report_browse:
+  title: view
+  route_name: <nolink>
+  parent: civicrm.civicrm_report
+  weight: -52
+civicrm.civicrm_report_browse_all:
+  title: All Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -51
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_report_browse_contact:
+  title: Contact Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -50
+  options:
+    query:
+      reset: 1
+      component: contact
+civicrm.civicrm_report_browse_contribute:
+  title: Contribution Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -49
+  options:
+    query:
+      reset: 1
+      component: contribute
+civicrm.civicrm_report_browse_event:
+  title: Event Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -48
+  options:
+    query:
+      reset: 1
+      component: event
+civicrm.civicrm_report_browse_mail:
+  title: Mailing Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -47
+  options:
+    query:
+      reset: 1
+      component: mail
+civicrm.civicrm_report_browse_member:
+  title: Membership Reports
+  route_name: civicrm.civicrm_report_list
+  parent: civicrm.civicrm_report_browse
+  weight: -46
+  options:
+    query:
+      reset: 1
+      component: member
+civicrm.civicrm_admin:
+  title: Configuration
+  route_name: civicrm.civicrm_admin
+  menu_name: neticrm_dmenu
+  weight: -43
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_settings_admin:
+  title: Administer CiviCRM
+  route_name: civicrm.civicrm_admin
+  parent: civicrm.civicrm_admin
+  weight: -60
+  options:
+    query:
+      reset: 1
+civicrm.civicrm_settings_admin_global:
+  title: Global Settings
+  route_name: civicrm.civicrm_admin_setting
+  parent: civicrm.civicrm_admin
+  weight: -59
+  options:
+    query:
+      reset: 1
+civicrm.account_site_settings:
+  title: Site Configuration
+  route_name: <nolink>
+  parent: civicrm.civicrm_admin
+  weight: -54
+civicrm.drupal_site_information:
+  title: Basic site settings
+  route_name: system.site_information_settings
+  parent: civicrm.account_site_settings
+  weight: -43
+civicrm.drupal_appearance_settings:
+  title: Appearance settings
+  route_name: system.theme_settings
+  parent: civicrm.account_site_settings
+  weight: -42
+civicrm.drupal_people_manage:
+  title: Users
+  route_name: entity.user.collection
+  parent: civicrm.account_site_settings
+  weight: -41
+civicrm.drupal_user_permissions:
+  title: Permissions
+  route_name: user.admin_permissions
+  parent: civicrm.account_site_settings
+  weight: -40

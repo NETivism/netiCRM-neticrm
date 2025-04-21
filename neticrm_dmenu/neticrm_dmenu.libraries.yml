@@ -1,0 +1,10 @@
+neticrm-dmenu-toolbar:
+  version: VERSION
+  css:
+    component:
+      css/neticrm_dmenu.toolbar.css: {}
+  js:
+    js/neticrm_dmenu.toolbar.menu.js: {}
+  dependencies:
+    - core/once
+

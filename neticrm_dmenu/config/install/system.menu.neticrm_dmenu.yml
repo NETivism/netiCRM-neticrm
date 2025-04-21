@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - neticrm_dmenu
+id: neticrm_dmenu
+label: 'netiCRM menu'
+description: 'Links related to netiCRM menu.'
+locked: true

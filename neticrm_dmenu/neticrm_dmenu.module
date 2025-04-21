@@ -1,0 +1,134 @@
+<?php
+
+use \Drupal\neticrm_dmenu\NeticrmDmenuToolbarHandler;
+use \Drupal\locale\SourceString;
+
+/**
+ * Implements hook_toolbar().
+ *
+ * Injects a link into the Drupal toolbar to /civicrm for users with
+ * 'access civicrm' permission.
+ */
+
+function neticrm_dmenu_toolbar() {
+  $items = [];
+  // Always return it with right cache context even if it's empty so that the
+  // permissions can control it's visibility.
+  $items['neticrm_dmenu'] = [
+    '#cache' => [
+      'contexts' => ['user.permissions'],
+    ],
+  ];
+
+  $user = \Drupal::currentUser();
+  if ($user->hasPermission('access CiviCRM')) {
+    $items['neticrm_dmenu'] += [
+      '#type' => 'toolbar_item',
+      'tab' => [
+        '#type' => 'link',
+        '#title' => 'netiCRM',
+        '#url' => \Drupal\Core\Url::fromRoute('civicrm.civicrm'),
+        '#attributes' => [
+          'title' => 'netiCRM',
+          'class' => ['toolbar-icon', 'toolbar-icon-neticrm'],
+        ],
+      ],
+      'tray' => [
+        '#heading' => 'netiCRM',
+        'neticrm_dmenu' => [
+          '#pre_render' => [[NeticrmDmenuToolbarHandler::class,'preRender']],
+        ],
+      ],
+      '#attached' => [
+        'library' => 'neticrm_dmenu/neticrm-dmenu-toolbar',
+      ],
+    ];
+  }
+
+  return $items;
+}
+/**
+ * Implement hook_preprocess_page
+ */
+function neticrm_dmenu_preprocess_page(&$variables){
+  $user = \Drupal::currentUser();
+  if ($user->hasPermission('access CiviCRM')) {
+    civicrm_initialize();
+    $block =  \Drupal::service('plugin.manager.block')->createInstance('civicrm_block:'.CRM_Core_Block::AUTOCOMPLETE_SEARCH, []);
+    $markup = $block->build();
+    $variables['page']['content']['civicrm_autocomplete_search'] = $markup;
+    $variables['#attached']['library'][] = 'civicrm/civicrm-css-core';
+    $variables['#attached']['library'][] = 'civicrm/civicrm-css-packages';
+    $variables['#attached']['library'][] = 'civicrm/civicrm-js-core';
+    $variables['#attached']['library'][] = 'civicrm/civicrm-js-packages';
+    $variables['#attached']['library'][] = 'civicrm/civicrm-js-noconflict';
+  }
+}
+
+/**
+ * Implement hook_preprocess_html
+ */
+function neticrm_dmenu_preprocess_html(&$variables) {
+  // hide civicrm menu when not user 1
+  $user = \Drupal::currentUser();
+  if ($user->id() != 1) {
+    $variables['attributes']['class'][] = 'neticrm-dmenu-disable-civicrm-menu';
+  }
+}
+
+/**
+ * Implement hook_menu_links_discovered_alter
+ */
+function neticrm_dmenu_menu_links_discovered_alter(&$links) {
+  \Drupal::service('civicrm')->initialize();
+  $languageCode = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  $strings = [];
+  foreach ($links as $name => &$menu_item) {
+    if (strpos($name, 'civicrm.civicrm') === 0) {
+      $thisTranslateMarkup = $menu_item['title'];
+      $strings[] = [
+        'label' => $thisTranslateMarkup->getUntranslatedString(),
+        'translations' => [
+          $languageCode => ts($thisTranslateMarkup->getUntranslatedString()),
+        ],
+      ];
+    }
+  }
+  _neticrm_dmenu_add_translation($strings);
+}
+
+function _neticrm_dmenu_add_translation(array $strings) {
+  // Get locale storage service.
+  $storage = \Drupal::service('locale.storage');
+
+  // Loop through the translations.
+  foreach ($strings as $translation) {
+    // Find the source string.
+    try {
+      $string = $storage->findString(['source' => $translation['label']]);
+
+      if (is_null($string)) {
+        $string = new SourceString();
+        $string->setString($translation['label']);
+        $string->setStorage($storage);
+        $string->save();
+      }
+
+      // Create translation. If one already exists, it will be replaced.
+      foreach ($translation['translations'] as $langcode => $string_translation) {
+        $storage->createTranslation([
+          'lid' => $string->lid,
+          'language' => $langcode,
+          'translation' => $string_translation,
+        ])->save();
+      }
+    }
+    catch (Exception $e) {
+      \Drupal::logger('neticrm_dmenu')->warning('Error trying to find string @s: @e on line @l', [
+        '@s' => $translation['label'],
+        '@e' => $e->getMessage(),
+        '@l' => $e->getLine(),
+      ]);
+    }
+  }
+}

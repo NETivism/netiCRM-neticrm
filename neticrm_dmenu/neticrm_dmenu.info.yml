@@ -1,0 +1,10 @@
+name: netiCRM menu
+type: module
+description: Build drupal primary links menu from utilized netiCRM.
+dependencies:
+  - civicrm
+  - toolbar 
+  - admin_toolbar
+  - locale
+package: netiCRM
+core_version_requirement: ^9 || ^10

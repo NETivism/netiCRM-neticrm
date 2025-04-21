@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - neticrm_dmenu
+id: neticrm_search
+label: 'netiCRM Search'
+description: 'List search items for netiCRM.'
+locked: true
