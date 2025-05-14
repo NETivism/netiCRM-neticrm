@@ -233,3 +233,10 @@ function neticrm_update_update_9320() {
 function neticrm_update_update_9321() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #39188, add mypay contribution table
+ */
+function neticrm_update_update_9322() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
