@@ -35,6 +35,15 @@ function _neticrm_update_update_x323() {
     EOT;
     CRM_Core_DAO::executeQuery($query);
 
+    // loop current contribution to update contribution_recur_id into civicrm_contribution_spgateway
+    $query = <<<EOT
+      UPDATE civicrm_contribution_spgateway csg
+        INNER JOIN civicrm_contribution cc ON csg.cid = cc.id
+        SET csg.contribution_recur_id = cc.contribution_recur_id
+      WHERE cc.contribution_recur_id IS NOT NULL
+    EOT;
+    CRM_Core_DAO::executeQuery($query);
+
     echo "Added civicrm_contribution_spgateway token_value columns.";
   }
   else {
