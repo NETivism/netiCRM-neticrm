@@ -240,3 +240,10 @@ function neticrm_update_update_9321() {
 function neticrm_update_update_9322() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43167, add new fields into spgateway table
+ */
+function neticrm_update_update_9323() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
