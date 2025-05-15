@@ -6,7 +6,6 @@ function _neticrm_update_update_x323() {
   $result = CRM_Core_DAO::executeQuery($query);
   $column_exists = $result->N > 0;
 
-  // 如果欄位不存在，則可以執行後續的 ALTER TABLE 語句來添加它
   if (!$column_exists) {
     $query = <<<EOT
       ALTER TABLE `civicrm_contribution_spgateway`
