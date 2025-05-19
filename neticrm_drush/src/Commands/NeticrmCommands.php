@@ -239,22 +239,42 @@ class NeticrmCommands extends DrushCommands {
     $rid = !empty($options['contribution-recur-id']) && is_numeric($options['contribution-recur-id']) ? $options['contribution-recur-id'] : 'ridIsEmpty';
     $time = is_numeric($options['time']) ? $options['time'] : CRM_REQUEST_TIME;
 
-    if($paymentProcessor == 'tappay' && $rid === 'ridIsEmpty') {
-      $error = \CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
-      if (!empty($error)) {
-        throw new \Exception($error);
-      }
-      else {
-        $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
+    if (!empty($rid) && $rid === 'ridIsEmpty') {
+      switch($paymentProcessor) {
+        case 'tappay':
+          $error = \CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
+          if (!empty($error)) {
+            throw new \Exception($error);
+          }
+          else {
+            $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
+          }
+          break;
+        case 'spgateway':
+          $error = \CRM_Core_Payment_SPGATEWAY::doExecuteAllRecur($time);
+          if (!empty($error)) {
+            throw new \Exception($error);
+          }
+          else {
+            $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
+          }
+          break;
       }
     }
-    elseif ($paymentProcessor == 'tappay' && empty($rid)) {
-      $str = "Recurring id is empty,please check\n";
-      print($str);
-      \CRM_Core_Error::debug_log_message($str);
+    elseif (!empty($rid) && is_numeric($rid)) {
+      switch($paymentProcessor) {
+        case 'tappay':
+          \CRM_Core_Payment_TapPay::doCheckRecur($rid, $time);
+          break;
+        case 'spgateway':
+          \CRM_Core_Payment_SPGATEWAY::doCheckRecur($rid, $time);
+          break;
+      }
     }
-    elseif ($paymentProcessor == 'tappay' && !empty($rid)) {
-      \CRM_Core_Payment_TapPay::doCheckRecur($rid, $time);
+    else {
+      $error = "Recurring id cannot be empty";
+      \CRM_Core_Error::debug_log_message($error);
+      $this->logger("neticrm_drush")->error($error);
     }
   }
 
