@@ -586,7 +586,7 @@ function _civicrm_demo_rand_email(){
 function _civicrm_demo_rand_addr($type = 'chinese'){
   if($type == 'chinese'){
     $sp = array(
-      'Changhua County','Chiayi City','Chiayi County','Hsinchu City','Hsinchu County','Hualien County','Ilan County','Kaohsiung City','Keelung City','Kinmen County','Lienchiang County','Miaoli County','Nantou County','Penghu County','Pingtung County','Taichung City','Tainan City','Taipei City','Taipei County','Taitung County','Taoyuan City','Yunlin Conuty',
+      'Changhua County','Chiayi City','Chiayi County','Hsinchu City','Hsinchu County','Hualien County','Ilan County','Kaohsiung City','Keelung City','Kinmen County','Lienchiang County','Miaoli County','Nantou County','Penghu County','Pingtung County','Taichung City','Tainan City','Taipei City','New Taipei City','Taitung County','Taoyuan City','Yunlin County',
     );
     $seed = array_rand($sp);
     $state_province = $sp[$seed];
@@ -619,7 +619,7 @@ function _civicrm_demo_rand_city_postcode($city){
     'Taipei City' => array(
       '中正區' => '100', '大同區' => '103', '中山區' => '104', '松山區' => '105', '大安區' => '106', '萬華區' => '108', '信義區' => '110', '士林區' => '111', '北投區' => '112', '內湖區' => '114', '南港區' => '115', '文山區' => '116'
     ),
-    'Taipei County' => array(
+    'New Taipei City' => array(
       '萬里區' => '207', '金山區' => '208', '板橋區' => '220', '汐止區' => '221', '深坑區' => '222', '石碇區' => '223',
       '瑞芳區' => '224', '平溪區' => '226', '雙溪區' => '227', '貢寮區' => '228', '新店區' => '231', '坪林區' => '232',
       '烏來區' => '233', '永和區' => '234', '中和區' => '235', '土城區' => '236', '三峽區' => '237', '樹林區' => '238',
@@ -676,7 +676,7 @@ function _civicrm_demo_rand_city_postcode($city){
       '水上鄉' => '608', '鹿草鄉' => '611', '太保市' => '612', '朴子市' => '613', '東石鄉' => '614', '六腳鄉' => '615',
       '新港鄉' => '616', '民雄鄉' => '621', '大林鎮' => '622', '溪口鄉' => '623', '義竹鄉' => '624', '布袋鎮' => '625'
     ),
-    'Yunlin Conuty' => array(
+    'Yunlin County' => array(
       '斗南鎮' => '630', '大埤鄉' => '631', '虎尾鎮' => '632', '土庫鎮' => '633', '褒忠鄉' => '634', '東勢鄉' => '635',
       '臺西鄉' => '636', '崙背鄉' => '637', '麥寮鄉' => '638', '斗六市' => '640', '林內鄉' => '643', '古坑鄉' => '646',
       '莿桐鄉' => '647', '西螺鎮' => '648', '二崙鄉' => '649', '北港鎮' => '651', '水林鄉' => '652', '口湖鄉' => '653',
