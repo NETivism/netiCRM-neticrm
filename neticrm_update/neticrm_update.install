@@ -918,3 +918,10 @@ function neticrm_update_update_7322() {
 function neticrm_update_update_7323() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43112, Update state province
+ */
+function neticrm_update_update_7324() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
