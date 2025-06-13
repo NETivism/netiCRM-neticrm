@@ -44,6 +44,17 @@ function _neticrm_update_update_x323() {
     CRM_Core_DAO::executeQuery($query);
 
     echo "Added civicrm_contribution_spgateway token_value columns.";
+
+    // remove url_api_default, url_recur_default from spgateway which is no more usable and confuse
+    $query = "UPDATE civicrm_payment_processor_type SET url_api_default = NULL, url_recur_default = NULL WHERE name LIKE 'SPGATEWAY%' AND (url_api_default IS NOT NULL OR url_recur_default IS NOT NULL)";
+    CRM_Core_DAO::executeQuery($query);
+
+    $query = "UPDATE civicrm_payment_processor SET url_api = NULL WHERE payment_processor_type LIKE 'SPGATEWAY%' AND url_api != 1";
+    CRM_Core_DAO::executeQuery($query);
+
+    $query = "UPDATE civicrm_payment_processor SET url_recur = NULL WHERE payment_processor_type LIKE 'SPGATEWAY%' AND url_recur != 1";
+    CRM_Core_DAO::executeQuery($query);
+    echo "Purge SPGATEWAY civicrm_payment_processor_type default";
   }
   else {
     echo "civicrm_contribution_spgateway token_value column already exists.";
