@@ -129,6 +129,7 @@ $.fn.extend({
         }),
         focusText = input.val();
 
+        input.attr("autocomplete", "off");
       function getKeyCode(str, idx){
         if (typeof idx == 'undefined') {
           idx = str.indexOf(settings.placeholder);
