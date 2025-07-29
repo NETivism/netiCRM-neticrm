@@ -6,7 +6,7 @@ function _neticrm_update_update_x325() {
   $groupParams = array('name' => $groupName);
 
   $class = 'CRM_Contact_Form_Search_Custom_RFM';
-  $label = ts('RFM Customer Segments');
+  $label = ts('RFM Model - Reactivating Dormant Supporters and Expanding Loyal Supporters');
   $params = [
     'name' => $class,
     'label' => $label,
