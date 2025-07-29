@@ -13,17 +13,16 @@ function _neticrm_update_update_x325() {
     'is_active' => 1,
   ];
 
-
   if (array_search($class, $allCustom) !== FALSE) {
     $optionValueId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE name LIKE %1", array(1 => array($class, 'String')));
     if (!empty($optionValueId)) {
       $action = CRM_Core_Action::UPDATE;
       CRM_Core_OptionValue::addOptionValue($params, $groupParams, $action, $optionValueId);
-    } else {
-      $action = CRM_Core_Action::ADD;
-      $optionValueId = 0;
-      CRM_Core_OptionValue::addOptionValue($params, $groupParams, $action, $optionValueId);
     }
+  } else {
+    $action = CRM_Core_Action::ADD;
+    $optionValueId = 0;
+    CRM_Core_OptionValue::addOptionValue($params, $groupParams, $action, $optionValueId);
   }
 
   // clear cache
