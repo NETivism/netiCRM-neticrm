@@ -925,3 +925,10 @@ function neticrm_update_update_7323() {
 function neticrm_update_update_7324() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #42193, Update custom search label, add custom search RFM
+ */
+function neticrm_update_update_7325() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
