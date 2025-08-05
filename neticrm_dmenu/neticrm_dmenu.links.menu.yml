@@ -258,6 +258,11 @@ civicrm.civicrm_contribute_search_annualreceipt:
   parent: civicrm.civicrm_contribute_search
   url: internal:/civicrm/search/AnnualReceipt
   weight: -43
+civicrm.civicrm_contribute_search_rfm:
+  title: RFM Donor Segments
+  parent: civicrm.civicrm_contribute_search
+  url: internal:/civicrm/search/RFM
+  weight: -42
 civicrm.civicrm_contribute_admin:
   title: Admin
   route_name: <nolink>
