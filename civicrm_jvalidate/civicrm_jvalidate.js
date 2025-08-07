@@ -282,7 +282,11 @@
           }
         });
         $("#"+formid+" input[name*=email]:not(#email_greeting_custom)").each(function(){
-          $(this).rules("add", {required:false,email:true});
+          if($(this).hasClass('required')) {
+            $(this).rules("add", {required:true,email:true});
+          } else {
+            $(this).rules("add", {required:false,email:true});
+          }
         });
 
         // add further validate when dynamic adding new element
