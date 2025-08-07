@@ -74,8 +74,12 @@
             }
           }
         });
-        $("#"+formid+" input[name*=email]").each(function(){
-          $(this).rules("add", {required:false,email:true});
+        $("#"+formid+" input[name*=email]:not(#email_greeting_custom)").each(function(){
+          if($(this).hasClass('required')) {
+            $(this).rules("add", {required:true,email:true});
+          } else {
+            $(this).rules("add", {required:false,email:true});
+          }
         });
 
         // add further validate when dynamic adding new element
@@ -83,7 +87,11 @@
           $("#addEmail,#addPhone").click(function(){
             setTimeout(function(){
               $("#"+formid+" input[name*=email]:not(#email_1_email)").each(function(){
-                $(this).rules("add", {required:false,email:true});
+                if($(this).hasClass('required')) {
+                  $(this).rules("add", {required:true,email:true});
+                } else {
+                  $(this).rules("add", {required:false,email:true});
+                }
               });
               $("#"+formid+" input[name$='[phone]']:not(#phone_1_phone)").each(function(){
                 $.amask.phone_add_validate(this, admin);

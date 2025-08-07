@@ -20,7 +20,8 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   }
   // don't do anything when system lang
   if ($tsLocale == CRM_Core_Config::SYSTEM_LANG) {
-    return $string;
+    $i18n = CRM_Core_I18n::singleton();
+    return $i18n->crm_translate($string, $args);
   }
 
   $untranslate = $string;
