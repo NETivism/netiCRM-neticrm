@@ -904,3 +904,31 @@ function neticrm_update_update_7320() {
 function neticrm_update_update_7321() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #39188, add mypay contribution table
+ */
+function neticrm_update_update_7322() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #43167, add new fields into spgateway table
+ */
+function neticrm_update_update_7323() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #43112, Update state province
+ */
+function neticrm_update_update_7324() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #42193, Update custom search label, add custom search RFM
+ */
+function neticrm_update_update_7325() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

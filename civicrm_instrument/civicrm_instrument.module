@@ -258,56 +258,7 @@ jQuery(document).ready(function($){';
         $js.='
 });
 ';
-  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
-      }
-      if(strstr($form->_defaultValues['payment_processor_type'], 'SPGATEWAY')){
-        $js = "
-        jQuery(document).ready(function($){
-          $('[class*=url_site]').hide();
-          $('[class*=url_api]').hide();
-          $('[class*=url_recur]').hide();
-        });
-        ";
         drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
-
-        // Make Checkbox For Control Spgateway Recurring API Enable;
-        $js = "
-        jQuery(document).ready(function($){
-          $('fieldset [class^=\"crm-paymentProcessor-\"][class$=\"url_recur\"]').each(function(i, e){
-            var je = $(e);
-            document.e = e;
-            var trClass = e.className+'-api-checkbox-wrapper';
-            var inputName = e.className+'-api-checkbox';
-            var originUrlInputField = $(e).find('input')[0];
-            je.after(
-              $('<tr class=\"'+trClass+'\"><td class=\"label\"><label for=\"'+inputName+'\">啟用定期定額 API</label></td><td><input type=\"checkbox\" id=\"'+inputName+'\"></td></tr>')
-            );
-
-            var newCheckboeInputField = document.getElementById(inputName);
-
-            // set Default Value
-            newCheckboeInputField.checked = (originUrlInputField.value == 1)? true: false;
-
-            $(newCheckboeInputField).change(function(){
-              originUrlInputField.value = (newCheckboeInputField.checked) ? 1:'';
-            });
-          });
-        });
-        ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
-
-        // Remove url_recur validation for url;
-        foreach ($form->_rules['url_recur'] as $key => $rule) {
-          if ($rule['type'] == 'url') {
-            unset($form->_rules['url_recur'][$key]);
-          }
-        }
-        foreach ($form->_rules['test_url_recur'] as $key => $rule) {
-          if ($rule['type'] == 'url') {
-            unset($form->_rules['test_url_recur'][$key]);
-          }
-        }
-
       }
       break;
   }
@@ -849,6 +800,28 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
   }
   elseif ($processor_type === 'TapPay') {
+    $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
+    if (empty($credit_card_iid)) {
+      $credit_card_iid = 1;
+    }
+    $enabled_instruments = array(
+      'Credit Card' =>  array('label' => ts('Credit Card'), 'desc' => '', 'code' => 'Credit', 'value' => $credit_card_iid),
+    );
+    if(!empty($_GET['id'])){
+      $_POST['civicrm_instrument_id'] = $credit_card_iid;
+    }
+    foreach($enabled_instruments as $name => $i){
+      $radio_name = _civicrm_instrument_form_name($name);
+      if(!empty($active_instruments[$radio_name])){
+        $radios[$i['value']] = array(
+          'form_name'=> $radio_name,
+          'name'=> $name,
+          'label' => ts($name),
+        );
+      }
+    }
+  }
+  elseif ($processor_type === 'MyPay') {
     $credit_card_iid = CRM_Core_OptionGroup::getValue('payment_Instrument', 'Credit Card', 'name');
     if (empty($credit_card_iid)) {
       $credit_card_iid = 1;
