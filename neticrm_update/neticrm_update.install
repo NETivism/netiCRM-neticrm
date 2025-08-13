@@ -261,3 +261,10 @@ function neticrm_update_update_9324() {
 function neticrm_update_update_9325() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43659, add premium combination and stock related table fields
+ */
+function neticrm_update_update_9326() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
