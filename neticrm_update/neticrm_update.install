@@ -268,3 +268,10 @@ function neticrm_update_update_9325() {
 function neticrm_update_update_9326() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #44434, add table civicrm_contribution_spgateway to prevent error
+ */
+function neticrm_update_update_9327() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
