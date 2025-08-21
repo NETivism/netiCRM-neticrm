@@ -12,7 +12,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       }
       $msg = NULL;
       $status = 2; // Pending
-      $params = $return_params = array();
+      $params = $return_params = [];
       if (!empty($form->_submitValues['JSONData'])) {
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($form->_submitValues['JSONData']);
       }
@@ -45,8 +45,8 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       else {
         $saved_params = $form->controller->get('params');
         if(!empty($_POST)){
-          $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
-          $contrib_values = $contrib_ids = array();
+          $contrib_params = ['trxn_id' => $saved_params['trxn_id']];
+          $contrib_values = $contrib_ids = [];
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
           CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $_POST);
         }
@@ -81,12 +81,12 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
  * Implementation of hook_civicrm_validate()
  */
 function civicrm_spgateway_civicrm_validate($form_name, &$form){
-  $errors = array();
+  $errors = [];
   if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
     if(!empty($form['payment_processor'])){
-      $params = array(
-        1 => array($form['payment_processor'], 'Integer'),
-      );
+      $params = [
+        1 => [$form['payment_processor'], 'Integer'],
+      ];
       $processor_type = CRM_Core_DAO::singleValueQuery("SELECT payment_processor_type FROM civicrm_payment_processor WHERE id = %1", $params);
       if($processor_type == 'SPGATEWAY'){
         if(!empty($form['installments']) && $form['installments'] > 99){
@@ -135,20 +135,20 @@ function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
 }
 
 function civicrm_spgateway_notify_bytrxn($trxn_id){
-  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", array(
-    1 => array($trxn_id, 'String'),
-    2 => array($trxn_id.'_1', 'String'),
-  ));
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", [
+    1 => [$trxn_id, 'String'],
+    2 => [$trxn_id.'_1', 'String'],
+  ]);
   return civicrm_spgateway_notify_info($cid);
 }
 
 function civicrm_spgateway_notify_info($cid){
-  $data = CRM_Core_DAO::singleValueQuery("SELECT data FROM civicrm_contribution_spgateway WHERE cid = %1", array(
-    1 => array($cid, 'Integer'),
-  ));
+  $data = CRM_Core_DAO::singleValueQuery("SELECT data FROM civicrm_contribution_spgateway WHERE cid = %1", [
+    1 => [$cid, 'Integer'],
+  ]);
   $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($data);
   $type = $json['PaymentType'];
-  $return = array();
+  $return = [];
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
   switch($type){
     case 'VACC':
@@ -164,7 +164,7 @@ function civicrm_spgateway_notify_info($cid){
       break;
     case 'BARCODE':
       $barcodepath = CRM_Core_Payment_SPGATEWAY::REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
-      $barcode = array($json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']);
+      $barcode = [$json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']];
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
       }
@@ -180,7 +180,7 @@ function civicrm_spgateway_notify_info($cid){
   }
 
   // error fallback
-  return array();
+  return [];
 }
 
 function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL){
@@ -222,6 +222,7 @@ function civicrm_spgateway_cron() {
   }
   $now = time();
 
+  civicrm_initialize();
   // every nights, we check recurring payment result
   // First, check the recur which had received ipn notify today.
   $last = \Drupal::state()->get('civicrm_spgateway_recur_from_ipn_sync', 0);
@@ -258,13 +259,13 @@ function civicrm_spgateway_cron() {
   */
 }
 
-function civicrm_spgateway_recur_sync($days = array()){
+function civicrm_spgateway_recur_sync($days = []){
   civicrm_initialize();
   if(empty($days)){
-    $days = array(
+    $days = [
       date('j'),
       date('j', strtotime('-1 day')),
-    );
+    ];
     if (date('j') != 1) {
       $days[] = date('j', strtotime('-1 day'));
     }
@@ -289,19 +290,19 @@ function civicrm_spgateway_recur_sync($days = array()){
     CRM_Core_Error::debug_log_message('civicrm_spgateway: Start to sync recurring for day '.$d);
     if ($d >= 29) {
       $d = (string) $d;
-      $query_params = array(
-        1 => array($d, 'String'),
-        2 => array(date('Y-m-28').' 00:00:00', 'String'),
-        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
-      );
+      $query_params = [
+        1 => [$d, 'String'],
+        2 => [date('Y-m-28').' 00:00:00', 'String'],
+        3 => [date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'],
+      ];
     }
     else {
       $d = (string) $d;
-      $query_params = array(
-        1 => array($d, 'String'),
-        2 => array(date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'),
-        3 => array(date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'),
-      );
+      $query_params = [
+        1 => [$d, 'String'],
+        2 => [date('Y-m-').sprintf('%02s', $d).' 00:00:00', 'String'],
+        3 => [date('Y-m-').sprintf('%02s', $d).' 23:59:59', 'String'],
+      ];
     }
     CRM_Core_Error::debug_var('spgateway_recur_sync_query_params', $query_params);
     $result = CRM_Core_DAO::executeQuery($query, $query_params);
@@ -391,7 +392,7 @@ function _civicrm_spgateway_error_msg($code){
   }
 
   // error
-  $msg = array(
+  $msg = [
     'PER10001' => '商店資料取得失敗',
     'PER10002' => '資料解密錯誤',
     'PER10003' => 'POST 資料傳遞錯誤',
@@ -430,7 +431,7 @@ function _civicrm_spgateway_error_msg($code){
     'PER10036' => '驗證資料錯誤(來源不合法)',
     'PER10037' => '付款頁參數不足',
     'uncertain' => 'Go check in www.newebpay.com',
-  );
+  ];
   if(!empty($msg[$code])){
     // return t($msg[$code]);
     return $msg[$code];
