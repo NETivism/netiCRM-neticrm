@@ -219,6 +219,7 @@ function civicrm_spgateway_cron() {
   }
   $now = time();
 
+  civicrm_initialize();
   // every nights, we check recurring payment result 
   // First, check the recur which had received ipn notify today.
   $last = variable_get('civicrm_spgateway_recur_from_ipn_sync', 0);
