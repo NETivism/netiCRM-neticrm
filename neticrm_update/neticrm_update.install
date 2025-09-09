@@ -946,3 +946,10 @@ function neticrm_update_update_7326() {
 function neticrm_update_update_7327() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #40606, add Apple Pay Front payment instrument
+ */
+function neticrm_update_update_7328() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
