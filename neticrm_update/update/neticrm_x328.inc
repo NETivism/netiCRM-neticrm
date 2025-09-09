@@ -9,6 +9,7 @@ function _neticrm_update_update_x328() {
     'label' => ts('Apple Pay Front'),
     'is_active' => 1,
     'is_reserved' => 1,
+    'weight' => 19,
   ];
   $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE name = 'ApplePayFront'");
   $dao->fetch();
