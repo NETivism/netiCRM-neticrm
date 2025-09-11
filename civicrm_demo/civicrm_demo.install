@@ -36,6 +36,14 @@ function civicrm_demo_install() {
     $vars['limit'] = 1;
     civicrm_demo_process_contribution($vars);
     civicrm_demo_create_custom_profile();
+
+    // add report ofr TaiwanTax
+    $title = '臺灣財政部所得扣除額';
+    $desc = '提供給財政部所得扣除額的報表';
+    $url = 'contribute/taiwantax';
+    $class= 'CRM_Report_Form_Contribute_TaiwanTax';
+    $components = CRM_Core_Component::getComponents();
+    $result = _neticrm_preset_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }
   else{
     $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
