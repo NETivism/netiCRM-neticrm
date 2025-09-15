@@ -953,3 +953,10 @@ function neticrm_update_update_7327() {
 function neticrm_update_update_7328() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #44288, add ai image generation table
+ */
+function neticrm_update_update_7329() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
