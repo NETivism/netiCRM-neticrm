@@ -111,8 +111,6 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
             function changeGoogleHint(){
               var $googlepay_input = $("#civicrm-instrument-dummy-'.$all_instruments['GooglePay']['value'].'");
-              console.log($googlepay_input.length);
-              console.log($googlepay_input.parent().find(".description").length);
               if ($googlepay_input.length && $googlepay_input.prop("checked") && !$googlepay_input.parent().find(".description").length) {
                 $googlepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("Payment processor needs Google account with credit card.").'</div>");
               }
@@ -572,6 +570,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
     }
     else{
       // attach by html
+      $output = '';
       if(count($radios) == 1){
         $rid = key($radios);
         $r = reset($radios);
