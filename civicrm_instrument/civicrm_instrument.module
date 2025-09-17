@@ -766,6 +766,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
     else{
       unset($enabled_instruments['Credit Card']);
+      unset($enabled_instruments['ApplePayFront']);
+      unset($enabled_instruments['GooglePay']);
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);
