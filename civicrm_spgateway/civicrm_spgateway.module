@@ -13,6 +13,10 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       $msg = NULL;
       $status = 2; // Pending
       $params = $return_params = array();
+      // MGP 1.2
+      if (!empty($form->_submitValues['JSONData'])) {
+        $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($form->_submitValues['JSONData']);
+      }
       // for upgrade to MGP 2.3
       if (!empty($form->_submitValues['TradeInfo'])) {
         $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['TradeInfo'], $form->_paymentProcessor);
@@ -55,15 +59,14 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
             $contrib_values = $contrib_ids = array();
             CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
             CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $return_params);
-            CRM_Core_Error::debug_var('spgateway_frontend_return', $return_params);
           }
         }
+        // MGP version 1.2
         elseif(!empty($_POST)){
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
           CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $_POST);
-          CRM_Core_Error::debug_var('spgateway_frontend_return', $_POST);
         }
 
         if(!empty($saved_params['trxn_id'])){
