@@ -48,6 +48,6 @@ function civicrm_demo_install() {
     $url = 'contribute/taiwantax';
     $class= 'CRM_Report_Form_Contribute_TaiwanTax';
     $components = CRM_Core_Component::getComponents();
-    $result = _neticrm_preset_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
+    $result = civicrm_demo_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }
 }
