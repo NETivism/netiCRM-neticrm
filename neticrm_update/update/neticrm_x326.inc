@@ -109,4 +109,38 @@ function _neticrm_update_update_x326() {
   else {
     echo "civicrm_product stock management fields already exist.\n";
   }
+
+  // Add restock field to civicrm_contribution_product table
+  $query = "SHOW COLUMNS FROM `civicrm_contribution_product` LIKE 'restock'";
+  $result = CRM_Core_DAO::executeQuery($query);
+  $column_exists = $result->N > 0;
+
+  if (!$column_exists) {
+    $query = <<<EOT
+      ALTER TABLE `civicrm_contribution_product`
+      ADD COLUMN `restock` tinyint(4) DEFAULT 0 COMMENT 'Indicates if contribution product restocked'
+    EOT;
+    CRM_Core_DAO::executeQuery($query);
+    echo "Added restock column to civicrm_contribution_product table.\n";
+  }
+  else {
+    echo "civicrm_contribution_product restock column already exists.\n";
+  }
+
+  // Add combination_id field to civicrm_contribution_product table
+  $query = "SHOW COLUMNS FROM `civicrm_contribution_product` LIKE 'combination_id'";
+  $result = CRM_Core_DAO::executeQuery($query);
+  $column_exists = $result->N > 0;
+
+  if (!$column_exists) {
+    $query = <<<EOT
+      ALTER TABLE `civicrm_contribution_product`
+      ADD COLUMN `combination_id` int unsigned DEFAULT NULL COMMENT 'ID for product combination'
+    EOT;
+    CRM_Core_DAO::executeQuery($query);
+    echo "Added combination_id column to civicrm_contribution_product table.\n";
+  }
+  else {
+    echo "civicrm_contribution_product combination_id column already exists.\n";
+  }
 }
