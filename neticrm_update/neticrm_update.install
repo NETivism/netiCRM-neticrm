@@ -932,3 +932,31 @@ function neticrm_update_update_7324() {
 function neticrm_update_update_7325() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43659, add premium combination and stock related table fields
+ */
+function neticrm_update_update_7326() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #44434, add table civicrm_contribution_spgateway to prevent error
+ */
+function neticrm_update_update_7327() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #40606, add Apple Pay Front payment instrument
+ */
+function neticrm_update_update_7328() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #44288, add ai image generation table
+ */
+function neticrm_update_update_7329() {
+  return neticrm_update_load_include(__FUNCTION__);
+}

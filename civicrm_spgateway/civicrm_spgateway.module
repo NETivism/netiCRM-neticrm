@@ -13,14 +13,20 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       $msg = NULL;
       $status = 2; // Pending
       $params = $return_params = array();
+      // MGP 1.2
       if (!empty($form->_submitValues['JSONData'])) {
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($form->_submitValues['JSONData']);
+      }
+      // for upgrade to MGP 2.3
+      if (!empty($form->_submitValues['TradeInfo'])) {
+        $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['TradeInfo'], $form->_paymentProcessor);
+        $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
       }
       if(!empty($form->_submitValues['Period']) && empty($return_params)){
         $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['Period'], $form->_paymentProcessor);
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
       }
-      CRM_Core_Error::debug_var('Neweb Notify Post Params', $return_params);
+      CRM_Core_Error::debug_var('spgateway_frontend_return', $return_params);
       // Credit card have result immediately
       if(isset($form->_submitValues) && ($return_params['PaymentType'] == 'CREDIT' || !empty($return_params['PeriodAmt']))) {
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
@@ -44,7 +50,19 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
       // non-direct payment
       else {
         $saved_params = $form->controller->get('params');
-        if(!empty($_POST)){
+        // for upgrade to MGP version 2.3
+        if (!empty($form->_submitValues['TradeInfo'])) {
+          $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['TradeInfo'], $form->_paymentProcessor);
+          $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
+          if(!empty($return_params['MerchantOrderNo']) && $saved_params['trxn_id'] == $return_params['MerchantOrderNo']){
+            $contrib_params = array('trxn_id' => $return_params['MerchantOrderNo']);
+            $contrib_values = $contrib_ids = array();
+            CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
+            CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $return_params);
+          }
+        }
+        // MGP version 1.2
+        elseif(!empty($_POST)){
           $contrib_params = array('trxn_id' => $saved_params['trxn_id']);
           $contrib_values = $contrib_ids = array();
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
@@ -143,8 +161,10 @@ function civicrm_spgateway_notify_bytrxn($trxn_id){
 }
 
 function civicrm_spgateway_notify_info($cid){
-  $data = db_query("SELECT data FROM {civicrm_contribution_spgateway} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
-  $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($data);
+  civicrm_initialize();
+  $dao = CRM_Core_DAO::executeQuery("SELECT s.data FROM civicrm_contribution_spgateway s WHERE s.cid = %1", array(1 => array($cid, 'Integer')));
+  $dao->fetch();
+  $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($dao->data);
   $type = $json['PaymentType'];
   $return = array();
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);

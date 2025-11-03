@@ -1,7 +1,7 @@
 <?php
 
 function _civicrm_instrument_get_mobile_instruments() {
-  return array('ApplePay', 'GooglePay', 'LinePay');
+  return array('ApplePay', 'ApplePayFront', 'GooglePay', 'LinePay');
 }
 
 /**
@@ -25,7 +25,7 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 AND name NOT LIKE 'ach%' ORDER BY weight ASC");
 
         $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
-        $mobile_instruments = array('ApplePay', 'GooglePay', 'LinePay');
+        $mobile_instruments = array('ApplePay', 'ApplePayFront', 'GooglePay', 'LinePay');
 
         while($option->fetch()){
           $checkbox_name = _civicrm_instrument_form_name($option->name);
@@ -111,8 +111,6 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form){
 
             function changeGoogleHint(){
               var $googlepay_input = $("#civicrm-instrument-dummy-'.$all_instruments['GooglePay']['value'].'");
-              console.log($googlepay_input.length);
-              console.log($googlepay_input.parent().find(".description").length);
               if ($googlepay_input.length && $googlepay_input.prop("checked") && !$googlepay_input.parent().find(".description").length) {
                 $googlepay_input.parent().append("<div class=\"description\" style=\"margin:0;\">'.ts("Payment processor needs Google account with credit card.").'</div>");
               }
@@ -572,6 +570,7 @@ function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active
     }
     else{
       // attach by html
+      $output = '';
       if(count($radios) == 1){
         $rid = key($radios);
         $r = reset($radios);
@@ -767,6 +766,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
     else{
       unset($enabled_instruments['Credit Card']);
+      unset($enabled_instruments['ApplePayFront']);
+      unset($enabled_instruments['GooglePay']);
     }
     foreach($enabled_instruments as $name => $i){
       $radio_name = _civicrm_instrument_form_name($name);

@@ -279,6 +279,9 @@
               error.css({"color":"#E55","padding-left":"10px"});
               error.insertAfter(element);
             }
+          },
+          normalizer: function(value) {
+            return $.trim(value);
           }
         });
         $("#"+formid+" input[name*=email]:not(#email_greeting_custom)").each(function(){
