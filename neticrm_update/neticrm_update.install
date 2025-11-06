@@ -282,3 +282,10 @@ function neticrm_update_update_9327() {
 function neticrm_update_update_9328() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #44288, add ai image generation table
+ */
+function neticrm_update_update_9329() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
