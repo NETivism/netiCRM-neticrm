@@ -289,3 +289,10 @@ function neticrm_update_update_9328() {
 function neticrm_update_update_9329() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #45071, fixes civicrm_product.stock_status default value
+ */
+function neticrm_update_update_9330() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
