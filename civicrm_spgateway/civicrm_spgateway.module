@@ -165,7 +165,10 @@ function civicrm_spgateway_notify_info($cid){
   $dao = CRM_Core_DAO::executeQuery("SELECT s.data FROM civicrm_contribution_spgateway s WHERE s.cid = %1", [1 => [$cid, 'Integer']]);
   $dao->fetch();
   $json = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($dao->data);
-  $type = $json['PaymentType'];
+  if (is_array($json)) {
+    $type = $json['PaymentType'];
+  }
+
   $return = [];
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
   switch($type){
