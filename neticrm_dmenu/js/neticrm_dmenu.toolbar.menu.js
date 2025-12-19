@@ -102,8 +102,8 @@
     attach: function() {
       $('#toolbar-item-neticrm-dmenu-tray>nav>ul').drupalNeticrmDmenuToolbarMenu();
        if ($('form#autocomplete_search_block').length) {
-        if ($('#crm-qsearch').length) {
-          $('#crm-qsearch').html($('form#autocomplete_search_block'));
+        if ($('#crm-qsearch-autocomplete').length) {
+          $('#crm-qsearch-autocomplete').html($('form#autocomplete_search_block'));
         }
         else {
           if ($(".toolbar-icon-civicrm-civicrm-autocomplete-search").length) {
