@@ -11,6 +11,10 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
       $processor = CRM_Core_Payment::singleton('live', $payment);
       $check_result = $processor->checkSignature($input);
       $delivery = $_SERVER['HTTP_X_BACKME_DELIVERY'];
+      // Only allow alphanumeric, underscore, and hyphen
+      if (!preg_match('/^[a-zA-Z0-9_-]+$/', $delivery)) {
+        $delivery = '';
+      }
       if (!empty($delivery) && $check_result) {
         $tmpfile = rtrim($config->uploadDir, '/').'/backer-founder-ipn'.date('_YmdHis_').$delivery.'.verified';
       }
