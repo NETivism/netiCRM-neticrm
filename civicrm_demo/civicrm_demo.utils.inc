@@ -423,10 +423,18 @@ function civicrm_demo_create_custom_profile(){
 
 
   // copy uf group
-  $params = array(
-    'title' => '姓名及地址',
-    'version' => 3,
-  );
+  $languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  if ($languageId == 'zh-hant') {
+    $params = [
+      'title' => '姓名及地址',
+    ];
+  }
+  else {
+    $params = [
+      'title' => 'Name and Address',
+    ];
+  }
+  $params['version'] = 3;
   $uf_group_name_addr = civicrm_api('uf_group', 'get', $params);
   $uf_group_pre_id = NULL;
   if(!empty($uf_group_name_addr['id'])){
