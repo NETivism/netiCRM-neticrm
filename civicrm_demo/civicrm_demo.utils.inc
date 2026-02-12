@@ -423,35 +423,55 @@ function civicrm_demo_create_custom_profile(){
 
 
   // copy uf group
-  $languageId = \Drupal::languageManager()->getCurrentLanguage()->getId();
-  if ($languageId == 'zh-hant') {
+  // Try both Chinese and English titles
+  $titles = [
+    '姓名及地址',
+    'Name and Address',
+  ];
+
+  $uf_group_name_addr = NULL;
+  foreach ($titles as $title) {
     $params = [
-      'title' => '姓名及地址',
+      'title' => $title,
+      'version' => 3,
     ];
+    $result = civicrm_api('uf_group', 'get', $params);
+    if (!empty($result['id'])) {
+      $uf_group_name_addr = $result;
+      break;
+    }
   }
-  else {
-    $params = [
-      'title' => 'Name and Address',
-    ];
-  }
-  $params['version'] = 3;
-  $uf_group_name_addr = civicrm_api('uf_group', 'get', $params);
+
   $uf_group_pre_id = NULL;
-  if(!empty($uf_group_name_addr['id'])){
-    $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);
-    if(!empty($copy->id) && $copy->id != $uf_group_name_addr['id']){
-      $copy->title = '捐款基本資料';
-      $copy->name = 'donor_basic_profile';
-      $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '收據'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%' AND uf_group_id = $copy->id");
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '收據寄送地址' WHERE label LIKE '縣市（收據）' AND uf_group_id = $copy->id");
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '街道地址' WHERE label LIKE '街道地址（收據）' AND uf_group_id = $copy->id");
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET is_active = 0 WHERE label LIKE '國家%' AND uf_group_id = $copy->id");
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 1 WHERE label LIKE '姓氏%' AND uf_group_id = $copy->id");
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 2 WHERE label LIKE '名字%' AND uf_group_id = $copy->id");
-      $uf_fields['legal_identifier'] = _civicrm_demo_create_uf_field('身份證字號', 'Individual', 'legal_identifier', $copy->id);
-      $uf_group_pre_id = $copy->id;
-      $copy->save();
+  if (!empty($uf_group_name_addr['id'])) {
+    // Check if donor_basic_profile already exists
+    $params_check = [
+      'name' => 'donor_basic_profile',
+      'version' => 3,
+    ];
+    $existing_profile = civicrm_api('uf_group', 'get', $params_check);
+
+    if (!empty($existing_profile['id'])) {
+      // Profile already exists, use it directly
+      $uf_group_pre_id = $existing_profile['id'];
+    }
+    else {
+      // Create new profile by copying
+      $copy = CRM_Core_BAO_UFGroup::copy($uf_group_name_addr['id']);
+      if (!empty($copy->id) && $copy->id !== $uf_group_name_addr['id']) {
+        $copy->title = '捐款基本資料';
+        $copy->name = 'donor_basic_profile';
+        $billing_location_type_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_LocationType', 'Billing', 'id', 'name');
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = REPLACE(label, '住家', '收據'), location_type_id = $billing_location_type_id WHERE label LIKE '%住家%' AND uf_group_id = $copy->id");
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '收據寄送地址' WHERE label LIKE '縣市（收據）' AND uf_group_id = $copy->id");
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET label = '街道地址' WHERE label LIKE '街道地址（收據）' AND uf_group_id = $copy->id");
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET is_active = 0 WHERE label LIKE '國家%' AND uf_group_id = $copy->id");
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 1 WHERE label LIKE '姓氏%' AND uf_group_id = $copy->id");
+        CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET weight = 2 WHERE label LIKE '名字%' AND uf_group_id = $copy->id");
+        $uf_fields['legal_identifier'] = _civicrm_demo_create_uf_field('身份證字號', 'Individual', 'legal_identifier', $copy->id);
+        $uf_group_pre_id = $copy->id;
+        $copy->save();
+      }
     }
   }
 
