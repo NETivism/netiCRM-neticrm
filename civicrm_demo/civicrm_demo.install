@@ -9,18 +9,18 @@ function civicrm_demo_install() {
   civicrm_initialize();
   
   if(variable_get('civicrm_demo_sample_data', 0)) {
-    $vars['limit'] = 20;
-    civicrm_demo_process_contact($vars);
+    set_time_limit(1800);
 
-    $vars['limit'] = 5;
-    civicrm_demo_process_event($vars);
-
-    $vars['limit'] = 50;
-    civicrm_demo_process_contribution($vars);
+    civicrm_demo_process_contact(array('limit' => 1000));
+    civicrm_demo_process_event(array('limit' => 15, 'limit_participants' => 60));
+    civicrm_demo_process_contribution(array(
+      'limit' => 3000,
+      'contrib_per_contact' => 3,
+      'start_year' => (int)date('Y', strtotime('-30 months')),
+    ));
+    civicrm_demo_process_contribution_recur(array('limit' => 600));
     civicrm_demo_create_custom_profile();
-
-    $vars['limit'] = 3;
-    civicrm_demo_process_membership($vars);
+    civicrm_demo_process_membership(array('limit' => 3));
   }
   else{
     $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
