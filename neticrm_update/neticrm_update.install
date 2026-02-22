@@ -296,3 +296,10 @@ function neticrm_update_update_9329() {
 function neticrm_update_update_9330() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43476, Add source_ip column to civicrm_contribution
+ */
+function neticrm_update_update_9331() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
