@@ -9,33 +9,47 @@ function civicrm_demo_install() {
   include_once "civicrm_demo.utils.inc";
   civicrm_initialize();
   
+  // When installed via neticrmp profile, skip sample data and default data
+  // generation here. It will be handled by _neticrmp_demo_data_setup install
+  // task which runs after the install form.
+  $is_neticrmp = (\Drupal::installProfile() === 'neticrmp');
+
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
-  if($sample) {
-    $vars['limit'] = 20;
-    civicrm_demo_process_contact($vars);
+  if(!$is_neticrmp && $sample) {
+    set_time_limit(1800);
 
-    $vars['limit'] = 5;
-    civicrm_demo_process_event($vars);
-
-    $vars['limit'] = 50;
-    civicrm_demo_process_contribution($vars);
-
-    $vars['limit'] = 3;
-    civicrm_demo_process_membership($vars);
-
+    civicrm_demo_process_contact(['limit' => 1000]);
+    \Drupal::logger('civicrm_demo')->notice('Created @count contacts.', ['@count' => 1000]);
+    civicrm_demo_process_event(['limit' => 15, 'limit_participants' => 60]);
+    \Drupal::logger('civicrm_demo')->notice('Created @count events with up to @participants participants each.', ['@count' => 15, '@participants' => 60]);
+    civicrm_demo_process_contribution([
+      'limit' => 3000,
+      'contrib_per_contact' => 3,
+      'start_year' => (int) date('Y', strtotime('-30 months')),
+    ]);
+    \Drupal::logger('civicrm_demo')->notice('Created up to @count contributions.', ['@count' => 3000]);
+    civicrm_demo_process_contribution_recur(['limit' => 600]);
+    \Drupal::logger('civicrm_demo')->notice('Created @count recurring contributions.', ['@count' => 600]);
     civicrm_demo_create_custom_profile();
+    \Drupal::logger('civicrm_demo')->notice('Created custom profile for receipt information.');
+    civicrm_demo_process_membership(['limit' => 3]);
+    \Drupal::logger('civicrm_demo')->notice('Created up to @count memberships.', ['@count' => 3]);
   }
   elseif($sample_ci) {
     $vars['limit'] = 20;
     civicrm_demo_process_contact($vars);
+    \Drupal::logger('civicrm_demo')->notice('Created @count contacts.', ['@count' => 20]);
 
     $vars['limit'] = 5;
     civicrm_demo_process_event($vars);
+    \Drupal::logger('civicrm_demo')->notice('Created @count events.', ['@count' => 5]);
 
     $vars['limit'] = 1;
     civicrm_demo_process_contribution($vars);
+    \Drupal::logger('civicrm_demo')->notice('Created @count contribution page.', ['@count' => 1]);
     civicrm_demo_create_custom_profile();
+    \Drupal::logger('civicrm_demo')->notice('Created custom profile for receipt information.');
 
     // add report ofr TaiwanTax
     $title = '臺灣財政部所得扣除額';
@@ -45,22 +59,25 @@ function civicrm_demo_install() {
     $components = CRM_Core_Component::getComponents();
     $result = civicrm_demo_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }
-  else{
+  elseif(!$is_neticrmp) {
     $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
     if (!$have_event) {
       $vars['limit'] = 5;
       civicrm_demo_process_event($vars);
+      \Drupal::logger('civicrm_demo')->notice('Created @count events.', ['@count' => 5]);
     }
 
     $have_page = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_contribution_page");
     if (!$have_page) {
       $vars['limit'] = 1;
       civicrm_demo_process_contribution($vars);
+      \Drupal::logger('civicrm_demo')->notice('Created @count contribution page.', ['@count' => 1]);
     }
 
     $have_custom_field = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_custom_group WHERE name = 'shou_ju_zi_xun'");
     if (!$have_custom_field) {
       civicrm_demo_create_custom_profile();
+      \Drupal::logger('civicrm_demo')->notice('Created custom profile for receipt information.');
     }
   }
 }
