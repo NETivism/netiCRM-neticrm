@@ -62,23 +62,28 @@ function civicrm_demo_process_event($vars){
   );
 
   // Sample data event titles (only when sample_data=1)
-  $sample_titles = array(
-    '環境永續論壇',
-    '社區營造工作坊',
-    'NPO 數位轉型研討會',
-    '公益慈善募款餐會',
-    '兒童教育志工培訓',
-    '年度感恩茶會',
-    '偏鄉服務成果分享會',
-    '動物保護議題講座',
-    '青年領袖培力營',
-    '銀髮族健康促進活動',
-    '國際人權日紀念活動',
-    '文化藝術市集',
-    '海洋保育淨灘行動',
-    '食農教育體驗課程',
-    '社會創新提案競賽',
-  );
+  if ($sample_ci) {
+    $sample_titles = $template_titles;
+  }
+  else {
+    $sample_titles = array(
+      '環境永續論壇',
+      '社區營造工作坊',
+      'NPO 數位轉型研討會',
+      '公益慈善募款餐會',
+      '兒童教育志工培訓',
+      '年度感恩茶會',
+      '偏鄉服務成果分享會',
+      '動物保護議題講座',
+      '青年領袖培力營',
+      '銀髮族健康促進活動',
+      '國際人權日紀念活動',
+      '文化藝術市集',
+      '海洋保育淨灘行動',
+      '食農教育體驗課程',
+      '社會創新提案競賽',
+    );
+  }
 
   // Always create templates first
   $template_limit = min($vars['limit'], count($template_titles));
@@ -123,7 +128,7 @@ function civicrm_demo_process_event($vars){
   }
 
   // When sample_data=1, create actual events with participants and tracks
-  if ($sample) {
+  if ($sample || $sample_ci) {
     $sample_limit = $vars['limit'];
     for($i = 0; $i < $sample_limit; $i++){
       $seed = $i % count($sample_titles);
