@@ -42,6 +42,7 @@ function civicrm_demo_install() {
     \Drupal::logger('civicrm_demo')->notice('Created @count contacts.', ['@count' => 20]);
 
     $vars['limit'] = 5;
+    $vars['limit_participants'] = 4;
     civicrm_demo_process_event($vars);
     \Drupal::logger('civicrm_demo')->notice('Created @count events.', ['@count' => 5]);
 

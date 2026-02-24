@@ -61,25 +61,6 @@ function civicrm_demo_process_event($vars){
     '無名額限制，需事先審核',
   );
 
-  // Sample data event titles (only when sample_data=1)
-  $sample_titles = array(
-    '環境永續論壇',
-    '社區營造工作坊',
-    'NPO 數位轉型研討會',
-    '公益慈善募款餐會',
-    '兒童教育志工培訓',
-    '年度感恩茶會',
-    '偏鄉服務成果分享會',
-    '動物保護議題講座',
-    '青年領袖培力營',
-    '銀髮族健康促進活動',
-    '國際人權日紀念活動',
-    '文化藝術市集',
-    '海洋保育淨灘行動',
-    '食農教育體驗課程',
-    '社會創新提案競賽',
-  );
-
   // Always create templates first
   $template_limit = min($vars['limit'], count($template_titles));
   for($i = 0; $i < $template_limit; $i++){
@@ -94,6 +75,12 @@ function civicrm_demo_process_event($vars){
     $params['template_title'] = $template_titles[$seed];
     $params['start_date'] = date('Ymd', $now+$i*86400*5);
     $params['max_participants'] = '';
+    if ($sample_ci) {
+      $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
+      $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
+      $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
+      $params['max_participants'] = 5;
+    }
 
     if($seed == 0 || $seed == 4){
       $params['max_participants'] = "";
@@ -112,18 +99,37 @@ function civicrm_demo_process_event($vars){
         1 => array($result['id'], 'Integer')
       ));
       $event_id = $result['id'];
-      $profile_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_uf_group WHERE name = 'participants_information_proflie'");
-      if (!empty($profile_id) && !$sample_ci) {
-        CRM_Core_DAO::executeQuery("INSERT INTO civicrm_uf_join (is_active, module, entity_table, entity_id, weight, uf_group_id) VALUES ('1', 'CiviEvent', 'civicrm_event', %1, '1', %2)", array(
-          1 => array($event_id, 'String'),
-          2 => array($profile_id, 'String'),
-        ));
+      if (!$sample_ci) {
+        _civicrm_demo_create_event_uf_join($event_id);
+      }
+      if ($sample_ci) {
+        $max = !empty($vars['limit_participants']) ? $vars['limit_participants'] : 4;
+        _civicrm_demo_create_event_participants($event_id, $max, $is_test);
       }
     }
   }
 
   // When sample_data=1, create actual events with participants and tracks
-  if ($sample || $sample_ci) {
+  if ($sample) {
+    // Sample data event titles (only when sample_data=1)
+    $sample_titles = array(
+      '環境永續論壇',
+      '社區營造工作坊',
+      'NPO 數位轉型研討會',
+      '公益慈善募款餐會',
+      '兒童教育志工培訓',
+      '年度感恩茶會',
+      '偏鄉服務成果分享會',
+      '動物保護議題講座',
+      '青年領袖培力營',
+      '銀髮族健康促進活動',
+      '國際人權日紀念活動',
+      '文化藝術市集',
+      '海洋保育淨灘行動',
+      '食農教育體驗課程',
+      '社會創新提案競賽',
+    );
+
     $sample_limit = $vars['limit'];
     for($i = 0; $i < $sample_limit; $i++){
       $seed = $i % count($sample_titles);
@@ -151,13 +157,7 @@ function civicrm_demo_process_event($vars){
 
       if (!empty($result['id'])) {
         $event_id = $result['id'];
-        $profile_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_uf_group WHERE name = 'participants_information_proflie'");
-        if (!empty($profile_id) && !$sample_ci) {
-          CRM_Core_DAO::executeQuery("INSERT INTO civicrm_uf_join (is_active, module, entity_table, entity_id, weight, uf_group_id) VALUES ('1', 'CiviEvent', 'civicrm_event', %1, '1', %2)", array(
-            1 => array($event_id, 'String'),
-            2 => array($profile_id, 'String'),
-          ));
-        }
+        _civicrm_demo_create_event_uf_join($event_id, $sample_ci);
 
         $trackVars = array(
           'limit' => 2000,
@@ -166,28 +166,8 @@ function civicrm_demo_process_event($vars){
         );
         civicrm_demo_process_track($trackVars);
 
-        // add participants
-        $params2 = array(
-          'version' => 3,
-          'return.contact_id',
-          'sort' => 'RAND()',
-        );
-        $contacts = civicrm_api('Contact', 'get', $params2);
-        $j = 0;
         $max = !empty($vars['limit_participants']) ? $vars['limit_participants'] : 4;
-        foreach($contacts['values'] as $contact){
-          $j++;
-          if($j > $max) break;
-          $params3 = array('version' => 3);
-          $params3['contact_id'] = $contact['contact_id'];
-          $params3['event_id'] = $event_id;
-          $params3['status_id'] = 1;
-          $params3['role_id'] = 1;
-          $params3['register_date'] = date('YmdHis');
-          $params3['source'] = '示範用途';
-          $params3['is_test'] = $is_test;
-          civicrm_api('Participant', 'create', $params3);
-        }
+        _civicrm_demo_create_event_participants($event_id, $max, $is_test);
       }
     }
   }
@@ -1321,6 +1301,39 @@ function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_gro
     $uf_field = civicrm_api('uf_field', 'create', $params);
   }
   return $uf_field;
+}
+
+function _civicrm_demo_create_event_uf_join($event_id) {
+  $profile_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_uf_group WHERE name = 'participants_information_proflie'");
+  if (!empty($profile_id)) {
+    CRM_Core_DAO::executeQuery("INSERT INTO civicrm_uf_join (is_active, module, entity_table, entity_id, weight, uf_group_id) VALUES ('1', 'CiviEvent', 'civicrm_event', %1, '1', %2)", array(
+      1 => array($event_id, 'String'),
+      2 => array($profile_id, 'String'),
+    ));
+  }
+}
+
+function _civicrm_demo_create_event_participants($event_id, $max, $is_test) {
+  $params2 = array(
+    'version' => 3,
+    'return.contact_id',
+    'sort' => 'RAND()',
+  );
+  $contacts = civicrm_api('Contact', 'get', $params2);
+  $j = 0;
+  foreach($contacts['values'] as $contact){
+    $j++;
+    if($j > $max) break;
+    $params3 = array('version' => 3);
+    $params3['contact_id'] = $contact['contact_id'];
+    $params3['event_id'] = $event_id;
+    $params3['status_id'] = 1;
+    $params3['role_id'] = 1;
+    $params3['register_date'] = date('YmdHis');
+    $params3['source'] = '示範用途';
+    $params3['is_test'] = $is_test;
+    civicrm_api('Participant', 'create', $params3);
+  }
 }
 
 function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
