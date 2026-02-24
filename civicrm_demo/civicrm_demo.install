@@ -7,8 +7,10 @@ function civicrm_demo_install() {
   include_once "civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
   civicrm_initialize();
+  $sample = variable_get('civicrm_demo_sample_data', 0);
+  $sample_ci = variable_get('civicrm_demo_sample_data_ci', 0);
   
-  if(variable_get('civicrm_demo_sample_data', 0)) {
+  if($sample) {
     set_time_limit(1800);
 
     civicrm_demo_process_contact(array('limit' => 1000));
@@ -21,6 +23,20 @@ function civicrm_demo_install() {
     civicrm_demo_process_contribution_recur(array('limit' => 600));
     civicrm_demo_create_custom_profile();
     civicrm_demo_process_membership(array('limit' => 3));
+  }
+  elseif ($sample_ci) {
+    civicrm_demo_process_contact(['limit' => 20]);
+    civicrm_demo_process_event(['limit' => 5, 'limit_participants' => 4]);
+    civicrm_demo_process_contribution(['limit' => 1]);
+    civicrm_demo_create_custom_profile();
+
+    // add report ofr TaiwanTax
+    $title = '臺灣財政部所得扣除額';
+    $desc = '提供給財政部所得扣除額的報表';
+    $url = 'contribute/taiwantax';
+    $class= 'CRM_Report_Form_Contribute_TaiwanTax';
+    $components = CRM_Core_Component::getComponents();
+    $result = civicrm_demo_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }
   else{
     $have_event = CRM_Core_DAO::singleValueQuery("SELECT count(*) FROM civicrm_event");
@@ -39,15 +55,5 @@ function civicrm_demo_install() {
     if (!$have_custom_field) {
       civicrm_demo_create_custom_profile();
     }
-  }
-
-  if(variable_get('civicrm_demo_sample_data_ci', 0)) {
-    // add report ofr TaiwanTax
-    $title = '臺灣財政部所得扣除額';
-    $desc = '提供給財政部所得扣除額的報表';
-    $url = 'contribute/taiwantax';
-    $class= 'CRM_Report_Form_Contribute_TaiwanTax';
-    $components = CRM_Core_Component::getComponents();
-    $result = civicrm_demo_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }
 }
