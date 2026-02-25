@@ -960,3 +960,17 @@ function neticrm_update_update_7328() {
 function neticrm_update_update_7329() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #45071, fixes civicrm_product.stock_status default value
+ */
+function neticrm_update_update_7330() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #43476, Add source_ip column to civicrm_contribution
+ */
+function neticrm_update_update_7331() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
