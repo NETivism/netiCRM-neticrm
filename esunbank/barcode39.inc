@@ -25,14 +25,14 @@ final class EsunbankBarcode39 {
      *
      * @var array $_code
      */
-    private $_code = array();
+    private $_code = [];
 
     /**
      * Code 39 matrix
      *
      * @var array $_codes_39
      */
-    private $_codes_39 = array(
+    private $_codes_39 = [
         32 => 100011011001110110,
         36 => 100010001000100110,
         37 => 100110001000100010,
@@ -77,7 +77,7 @@ final class EsunbankBarcode39 {
         88 => 100010011101100111,
         89 => 110010011101100110,
         90 => 100011011101100110
-    );
+    ];
 
     /**
      * Width of wide bars in barcode (should be 3:1)
@@ -98,7 +98,7 @@ final class EsunbankBarcode39 {
      *
      * @var array $barcode_bg_rgb
      */
-    public $barcode_bg_rgb = array(255, 255, 255);
+    public $barcode_bg_rgb = [255, 255, 255];
 
     /**
      * Barcode height
@@ -181,7 +181,7 @@ final class EsunbankBarcode39 {
         }
 
         // bars coordinates and params
-        $bars = array();
+        $bars = [];
 
         // position pointer
         $pos = $this->barcode_padding;
@@ -222,8 +222,8 @@ final class EsunbankBarcode39 {
                             // check for valid bar params
                             if($w && $fill) {
                                 // add bar coordinates and params
-                                $bars[] = array($pos, $this->barcode_padding, $pos - 1 + $w,
-                                    $this->barcode_height - $this->barcode_padding - 1, $fill);
+                                $bars[] = [$pos, $this->barcode_padding, $pos - 1 + $w,
+                                    $this->barcode_height - $this->barcode_padding - 1, $fill];
 
                                 // move position pointer
                                 $pos += $w;

@@ -1,7 +1,7 @@
 <?php
 function _neticrm_update_update_7248($force = false) {
   civicrm_initialize();
-  $exists_expire_date_ids = array();
+  $exists_expire_date_ids = [];
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution' AND column_name = 'expire_date'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
   if(empty($exists)){
@@ -20,7 +20,7 @@ function _neticrm_update_update_7248($force = false) {
     }
   }
 
-  $expire_dates = array();
+  $expire_dates = [];
   if(module_exists('civicrm_allpay')){
     $query = db_query("SELECT data, cid FROM {civicrm_contribution_allpay} WHERE data IS NOT NULL");
     while($result = $query->fetchObject()){
@@ -69,10 +69,10 @@ function _neticrm_update_update_7248($force = false) {
   foreach ($expire_dates as $cid => $expire_date) {
     if(!empty($expire_date) && !in_array($cid, $exists_expire_date_ids)){
       $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
-      $params = array(
-        1 => array( $expire_date, 'String'),
-        2 => array( $cid, 'Integer'),
-      );
+      $params = [
+        1 => [ $expire_date, 'String'],
+        2 => [ $cid, 'Integer'],
+      ];
       CRM_Core_DAO::executeQuery($sql, $params);
     }
   }

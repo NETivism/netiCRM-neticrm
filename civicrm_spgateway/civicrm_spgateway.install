@@ -17,15 +17,15 @@ function civicrm_spgateway_update_9000() {
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
   if (!$exists) {
     $createTable = <<<EOT
-CREATE TABLE civicrm_contribution_spgateway (
-  id int unsigned NOT NULL AUTO_INCREMENT,
-  cid int unsigned    COMMENT 'FK to contribution table',
-  data blob    COMMENT 'Spgateway return data',
-  PRIMARY KEY (id),
-  UNIQUE INDEX UI_spgateway_id(cid),
-  CONSTRAINT FK_civicrm_contribution_spgateway_cid FOREIGN KEY (cid) REFERENCES civicrm_contribution(id) ON DELETE SET NULL
-)  ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
-EOT;
+    CREATE TABLE civicrm_contribution_spgateway (
+      id int unsigned NOT NULL AUTO_INCREMENT,
+      cid int unsigned    COMMENT 'FK to contribution table',
+      data blob    COMMENT 'Spgateway return data',
+      PRIMARY KEY (id),
+      UNIQUE INDEX UI_spgateway_id(cid),
+      CONSTRAINT FK_civicrm_contribution_spgateway_cid FOREIGN KEY (cid) REFERENCES civicrm_contribution(id) ON DELETE SET NULL
+    )  ENGINE=InnoDB DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ROW_FORMAT=DYNAMIC;
+    EOT;
     CRM_Core_DAO::executeQuery($createTable);
   }
   else {

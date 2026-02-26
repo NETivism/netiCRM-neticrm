@@ -184,8 +184,8 @@ function esunbank_store_c($timestamp, $price, $a, $b){
  */
 function _esunbank_store_calc($type, $a, $b, $c){
   $map = _esunbank_store_calc_map();
-  $run = array($a, $b, $c);
-  $sum = array();
+  $run = [$a, $b, $c];
+  $sum = [];
   foreach($run as $k => $s){
     $ary = str_split($s);
     $sum[$k] = 0;
@@ -214,7 +214,7 @@ function _esunbank_store_calc($type, $a, $b, $c){
 }
 
 function _esunbank_store_calc_map(){
-  $ary = array(
+  $ary = [
     'A' => 1,
     'B' => 2,
     'C' => 3,
@@ -241,7 +241,7 @@ function _esunbank_store_calc_map(){
     'X' => 7,
     'Y' => 8,
     'Z' => 9,
-  );
+  ];
   return $ary;
 }
 

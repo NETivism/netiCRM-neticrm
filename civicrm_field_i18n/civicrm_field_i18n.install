@@ -6,9 +6,9 @@
 function civicrm_field_i18n_install(){
   module_set_weight('content_translation', 200);
   civicrm_initialize();
-  $params = array(
+  $params = [
     'customTranslateFunction' => 'civicrm_alter_translation',
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 }
 
@@ -17,8 +17,8 @@ function civicrm_field_i18n_install(){
  */
 function civicrm_field_i18n_uninstall() {
   civicrm_initialize();
-  $params = array(
+  $params = [
     'customTranslateFunction' => '',
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 }

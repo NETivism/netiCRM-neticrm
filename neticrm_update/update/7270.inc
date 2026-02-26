@@ -12,7 +12,7 @@ function _neticrm_update_update_7270() {
 
   // 取得目前預設的 $msg_workflow_id, $msg_html
   $msg_title = '紙本收據 - 年度整合收據';
-  $params = array(1 => array($msg_title, 'String'));
+  $params = [1 => [$msg_title, 'String']];
   $msg_workflow_id = CRM_Core_DAO::singleValueQuery("SELECT workflow_id FROM civicrm_msg_template WHERE msg_title = %1 AND is_reserved = 1", $params);
 
   print("msg_workflow_id : $msg_workflow_id\n");
@@ -32,7 +32,7 @@ function _neticrm_update_update_7270() {
                     diverted.msg_html    != orig.msg_html
             )
         ';
-    $params = array(1 => array($msg_workflow_id, 'Integer'));
+    $params = [1 => [$msg_workflow_id, 'Integer']];
     $diverted_id = CRM_Core_DAO::singleValueQuery($sql,$params);
     print("diverted_id : $diverted_id\n");
     $is_customized = !empty($diverted_id);
@@ -45,9 +45,9 @@ function _neticrm_update_update_7270() {
     // 如果 tpl 和預設不一樣，取代預設範本
     if($msg_html != $tpl_html){
       print(" tpl 和預設不一樣，取代預設範本");
-      $params = array(
-        1 => array($tpl_html, 'String'),
-      );
+      $params = [
+        1 => [$tpl_html, 'String'],
+      ];
       CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1 WHERE workflow_id = $msg_workflow_id AND is_reserved = 1", $params);
 
       if(empty($diverted_id)){

@@ -11,7 +11,7 @@ class EsunbankController extends ControllerBase {
     $unsafe = \Drupal::request()->query->get('params');
     $params = explode('|', \Drupal\Component\Utility\Xss::filter($unsafe));
 
-    $vars = array(
+    $vars = [
       'code' => $params[0],
       'number' => $params[1],
       'length' => $params[2],
@@ -21,7 +21,7 @@ class EsunbankController extends ControllerBase {
       'type' => $params[6],
       'user' => $params[7],
       'item' => $params[8],
-    );
+    ];
     $html = esunbank_api($vars, 'markup');
     return new Response($html);
   }

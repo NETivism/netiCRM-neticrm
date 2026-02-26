@@ -10,7 +10,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
 function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
   global $tsLocale;
 
-  $allowed = array(
+  $allowed = [
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
     'CRM_UF_Form_Preview',
@@ -20,7 +20,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Event_Form_Registration_Register',
     'CRM_Event_Form_Registration_Confirm',
     'CRM_Event_Form_Registration_ThankYou',
-  );
+  ];
   if($tsLocale != CRM_Core_Config::SYSTEM_LANG && in_array($form_name, $allowed)){
     if($_GET['snippet'] == 4){
       if(!empty($form->_paymentProcessors)){
@@ -42,7 +42,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
       }
     }
     foreach ($form->_elements as $k => $e) {
-      $name = isset($e->_name) ? $e->_name : '';
+      $name = $e->_name ?? '';
       if($e->_type != 'hidden' && $name != 'buttons'){
         if(!empty($e->_label)){
           $form->_elements[$k]->_label = civicrm_field_i18n_t($e->_label);
@@ -74,7 +74,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     // for civicrm contribution page and event page
     // Translate group title and help text
     $template = CRM_Core_Smarty::singleton();
-    $profiles = array('customPre', 'customPost','customPreGroup','customPostGroup');
+    $profiles = ['customPre', 'customPost','customPreGroup','customPostGroup'];
     foreach($profiles as $p){
       $vars = $template->get_template_vars($p);
       if(!empty($vars)){
@@ -93,7 +93,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
           }
         }
         $template->assign($p, $vars);
-        $vars = array();
+        $vars = [];
       }
     }
   }
@@ -102,7 +102,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
 function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
   global $tsLocale;
   if($tsLocale != CRM_Core_Config::SYSTEM_LANG ){
-    $profiles = array('customPre', 'customPost');
+    $profiles = ['customPre', 'customPost'];
     foreach ($profiles as $p) {
       $var_name = $p . '_grouptitle';
       if(!empty($vars[$var_name])){

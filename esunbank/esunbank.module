@@ -109,13 +109,13 @@ function esunbank_api_serial(&$vars){
       $type = '';
       break;
   }
-  $variables = array(
+  $variables = [
     $vars['code'],
     $vars['number'],
     $vars['length'],
     $vars['price'],
     $vars['timestamp'],
-  );
+  ];
   $vars['serial'] = call_user_func_array('esunbank_serial'.$type, $variables);
   return $vars['serial'];
 }

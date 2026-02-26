@@ -23,17 +23,17 @@ function civicrm_floating_label_civicrm_preProcess($formName, &$form){
       // the condition is to prevent other module doing the same thing
       // and that will make conflict
       if (!empty($GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text']) && $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text'][1] === 'HTML_QuickForm_text') {
-        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text'] = array(
+        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['text'] = [
           'civicrm_floating_label.text.inc', # file
           'CiviCRM_Floating_Label_text',     # class
-        );
+        ];
       }
 
       if (!empty($GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea']) && $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea'][1] === 'HTML_QuickForm_textarea') {
-        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea'] = array(
+        $GLOBALS['HTML_QUICKFORM_ELEMENT_TYPES']['textarea'] = [
           'civicrm_floating_label.textarea.inc', # file
           'CiviCRM_Floating_Label_textarea',     # class
-        );
+        ];
       }
       break;
   }

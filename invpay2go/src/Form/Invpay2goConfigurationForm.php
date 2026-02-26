@@ -30,7 +30,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $form = array();
+    $form = [];
     $db = \Drupal::database()->select('invpay2go', 'inv')
       ->fields('inv')
       ->orderBy('pid', 'ASC')
@@ -42,7 +42,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
       $form['container'][$pid] = $container;
     }
     $pid++;
-    $form['container'][$pid] = self::singleSettingForm($pid, array());
+    $form['container'][$pid] = self::singleSettingForm($pid, []);
     $form['container'][$pid]['#collapsible'] = TRUE;
     $form['container'][$pid]['#collapsed'] = TRUE;
     return parent::buildForm($form, $form_state);
@@ -50,65 +50,65 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
 
   function singleSettingForm($pid, $default){
     $title = !empty($default) ? t('Pay2go Settings'). ': '.$pid : t('New Pay2go Settings');
-    $form = array();
-    $form = array(
+    $form = [];
+    $form = [
       '#type' => 'details',
       '#title' => $title,
       '#open' => !empty($default) ? TRUE : FALSE,
-    );
-    $form['title'] = array(
+    ];
+    $form['title'] = [
       '#type' => 'textfield',
       '#title' => t('Invoice Title'),
       '#default_value' => $default['title'],
       '#size' => 64,
-    );
-    $form['serial'] = array(
+    ];
+    $form['serial'] = [
       '#type' => 'textfield',
       '#title' => t('Serial Number'),
       '#default_value' => $default['serial'],
       '#size' => 20,
-    );
-    $form['merchantid'] = array(
+    ];
+    $form['merchantid'] = [
       '#type' => 'textfield',
       '#title' => t('Merchant ID'),
       '#default_value' => $default['merchantid'],
       '#size' => 20,
-    );
-    $form['hashkey'] = array(
+    ];
+    $form['hashkey'] = [
       '#type' => 'textfield',
       '#title' => t('Hash Key'),
       '#default_value' => $default['hashkey'],
       '#size' => 20,
-    );
-    $form['hashiv'] = array(
+    ];
+    $form['hashiv'] = [
       '#type' => 'textfield',
       '#title' => t('Hash IV'),
       '#default_value' => $default['hashiv'],
       '#size' => 20,
-    );
-    $form['merchantid_test'] = array(
+    ];
+    $form['merchantid_test'] = [
       '#type' => 'textfield',
       '#title' => t('Merchant ID').' ('.t('Test').')',
       '#default_value' => $default['merchantid_test'],
       '#size' => 20,
-    );
-    $form['hashkey_test'] = array(
+    ];
+    $form['hashkey_test'] = [
       '#type' => 'textfield',
       '#title' => t('Hash Key').' ('.t('Test').')',
       '#default_value' => $default['hashkey_test'],
       '#size' => 20,
-    );
-    $form['hashiv_test'] = array(
+    ];
+    $form['hashiv_test'] = [
       '#type' => 'textfield',
       '#title' => t('Hash IV').' ('.t('Test').')',
       '#default_value' => $default['hashiv_test'],
       '#size' => 20,
-    );
-    $form['delete'] = array(
+    ];
+    $form['delete'] = [
       '#type' => 'checkbox',
       '#title' => t('Delete'),
       '#default_value' => 0,
-    );
+    ];
     return $form;
   }
 
@@ -120,7 +120,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
       ->fields('inv')
       ->execute()
       ->fetchAll();
-    $exists = array();
+    $exists = [];
     foreach($settings as $e){
       $exists[$e->pid] = (array) $e;
     }
@@ -136,7 +136,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
             ->execute();
         }
         else{
-          $fields = array(
+          $fields = [
             'title' => $invoice_setting['title'],
             'serial' => $invoice_setting['serial'],
             'merchantid' => $invoice_setting['merchantid'],
@@ -145,7 +145,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
             'merchantid_test' => $invoice_setting['merchantid_test'],
             'hashkey_test' => $invoice_setting['hashkey_test'],
             'hashiv_test' => $invoice_setting['hashiv_test'],
-          );
+          ];
           \Drupal::database()->update('invpay2go')
             ->fields($fields)
             ->condition('pid', $pid, '=')
@@ -155,7 +155,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
       else{
         if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
           \Drupal::database()->insert('invpay2go')
-            ->fields(array(
+            ->fields([
             'title' => $invoice_setting['title'],
             'serial' => $invoice_setting['serial'],
             'merchantid' => $invoice_setting['merchantid'],
@@ -164,7 +164,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
             'merchantid_test' => $invoice_setting['merchantid_test'],
             'hashkey_test' => $invoice_setting['hashkey_test'],
             'hashiv_test' => $invoice_setting['hashiv_test'],
-          ))
+          ])
           ->execute();
         }
       }

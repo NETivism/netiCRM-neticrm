@@ -177,12 +177,12 @@ function checkForm(){
   }
             
         });';
-        CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+        CRM_Utils_System::addJs(['type' => 'inline'], $js);
     return;
   }
 
   $enable = TRUE;
-  $override = array();
+  $override = [];
   $form_name = $form->_attributes['name'];
   // For user edit -> profile edit page, Dynamic panel.
   if($form_name == 'Dynamic'){
@@ -211,13 +211,13 @@ function checkForm(){
       }
       $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL; 
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Refs #40341, Check default value to avoid empty array.
       if (empty($default) || !is_scalar($default)) {
         $default = '';
       }
       // Find that default value is depands on zip code. The code here is no use.
-      $override['countyName'][$key]['default'] = isset($county_options[$default]) ? $county_options[$default] : $default;
+      $override['countyName'][$key]['default'] = $county_options[$default] ?? $default;
     }
     if(strstr($name, 'city')){
       $key = _civicrm_twaddress_key($name);
@@ -225,7 +225,7 @@ function checkForm(){
 
       $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Find that default value is depands on zip code. The code here is no use.
       $override['areaName'][$key]['key'] = '_'.$name;
       $override['areaName'][$key]['name'] = $name;
@@ -236,7 +236,7 @@ function checkForm(){
 
       $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
-      $default = $default ? $default : (isset($form->_submitValues[$name]) ? $form->_submitValues[$name] : NULL);
+      $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Find that default value is depands on zip code. The code here is no use.
       $override['country'][$key]['key'] = '_'.$name;
       $override['country'][$key]['name'] = $name;
@@ -331,7 +331,7 @@ function civicrm_twaddress_extract(&$options){
 
 function civicrm_twaddress_order(){
   return
-  array(
+  [
     '', // for order 0
     '基隆市',
     '臺北市',
@@ -356,13 +356,13 @@ function civicrm_twaddress_order(){
     '金門縣',
     '連江縣',
     '南海諸島',
-  );
+  ];
 }
 
 
 function civicrm_twaddress_library_info_alter(&$libraries, $extension) {
   if ($extension == 'civicrm') {
-    $jsAttribute = array('weight' => -5);
+    $jsAttribute = ['weight' => -5];
     $libraries['civicrm-js-packages']['js']['../neticrm/civicrm_twaddress/twzipcode.js'] = $jsAttribute;
   }
 }
@@ -428,13 +428,13 @@ function _civicrm_twaddress_grouping_js(){
       }
     });
   ';
-  CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+  CRM_Utils_System::addJs(['type' => 'inline'], $js);
 
   return $js;
 }
 
 function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
-  $return = array();
+  $return = [];
   $count = 0;
   foreach($field['areaName'] as $k => $v){
     $random_id = mt_rand(1000, 9999);
@@ -502,7 +502,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
 
     ';
     if($add_js){
-      CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+      CRM_Utils_System::addJs(['type' => 'inline'], $js);
     }
     else{
       $return[$k] = $js;
@@ -547,7 +547,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
   ';
 
   if($add_js){
-    CRM_Utils_System::addJs(array('type' => 'inline'), $js);
+    CRM_Utils_System::addJs(['type' => 'inline'], $js);
   }
   else{
     $return[] = $js;
@@ -609,7 +609,7 @@ function _civicrm_twaddress_search_value($key, $array){
 }
 
 function _civicrm_twaddress_get_province_id($name = NULL) {
-  $arr = array(
+  $arr = [
     "南投縣"=> "4855",
     "臺中市"=> "5219",
     "臺北市"=> "5221",
@@ -632,11 +632,11 @@ function _civicrm_twaddress_get_province_id($name = NULL) {
     "金門縣"=> "5226",
     "雲林縣"=> "4863",
     "高雄市"=> "5220",
-  );
+  ];
 
   // If name is provided, return the ID for that specific county/city
   if ($name !== NULL) {
-    return isset($arr[$name]) ? $arr[$name] : NULL;
+    return $arr[$name] ?? NULL;
   }
 
   // If no name is provided, return the entire mapping table
@@ -651,15 +651,15 @@ function _civicrm_twaddress_reorder($options) {
   $taiwan_province_ids = array_values($mapping_array);
 
   if (empty($options)) {
-    return array();
+    return [];
   }
 
   if ($lang === 'zh-hant') {
     // zh-hant environment: Use original sorting logic
     $order = civicrm_twaddress_order();
-    $neworder = array();
+    $neworder = [];
 
-    $duplicatedOption = array();
+    $duplicatedOption = [];
     foreach ($options as $value) {
       if (!empty($value['text'])) {
         $duplicatedOption[$value['text']] = $value;
@@ -681,7 +681,7 @@ function _civicrm_twaddress_reorder($options) {
   }
   else {
     // For non zh-hant environments: Only keep Taiwan county/city options
-    $filtered_options = array();
+    $filtered_options = [];
 
     // Keep the '-- select --' option
     foreach ($options as $option) {

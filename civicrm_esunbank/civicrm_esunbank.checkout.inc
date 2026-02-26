@@ -12,7 +12,7 @@
  */
 function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor, &$form){
   // First, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array('created' => time());
+  $record = ['created' => time()];
   \Drupal::database()->merge('civicrm_contribution_esunbank')
     ->keys(['cid' => $vars['contributionID']])
     ->fields($record)
@@ -50,15 +50,15 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   $p['order_date'] = '';
 
   // Generate invoice in web and pdf
-  $tpl = array();
+  $tpl = [];
   $tpl['invoice_link'] = esunbank_api_link($p);
   $tpl['invoice_html'] = esunbank_api($p, 'html_inline_css');
   // prevent pdf error, #18170
   $tpl['invoice_html'] = str_replace('window.print();', '', $tpl['invoice_html']);
 
   // now process contribution to save some default value
-  $contrib_params = array( 'id' => $vars['contributionID'] );
-  $contrib_values = $contrib_ids = array();
+  $contrib_params = [ 'id' => $vars['contributionID'] ];
+  $contrib_values = $contrib_ids = [];
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   $contrib_values['trxn_id'] = $p['order_number'] ? $p['order_number'] : $p['serial']; // we use payment serial to be trxn_id
   $contrib_values['is_pay_later'] = 1;
@@ -78,8 +78,8 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   if(empty($_SESSION['CiviCRM'][$form_key]['params']['sent'])){
     $invoice_link = '<a href="'.$tpl['invoice_link'].'" target="_blank">付款單</a>';
     $invoice_link_text = <<<EOT
-<div>如果您沒有看到繳費單視窗，點此<strong>開啟{$invoice_link}</strong></div>
-EOT;
+    <div>如果您沒有看到繳費單視窗，點此<strong>開啟{$invoice_link}</strong></div>
+    EOT;
     $values['thankyou_text'] .= $invoice_link_text;
 
     if(!empty($vars['email-5'])){
@@ -92,9 +92,9 @@ EOT;
     // prepare template parameter
 
     // default from_email
-    $from_emails = array();
+    $from_emails = [];
     $from_default = '';
-    CRM_Core_OptionValue::getValues(array('name' => 'from_email_address'), $from_emails);
+    CRM_Core_OptionValue::getValues(['name' => 'from_email_address'], $from_emails);
     foreach($from_emails as $id => $v){
       if($v['is_default'] == 1){
         $from_default = $v['label'];
@@ -121,7 +121,7 @@ EOT;
       }
     }
 
-    $send_params = array(
+    $send_params = [
       'from' => $from ? $from : $from_default,
       'toName' => $p['user'],
       'toEmail' => $email,
@@ -130,7 +130,7 @@ EOT;
       'contactId' => $vars['contactID'],
       'tplParams' => $tpl,
       'PDFFilename' => 'invoice.pdf',
-    );
+    ];
     CRM_Core_BAO_MessageTemplates::sendTemplate($send_params);
     // prevent re-send invoice
     $_SESSION['CiviCRM'][$form_key]['params']['sent'] = true;;

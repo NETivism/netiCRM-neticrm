@@ -4,7 +4,7 @@ const CIVICRM_JVALIDATE_LIBRARY = 'civicrm-js-jvalidate';
 
 function civicrm_jvalidate_page_attachments(array &$page) {
   $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
-  $config = array('jvalidate' => array(
+  $config = ['jvalidate' => [
     'ext'=> t('Phone Ext.'),
     'extprompt' => t('Enter phone number Ext.'),
     'notw' => t('other format?'),
@@ -14,7 +14,7 @@ function civicrm_jvalidate_page_attachments(array &$page) {
     'phoneMask' => '',
     'mobileMask' => '',
     'phoneValidator' => '',
-  ));
+  ]];
   $phone_mask = \Drupal::config('civicrm_jvalidate.settings')->get('phone_mask');
   $mobile_mask = \Drupal::config('civicrm_jvalidate.settings')->get('mobile_mask');
   $phone_validator = \Drupal::config('civicrm_jvalidate.settings')->get('phone_validator');

@@ -11,7 +11,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * 
  * @return string
  */
-function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
+function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   civicrm_initialize();
   global $tsLocale;
 

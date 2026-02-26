@@ -165,9 +165,9 @@ class NeticrmCommands extends DrushCommands {
     civicrm_initialize();
     if ($membership_type_id && is_numeric($membership_type_id)) {
       $sql = "SELECT * FROM civicrm_membership WHERE membership_type_id = %1";
-      $dao = \CRM_Core_DAO::executeQuery($sql, array(
-        1 => array($membership_type_id, 'Integer'),
-      ));
+      $dao = \CRM_Core_DAO::executeQuery($sql, [
+        1 => [$membership_type_id, 'Integer'],
+      ]);
     }
     else {
       $sql = "SELECT * FROM civicrm_membership WHERE 1";
@@ -175,18 +175,18 @@ class NeticrmCommands extends DrushCommands {
     }
     while($dao->fetch()) {
       $calcDates = \CRM_Member_BAO_MembershipType::getDatesForMembershipType($dao->membership_type_id, $dao->join_date, $dao->start_date, $dao->end_date);
-      $params = array();
+      $params = [];
       if (!empty($calcDates['reminder_date'])) {
         $params['reminder_date'] = $calcDates['reminder_date'];
-        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = %2 WHERE id = %1", array(
-          1 => array($dao->id, 'Integer'),
-          2 => array($calcDates['reminder_date'], 'Date'),
-        ));
+        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = %2 WHERE id = %1", [
+          1 => [$dao->id, 'Integer'],
+          2 => [$calcDates['reminder_date'], 'Date'],
+        ]);
       }
       elseif ($dao->reminder_date) {
-        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = NULL WHERE id = %1", array(
-          1 => array($dao->id, 'Integer'),
-        ));
+        \CRM_Core_DAO::executeQuery("UPDATE civicrm_membership SET reminder_date = NULL WHERE id = %1", [
+          1 => [$dao->id, 'Integer'],
+        ]);
       }
     }
     if ($membership_type_id) {
@@ -302,7 +302,7 @@ class NeticrmCommands extends DrushCommands {
    */
   function config_set($name, $value, $options = ['new' => FALSE, 'force' => FALSE]) {
     civicrm_initialize();
-    $params = array();
+    $params = [];
     $params[$name] = $value;
     $new = $options['new'];
     $force = $options['force'];

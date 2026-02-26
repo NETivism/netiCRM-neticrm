@@ -4,114 +4,114 @@
  * Implementation of hook_schema()
  */
 function invpay2go_schema(){
-  $schema['invpay2go'] = array(
-    'fields' => array(
-      'pid' => array(
+  $schema['invpay2go'] = [
+    'fields' => [
+      'pid' => [
         'description' => 'Pay2go hash info id',
         'type' => 'serial',
         'not null' => TRUE,
-      ),
-      'title' => array(
+      ],
+      'title' => [
         'description' => 'Title',
         'type' => 'varchar',
         'length' => '64',
         'not null' => FALSE,
-      ),
-      'serial' => array(
+      ],
+      'serial' => [
         'description' => 'Serial number',
         'type' => 'varchar',
         'length' => '20',
         'not null' => FALSE,
-      ),
-      'merchantid' => array(
+      ],
+      'merchantid' => [
         'description' => 'Merchant Id',
         'type' => 'varchar',
         'length' => '20',
         'not null' => FALSE,
-      ),
-      'merchantid_test' => array(
+      ],
+      'merchantid_test' => [
         'description' => 'Merchant Id Test',
         'type' => 'varchar',
         'length' => '20',
         'not null' => FALSE,
-      ),
-      'hashkey' => array(
+      ],
+      'hashkey' => [
         'description' => 'hash key and api info',
         'type' => 'varchar',
         'length' => '64',
         'not null' => FALSE,
-      ),
-      'hashiv' => array(
+      ],
+      'hashiv' => [
         'description' => 'hash iv and api info',
         'type' => 'varchar',
         'length' => '64',
         'not null' => FALSE,
-      ),
-      'hashkey_test' => array(
+      ],
+      'hashkey_test' => [
         'description' => 'hash key and api info',
         'type' => 'varchar',
         'length' => '64',
         'not null' => FALSE,
-      ),
-      'hashiv_test' => array(
+      ],
+      'hashiv_test' => [
         'description' => 'hash iv and api info',
         'type' => 'varchar',
         'length' => '64',
         'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('pid'),
-    'indexes' => array('merchantid' => array('merchantid'), 'merchantid_test' => array('merchantid')),
-  );
-  $schema['invpay2go_invoice'] = array(
-    'fields' => array(
-      'order_number' => array(
+      ],
+    ],
+    'primary key' => ['pid'],
+    'indexes' => ['merchantid' => ['merchantid'], 'merchantid_test' => ['merchantid']],
+  ];
+  $schema['invpay2go_invoice'] = [
+    'fields' => [
+      'order_number' => [
         'description' => 'order_number',
         'type' => 'varchar',
         'length' => '32',
         'not null' => TRUE,
-      ),
-      'pid' => array(
+      ],
+      'pid' => [
         'type' => 'int',
         'length' => '11',
         'not null' => TRUE,
-      ),
-      'is_test' => array(
+      ],
+      'is_test' => [
         'type' => 'int',
         'length' => '11',
         'default' => 0,
         'not null' => TRUE,
-      ),
-      'invoice_number' => array(
+      ],
+      'invoice_number' => [
         'description' => 'Invoice number',
         'type' => 'varchar',
         'length' => '20',
         'not null' => FALSE,
-      ),
-      'issue_response' => array(
+      ],
+      'issue_response' => [
         'description' => 'Response object of issue',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'search_response' => array(
+      ],
+      'search_response' => [
         'description' => 'Response object of search',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'invalid_response' => array(
+      ],
+      'invalid_response' => [
         'description' => 'Response object of allowance',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'allowance_response' => array(
+      ],
+      'allowance_response' => [
         'description' => 'Response object of allowance',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('order_number'),
-    'unique keys' => array('invoice_number' => array('invoice_number')),
-  );
+      ],
+    ],
+    'primary key' => ['order_number'],
+    'unique keys' => ['invoice_number' => ['invoice_number']],
+  ];
   return $schema;
 }
 

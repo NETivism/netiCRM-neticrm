@@ -126,7 +126,7 @@ class CSSToInlineStyles
 		$selector = (string) $selector;
 
 		// the CSS selector
-		$cssSelector = array(	'/(\w)\s+(\w)/',				// E F				Matches any F element that is a descendant of an E element
+		$cssSelector = [	'/(\w)\s+(\w)/',				// E F				Matches any F element that is a descendant of an E element
 								'/(\w)\s*>\s*(\w)/',			// E > F			Matches any F element that is a child of an element E
 								'/(\w):first-child/',			// E:first-child	Matches element E when E is the first child of its parent
 								'/(\w)\s*\+\s*(\w)/',			// E + F			Matches any F element immediately preceded by an element
@@ -136,10 +136,10 @@ class CSSToInlineStyles
 								'/\.([\w\-]+)/',				// .warning			HTML only. The same as *[class~="warning"]
 								'/(\w+)+\#([\w\-]+)/',			// E#myid			Matches any E element with id-attribute equal to "myid"
 								'/\#([\w\-]+)/'					// #myid			Matches any element with id-attribute equal to "myid"
-							);
+							];
 
 		// the xPath-equivalent
-		$xPathQuery = array(	'\1//\2',																		// E F				Matches any F element that is a descendant of an E element
+		$xPathQuery = [	'\1//\2',																		// E F				Matches any F element that is a descendant of an E element
 								'\1/\2',																		// E > F			Matches any F element that is a child of an element E
 								'*[1]/self::\1',																// E:first-child	Matches element E when E is the first child of its parent
 								'\1/following-sibling::*[1]/self::\2',											// E + F			Matches any F element immediately preceded by an element
@@ -149,7 +149,7 @@ class CSSToInlineStyles
 								'*[ contains( concat( " ", @class, " " ), concat( " ", "\1", " " ) ) ]',		// .warning			HTML only. The same as *[class~="warning"]
 								'\1[ @id = "\2" ]',																// E#myid			Matches any E element with id-attribute equal to "myid"
 								'*[ @id = "\1" ]'																// #myid			Matches any element with id-attribute equal to "myid"
-							);
+							];
 
 		// return
 		return (string) '//' . preg_replace($cssSelector, $xPathQuery, $selector);
@@ -165,7 +165,7 @@ class CSSToInlineStyles
 	private function calculateCSSSpecifity($selector)
 	{
 		// cleanup selector
-		$selector = str_replace(array('>', '+'), array(' > ', ' + '), $selector);
+		$selector = str_replace(['>', '+'], [' > ', ' + '], $selector);
 
 		// init var
 		$specifity = 0;
@@ -228,7 +228,7 @@ class CSSToInlineStyles
 		if($this->useInlineStylesBlock)
 		{
 			// init var
-			$matches = array();
+			$matches = [];
 
 			// match the style blocks
 			preg_match_all('|<style(.*)>(.*)</style>|isU', $this->html, $matches);
@@ -292,7 +292,7 @@ class CSSToInlineStyles
 					}
 
 					// init var
-					$properties = array();
+					$properties = [];
 
 					// get current styles
 					$stylesAttribute = $element->attributes->getNamedItem('style');
@@ -327,7 +327,7 @@ class CSSToInlineStyles
 					foreach($rule['properties'] as $key => $value) $properties[$key] = $value;
 
 					// build string
-					$propertyChunks = array();
+					$propertyChunks = [];
 
 					// build chunks
 					foreach($properties as $key => $values)
@@ -363,7 +363,7 @@ class CSSToInlineStyles
 
 				if($originalStyle != '')
 				{
-					$originalProperties = array();
+					$originalProperties = [];
 					$originalStyles = (array) explode(';', $originalStyle);
 
 					foreach($originalStyles as $property)
@@ -383,7 +383,7 @@ class CSSToInlineStyles
 
 					// get current styles
 					$stylesAttribute = $element->attributes->getNamedItem('style');
-					$properties = array();
+					$properties = [];
 
 					// any styles defined before?
 					if($stylesAttribute !== null)
@@ -415,7 +415,7 @@ class CSSToInlineStyles
 					foreach($originalProperties as $key => $value) $properties[$key] = $value;
 
 					// build string
-					$propertyChunks = array();
+					$propertyChunks = [];
 
 					// build chunks
 					foreach($properties as $key => $values)
@@ -498,7 +498,7 @@ class CSSToInlineStyles
 		$css = (string) $this->css;
 
 		// remove newlines
-		$css = str_replace(array("\r", "\n"), '', $css);
+		$css = str_replace(["\r", "\n"], '', $css);
 
 		// replace double quotes by single quotes
 		$css = str_replace('"', '\'', $css);
@@ -540,7 +540,7 @@ class CSSToInlineStyles
 				$selector = trim($selector);
 
 				// build an array for each selector
-				$ruleSet = array();
+				$ruleSet = [];
 
 				// store selector
 				$ruleSet['selector'] = $selector;
@@ -560,7 +560,7 @@ class CSSToInlineStyles
 		}
 
 		// sort based on specifity
-		if(!empty($this->cssRules)) usort($this->cssRules, array('CSSToInlineStyles', 'sortOnSpecifity'));
+		if(!empty($this->cssRules)) usort($this->cssRules, ['CSSToInlineStyles', 'sortOnSpecifity']);
 	}
 
 
@@ -576,7 +576,7 @@ class CSSToInlineStyles
 		$properties = (array) explode(';', $propertyString);
 
 		// init var
-		$pairs = array();
+		$pairs = [];
 
 		// loop properties
 		foreach($properties as $property)

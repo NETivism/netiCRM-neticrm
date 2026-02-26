@@ -5,10 +5,10 @@ function _neticrm_update_update_7288() {
   $dao = CRM_Core_DAO::executeQuery($sql);
   while($dao->fetch()) {
     $sql = "UPDATE civicrm_contribution_recur SET processor_id = %1 WHERE id = %2";
-    CRM_Core_DAO::executeQuery($sql, array(
-      1 => array($dao->payment_processor_id, 'Integer'),
-      2 => array($dao->id, 'Integer'),
-    ));
+    CRM_Core_DAO::executeQuery($sql, [
+      1 => [$dao->payment_processor_id, 'Integer'],
+      2 => [$dao->id, 'Integer'],
+    ]);
   }
 
   // update field
@@ -24,10 +24,10 @@ function _neticrm_update_update_7288() {
     $dao = CRM_Core_DAO::executeQuery($sql);
     while($dao->fetch()) {
       $sql = "UPDATE civicrm_contribution_recur SET processor_id = NULL, external_id = %1 WHERE id = %2";
-      CRM_Core_DAO::executeQuery($sql, array(
-        1 => array($dao->processor_id, 'String'),
-        2 => array($dao->id, 'Integer'),
-      ));
+      CRM_Core_DAO::executeQuery($sql, [
+        1 => [$dao->processor_id, 'String'],
+        2 => [$dao->id, 'Integer'],
+      ]);
     }
 
     $sql = "ALTER TABLE `civicrm_contribution_recur` CHANGE `processor_id` `processor_id` INT UNSIGNED NULL DEFAULT NULL COMMENT 'FK to payment processor'";

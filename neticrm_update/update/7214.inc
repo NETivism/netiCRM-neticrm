@@ -14,9 +14,9 @@ function _neticrm_update_update_7214(){
 
     $types = CRM_Core_PseudoConstant::websiteType();
     $website_type_id = key($types);
-    $params = array(
-      1 => array($website_type_id, 'Positive'),
-    );
+    $params = [
+      1 => [$website_type_id, 'Positive'],
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET website_type_id = %1 WHERE field_name = 'url'", $params);
   }
 

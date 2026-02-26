@@ -4,14 +4,14 @@ function _neticrm_update_update_7249() {
 
   // Check if user page has profile contains field "first_name", "last_name"
   $sql = "SELECT f.id FROM civicrm_uf_field f INNER JOIN civicrm_uf_join j ON f.uf_group_id = j.uf_group_id WHERE f.field_name = %1 AND f.is_active = 1 AND j.module = %2;";
-  $fields = array('first_name', 'last_name');
-  $modules = array('User Registration', 'User Account');
+  $fields = ['first_name', 'last_name'];
+  $modules = ['User Registration', 'User Account'];
   foreach ($fields as $field_name) {
     foreach ($modules as $module) {
-      $params = array(
-        1 => array($field_name, 'String'),
-        2 => array($module, 'String'),
-      );
+      $params = [
+        1 => [$field_name, 'String'],
+        2 => [$module, 'String'],
+      ];
       $fid = CRM_Core_DAO::singleValueQuery($sql, $params);
       if(empty($fid)){
         $need_execute = TRUE;
@@ -60,12 +60,12 @@ function _neticrm_update_update_7249() {
 
 function _update_7249_update_uf_field_is_required($uf_field_id){
   $sql = "UPDATE civicrm_uf_field SET is_required = 1 WHERE id = %1";
-  $params = array(1 => array($uf_field_id, 'Integer'));
+  $params = [1 => [$uf_field_id, 'Integer']];
   CRM_Core_DAO::executeQuery($sql, $params);
 }
 
 function _update_7249_create_uf_group($name, $title){
-  $params = array(
+  $params = [
     'name' => $name,
     'title' => $title,
     'add_captcha' => 0,
@@ -87,7 +87,7 @@ function _update_7249_create_uf_group($name, $title){
     'add_contact_to_group' => 'null',
     'version' => 3,
     'debug' => 1,
-  );
+  ];
   $uf_group = civicrm_api('uf_group', 'create', $params);
   if($uf_group['is_error']){
     CRM_Core_Error::debug_log_message("Create uf group failed.", true);
@@ -99,7 +99,7 @@ function _update_7249_create_uf_group($name, $title){
 
 function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 1){
   $last_weight = CRM_Core_DAO::singleValueQuery("SELECT weight FROM civicrm_uf_field WHERE uf_group_id = $uf_group_id ORDER BY weight DESC");
-  $params = array(
+  $params = [
     'label' => $title,
     'field_type' => $field_type,
     'field_name' => $field_name,
@@ -110,7 +110,7 @@ function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_grou
     'version' => 3,
     'weight' => !empty($last_weight) ? $last_weight + 1 : 1,
     'uf_group_id' => $uf_group_id,
-  );
+  ];
 
   $uf_field = civicrm_api('uf_field', 'create', $params);
   if($uf_field['is_error']){
@@ -123,19 +123,19 @@ function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_grou
 
 function _update_7249_check_add_user_custom_profile($uf_group_id, $module){
   $sql = "SELECT id FROM civicrm_uf_join WHERE uf_group_id = %1 AND module = %2;";
-  $params = array(
-    1 => array($uf_group_id, 'Integer'),
-    2 => array($module, 'String'),
-  );
+  $params = [
+    1 => [$uf_group_id, 'Integer'],
+    2 => [$module, 'String'],
+  ];
   if(!CRM_Core_DAO::singleValueQuery($sql, $params)){
-    $params = array(
+    $params = [
       'module' => $module,
       'uf_group_id' => $uf_group_id,
       'weight' => 1,
       'is_active' => 1,
       'version' => 3,
       'sequential' => 1,
-    );
+    ];
     $uf_join = civicrm_api('uf_join', 'create', $params);
     if($uf_join['is_error']){
       CRM_Core_Error::debug_log_message("Create uf join failed.", true);

@@ -21,7 +21,7 @@ function civicrm_esunbank_ipn($post = NULL, $silent = NULL){
       $parsed_data = civicrm_esunbank_parse_response($data);
       $seq = \Drupal::state()->get('civicrm_esunbank.sequence', '');
       list($last_date, $last_sequence) = explode(':' , $seq);
-      $return = array();
+      $return = [];
       foreach($parsed_data as $response){
         $sequence = $response['sequence'];
         $payment_date = date('Ymd', strtotime($response['payment_datetime']));
@@ -31,7 +31,7 @@ function civicrm_esunbank_ipn($post = NULL, $silent = NULL){
         }
         // try to find out response component
         if(strlen($response['serial'])){
-          $query = CRM_Core_DAO::executeQuery("SELECT c.*, p.participant_id FROM civicrm_contribution c LEFT JOIN civicrm_participant_payment p ON p.contribution_id = c.id WHERE c.trxn_id = %1 AND c.created_date > '%2' AND c.contribution_status_id = 2", array(1 => array($response['serial'], 'String'), 2 => array(date('Y-m-d 00:00:00', strtotime('-1 year')), 'Timestamp')) );
+          $query = CRM_Core_DAO::executeQuery("SELECT c.*, p.participant_id FROM civicrm_contribution c LEFT JOIN civicrm_participant_payment p ON p.contribution_id = c.id WHERE c.trxn_id = %1 AND c.created_date > '%2' AND c.contribution_status_id = 2", [1 => [$response['serial'], 'String'], 2 => [date('Y-m-d 00:00:00', strtotime('-1 year')), 'Timestamp']] );
           $query->fetch();
           if ($query->id){
             \Drupal::database()->merge('civicrm_contribution_esunbank')
@@ -70,7 +70,7 @@ function civicrm_esunbank_ipn($post = NULL, $silent = NULL){
 }
 
 function civicrm_esunbank_parse_response($data){
-  $r = array();
+  $r = [];
   if (substr($data, 0,3) == pack("CCC",0xef,0xbb,0xbf)) {
     $data = substr($data, 3);
   }
@@ -83,14 +83,14 @@ function civicrm_esunbank_parse_response($data){
       CRM_Core_Error::debug_log_message('Esunbank payment error, wrong format when parsing: '.$l);
       continue;
     }
-    $ary = array(
+    $ary = [
       'process_date' => $d[0],
       'instrument' => $d[1],
       'sequence' => $d[2],
       'serial' => $d[3],
       'amount' => $d[4],
       'payment_datetime' => date("Y-m-d H:i:s", strtotime($d[5])),
-    );
+    ];
     if(!empty($d[6])){
       $ary['data'] = $d[6];
     }
@@ -107,7 +107,7 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
 
   function main(  $component, $response, $contribution){
     // get the contribution and contact ids from the GET params
-    $objects = $ids = $input = array();
+    $objects = $ids = $input = [];
     $input = $response;
     $input['component'] = $component;
 
@@ -179,20 +179,20 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
     $note = date("Y/m/d H:i:s"). ts("Transaction record").": \n".$note."\n===============================\n";
     $note_exists = CRM_Core_BAO_Note::getNote( $contribution->id, 'civicrm_contribution' );
     if(count($note_exists)){
-      $note_id = array( 'id' => reset(array_keys($note_exists)) );
+      $note_id = [ 'id' => reset(array_keys($note_exists)) ];
       $note = $note . reset($note_exists);
     }
     else{
       $note_id = NULL;
     }
 
-    $noteParams = array(
+    $noteParams = [
       'entity_table'  => 'civicrm_contribution',
       'note'          => $note,
       'entity_id'     => $contribution->id,
       'contact_id'    => $contribution->contact_id,
       'modified_date' => date('Ymd')
-    );
+    ];
     CRM_Core_BAO_Note::add( $noteParams, $note_id );
   }
 }

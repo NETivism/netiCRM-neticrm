@@ -22,7 +22,7 @@ class Pay2goInvoice {
   public $apiType;
 
   // api type => version
-  protected $apiTypes = array(
+  protected $apiTypes = [
     'invoice_issue' => '1.4',
     'invoice_touch_issue' => '1.0',
     'invoice_search' => '1.1',
@@ -30,11 +30,11 @@ class Pay2goInvoice {
     'invoice_invalid' => 0,
     'allowance_issue' => 0,
     'allowance_touch_issue' => 0,
-  );
+  ];
 
-  protected $apiVersions = array(
+  protected $apiVersions = [
   
-  );
+  ];
 
   /**
    * Initialize a connection
@@ -57,10 +57,10 @@ class Pay2goInvoice {
       throw new Exception('Required parameters missing: merchantId, key, iv, isTest');
     }
     if ($isTest) {
-      $obj = \Drupal::database()->query("SELECT pid, hashkey_test as hashkey, hashiv_test as hashiv FROM {invpay2go} WHERE merchantid_test = :mid", array(':mid' => $merchantId))->fetchObject();
+      $obj = \Drupal::database()->query("SELECT pid, hashkey_test as hashkey, hashiv_test as hashiv FROM {invpay2go} WHERE merchantid_test = :mid", [':mid' => $merchantId])->fetchObject();
     }
     else {
-      $obj = \Drupal::database()->query("SELECT pid, hashkey, hashiv FROM {invpay2go} WHERE merchantid = :mid", array(':mid' => $merchantId))->fetchObject();
+      $obj = \Drupal::database()->query("SELECT pid, hashkey, hashiv FROM {invpay2go} WHERE merchantid = :mid", [':mid' => $merchantId])->fetchObject();
     }
     if (empty($obj->pid)) {
       throw new Exception('Specify merchant id  not found in db.');
@@ -91,7 +91,7 @@ class Pay2goInvoice {
    */
   public function request($params, $verifyResponse = TRUE) {
     $allowedFields = self::fields($this->apiType);
-    $postData = array();
+    $postData = [];
     foreach ($params as $key => $value) {
       if (!in_array($key, $allowedFields)) {
         continue;
@@ -119,19 +119,19 @@ class Pay2goInvoice {
     $postStr = http_build_query($postData, '', '&');
     $encryptedPostData = self::encrypt($postStr, $this->hashKey, $this->hashIv);
 
-    $transactionData = array(
+    $transactionData = [
       'MerchantID_' => $this->merchantId,
       'PostData_' => $encryptedPostData,
-    );
+    ];
     $transactionDataStr = http_build_query($transactionData, '', '&');
     $resp = self::curlPost($this->apiUrl($this->apiType), $transactionDataStr);
     $data = self::parseResponse($this->apiType, $resp);
 
-    $record = array(
+    $record = [
       'order_number' => $this->orderNumber,
       'pid' => $this->pid,
       'is_test' => $this->isTest,
-    );
+    ];
     if (isset($data->Result->InvoiceNumber)) {
       $record['invoice_number'] = $data->Result->InvoiceNumber;
     }
@@ -228,7 +228,7 @@ class Pay2goInvoice {
    * Helper function for curl post data
    */
   static public function curlPost($url, $postData){
-    $curlOptions = array(
+    $curlOptions = [
       CURLOPT_URL => $url,
       CURLOPT_HEADER => false,
       CURLOPT_RETURNTRANSFER => true,
@@ -238,7 +238,7 @@ class Pay2goInvoice {
       CURLOPT_SSL_VERIFYHOST => FALSE,
       CURLOPT_POST => '1',
       CURLOPT_POSTFIELDS => $postData,
-    );
+    ];
     $ch = curl_init();
     curl_setopt_array($ch, $curlOptions);
     $result = curl_exec($ch);
@@ -246,17 +246,17 @@ class Pay2goInvoice {
     if ($result === FALSE) {
       $errno = curl_errno($ch);
       $err = curl_errno($ch);
-      $curlError = array($errno => $err);
+      $curlError = [$errno => $err];
     }
     else{
-      $curlError = array();
+      $curlError = [];
     }
     curl_close($ch);
-    return array(
+    return [
       'httpStatus' => $httpStatus,
       'curlError' => $curlError,
       'response' => $result
-    );
+    ];
   }
 
   /**
@@ -264,13 +264,13 @@ class Pay2goInvoice {
    */
   static public function getRecord($order_number = null, $invoice_number = null){
     if(!empty($order_number)) {
-      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE order_number = :or", array(':or' => $order_number))->fetchObject();
+      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE order_number = :or", [':or' => $order_number])->fetchObject();
     }
     elseif(!empty($invoice_number)) {
-      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE invoice_number = :in", array(':in' => $invoice_number))->fetchObject();
+      $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE invoice_number = :in", [':in' => $invoice_number])->fetchObject();
     }
     if (!empty($record->order_number)) {
-      $return = array();
+      $return = [];
       foreach($record as $key => $r){
         if (strstr($key, 'response')) {
           $json = json_decode($r);
@@ -295,7 +295,7 @@ class Pay2goInvoice {
    * Helper function to get full array
    */
   static public function getInfo($object){
-    $info = array();
+    $info = [];
     if (!empty($object['issue_response']->Result)) {
       $info = (array) $object['issue_response']->Result;
     }
@@ -304,7 +304,7 @@ class Pay2goInvoice {
       $result['ItemDetail'] = json_decode($result['ItemDetail']);
       $info = array_merge($info, $result);
     }
-    $merchant = invpay2go_merchant_load($object['pid'], array('title', 'serial'));
+    $merchant = invpay2go_merchant_load($object['pid'], ['title', 'serial']);
     $info = array_merge($info, $merchant);
     return $info;
   }
@@ -324,7 +324,7 @@ class Pay2goInvoice {
    */
   static public function writeRecord($orderNumber = null, $record){
     if(!empty($orderNumber)) {
-      $exists = \Drupal::database()->query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", array(':order_number' => $orderNumber))->fetchObject();
+      $exists = \Drupal::database()->query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", [':order_number' => $orderNumber])->fetchObject();
     }
     \Drupal::database()->merge('invpay2go_invoice')
       ->keys(['order_number' => $exists->order_number])
@@ -442,7 +442,7 @@ class Pay2goInvoice {
    * API query fields
    */
   static public function fields($type, $isResponse = FALSE) {
-    $fields = array();
+    $fields = [];
     if ($isResponse) {
       switch($type){
         case 'invoice_issue':

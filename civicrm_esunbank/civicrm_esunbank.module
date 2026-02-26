@@ -4,16 +4,16 @@
  * Implementation of hook_menu()
  */
 function civicrm_esunbank_menu(){
-  return array(
-    'payment-esunbank/ipn' => array(
+  return [
+    'payment-esunbank/ipn' => [
       'access callback' => true,
       'page callback' => 'civicrm_esunbank_ipn',
-      'page arguments' => array(2),
+      'page arguments' => [2],
       'type' => MENU_CALLBACK,
       'weight' => 0,
       'file' => 'civicrm_esunbank.ipn.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -57,11 +57,11 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
     }
 
     if(count($ids)){
-      $processor = $pids = array();
+      $processor = $pids = [];
       $cfg = \Drupal::config('esunbank.admin_settings');
       $expired_day = !empty($cfg->get('expiry_days')) ? $cfg->get('expiry_days') : ESUNBANK_DEFUALT_EXPIRY_DAYS;
       $least_day = date('Y-m-d H:i:s', strtotime('-'.$expired_day.' days'));
-      $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", array(1 => array($instrument_id, 'Integer')));
+      $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", [1 => [$instrument_id, 'Integer']]);
       while($query->fetch()){
         if(empty($processor[$query->pid]) && !empty($query->pid)){
           $processor[$query->pid][0] = CRM_Core_BAO_PaymentProcessor::getPayment($query->pid, 'live');
@@ -70,7 +70,7 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
         $k = array_search($query->id, $ids);
         if(!empty($rows[$k])){
           $pp =& $processor[$query->pid][$rows[$k]['is_test']];
-          $url = array(
+          $url = [
             'code' => $pp['user_name'],
             'number' => $query->id,
             'length' => $pp['password'],
@@ -80,7 +80,7 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
             'type' => $pp['signature'],
             'user' => $rows[$k]['sort_name'],
             'item' => $rows[$k]['contribution_source'],
-          );
+          ];
           $link = esunbank_api_link($url);
           $link = '<a href="'.$link.'" class="action-item" target="_blank">帳單</a>';
           $rows[$k]['action'] = str_replace('</span>', $link.'</span>', $rows[$k]['action']);

@@ -65,18 +65,18 @@ class CRMCharsetConverter {
    *
    * @see DatabaseConnection::query()
    */
-  public function query($query, array $args = array()) {
+  public function query($query, array $args = []) {
     $i = 0;
-    $params = array();
+    $params = [];
     foreach ($args as $str => $value) {
       $i++;
       $query = str_replace($str, '%'.$i , $query);
       if($str == ':comment'){
-        $params[$i] = array($value, 'String');
+        $params[$i] = [$value, 'String'];
       }elseif($str == ':default'){
         $params[$i] = $value;
       }else{
-        $params[$i] = array($value, 'Text');
+        $params[$i] = [$value, 'Text'];
       }
     }
     $dao = CRM_Core_DAO::executeQuery($query, $params);
@@ -120,10 +120,10 @@ class CRMCharsetConverter {
     CRM_Core_Error::debug_log_message('Converting database: ' . $database_name, 1);
     $sql = "ALTER DATABASE `" . $database_name . "` CHARACTER SET = :charset COLLATE = :collation;";
 
-    return $this->query($sql, array(
+    return $this->query($sql, [
       ':charset' => $charset ? $charset : $this->charset,
       ':collation' => $collation ? $collation : $this->collation,
-    ));
+    ]);
   }
 
   /**
@@ -172,10 +172,10 @@ class CRMCharsetConverter {
     $this->query("ALTER TABLE " . $table_name . " ROW_FORMAT=DYNAMIC ENGINE=INNODB");
     $sql = "ALTER TABLE " . $table_name . " CHARACTER SET = :charset COLLATE = :collation";
     CRM_Core_Error::debug_log_message('Converting table: ' . $table_name, 1);
-    $result = $this->query($sql, array(
+    $result = $this->query($sql, [
       ':charset' => $charset ? $charset : $this->charset,
       ':collation' => $collation ? $collation : $this->collation,
-    ));
+    ]);
     $this->convertTableFields($table_name, $charset, $collation);
     $this->query("OPTIMIZE TABLE " . $table_name);
     return $result;
@@ -246,18 +246,18 @@ class CRMCharsetConverter {
               $row->Extra . " " .
               "COMMENT :comment";
 
-      $params = array(
+      $params = [
         ':charset' => $charset,
         ':collation' => $collation,
         ':comment' => $row->Comment,
-      );
+      ];
       if (strstr($default, ':default')) {
         if($row->Default == "CURRENT_TIMESTAMP" ){
-          $params[':default'] = array("CURRENT_TIMESTAMP", "Text");
+          $params[':default'] = ["CURRENT_TIMESTAMP", "Text"];
         }elseif(CRM_Utils_Rule::numeric($row->Default)){
-          $params[':default'] = array($row->Default, "Int");
+          $params[':default'] = [$row->Default, "Int"];
         }else{
-          $params[':default'] = array($row->Default, "String");
+          $params[':default'] = [$row->Default, "String"];
         }
         
       }

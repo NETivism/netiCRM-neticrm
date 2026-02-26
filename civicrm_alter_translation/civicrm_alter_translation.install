@@ -10,9 +10,9 @@ function civicrm_alter_translation_install() {
  */
 function civicrm_alter_translation_uninstall() {
   civicrm_initialize();
-  $params = array(
+  $params = [
     'customTranslateFunction' => '',
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 
   // delete all translations in context=civicrm alter translation
