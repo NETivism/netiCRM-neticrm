@@ -48,7 +48,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
-  function singleSettingForm($pid, $default){
+  public function singleSettingForm($pid, $default){
     $title = !empty($default) ? t('Pay2go Settings'). ': '.$pid : t('New Pay2go Settings');
     $form = [];
     $form = [

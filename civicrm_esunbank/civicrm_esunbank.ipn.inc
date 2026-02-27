@@ -100,12 +100,12 @@ function civicrm_esunbank_parse_response($data){
 }
 
 class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
-  static $payment_processor= null;
-  function __construct( ) {
+  public static $payment_processor= null;
+  public function __construct( ) {
     parent::__construct( );
   }
 
-  function main(  $component, $response, $contribution){
+  public function main(  $component, $response, $contribution){
     // get the contribution and contact ids from the GET params
     $objects = $ids = $input = [];
     $input = $response;
@@ -174,7 +174,7 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
     return false;
   }
 
-  function addNote($note, &$contribution){
+  public function addNote($note, &$contribution){
     require_once 'CRM/Core/BAO/Note.php';
     $note = date("Y/m/d H:i:s"). ts("Transaction record").": \n".$note."\n===============================\n";
     $note_exists = CRM_Core_BAO_Note::getNote( $contribution->id, 'civicrm_contribution' );

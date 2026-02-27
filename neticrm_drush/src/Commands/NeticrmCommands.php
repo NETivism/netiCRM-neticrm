@@ -300,7 +300,7 @@ class NeticrmCommands extends DrushCommands {
    * @usage drush ncset <name> <value> --force
    *   Add new config or update exists config to given value.
    */
-  function config_set($name, $value, $options = ['new' => FALSE, 'force' => FALSE]) {
+  public function config_set($name, $value, $options = ['new' => FALSE, 'force' => FALSE]) {
     civicrm_initialize();
     $params = [];
     $params[$name] = $value;

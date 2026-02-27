@@ -15,10 +15,10 @@ final class EsunbankBarcode39 {
     /**
      * Code 39 format 2 specifications
      */
-    const f2B = "11";
-    const f2W = "00";
-    const f2b = "10";
-    const f2w = "01";
+    public const f2B = "11";
+    public const f2W = "00";
+    public const f2b = "10";
+    public const f2w = "01";
 
     /**
      * Barcode code

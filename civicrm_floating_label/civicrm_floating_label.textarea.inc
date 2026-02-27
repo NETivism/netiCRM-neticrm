@@ -5,7 +5,7 @@
  * Do not touch anything else
  */
 class CiviCRM_Floating_Label_textarea extends HTML_QuickForm_textarea {
-  function __construct($elementName=null, $elementLabel=null, $attributes=null) {
+  public function __construct($elementName=null, $elementLabel=null, $attributes=null) {
     parent::__construct($elementName, $elementLabel, $attributes);
     $this->_persistantFreeze = true;
     $this->_type = 'textarea';
@@ -17,7 +17,7 @@ class CiviCRM_Floating_Label_textarea extends HTML_QuickForm_textarea {
     }
   }
 
-  function toHtml() {
+  public function toHtml() {
     $label = $this->_attributes['data-label'];
     if ($this->_flagFrozen) {
       $this->setLabel($label);
