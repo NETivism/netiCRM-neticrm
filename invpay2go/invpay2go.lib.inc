@@ -322,7 +322,7 @@ class Pay2goInvoice {
    *   invalid_response is flatten json object in string
    *   allowance_response is flatten json object in string
    */
-  public static function writeRecord($orderNumber = null, $record){
+  public static function writeRecord($orderNumber, $record){
     if(!empty($orderNumber)) {
       $exists = \Drupal::database()->query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", [':order_number' => $orderNumber])->fetchObject();
     }
