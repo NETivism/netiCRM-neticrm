@@ -3,47 +3,47 @@ module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
 
 function civicrm_demo_settings(){
   civicrm_initialize();
-  $form['operation'] = array(
+  $form['operation'] = [
     '#type' => 'radios',
     '#required' => true,
     '#title' => ts('Data'),
-    '#options' => array(
+    '#options' => [
       'contact' => ts('Contacts'),
       'contribution' => ts('Contribution'),
       'track' => ts('Traffic Source'),
       'event' => ts('Event').' / '.ts('Participant'),
       'member' => ts('Membership'),
-    ),
-  );
-  $form['limit'] = array(
+    ],
+  ];
+  $form['limit'] = [
     '#type' => 'textfield',
     '#title' => ts('Number to Generate'),
     '#default_value' => 10,
-  );
-  $form['start_year'] = array(
+  ];
+  $form['start_year'] = [
     '#type' => 'textfield',
     '#title' => ts('Start year'),
     '#default_value' => date('Y', (time() - 86400*5*365) ),
-    '#states' => array(
-      'visible' => array(   // action to take.
-        ':input[name="operation"]' => array('value' => 'contribution'),
-      ),
-    ),
-  );
-  $form['is_test'] = array(
+    '#states' => [
+      'visible' => [   // action to take.
+        ':input[name="operation"]' => ['value' => 'contribution'],
+      ],
+    ],
+  ];
+  $form['is_test'] = [
     '#type' => 'checkbox',
     '#title' => ts('Is Test?'),
     '#default_value' => 1,
-  );
-  $form['batch'] = array(
+  ];
+  $form['batch'] = [
     '#type' => 'checkbox',
     '#title' => t('Batch'),
     '#default_value' => 1,
-  );
-  $form['submit'] = array(
+  ];
+  $form['submit'] = [
     '#type' => 'submit',
     '#value' => ts('Submit'),
-  );
+  ];
   return $form;
 }
 
@@ -63,21 +63,21 @@ function civicrm_demo_settings_submit($form, &$form_state){
         $conf['civicrm_demo_sample_data'] = 1;
       }
       $function($form_state['values']);
-      drupal_set_message(t("Successful generate data of !type", array('!type' => $op )));
+      drupal_set_message(t("Successful generate data of !type", ['!type' => $op ]));
     }
   }
 }
 
 function civicrm_demo_batch($vars) {
-  $batch = array(
-    'operations' => array(
-      array('civicrm_demo_batch_process', array($vars)),
-    ),
+  $batch = [
+    'operations' => [
+      ['civicrm_demo_batch_process', [$vars]],
+    ],
     'finished' => 'civicrm_demo_batch_finished',
     'title' => ts('Processing').' '.$vars['operation'],
     'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.utils.inc',
     'file' => drupal_get_path('module', 'civicrm_demo') . '/civicrm_demo.admin.inc',
-  );
+  ];
   batch_set($batch);
 }
 
@@ -88,7 +88,7 @@ function civicrm_demo_batch_process($vars, &$context){
     $context['message'] = 'Starting ...';
   }
   $num_per_batch = 50;
-  $arg = array('limit' => $num_per_batch);
+  $arg = ['limit' => $num_per_batch];
   if (!$vars['is_test']) {
     // not is test, then create demo sample data
     global $conf;
@@ -115,7 +115,7 @@ function civicrm_demo_batch_finished($success, $results, $operations){
     // An error occurred.
     // $operations contains the operations that remained unprocessed.
     $error_operation = reset($operations);
-    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array('%error_operation' => $error_operation[0], '@arguments' => print_r($error_operation[1], TRUE)));
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', ['%error_operation' => $error_operation[0], '@arguments' => print_r($error_operation[1], TRUE)]);
     drupal_set_message($message, 'error');
   }
 }

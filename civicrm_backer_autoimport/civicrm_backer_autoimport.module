@@ -1,42 +1,42 @@
 <?php
 
 function civicrm_backer_autoimport_menu() {
-  $items = array();
-  $items['backer-founder/ipn/%'] = array(
+  $items = [];
+  $items['backer-founder/ipn/%'] = [
     'access callback' => true,
     'page callback' => 'civicrm_backer_autoimport_ipn',
-    'page arguments' => array(2),
+    'page arguments' => [2],
     'type' => MENU_CALLBACK,
     'weight' => 0,
     'file' => 'civicrm_backer_autoimport.ipn.inc',
-  );
-  $items['civicrm/contribute/stat'] = array(
+  ];
+  $items['civicrm/contribute/stat'] = [
     'access callback' => 'civicrm_backer_autoimport_check_contribution_page',
     'page callback' => 'civicrm_backer_autoimport_get_contribution_page_info',
     'type' => MENU_CALLBACK,
     'weight' => 0,
-  );
+  ];
   return $items;
 }
 
 function civicrm_backer_autoimport_civicrm_buildForm($form_name, &$form) {
   if ($form_name == 'CRM_Contribute_Form_Contribution_Main') {
     $isTest = ($form->_mode == 'test') ? 1 : 0;
-    $params = array(
-      1 => array($isTest, 'String'),
-      2 => array($form->_id, 'String'),
-    );
+    $params = [
+      1 => [$isTest, 'String'],
+      2 => [$form->_id, 'String'],
+    ];
     $sql = "SELECT url_site, url_button FROM civicrm_payment_processor WHERE payment_processor_type = 'BACKER' AND is_active = 1 AND is_test = %1 AND user_name = %2 AND url_site IS NOT NULL AND url_api IS NOT NULL";
     $dao = CRM_Core_DAO::executeQuery($sql, $params);
     if ($dao->fetch()) {
       $path = drupal_get_path('module', 'civicrm_backer_autoimport');
       drupal_add_js($path . '/civicrm_backer_autoimport.js');
       drupal_add_css($path . '/civicrm_backer_autoimport.css');
-      $settings = array(
+      $settings = [
         'url' => $dao->url_site,
         'label' => $dao->url_button,
-      );
-      drupal_add_js(array('backer' => $settings), 'setting');
+      ];
+      drupal_add_js(['backer' => $settings], 'setting');
     }
   }
 }
@@ -55,10 +55,10 @@ function civicrm_backer_autoimport_civicrm_alterTemplateVars($resource, &$vars) 
   if (!empty($vars['tplFile']) && $vars['tplFile'] == 'CRM/Contribute/Form/Contribution/Main.tpl') {
     $contribution_page = $vars['id'];
     $is_test = ($_GET['action'] == 'preview') ? 1 : 0;
-    $params = array(
-      1 => array($is_test, 'String'),
-      2 => array($contribution_page, 'String'),
-    );
+    $params = [
+      1 => [$is_test, 'String'],
+      2 => [$contribution_page, 'String'],
+    ];
     $sql = "SELECT * FROM civicrm_payment_processor WHERE payment_processor_type = 'BACKER' AND is_active = 1 AND is_test = %1 AND user_name = %2 AND url_site IS NOT NULL AND url_api IS NOT NULL";
     $dao = CRM_Core_DAO::executeQuery($sql, $params);
     while ($dao->fetch()) {
@@ -123,7 +123,7 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
   civicrm_initialize();
   if ($_SERVER['REQUEST_METHOD'] == "GET" && $_SERVER['HTTP_X_CIVICRM_ACCESS_FROM'] == "backer") {
     if (isset($_GET['id']) && is_numeric($_GET['id'])) {
-      $params = array( 1 => array($_GET['id'], 'Integer')) ;
+      $params = [ 1 => [$_GET['id'], 'Integer']] ;
       $donation_query = "SELECT COALESCE(SUM(total_amount),0) FROM civicrm_contribution
       WHERE contribution_page_id = %1
       AND contribution_status_id = '1'
@@ -142,17 +142,17 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
       $donationPeopleSum = CRM_Core_DAO::singleValueQuery($people_query, $params);
       $donationAmountSum = (int) ($donationAmountSum);
       if (isset($donationPeopleSum) && isset($donationAmountSum)) {
-        $data = array(
+        $data = [
           'people' => $donationPeopleSum,
           'amount' => $donationAmountSum,
-        );
+        ];
         echo json_encode($data);
         CRM_Utils_System::civiExit();
       }
       else {
-        $error = array(
+        $error = [
           'message' => 'An error occurred during processing.',
-        );
+        ];
         http_response_code(400);
         echo json_encode($error);
         CRM_Utils_System::civiExit();
@@ -160,9 +160,9 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
     }
     else
     {
-      $error = array(
+      $error = [
         'message' => 'Contribution page id is empty',
-      );
+      ];
       http_response_code(400);
       echo json_encode($error);
       CRM_Utils_System::civiExit();
@@ -178,7 +178,7 @@ function civicrm_backer_autoimport_get_contribution_page_info() {
 function civicrm_backer_autoimport_check_contribution_page() {
   civicrm_initialize();
   //Get contribution page id that use backer payment
-  $pageIds = array();
+  $pageIds = [];
   $sql = "SELECT user_name FROM civicrm_payment_processor WHERE payment_processor_type = 'Backer' AND is_test = '0'";
   $dao = CRM_Core_DAO::executeQuery($sql);
   while ($dao->fetch()) {

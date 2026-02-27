@@ -14,16 +14,16 @@ function civicrm_esunbank_init(){
  * Implementation of hook_menu()
  */
 function civicrm_esunbank_menu(){
-  return array(
-    'payment-esunbank/ipn' => array(
+  return [
+    'payment-esunbank/ipn' => [
       'access callback' => true,
       'page callback' => 'civicrm_esunbank_ipn',
-      'page arguments' => array(2),
+      'page arguments' => [2],
       'type' => MENU_CALLBACK,
       'weight' => 0,
       'file' => 'civicrm_esunbank.ipn.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 
@@ -55,7 +55,7 @@ function civicrm_esunbank_cron(){
     if(file_check_directory($dir, FILE_CREATE_DIRECTORY) && file_check_directory($dir2, FILE_CREATE_DIRECTORY)){
       module_load_include('inc', 'civicrm_esunbank', 'civicrm_esunbank.ipn');
       // start trying process ftp data
-      file_scan_directory($dir, '.csv', array('.', '..', 'CVS'), 'civicrm_esunbank_process_file', FALSE);
+      file_scan_directory($dir, '.csv', ['.', '..', 'CVS'], 'civicrm_esunbank_process_file', FALSE);
     }
     variable_set("civicrm_esunbank_cron", $_SERVER['REQUEST_TIME']);
   }
@@ -90,7 +90,7 @@ function civicrm_esunbank_process_file($path){
     }
     $data = trim($data);
     if(!empty($data)){
-      $post = array('Data' => $data);
+      $post = ['Data' => $data];
       $results = civicrm_esunbank_ipn($post, TRUE);
 
       // file move, we can't use drupal file_move because it's only move to drupal
@@ -118,9 +118,9 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
     }
 
     if(count($ids)){
-      $processor = $pids = array();
+      $processor = $pids = [];
       $least_day = date('Y-m-d H:i:s', strtotime('-'.CIVICRM_ESUNBANK_EXPIRED_DAY.' days'));
-      $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", array(1 => array($instrument_id, 'Integer')));
+      $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", [1 => [$instrument_id, 'Integer']]);
       while($query->fetch()){
         if(empty($processor[$query->pid]) && !empty($query->pid)){
           $processor[$query->pid][0] = CRM_Core_BAO_PaymentProcessor::getPayment($query->pid, 'live');
@@ -129,7 +129,7 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
         $k = array_search($query->id, $ids);
         if(!empty($rows[$k])){
           $pp =& $processor[$query->pid][$rows[$k]['is_test']];
-          $url = array(
+          $url = [
             'code' => $pp['user_name'],
             'number' => $query->id,
             'length' => $pp['password'],
@@ -139,7 +139,7 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
             'type' => $pp['signature'],
             'user' => $rows[$k]['sort_name'],
             'item' => $rows[$k]['contribution_source'],
-          );
+          ];
           $link = esunbank_api_link($url);
           $link = '<a href="'.$link.'" class="action-item" target="_blank">帳單</a>';
           $rows[$k]['action'] = str_replace('</span>', $link.'</span>', $rows[$k]['action']);

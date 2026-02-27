@@ -27,7 +27,7 @@
      
     class QRbitstream {
     
-        public $data = array();
+        public $data = [];
         
         //----------------------------------------------------------------------
         public function size()
@@ -146,7 +146,7 @@
             $size = $this->size();
 
             if($size == 0) {
-                return array();
+                return [];
             }
             
             $data = array_fill(0, (int)(($size + 7) / 8), 0);

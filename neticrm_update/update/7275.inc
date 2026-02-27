@@ -45,14 +45,14 @@ function _neticrm_update_update_7275() {
   if(!empty($metaWorkflowId)){
     $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE name = 'batch_complete_notification'");
     if (!$exists) {
-      $group_params = array(
+      $group_params = [
         'id' => $metaWorkflowId,
-      );
-      $option_params = array(
+      ];
+      $option_params = [
         'label' => ts('Batch Complete Notification'),
         'name' => 'batch_complete_notification',
         'is_active' => TRUE,
-      );
+      ];
       $action = CRM_Core_Action::ADD;
       $option_id = 0;
       $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
@@ -60,7 +60,7 @@ function _neticrm_update_update_7275() {
       $text = file_get_contents(drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/batch_complete_notification_text.tpl');
       $html = file_get_contents(drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/batch_complete_notification_html.tpl');
 
-      $params = array(
+      $params = [
         'msg_title' => ts('Batch Complete Notification'),
         'msg_subject' => $subject,
         'msg_text' => $text,
@@ -69,7 +69,7 @@ function _neticrm_update_update_7275() {
         'workflow_id' => $option->id,
         'is_default' => 1,
         'is_reserved' => 0,
-      );
+      ];
       // add default template
       CRM_Core_BAO_MessageTemplates::add($params);
 

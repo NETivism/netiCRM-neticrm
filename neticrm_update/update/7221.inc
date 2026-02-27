@@ -23,14 +23,14 @@ function _neticrm_update_update_7221() {
     return FALSE;
   }
 
-  $group_params = array(
+  $group_params = [
     'id' => $gid,
-  );
-  $option_params = array(
+  ];
+  $option_params = [
     'label' => ts('Contributions - Recurring Failed Notification'),
     'name' => 'contribution_recur_fail_notify',
     'is_active' => TRUE,
-  );
+  ];
   $option_id = NULL;
   $action = CRM_Core_Action::ADD;
   
@@ -42,7 +42,7 @@ function _neticrm_update_update_7221() {
   $text = file_get_contents($path);
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/contribution_recur_fail_notify_html.tpl';
   $html = file_get_contents($path);
-  $params = array(
+  $params = [
     'msg_title' => ts('Contributions - Recurring Failed Notification'),
     'msg_subject' => $subject,
     'msg_text' => $text,
@@ -51,7 +51,7 @@ function _neticrm_update_update_7221() {
     'workflow_id' => $option->id,
     'is_default' => 1,
     'is_reserved' => 0,
-  );
+  ];
   // add default template
   $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
   $params['is_default'] = 0;

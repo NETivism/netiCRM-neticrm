@@ -12,14 +12,14 @@
  */
 function civicrm_nccc_do_transfer_checkout(&$vars, &$component, &$payment_processor){
   // First, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array('cid' => $vars['contributionID'], 'created' => time());
+  $record = ['cid' => $vars['contributionID'], 'created' => time()];
   drupal_write_record("civicrm_contribution_nccc", $record);
 
   $redirect_vars = _civicrm_nccc_getvars($vars, $component, $payment_processor);
 
   // now process contribution to save some default value
-  $contrib_params = array( 'id' => $vars['contributionID'] );
-  $contrib_values = $contrib_ids = array();
+  $contrib_params = [ 'id' => $vars['contributionID'] ];
+  $contrib_values = $contrib_ids = [];
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   $contrib_values['payment_instrument_id'] = 1;
   $contrib_values['trxn_id'] = $payment_processor['signature'].$vars['contributionID'];
@@ -48,14 +48,14 @@ function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
 
   // for union card
   $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-  $mallurl = url($civi_base_url, array( 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute'=>true));
+  $mallurl = url($civi_base_url, [ 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute'=>true]);
 
   // building vars
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
   $name = truncate_utf8($vars['item_name'], 10);
   $notify_url .= "&qfKey=".$vars['qfKey'];
 
-  $redirect_vars = array(
+  $redirect_vars = [
     "MerchantID" => $payment_processor['user_name'],
     "TerminalID" => $payment_processor['password'],
     "OrderID" => $payment_processor['signature'].$vars['contributionID'],
@@ -65,7 +65,7 @@ function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
     "NotifyURL" => $notify_url,
     "#qfKey" => $vars['qfKey'],
     "#action" => $payment_processor['url_site'],
-  );
+  ];
   if($payment_processor['subject']){
     $redirect_vars['CSS_URL'] = $payment_processor['subject'];
   }
@@ -166,7 +166,7 @@ function _civirm_nccc_redirect($redirect_vars){
 }
 
 function _civicrm_nccc_notify_url(&$vars, $path, $component){
-  $query = array();
+  $query = [];
   $query[] = "contact_id={$vars['contactID']}";
   $query[] = "cid={$vars['contributionID']}";
   $query[] = "module={$component}";
@@ -197,10 +197,10 @@ function _civicrm_nccc_notify_url(&$vars, $path, $component){
 
   $url = url(
     $path,
-    array(
+    [
       'query'=> implode('&', $query),
       'absolute' => true,
-    )
+    ]
   );
   if($_SERVER['HTTP_HTTPS'] == 'on' || $_SERVER['HTTPS'] == 'on'){
     return str_replace('http://', 'https://', $url);

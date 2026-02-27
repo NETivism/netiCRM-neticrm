@@ -7,7 +7,7 @@
  * @see system_settings_form()
  */
 function invpay2go_admin_settings() {
-  $form = array();
+  $form = [];
   $db = db_select('invpay2go', 'inv')
     ->fields('inv')
     ->orderBy('pid', 'ASC')
@@ -19,13 +19,13 @@ function invpay2go_admin_settings() {
     $form['container'][$pid] = $container;
   }
   $pid++;
-  $form['container'][$pid] = _invpay2go_admin_settings_form($pid, array());
+  $form['container'][$pid] = _invpay2go_admin_settings_form($pid, []);
   $form['container'][$pid]['#collapsible'] = TRUE;
   $form['container'][$pid]['#collapsed'] = TRUE;
-  $form['submit'] = array(
+  $form['submit'] = [
     '#type' => 'submit',
     '#value' => 'Submit',
-  );
+  ];
   return $form;
 }
 
@@ -34,7 +34,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
     ->fields('inv')
     ->execute()
     ->fetchAll();
-  $exists = array();
+  $exists = [];
   foreach($settings as $e){
     $exists[$e->pid] = (array) $e;
   }
@@ -50,7 +50,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           ->execute();
       }
       else{
-        $fields = array(
+        $fields = [
           'title' => $invoice_setting['title'],
           'serial' => $invoice_setting['serial'],
           'merchantid' => $invoice_setting['merchantid'],
@@ -59,7 +59,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           'merchantid_test' => $invoice_setting['merchantid_test'],
           'hashkey_test' => $invoice_setting['hashkey_test'],
           'hashiv_test' => $invoice_setting['hashiv_test'],
-        );
+        ];
         db_update('invpay2go')
           ->fields($fields)
           ->condition('pid', $pid, '=')
@@ -69,7 +69,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
     else{
       if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
         db_insert('invpay2go')
-          ->fields(array(
+          ->fields([
           'title' => $invoice_setting['title'],
           'serial' => $invoice_setting['serial'],
           'merchantid' => $invoice_setting['merchantid'],
@@ -78,7 +78,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           'merchantid_test' => $invoice_setting['merchantid_test'],
           'hashkey_test' => $invoice_setting['hashkey_test'],
           'hashiv_test' => $invoice_setting['hashiv_test'],
-        ))
+        ])
         ->execute();
       }
     }
@@ -86,64 +86,64 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
 }
 
 function _invpay2go_admin_settings_form($pid, $default){
-  $form = array();
-  $form = array(
+  $form = [];
+  $form = [
     '#type' => 'fieldset',
     '#title' => t('Pay2go Settings'). ': '. $pid,
     '#collapsible' => TRUE,
-  );
-  $form['title'] = array(
+  ];
+  $form['title'] = [
     '#type' => 'textfield',
     '#title' => t('Invoice Title'),
     '#default_value' => $default['title'],
     '#size' => 64,
-  );
-  $form['serial'] = array(
+  ];
+  $form['serial'] = [
     '#type' => 'textfield',
     '#title' => t('Serial Number'),
     '#default_value' => $default['serial'],
     '#size' => 20,
-  );
-  $form['merchantid'] = array(
+  ];
+  $form['merchantid'] = [
     '#type' => 'textfield',
     '#title' => t('Merchant ID'),
     '#default_value' => $default['merchantid'],
     '#size' => 20,
-  );
-  $form['hashkey'] = array(
+  ];
+  $form['hashkey'] = [
     '#type' => 'textfield',
     '#title' => t('Hash Key'),
     '#default_value' => $default['hashkey'],
     '#size' => 20,
-  );
-  $form['hashiv'] = array(
+  ];
+  $form['hashiv'] = [
     '#type' => 'textfield',
     '#title' => t('Hash IV'),
     '#default_value' => $default['hashiv'],
     '#size' => 20,
-  );
-  $form['merchantid_test'] = array(
+  ];
+  $form['merchantid_test'] = [
     '#type' => 'textfield',
     '#title' => t('Merchant ID').' ('.t('Test').')',
     '#default_value' => $default['merchantid_test'],
     '#size' => 20,
-  );
-  $form['hashkey_test'] = array(
+  ];
+  $form['hashkey_test'] = [
     '#type' => 'textfield',
     '#title' => t('Hash Key').' ('.t('Test').')',
     '#default_value' => $default['hashkey_test'],
     '#size' => 20,
-  );
-  $form['hashiv_test'] = array(
+  ];
+  $form['hashiv_test'] = [
     '#type' => 'textfield',
     '#title' => t('Hash IV').' ('.t('Test').')',
     '#default_value' => $default['hashiv_test'],
     '#size' => 20,
-  );
-  $form['delete'] = array(
+  ];
+  $form['delete'] = [
     '#type' => 'checkbox',
     '#title' => t('Delete'),
     '#default_value' => 0,
-  );
+  ];
   return $form;
 }

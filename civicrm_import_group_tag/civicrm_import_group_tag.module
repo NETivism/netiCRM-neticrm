@@ -5,31 +5,31 @@
  */
 
 function civicrm_import_group_tag_menu(){
-  return array(
-    'admin/settings/civicrm_import_group_tag' => array(
+  return [
+    'admin/settings/civicrm_import_group_tag' => [
       'title'            => 'Import Group and Tag into CiviCRM',
-      'access arguments' => array('import contacts'),
+      'access arguments' => ['import contacts'],
       'page callback'    => 'drupal_get_form',
-      'page arguments'    => array('civicrm_import_group_tag_settings'),
-    )
-  );
+      'page arguments'    => ['civicrm_import_group_tag_settings'],
+    ]
+  ];
 }
 
 function civicrm_import_group_tag_settings(){
-  $form['#attributes'] = array('enctype' => "multipart/form-data");
+  $form['#attributes'] = ['enctype' => "multipart/form-data"];
   //'upload' will be used in file_check_upload()
-  $form['option'] = array(
+  $form['option'] = [
     '#type' => 'radios',
     '#required' => true,
     '#title' => t('Primary ID'),
-    '#options' => array('contact_id' => t('Contact ID'), 'external_identifier' => t('External ID')),
-  );
-  $form['type'] = array(
+    '#options' => ['contact_id' => t('Contact ID'), 'external_identifier' => t('External ID')],
+  ];
+  $form['type'] = [
     '#type' => 'radios',
     '#required' => true,
     '#title' => t('Type'),
-    '#options' => array('tag' => t('Tag'), 'group' => t('Group')),
-  );
+    '#options' => ['tag' => t('Tag'), 'group' => t('Group')],
+  ];
   /*
   $form['quick'] = array(
     '#type' => 'checkbox',
@@ -37,21 +37,21 @@ function civicrm_import_group_tag_settings(){
     '#description' => t("Quicker but may have problem. Use for large number of group and contact import."),
   );
   */
-  $form['multi_separator'] = array(
+  $form['multi_separator'] = [
     '#type' => 'textfield',
     '#title' => t('Multiple tag / group separator'),
     '#default_value' => '|',
     '#description' => t('You can fill in multiple value separator when import multiple tags/group in on cell. Empty means disable thie feature. It will import any cell as one tag/group.'),
-  );
-  $form['upload'] = array(
+  ];
+  $form['upload'] = [
     '#type' => 'file',
     '#title' => t("Import file"),
     '#description' => t('Upload your csv file here, current only support id / tag or id / group, 2 column table.'),
-  );
-  $form['submit'] = array(
+  ];
+  $form['submit'] = [
     '#type' => 'submit',
     '#value' => t('Import'),
-  );
+  ];
   return $form;
 }
 
@@ -88,8 +88,8 @@ function civicrm_import_group_tag_settings_submit($form, &$form_state){
             $contacts[$dao->{$form_state['values']['option']}] = $dao->id;
           }
         }
-        $groups = array();
-        $groups_map = array();
+        $groups = [];
+        $groups_map = [];
       }
 
       while (($data = fgetcsv($fd, 0, ",")) !== FALSE) {
@@ -102,7 +102,7 @@ function civicrm_import_group_tag_settings_submit($form, &$form_state){
             }
           }
           else{
-            $import = array(trim($data[1]));
+            $import = [trim($data[1])];
           }
 
           if(!empty($import)){
@@ -116,12 +116,12 @@ function civicrm_import_group_tag_settings_submit($form, &$form_state){
                 }
                 else{
                   // get or add new group
-                  $params = array('title'=>$group_name);
+                  $params = ['title'=>$group_name];
                   $result = civicrm_group_get($params);
 
                   // get id
                   if(civicrm_error($result)){
-                    $params = array('title' => $group_name,'is_active' => 1 );
+                    $params = ['title' => $group_name,'is_active' => 1 ];
                     $res = civicrm_group_add($params);
                     if(civicrm_error($res)){
                       drupal_set_message($res['error_message'], 'error');
@@ -160,10 +160,10 @@ function civicrm_import_group_tag($id, $import, $type, $main_id = 'contact_id'){
 
   // find out contact_id
   if($main_id == 'contact_id'){
-    $params = array('contact_id' => $id);
+    $params = ['contact_id' => $id];
   }
   else{
-    $params = array($main_id => $id);
+    $params = [$main_id => $id];
   }
   $retrieved = &civicrm_contact_get( $params );
 
@@ -179,14 +179,14 @@ function civicrm_import_group_tag($id, $import, $type, $main_id = 'contact_id'){
   foreach($import as $text){
     if(!$exists[$text]){
       // add tag or group base on $type
-      $res = array();
+      $res = [];
       if($type == 'group'){
         // dedupe
-        $params = array('title'=>$text);
+        $params = ['title'=>$text];
         $result = civicrm_group_get($params);
         if(civicrm_error($result)){
           drupal_set_message('Add new group '. $text);
-          $params = array('title' => $text, 'is_active' => 1 );
+          $params = ['title' => $text, 'is_active' => 1 ];
           $res = civicrm_group_add($params);
           if(civicrm_error($res)){
             drupal_set_message($res['error_message'], 'error');
@@ -202,10 +202,10 @@ function civicrm_import_group_tag($id, $import, $type, $main_id = 'contact_id'){
         }
       }
       else{
-        $params = array('name' => $text);
+        $params = ['name' => $text];
         $result =& civicrm_tag_get($params);
         if ( civicrm_error ( $result )) {
-          $params = array('name' => $text, 'is_active' => 1,'domain_id' => 1);
+          $params = ['name' => $text, 'is_active' => 1,'domain_id' => 1];
           $res = civicrm_tag_create($params);
           if(civicrm_error($res)){
             drupal_set_message($res['error_message'], 'error');
@@ -222,7 +222,7 @@ function civicrm_import_group_tag($id, $import, $type, $main_id = 'contact_id'){
     }
 
     // now import contact / tag relationship
-    $params_sub = array('contact_id' => $id);
+    $params_sub = ['contact_id' => $id];
     if ($type == 'group') {
       $params_sub['group_id'] = $exists[$text];
       civicrm_group_contact_add($params_sub);

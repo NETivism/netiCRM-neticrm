@@ -19,7 +19,7 @@ function _neticrm_update_update_7213(){
                   diverted.msg_html    != orig.msg_html
           )
       ';
-  $params = array(1 => array($workflow, 'Integer'));
+  $params = [1 => [$workflow, 'Integer']];
   $diverted_id = CRM_Core_DAO::singleValueQuery($sql,$params);
   $is_customized = !empty($diverted_id);
   if($is_customized){
@@ -44,7 +44,7 @@ function _neticrm_update_update_7213(){
     
     $text = file_get_contents($path.'text.tpl');
     $subject = file_get_contents($path.'subject.tpl');
-    $params = array(
+    $params = [
       'msg_title' => $name,
       'msg_subject' => $subject,
       'msg_text' => $text,
@@ -53,7 +53,7 @@ function _neticrm_update_update_7213(){
       'workflow_id' => $workflow,
       'is_default' => 1,
       'is_reserved' => 0,
-    );
+    ];
     // add default template
     CRM_Core_BAO_MessageTemplates::add($params);
     $params['is_default'] = 0;
@@ -67,6 +67,6 @@ function _neticrm_update_update_7213(){
 
     return "Success to update receipt_letter message template.";
   }else{
-    return array('#abort' => array('success' => FALSE, 'query' => 'You need /xml/templates/message_templates/receipt_letter_html.tpl in CiviCrm direction to finish update.'));
+    return ['#abort' => ['success' => FALSE, 'query' => 'You need /xml/templates/message_templates/receipt_letter_html.tpl in CiviCrm direction to finish update.']];
   }
 }

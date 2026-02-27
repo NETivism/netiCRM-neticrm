@@ -22,7 +22,7 @@ function civicrm_backer_autoimport_install() {
     }
   }
   if (!$rtypeId) {
-    $params = array(
+    $params = [
       'label_a_b' => ts('Orderer'),
       'label_b_a' => ts('Recipient'),
       'description' => ts("Used for").': '.ts('Backer Auto Import'),
@@ -34,22 +34,22 @@ function civicrm_backer_autoimport_install() {
       'contact_types_b' => '',
       'contact_sub_type_a' => '',
       'contact_sub_type_b' => '',
-    );
-    $ids = array();
+    ];
+    $ids = [];
     $saved = CRM_Contact_BAO_RelationshipType::add($params, $ids);
     $rtypeId = $saved->id;
   }
-  $params = array(
+  $params = [
     'backerFounderRelationship' => $rtypeId,
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 
   // Add backer custom receipt options. Refs #38459.
-  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $backerReceiptOptions = ['single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據'];
   $config = CRM_Core_Config::singleton();
   $fieldId = $config->receiptYesNo;
   $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
-  $params = array( 1 => array($fieldId, 'Positive'));
+  $params = [ 1 => [$fieldId, 'Positive']];
   $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
   foreach ($backerReceiptOptions as $option_value => $option_lebel) {
     $optionValue = new CRM_Core_DAO_OptionValue();
@@ -67,11 +67,11 @@ function civicrm_backer_autoimport_install() {
  */
 function civicrm_backer_autoimport_update_7101(){
   civicrm_initialize();
-  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $backerReceiptOptions = ['single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據'];
   $config = CRM_Core_Config::singleton();
   $fieldId = $config->receiptYesNo;
   $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
-  $params = array( 1 => array($fieldId, 'Positive'));
+  $params = [ 1 => [$fieldId, 'Positive']];
   $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
   foreach ($backerReceiptOptions as $option_value => $option_lebel) {
     $optionValue = new CRM_Core_DAO_OptionValue();

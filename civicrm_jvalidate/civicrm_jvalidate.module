@@ -22,7 +22,7 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
     global $language;
     $js = '';
     $path = drupal_get_path('module', 'civicrm_jvalidate');
-    $config = array('jvalidate' => array(
+    $config = ['jvalidate' => [
       'ext'=> t('Phone Ext.'),
       'extprompt' => t('Enter phone number Ext.'),
       'notw' => t('other format?'),
@@ -32,7 +32,7 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
       'phoneMask' => '',
       'mobileMask' => '',
       'phoneValidator' => '',
-    ));
+    ]];
     $phone_mask = variable_get('civicrm_jvalidate_phone_mask', '');
     $mobile_mask = variable_get('civicrm_jvalidate_mobile_mask', '');
     $phone_validator = variable_get('civicrm_jvalidate_phone_validator', '');
@@ -45,9 +45,9 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
     if ($phone_validator) {
       $config['jvalidate']['phoneValidator'] = $phone_validator;
     }
-    $options = array(
+    $options = [
       'type' => 'file',
-    );
+    ];
     drupal_add_js($config, 'setting');
     $min = variable_get('jquery_update_compression_type', 'min') == 'none' ? '' : '.min';
     drupal_add_js($path."/js/jquery.validate$min.js", $options);

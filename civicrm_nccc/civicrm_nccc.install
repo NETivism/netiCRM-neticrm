@@ -9,118 +9,118 @@
  * Implementation of hook_schema()
  */
 function civicrm_nccc_schema(){
-  $schema['civicrm_contribution_nccc'] = array(
-    'fields' => array(
-      'cid' => array(
+  $schema['civicrm_contribution_nccc'] = [
+    'fields' => [
+      'cid' => [
         'description' => 'Contribution id for civicrm',
         'type' => 'int',
         'length' => '11',
         'not null' => TRUE,
-      ),
-      'created' => array(
+      ],
+      'created' => [
         'description' => 'Submit time for user confirmed transaction.',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'pan' => array(
+      ],
+      'pan' => [
         'description' => 'Masked card number',
         'type' => 'varchar',
         'length' => '19',
         'not null' => FALSE,
-      ),
-      'transcode' => array(
+      ],
+      'transcode' => [
         'description' => 'Transaction code',
         'type' => 'varchar',
         'length' => '6',
         'not null' => FALSE,
-      ),
-      'transmode' => array(
+      ],
+      'transmode' => [
         'description' => 'Transaction mode',
         'type' => 'int',
         'size' => 'tiny',
         'not null' => FALSE,
-      ),
-      'transdatetime' => array(
+      ],
+      'transdatetime' => [
         'description' => 'Transaction date time',
         'type' => 'datetime',
         'not null' => FALSE,
-      ),
-      'approvecode' => array(
+      ],
+      'approvecode' => [
         'description' => 'Transaction approve code',
         'type' => 'varchar',
         'length' => '16',
         'not null' => FALSE,
-      ),
-      'responsecode' => array(
+      ],
+      'responsecode' => [
         'description' => '',
         'type' => 'varchar',
         'length' => '3',
         'not null' => FALSE,
-      ),
-      'responsemsg' => array(
+      ],
+      'responsemsg' => [
         'description' => 'Response message of transaction',
         'type' => 'varchar',
         'length' => '128',
         'not null' => FALSE,
-      ),
-      'installtype' => array(
+      ],
+      'installtype' => [
         'description' => 'Installment type',
         'type' => 'varchar',
         'length' => '1',
         'not null' => FALSE,
-      ),
-      'install' => array(
+      ],
+      'install' => [
         'description' => 'Installment number',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'firstamt' => array(
+      ],
+      'firstamt' => [
         'description' => 'First installment amount',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'eachamt' => array(
+      ],
+      'eachamt' => [
         'description' => 'Each installment amount',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'fee' => array(
+      ],
+      'fee' => [
         'description' => 'Fee of transaction',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'redeem' => array(
+      ],
+      'redeem' => [
         'description' => 'Redeem data container. Include RedeemType, RedeemUsed, RedeemBalance, CreditAmt',
         'type' => 'text',
         'not null' => FALSE,
-      ),
-      'riskmark' => array(
+      ],
+      'riskmark' => [
         'description' => 'High risk card number',
         'type' => 'varchar',
         'length' => '8',
         'not null' => FALSE,
-      ),
-      'foreigncard' => array(
+      ],
+      'foreigncard' => [
         'description' => 'Card from forign, support VISA Master JSB. Y/N or NULL',
         'type' => 'varchar',
         'length' => '8',
         'not null' => FALSE,
-      ),
-      'secure_status' => array(
+      ],
+      'secure_status' => [
         'description' => '3D verify result, Y/N or NULL',
         'type' => 'varchar',
         'length' => '8',
         'not null' => FALSE,
-      ),
-    ),
-    'primary key' => array('cid'),
+      ],
+    ],
+    'primary key' => ['cid'],
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-  );
+  ];
   return $schema;
 }
  

@@ -27,29 +27,29 @@ function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks){
         }
       }
       $calc['first'] = $calc['total'] - $calc['attended'];
-      $pie = array();
-      $pie[] = array(t('type'), t('count'));
-      $pie[] = array(t('First time'), $calc['first']);
-      $pie[] = array(t('Attended Before'), $calc['attended']);
+      $pie = [];
+      $pie[] = [t('type'), t('count')];
+      $pie[] = [t('First time'), $calc['first']];
+      $pie[] = [t('Attended Before'), $calc['attended']];
 
-      $bar = array();
-      $bar[] = array(t('Participant'),t('Count'));
+      $bar = [];
+      $bar[] = [t('Participant'),t('Count')];
       if($calc['attended']>=1){
         foreach($calc['attendee'] as $n => $t){
-          $bar[] = array($n, (int)$t);
+          $bar[] = [$n, (int)$t];
         }
       }
-      $setting = array(
-        'neticrm_event_stat'=> array(
+      $setting = [
+        'neticrm_event_stat'=> [
           'event' => $event_id,
           'pie' => $pie,
           'bar' => $bar,
-          't' => array(
+          't' => [
             'most_active_p' => t('Most active participants.'),
             'attend_before_p' => t('Ratio of participants has attended before.'),
-          ),
-        ),
-      );
+          ],
+        ],
+      ];
 
         
       drupal_set_html_head('<script type="text/javascript" src="//www.google.com/jsapi"></script>');

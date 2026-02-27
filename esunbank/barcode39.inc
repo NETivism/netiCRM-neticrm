@@ -15,24 +15,24 @@ final class Barcode39 {
 	/**
 	 * Code 39 format 2 specifications
 	 */
-	const f2B = "11";
-	const f2W = "00";
-	const f2b = "10";
-	const f2w = "01";
+	public const f2B = "11";
+	public const f2W = "00";
+	public const f2b = "10";
+	public const f2w = "01";
 
 	/**
 	 * Barcode code
 	 *
 	 * @var array $_code
 	 */
-	private $_code = array();
+	private $_code = [];
 
 	/**
 	 * Code 39 matrix
 	 *
 	 * @var array $_codes_39
 	 */
-	private $_codes_39 = array(
+	private $_codes_39 = [
 		32 => 100011011001110110,
 		36 => 100010001000100110,
 		37 => 100110001000100010,
@@ -77,7 +77,7 @@ final class Barcode39 {
 		88 => 100010011101100111,
 		89 => 110010011101100110,
 		90 => 100011011101100110
-	);
+	];
 
 	/**
 	 * Width of wide bars in barcode (should be 3:1)
@@ -98,7 +98,7 @@ final class Barcode39 {
 	 *
 	 * @var array $barcode_bg_rgb
 	 */
-	public $barcode_bg_rgb = array(255, 255, 255);
+	public $barcode_bg_rgb = [255, 255, 255];
 
 	/**
 	 * Barcode height
@@ -180,7 +180,7 @@ final class Barcode39 {
 		}
 
 		// bars coordinates and params
-		$bars = array();
+		$bars = [];
 
 		// position pointer
 		$pos = $this->barcode_padding;
@@ -221,8 +221,8 @@ final class Barcode39 {
 							// check for valid bar params
 							if($w && $fill) {
 								// add bar coordinates and params
-								$bars[] = array($pos, $this->barcode_padding, $pos - 1 + $w,
-									$this->barcode_height - $this->barcode_padding - 1, $fill);
+								$bars[] = [$pos, $this->barcode_padding, $pos - 1 + $w,
+									$this->barcode_height - $this->barcode_padding - 1, $fill];
 
 								// move position pointer
 								$pos += $w;

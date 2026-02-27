@@ -5,88 +5,88 @@ function civicrm_contribution_cck_admin_settings() {
   require_once("api/v2/UFGroup.php");
 
   $types = node_get_types('names');
-  $form['civicc_enable_dornor_list'] = array(
+  $form['civicc_enable_dornor_list'] = [
     '#type' => 'checkbox',
     '#title' => 'Enable Donor List',
     '#default_value' => variable_get('civicc_enable_dornor_list', 0),
-  );
-  $form['civicc_enable_admin'] = array(
+  ];
+  $form['civicc_enable_admin'] = [
     '#type' => 'checkbox',
     '#title' => 'Enable CiviCRM Contributino Admin Link',
     '#default_value' => variable_get('civicc_enable_admin', 0),
-  );
-  $form['civicc_enabled_type'] = array(
+  ];
+  $form['civicc_enabled_type'] = [
     '#type' => 'checkboxes',
     '#title' => 'Content type to enable for sync',
-    '#default_value' => variable_get('civicc_enabled_type', array()),
+    '#default_value' => variable_get('civicc_enabled_type', []),
     '#options' => $types,
     '#required' => TRUE,
-  );
+  ];
 
   $option_payment_processor =& CRM_Core_PseudoConstant::paymentProcessor( );
-  $form['civicc_payment_processor_id'] = array(
+  $form['civicc_payment_processor_id'] = [
     '#type' => 'select',
     '#title' => 'Default payment processor for contribution page',
     '#default_value' => variable_get('civicc_payment_processor_id', 0),
     '#options' => $option_payment_processor,
-  );
+  ];
 
-  $form['civicc_price_amount_block'] = array(
+  $form['civicc_price_amount_block'] = [
     '#type' => 'textarea',
     '#title' => 'Default amount label / value',
     '#default_value' => variable_get('civicc_price_amount_block', 'TEST|100'),
     '#description' => 'Please enter label|value per line. If you don\'t want label appear, please fill <none>|value',
-  );
+  ];
 
   $option_profile[0] = ts('- select -');
   $option_profile += civicrm_uf_profile_groups_get();
-  $form['civicc_custom_pre'] = array(
+  $form['civicc_custom_pre'] = [
     '#type' => 'select',
     '#title' => 'Default profile form for contribution page',
     '#default_value' => variable_get('civicc_custom_pre', 0),
     '#options' => $option_profile,
-  );
-  $form['civicc_custom_post'] = array(
+  ];
+  $form['civicc_custom_post'] = [
     '#type' => 'select',
     '#title' => 'Default post profile form for contribution page',
     '#default_value' => variable_get('civicc_custom_post', 0),
     '#options' => $option_profile,
-  );
+  ];
 
-  $form['civicc_receipt'] = array(
+  $form['civicc_receipt'] = [
     '#type' => 'fieldset',
     '#title' => t('Contribution Receipt'),
-  );
-  $form['civicc_receipt']['civicc_receipt_from_name'] = array(
+  ];
+  $form['civicc_receipt']['civicc_receipt_from_name'] = [
     '#type' => 'textfield',
     '#title' => t('Receipt From Name'),
     '#default_value' => variable_get('civicc_receipt_from_name', ''),
-  );
-  $form['civicc_receipt']['civicc_receipt_from_email'] = array(
+  ];
+  $form['civicc_receipt']['civicc_receipt_from_email'] = [
     '#type' => 'textfield',
     '#title' => t('Receipt From Email'),
     '#default_value' => variable_get('civicc_receipt_from_email', ''),
-  );
-  $form['civicc_receipt']['civicc_receipt_cc'] = array(
+  ];
+  $form['civicc_receipt']['civicc_receipt_cc'] = [
     '#type' => 'textfield',
     '#title' => t('CC Receipt To'),
     '#default_value' => variable_get('civicc_receipt_cc', ''),
-  );
-  $form['civicc_receipt']['civicc_receipt_bcc'] = array(
+  ];
+  $form['civicc_receipt']['civicc_receipt_bcc'] = [
     '#type' => 'textfield',
     '#title' => t('BCC Receipt To'),
     '#default_value' => variable_get('civicc_receipt_bcc', ''),
-  );
-  $form['civicc_receipt']['civicc_receipt_text'] = array(
+  ];
+  $form['civicc_receipt']['civicc_receipt_text'] = [
     '#type' => 'textarea',
     '#title' => t('Receipt Message'),
     '#default_value' => variable_get('civicc_receipt_text', ''),
-  );
+  ];
 
-  $form['civicc_fields'] = array(
+  $form['civicc_fields'] = [
     '#type' => 'fieldset',
     '#title' => t('Contribution Page / CCK field mapping'),
-  );
+  ];
   $fields = content_fields();
   foreach($fields as $name => $f){
     if($f['type'] != 'filefield' && $f['type'] != 'content_taxonomy')
@@ -94,13 +94,13 @@ function civicrm_contribution_cck_admin_settings() {
   }
   $civicc_fields = civicrm_contribution_cck_fields();
   foreach($civicc_fields as $f => $name){
-    $form['civicc_fields']['civicc_'.$f] = array(
+    $form['civicc_fields']['civicc_'.$f] = [
       '#type' => 'select',
       '#title' => $name,
       '#default_value' => variable_get('civicc_'.$f, ''),
       '#options' => $option_fields,
       '#required' => TRUE,
-    );
+    ];
   }
 
   if(module_exists('civicrm_instrument')){
@@ -110,12 +110,12 @@ function civicrm_contribution_cck_admin_settings() {
       $checkbox_name = _civicrm_instrument_form_name($instruments->name);
       $option_instrument[$checkbox_name] = ts($instruments->name);
     }
-    $form['civicc_instrument'] = array(
+    $form['civicc_instrument'] = [
       '#type' => 'checkboxes',
       '#title' => 'Default payment instrument for contribution',
-      '#default_value' => variable_get('civicc_instrument', array()),
+      '#default_value' => variable_get('civicc_instrument', []),
       '#options' => $option_instrument,
-    );
+    ];
   }
   
   return system_settings_form($form);
@@ -127,7 +127,7 @@ function civicrm_contribution_cck_donors($node){
 
   $donors = civicrm_contribution_cck_donors_filter($node, $is_test);
   if(empty($donors)){
-    $donors = array( '' => array());
+    $donors = [ '' => []];
   }
   foreach($donors as $type => $d){
     $output .= theme("civicrm_contribution_cck_donors", $type, $node, $d);
@@ -146,7 +146,7 @@ function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NU
   $contact = CRM_Core_DAO::executeQuery( $query );
   $types = CRM_Contribute_PseudoConstant::contributionType( );
 
-  $donors = array();
+  $donors = [];
   while($contact->fetch()){
     $type = $types[$contact->contribution_type_id];
     if($contact->uid){
@@ -155,7 +155,7 @@ function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NU
     else{
       $account = new stdClass();
     }
-    $donors[$type][$contact->contribution_id] = array(
+    $donors[$type][$contact->contribution_id] = [
       'contribution_id' => $contact->contribution_id,
       'contact_id' => $contact->contact_id,
       'uid' => $contact->uid,
@@ -163,7 +163,7 @@ function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NU
       'name' => $account->name,
       'picture' => $account->picture,
       'account' => $account,
-    );
+    ];
   }
   return $donors;
 }

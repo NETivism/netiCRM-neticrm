@@ -13,15 +13,15 @@ function civicrm_ebill_ba_init(){
  * Implementation of hook_menu()
  */
 function civicrm_ebill_ba_menu(){
-  return array(
-    'ebill/ipn' => array(
+  return [
+    'ebill/ipn' => [
       'access callback' => true,
       'page callback' => 'civicrm_ebill_ba_ipn',
       'type' => MENU_CALLBACK,
       'weight' => 0,
       'file' => 'civicrm_ebill_ba.ipn.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -51,12 +51,12 @@ function _civicrm_ebill_ba_trxn_id($id, $is_test){
   $trxn_id = $id;
 
   // prepare for hook
-  $data = array(
+  $data = [
     'module' => 'civicrm_ebill_ba',
     'is_test' => $is_test,
     'trxn_id' => $trxn_id,
     'id' => $id,
-  );
+  ];
   drupal_alter('civicrm_trxn_id', $data);
 
   if(strlen($data['trxn_id']) > 16){

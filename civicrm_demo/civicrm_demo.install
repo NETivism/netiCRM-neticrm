@@ -13,16 +13,16 @@ function civicrm_demo_install() {
   if($sample) {
     set_time_limit(1800);
 
-    civicrm_demo_process_contact(array('limit' => 1000));
-    civicrm_demo_process_event(array('limit' => 15, 'limit_participants' => 60));
-    civicrm_demo_process_contribution(array(
+    civicrm_demo_process_contact(['limit' => 1000]);
+    civicrm_demo_process_event(['limit' => 15, 'limit_participants' => 60]);
+    civicrm_demo_process_contribution([
       'limit' => 3000,
       'contrib_per_contact' => 3,
       'start_year' => (int)date('Y', strtotime('-30 months')),
-    ));
-    civicrm_demo_process_contribution_recur(array('limit' => 600));
+    ]);
+    civicrm_demo_process_contribution_recur(['limit' => 600]);
     civicrm_demo_create_custom_profile();
-    civicrm_demo_process_membership(array('limit' => 3));
+    civicrm_demo_process_membership(['limit' => 3]);
   }
   elseif ($sample_ci) {
     civicrm_demo_process_contact(['limit' => 20]);

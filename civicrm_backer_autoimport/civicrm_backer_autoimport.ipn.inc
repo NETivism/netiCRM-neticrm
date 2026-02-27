@@ -27,7 +27,7 @@ function civicrm_backer_autoimport_ipn($payment_processor_id) {
 
       // second, try to process contribution and contact record
       if ($check_result) {
-        $result = array();
+        $result = [];
         $processor->processContribution($input, $result);
       }
     }

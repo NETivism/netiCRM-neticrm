@@ -5,7 +5,7 @@
  */
 function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
   global $language;
-  $allowed = array(
+  $allowed = [
     'CRM_Profile_Form_Edit',
     'CRM_Profile_Form_Dynamic',
     'CRM_UF_Form_Preview',
@@ -15,7 +15,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     'CRM_Event_Form_Registration_Register',
     'CRM_Event_Form_Registration_Confirm',
     'CRM_Event_Form_Registration_ThankYou',
-  );
+  ];
   if($language->language != 'en' && in_array($form_name, $allowed)){
     if($_GET['snippet'] == 4){
       if(!empty($form->_paymentProcessors)){
@@ -37,7 +37,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
       }
     }
     foreach ($form->_elements as $k => $e) {
-      $name = isset($e->_name) ? $e->_name : '';
+      $name = $e->_name ?? '';
       if($e->_type != 'hidden' && $name != 'buttons'){
         if(!empty($e->_label)){
           $form->_elements[$k]->_label = civicrm_field_i18n_t($e->_label);
@@ -71,7 +71,7 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
     // for civicrm contribution page and event page
     // Translate group title and help text
     $template = CRM_Core_Smarty::singleton();
-    $profiles = array('customPre', 'customPost','customPreGroup','customPostGroup');
+    $profiles = ['customPre', 'customPost','customPreGroup','customPostGroup'];
     foreach($profiles as $p){
       $vars = $template->get_template_vars($p);
       if(!empty($vars)){
@@ -90,23 +90,23 @@ function civicrm_field_i18n_civicrm_buildForm($form_name, &$form){
           }
         }
         $template->assign($p, $vars);
-        $vars = array();
+        $vars = [];
       }
     }
   }
 
-  $backend = array(
+  $backend = [
     'CRM_Contact_Form_Contact',
     'CRM_Contribute_Form_Contribution',
-  );
-  $allowed_element = array(
+  ];
+  $allowed_element = [
     'custom_.*',
     'payment_instrument_id',
-  );
+  ];
   $pattern = '/^('.implode('|', $allowed_element).')$/';
   if($language->language != 'en' && in_array($form_name, $backend)){
     foreach ($form->_elements as $k => $e) {
-      $name = isset($e->_name) ? $e->_name : '';
+      $name = $e->_name ?? '';
       $elementName = array_search($k, $form->_elementIndex);
       if($e->_type != 'hidden' && $name != 'buttons' && !empty($elementName)){
         if (preg_match($pattern, $elementName)) {
@@ -162,7 +162,7 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
       }
     }
     // profile
-    $profiles = array('customPre', 'customPost');
+    $profiles = ['customPre', 'customPost'];
     foreach ($profiles as $p) {
       $var_name = $p . '_grouptitle';
       if(!empty($vars[$var_name])){
@@ -178,10 +178,10 @@ function civicrm_field_i18n_civicrm_alterTemplateVars($resourceName, &$vars){
     }
 
     // refs #32070, only translate specific vars
-    $allowed_element = array(
+    $allowed_element = [
       'viewCustomData',
       'payment_instrument',
-    );
+    ];
     foreach($allowed_element as $var_name) {
       if (is_string($vars[$var_name]) && !isset($ran[$var_name])) {
         $vars[$var_name] = civicrm_field_i18n_t($vars[$var_name]);
@@ -247,10 +247,10 @@ function civicrm_field_i18n_user_view($user, $view_mode){
 
 function civicrm_field_i18n_t($text){
   if(!empty($text) && civicrm_field_i18n_test($text) === $text){
-    $opt = array(
+    $opt = [
       'context' => 'civicrm',
-    );
-    $translated = t($text, array(), $opt);
+    ];
+    $translated = t($text, [], $opt);
     return $translated;
   }
   return empty($text) ? '' : $text;

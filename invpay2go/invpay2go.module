@@ -4,32 +4,32 @@
  * Implementation of hook_menu
  */
 function invpay2go_menu() {
-  return array(
-    'admin/config/system/invpay2go' => array(
+  return [
+    'admin/config/system/invpay2go' => [
       'title' => 'Pay2go Invoice configuration',
       'description' => 'Config secret information pay2go invoice provide.',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('invpay2go_admin_settings'),
-      'access arguments' => array('administer site configuration'),
+      'page arguments' => ['invpay2go_admin_settings'],
+      'access arguments' => ['administer site configuration'],
       'weight' => 10,
       'file' => 'invpay2go.admin.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
  * Implementation of hook_theme
  */
 function invpay2go_theme($existing, $type, $theme, $path) {
-  return array(
-    'invpay2go' => array(
+  return [
+    'invpay2go' => [
       'template' => 'invpay2go',
-      'variables' => array(
+      'variables' => [
         'receipt' => NULL,
-      ),
+      ],
       'file' => 'invpay2go.theme.inc'
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -57,12 +57,12 @@ function invpay2go_api_run($params, $api_params, $is_test, $extra = TRUE){
   $data = $req->request($params);
 
   if ($req->status && $extra) {
-    $search_params = array(
+    $search_params = [
       'MerchantOrderNo' => $params['MerchantOrderNo'],
       'SearchType' => 1,
       'TotalAmt' => $params['TotalAmt'],
       'DisplayFlag' => 0,
-    );
+    ];
     $api_params['apiType'] = 'invoice_search';
     $search = invpay2go_api_search($search_params, $api_params, $is_test);
     if ($search->status) {
@@ -119,17 +119,17 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search
       (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt))
     ) {
       $totalAmt = $record['issue_response']->Result->TotalAmt;
-      $search_params = array(
+      $search_params = [
         'MerchantOrderNo' => $order_number,
         'SearchType' => 1,
         'TotalAmt' => $totalAmt,
         'DisplayFlag' => 0,
-      );
+      ];
 
-      $api_params = array(
+      $api_params = [
         'pid' => $record['pid'],
         'apiType' => 'invoice_search',
-      );
+      ];
       $search = invpay2go_api_search($search_params, $api_params, $record['is_test']);
     }
     return $record;
@@ -157,10 +157,10 @@ function invpay2go_api_fields($apitype){
   return Pay2goInvoice::fields($apitype);
 }
 
-function invpay2go_merchant_load($pid = NULL, $fields = array()) {
+function invpay2go_merchant_load($pid = NULL, $fields = []) {
   $select = db_select('invpay2go', 'inv');
   if (empty($fields)) {
-    $fields = array();
+    $fields = [];
   }
   $select->fields('inv', $fields);
   if ($pid) {

@@ -356,7 +356,7 @@
                 throw new Exception('insertStructuredAppendHeader wrong index');
             }
 
-            $buf = array($size, $index, $parity);
+            $buf = [$size, $index, $parity];
             
             try {
                 $entry = new QRinputItem(QR_MODE_STRUCTURE, 3, buf);
@@ -416,7 +416,7 @@
         }
         
         //----------------------------------------------------------------------
-        public static $anTable = array(
+        public static $anTable = [
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             36, -1, -1, -1, 37, 38, -1, -1, -1, -1, 39, 40, -1, 41, 42, 43,
@@ -425,7 +425,7 @@
             25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
             -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
-        );
+        ];
         
         //----------------------------------------------------------------------
         public static function lookAnTable($c)
@@ -656,7 +656,7 @@
             
             if($padlen > 0) {
                 
-                $padbuf = array();
+                $padbuf = [];
                 for($i=0; $i<$padlen; $i++) {
                     $padbuf[$i] = ($i&1)?0x11:0xec;
                 }

@@ -9,10 +9,10 @@ function _neticrm_update_update_7255() {
   foreach($amount_level as $entity_id => $amounts) {
     $fee_level = CRM_Price_BAO_Set::amountLevelText($amounts);
     if (!empty($fee_level)) {
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_participant SET fee_level = %2 WHERE id = %1", array(
-        1 => array($entity_id, 'Integer'),
-        2 => array($fee_level, 'String'),
-      ));
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_participant SET fee_level = %2 WHERE id = %1", [
+        1 => [$entity_id, 'Integer'],
+        2 => [$fee_level, 'String'],
+      ]);
     }
   }
   return 'Sucessfully update participant price fee level';

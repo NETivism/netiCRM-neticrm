@@ -33,7 +33,7 @@ function civicrm_ebill_ba_ipn($post = NULL, $get = NULL){
 function _civicrm_ebill_ba_response($raw){
   $debug = $raw;
   if(_civicrm_ebill_ba_byte2length($raw)){
-    $request = array(
+    $request = [
       'Message Type' => 4,
       'Processing Code' => 4,
       'System trace audit NO' => 10,
@@ -43,7 +43,7 @@ function _civicrm_ebill_ba_response($raw){
       'TXN initiate date and time' => 14,
       'Response' => 4,
       'Sync Check Item' => 4,
-    );
+    ];
     $start = 0;
     foreach($request as $k => $length){
       $request[$k] = substr($raw, $start, $length);
@@ -53,14 +53,14 @@ function _civicrm_ebill_ba_response($raw){
     // check 8010
     if($request['Message Type'] == '0900' && $request['Processing Code'] == '8010'){
       civicrm_initialize();
-      $request2 = array(
+      $request2 = [
         'Amount' => 14,
         'Payment Type' => 5,
         'NoticeNO' => 16,
         'Levying Office' => 3,
         'Biller ID' => 8,
         'FeeType' => 4,
-      );
+      ];
       foreach($request2 as $k => $length){
         $request2[$k] = substr($raw, $start, $length);
         $start += $length;
@@ -74,18 +74,18 @@ function _civicrm_ebill_ba_response($raw){
       }
       else{
         $request['Response'] = '0001';
-        $response = array(
+        $response = [
           'IDN/BAN' => str_repeat(' ', 11),
           'Amount' => $request2['Amount'],
           'NoticeNO' => $request2['NoticeNO'],
           'Payment Type' => $contrib->payment_processor['signature'],
-        );
+        ];
       }
     }
     // check 8020
     elseif($request['Message Type'] == '0900' && $request['Processing Code'] == '8020'){
       civicrm_initialize();
-      $request2 = array(
+      $request2 = [
         'Amount' => 14,
         'Payment Type' => 5,
         'NoticeNO' => 16,
@@ -96,7 +96,7 @@ function _civicrm_ebill_ba_response($raw){
         'Business Date' => 6,
         'Transferee Account No.' => 16,
         'Rcode' => 4,
-      );
+      ];
       foreach($request2 as $k => $length){
         $request2[$k] = substr($raw, $start, $length);
         $start += $length;
@@ -108,10 +108,10 @@ function _civicrm_ebill_ba_response($raw){
       }
       else{
         $request['Response'] = '0001';
-        $response = array(
+        $response = [
           'Amount' => $request2['Amount'],
           'NoticeNO' => $request2['NoticeNO'],
-        );
+        ];
       }
     }
     else{
@@ -192,24 +192,24 @@ function _civicrm_ebill_ba_load_contrib($trxn_id, $request){
 }
 
 class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
-  static $_payment_processor = NULL;
-  static $_input = NULL;
+  public static $_payment_processor = NULL;
+  public static $_input = NULL;
   public $_post = NULL;
   public $_get = NULL;
 
-  function __construct($post, $get) {
+  public function __construct($post, $get) {
     parent::__construct();
     $this->_post = $post;
     $this->_get = $get;
   }
 
-  function main($component = 'contribute'){
+  public function main($component = 'contribute'){
     if(is_numeric($this->_get['cid']) && !empty($this->_get['billerid']) && !empty($this->_get['rcode'])){
       db_merge("civicrm_contribution_ebillba")
-        ->key(array('cid' => $this->_get['cid']))
-        ->fields(array('data' => json_encode($this->_get)))
+        ->key(['cid' => $this->_get['cid']])
+        ->fields(['data' => json_encode($this->_get)])
         ->execute();
-      $objects = $ids = $input = array();
+      $objects = $ids = $input = [];
       $input = $this->_get;
       $qfkey = CRM_Utils_Array::value('qfkey', $this->_get);
       $this->getIds($ids, $component);
@@ -222,12 +222,12 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
         if($contribution->contribution_status_id == 1){
           // already complete, go to thank you page
           if($qfkey){
-            drupal_goto($civi_base_url, array(
-              'query' => array(
+            drupal_goto($civi_base_url, [
+              'query' => [
                 '_qf_ThankYou_display' => 'true',
                 'qfKey' => $qfkey,
-              )
-            ));
+              ]
+            ]);
           }
         }
         elseif($input['rcode'] == '4001'){
@@ -239,12 +239,12 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
           $note .= ts('Completed')."\n";
           $this->addNote($note, $contribution);
           if($qfkey){
-            drupal_goto($civi_base_url, array(
-              'query' => array(
+            drupal_goto($civi_base_url, [
+              'query' => [
                 '_qf_ThankYou_display' => 'true',
                 'qfKey' => $qfkey,
-              )
-            ));
+              ]
+            ]);
           }
         }
         else{
@@ -258,12 +258,12 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
           $this->failed($objects, $transaction);
           if($qfkey){
             drupal_set_message(ts("Payment Information").": ".ts("Failed").' - '.$input['rcode'].":".$msg, 'error');
-            drupal_goto($civi_base_url, array(
-              'query' => array(
+            drupal_goto($civi_base_url, [
+              'query' => [
                 '_qf_ThankYou_display' => 'true',
                 'qfKey' => $qfkey,
-              )
-            ));
+              ]
+            ]);
           }
         }
       }
@@ -272,7 +272,7 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
       }
     }
   }
-  function getIds( &$ids , $component){
+  public function getIds( &$ids , $component){
     $ids['contact'] = CRM_Utils_Array::value('contact_id', $this->_get);
     $ids['contribution'] = CRM_Utils_Array::value('cid', $this->_get);
     if($component == 'event') {
@@ -288,30 +288,30 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
     }
   }
 
-  function addNote($note, &$contribution){
+  public function addNote($note, &$contribution){
     require_once 'CRM/Core/BAO/Note.php';
     $note = date("Y/m/d H:i:s"). ts("Transaction record").": \n".$note."\n===============================\n";
     $note_exists = CRM_Core_BAO_Note::getNote( $contribution->id, 'civicrm_contribution' );
     if(count($note_exists)){
-      $note_id = array( 'id' => reset(array_keys($note_exists)) );
+      $note_id = [ 'id' => reset(array_keys($note_exists)) ];
       $note = $note . reset($note_exists);
     }
     else{
       $note_id = NULL;
     }
     
-    $noteParams = array(
+    $noteParams = [
       'entity_table'  => 'civicrm_contribution',
       'note'          => $note,
       'entity_id'     => $contribution->id,
       'contact_id'    => $contribution->contact_id,
       'modified_date' => date('Ymd')
-    );
+    ];
     CRM_Core_BAO_Note::add( $noteParams, $note_id );
   }
 
-  function errorMsg($code){
-    $msg = array(
+  public function errorMsg($code){
+    $msg = [
       '4001' => '交易成功',
       '0101' => '訊息格式或內容編輯錯誤',
       '0102' => '訊息回應代碼錯誤',
@@ -372,7 +372,7 @@ class CRM_Core_Payment_EbillBaIPN extends CRM_Core_Payment_BaseIPN {
       '9997' => '系統服務到達上限。請稍後再試。',
       '9998' => '無法正確判斷電子錢包版本，請確認是否已經安裝新版電子錢包',
       '9999' => '系統發生不明錯誤，若已啟動轉帳或繳稅交易，請洽財金公司詢問該筆交易狀況，以避免重覆扣帳。',
-    ); 
+    ]; 
     if(isset($msg[$code])){
       return $msg[$code];
     }

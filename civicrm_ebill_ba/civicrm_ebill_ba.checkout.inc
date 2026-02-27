@@ -9,11 +9,11 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   $instrument_id = variable_get('civicrm_ebill_ba_instrument', 0);
 
   // use db_merge to prevent duplicate error.
-  db_merge("civicrm_contribution_ebillba")->key(array('cid' => $vars['contributionID']))->execute();
+  db_merge("civicrm_contribution_ebillba")->key(['cid' => $vars['contributionID']])->execute();
 
   // now process contribution to save some default value
-  $contrib_params = array( 'id' => $vars['contributionID'] );
-  $contrib_values = $contrib_ids = array();
+  $contrib_params = [ 'id' => $vars['contributionID'] ];
+  $contrib_values = $contrib_ids = [];
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   $contrib_values['payment_instrument_id'] = $instrument_id;
   $contrib_values['is_pay_later'] = $is_pay_later;
@@ -29,7 +29,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
 
   $notice_no = sprintf("%016s", $vars['trxn_id']);
-  $arguments = array(
+  $arguments = [
     'billerid' => $payment_processor['user_name'],
     'feetype' => $payment_processor['password'],
     'payment_type' => $payment_processor['signature'],
@@ -37,7 +37,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
     'payment_deadline' => date('Ymd'),
     'levying_office' => '',
     'amount' => $amount,
-  );
+  ];
   watchdog('civicrm_ebill_ba', 'notify:' . var_export($arguments, TRUE));
   $payment_url = CRM_Contribute_BAO_Contribution::makeNotifyUrl($vars, NULL, $return_query = TRUE);
   $payment_url = $payment_processor['url_site'].'?'.$payment_url.'&qfkey='.$vars['qfKey'];

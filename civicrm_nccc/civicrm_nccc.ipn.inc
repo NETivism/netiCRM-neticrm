@@ -21,15 +21,15 @@ function civicrm_nccc_ipn(){
 }
 
 class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
-  static $payment_processor= null;
-  function __construct( ) {
+  public static $payment_processor= null;
+  public function __construct( ) {
     parent::__construct( );
   }
 
-  function main(  $component = 'contribute'){
+  public function main(  $component = 'contribute'){
     // get the contribution and contact ids from the GET params
     require_once 'CRM/Utils/Request.php';
-    $objects = $ids = $input = array();
+    $objects = $ids = $input = [];
     $this->getInput($input);
     $input['component'] = $component;
     $this->getIds($ids, $component);
@@ -84,7 +84,7 @@ class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
     }
   }
 
-  function saveRecord($cid, &$input){
+  public function saveRecord($cid, &$input){
     $schema = drupal_get_schema_unprocessed('civicrm_nccc', 'civicrm_contribution_nccc');
     $record = array_intersect_key($input, $schema['fields']);
     $record['cid'] = $cid;
@@ -93,7 +93,7 @@ class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
     drupal_write_record('civicrm_contribution_nccc', $record, 'cid');
   }
 
-  function getInput( &$input) {
+  public function getInput( &$input) {
     foreach($_POST as $k => $v){
       // skip empty value
       if($v === '') continue;
@@ -121,7 +121,7 @@ class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
     $input['transdatetime'] = date('Y-m-d H:i:s', strtotime($_POST['TransDate'].$_POST['TransTime']));
   }
 
-  function getIds( &$ids , $component){
+  public function getIds( &$ids , $component){
     $ids['contact'] = $_GET['contact_id'];
     $ids['contribution'] = $_GET['cid'];
     if ( $component == 'event' ) {
@@ -141,7 +141,7 @@ class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
   }
 
 
-  function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
+  public function validateOthers( &$input, &$ids, &$objects, &$transaction, &$note){
     $contribution = &$objects['contribution'];
     $pass = TRUE;
     
@@ -184,25 +184,25 @@ class CRM_Core_Payment_NCCCIPN extends CRM_Core_Payment_BaseIPN {
   }
 
 
-  function addNote($note, &$contribution){
+  public function addNote($note, &$contribution){
     require_once 'CRM/Core/BAO/Note.php';
     $note = date("Y/m/d H:i:s"). ts("Transaction record").": \n".$note."\n===============================\n";
     $note_exists = CRM_Core_BAO_Note::getNote( $contribution->id, 'civicrm_contribution' );
     if(count($note_exists)){
-      $note_id = array( 'id' => reset(array_keys($note_exists)) );
+      $note_id = [ 'id' => reset(array_keys($note_exists)) ];
       $note = $note . reset($note_exists);
     }
     else{
       $note_id = NULL;
     }
     
-    $noteParams = array(
+    $noteParams = [
       'entity_table'  => 'civicrm_contribution',
       'note'          => $note,
       'entity_id'     => $contribution->id,
       'contact_id'    => $contribution->contact_id,
       'modified_date' => date('Ymd')
-    );
+    ];
     CRM_Core_BAO_Note::add( $noteParams, $note_id );
   }
 }

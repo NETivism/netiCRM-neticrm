@@ -9,115 +9,115 @@
  * Implementation of hook_schema()
  */
 function civicrm_neweb_schema(){
-  $schema['civicrm_contribution_neweb'] = array(
+  $schema['civicrm_contribution_neweb'] = [
     'name' => 'civicrm_contribution_neweb',
-    'fields' => array(
-      'cid' => array(
+    'fields' => [
+      'cid' => [
         'description' => 'The id of civicrm_contribution.',
         'type' => 'int',
         'length' => '11',
         'not null' => TRUE,
-      ),
-      'created' => array(
+      ],
+      'created' => [
         'description' => 'Submit time for user confirmed transaction.',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'prc' => array(
+      ],
+      'prc' => [
         'description' => 'Primary code returned from credit card transaction.',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'src' => array(
+      ],
+      'src' => [
         'description' => 'Secondary code returned from neweb credit card transaction.',
         'type' => 'int',
         'length' => '11',
         'not null' => FALSE,
-      ),
-      'bankrc' => array(
+      ],
+      'bankrc' => [
         'description' => t('Bank code returned from neweb credit card transaction.'),
         'type' => 'varchar',
         'length' => '4',
         'not null' => FALSE,
-      ),
-      'approvalcode' => array(
+      ],
+      'approvalcode' => [
         'description' => t('Approval code returned from neweb credit card transaction.'),
         'type' => 'varchar',
         'length' => '6',
         'not null' => FALSE,
-      ),
-      'data' => array(
+      ],
+      'data' => [
         'description' => 'Whole response object from neweb.',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'post_data' => array(
+      ],
+      'post_data' => [
         'description' => 'Whole response object from neweb.',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'return_data' => array(
+      ],
+      'return_data' => [
         'description' => 'Whole response object from neweb.',
         'type' => 'blob',
         'not null' => FALSE,
-      ),
-      'post_data_transact' => array(
+      ],
+      'post_data_transact' => [
         'description' => 'Record transact post cmd data.',
         'type' => 'blob',
         'not null' => FALSE,
-      )
-    ),
-    'primary key' => array('cid'),
+      ]
+    ],
+    'primary key' => ['cid'],
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-  );
+  ];
 
-  $schema['civicrm_contribution_neweb_recur'] = array(
+  $schema['civicrm_contribution_neweb_recur'] = [
     'name' => 'civicrm_contribution_neweb_recur',
-    'fields' => array(
-      'recur_id' => array(
+    'fields' => [
+      'recur_id' => [
         'description' => 'Recurrent ID of civicrm_contribution_recur',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'order_num' => array(
+      ],
+      'order_num' => [
         'description' => 'Order number of contribution trxn_id',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'cycle' => array(
+      ],
+      'cycle' => [
         'description' => 'Cycle count of recurrent contribution',
         'type' => 'int',
         'not null' => FALSE,
         'unsigned' => TRUE,
         'default' => 0,
-      ),
-      'upload' => array(
+      ],
+      'upload' => [
         'description' => 'Upload timestamp flag.',
         'type' => 'int',
         'default' => 0,
         'unsigned' => TRUE,
-      ),
-      'response' => array(
+      ],
+      'response' => [
         'description' => 'Response timestamp flag.',
         'type' => 'int',
         'default' => 0,
         'unsigned' => TRUE,
-      ),
-      'contributions' => array(
+      ],
+      'contributions' => [
         'description' => 'Contributions timestamp flag.',
         'type' => 'int',
         'default' => 0,
         'unsigned' => TRUE,
-      ),
-    ),
-    'primary key' => array('recur_id'),
-    'key' => array('order_num'),
+      ],
+    ],
+    'primary key' => ['recur_id'],
+    'key' => ['order_num'],
     'mysql_suffix' => 'ENGINE = InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci',
-  );
+  ];
   return $schema;
 }
 
@@ -144,14 +144,14 @@ function civicrm_neweb_install() {
   $new_instrument = _civicrm_neweb_instrument();
   $instrument_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
   
-  $group_params = array('name' => 'payment_instrument');
+  $group_params = ['name' => 'payment_instrument'];
   foreach($new_instrument as $k => $v){
-    $params = array(
+    $params = [
       'name' => $k,
       'label' => $v['label'],
       'is_active' => 1,
       'is_reserved' => 1,
-    );
+    ];
     $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE option_group_id = {$instrument_id} AND name = '$k'");
     $dao->fetch();
     if($dao->id){
@@ -208,7 +208,7 @@ function civicrm_neweb_create_dir($directory){
   }
   else{
     $message = "Security warning: Couldn't modify .htaccess file. Please create a .htaccess file in your %directory directory which contains the following lines: <code>!htaccess</code> or add them to the existing .htaccess file";
-    $replace = array('%directory' => $newebpath, '!htaccess' => '<br />' . nl2br(check_plain($htaccess_lines)));
+    $replace = ['%directory' => $newebpath, '!htaccess' => '<br />' . nl2br(check_plain($htaccess_lines))];
     drupal_set_message(t($message, $replace), "error");
     watchdog('civicrm_neweb', t($message, $replace), WATCHDOG_ERROR);
   } 
@@ -235,7 +235,7 @@ function civicrm_neweb_update_6105(){
     }
   }
   _drupal_initialize_schema('civicrm_neweb', $schema);
-  $ret = array();
+  $ret = [];
   foreach ($schema as $name => $table) {
     db_create_table($ret, $name, $table);
   }
@@ -245,7 +245,7 @@ function civicrm_neweb_update_6105(){
 function civicrm_neweb_update_6106(){
   civicrm_neweb_create_dir('neweb');
   civicrm_neweb_create_dir('neweb_test');
-  $ret = array();
+  $ret = [];
 
   return $ret;
 }
@@ -262,27 +262,27 @@ function civicrm_neweb_update_6107(){
     CRM_Core_DAO::singleValueQuery("Update civicrm_option_value SET is_reserved = 1 WHERE id IN(".implode(',', $ids).") AND is_reserved = 0");
   }
 
-  return array();
+  return [];
 }
 
 function civicrm_neweb_update_6108(){
-  $ret = array();
+  $ret = [];
   
-  db_add_field($ret, 'civicrm_contribution_neweb', 'created', array(
+  db_add_field($ret, 'civicrm_contribution_neweb', 'created', [
     'description' => 'Submit time for user confirmed transaction.',
     'type' => 'int',
     'length' => '11',
     'not null' => FALSE,
-  ));
+  ]);
   return $ret;
 }
 
 function civicrm_neweb_update_6109(){
-  $date_field = array('created_date', 'receive_date', 'receipt_date', 'cancel_date', 'thankyou_date');
+  $date_field = ['created_date', 'receive_date', 'receipt_date', 'cancel_date', 'thankyou_date'];
   civicrm_initialize();
   $query = CRM_Core_DAO::executeQuery("SELECT count(id) as counter, group_concat(id) as ids, group_concat(receipt_id) as receipt_ids FROM civicrm_contribution where receipt_id IS NOT NULL AND receipt_id != '' group by receipt_id having count(id) > 1");
   while($query->fetch()){
-    $ids = $receipt_ids = array();
+    $ids = $receipt_ids = [];
     $ids = explode(',', $query->ids);
     $receipt_ids = explode(',', $query->receipt_ids);
     foreach($ids as $k => $id){
@@ -322,7 +322,7 @@ function civicrm_neweb_update_6109(){
  * Write ftp infomation from single payment processor to multiple.
  */
 function civicrm_neweb_update_7201(){
-  $tests = array(0,1);
+  $tests = [0,1];
   foreach ($tests as $item) {
     $test = $item ? "" : "_test" ;
     variable_del('civicrm_neweb_response'.$test);
@@ -358,11 +358,11 @@ function civicrm_neweb_update_7201(){
 function civicrm_neweb_update_7200() {
   $field_exists = db_field_exists('civicrm_contribution_neweb', 'data');
   if (!$field_exists) {
-    $new_field = array(
+    $new_field = [
       'type' => 'blob',
       'not null' => TRUE,
       'description' => 'Whole response object from neweb.',
-    );
+    ];
     db_add_field('civicrm_contribution_neweb', 'data', $new_field);
   }
 }
@@ -400,18 +400,18 @@ function civicrm_neweb_update_7203(){
  */
 function civicrm_neweb_update_7204(){
   if (!db_field_exists('civicrm_contribution_neweb', 'post_data')) {
-    db_add_field('civicrm_contribution_neweb', 'post_data', array(
+    db_add_field('civicrm_contribution_neweb', 'post_data', [
       'description' => 'Transaction response object from neweb.',
       'type' => 'blob',
       'not null' => FALSE,
-    ));
+    ]);
   }
   if (!db_field_exists('civicrm_contribution_neweb', 'return_data')) {
-    db_add_field('civicrm_contribution_neweb', 'return_data', array(
+    db_add_field('civicrm_contribution_neweb', 'return_data', [
       'description' => 'Transaction response object from neweb.',
       'type' => 'blob',
       'not null' => FALSE,
-    ));
+    ]);
   }
   return $ret;
 }
@@ -445,11 +445,11 @@ function civicrm_neweb_update_7207(){
 */
 function civicrm_neweb_update_7208(){
   if (!db_field_exists('civicrm_contribution_neweb', 'post_data_transact')) {
-    db_add_field('civicrm_contribution_neweb', 'post_data_transact', array(
+    db_add_field('civicrm_contribution_neweb', 'post_data_transact', [
       'description' => 'Record transact post cmd data.',
       'type' => 'blob',
       'not null' => FALSE,
-    ));
+    ]);
   }
   return ;
 }

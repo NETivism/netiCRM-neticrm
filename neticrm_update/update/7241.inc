@@ -2,14 +2,14 @@
 
 function _neticrm_update_update_7241(){
   // Refs _neticrm_update_update_7212
-  $params = array(
+  $params = [
     'label' => ts('CiviMail'),
     'name' => 'CiviMail',
     'description' => '',
     'is_active' => 1,
     'weight' => 20,
-  );
-  $group_params = array('name' => 'advanced_search_options');
+  ];
+  $group_params = ['name' => 'advanced_search_options'];
   $action = CRM_Core_Action::ADD;
   $option_name = CRM_Core_DAO::singleValueQuery("SELECT v.name FROM civicrm_option_value v INNER JOIN civicrm_option_group g ON v.option_group_id = g.id WHERE g.name = 'advanced_search_options' AND v.name = 'CiviMail'");
   if(empty($option_name)) {

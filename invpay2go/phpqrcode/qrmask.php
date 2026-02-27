@@ -32,7 +32,7 @@
 
 	class QRmask {
 
-		public $runLength = array();
+		public $runLength = [];
 
 		//----------------------------------------------------------------------
 		public function __construct()
@@ -104,7 +104,7 @@
                     if(ord($frame[$y][$x]) & 0x80) {
                         $bitMask[$y][$x] = 0;
                     } else {
-                        $maskFunc = call_user_func(array($this, 'mask'.$maskNo), $x, $y);
+                        $maskFunc = call_user_func([$this, 'mask'.$maskNo], $x, $y);
                         $bitMask[$y][$x] = ($maskFunc == 0)?1:0;
                     }
 
@@ -117,7 +117,7 @@
         //----------------------------------------------------------------------
         public static function serial($bitFrame)
         {
-            $codeArr = array();
+            $codeArr = [];
 
             foreach ($bitFrame as $line)
                 $codeArr[] = join('', $line);
@@ -128,7 +128,7 @@
         //----------------------------------------------------------------------
         public static function unserial($code)
         {
-            $codeArr = array();
+            $codeArr = [];
 
             $codeLines = explode("\n", gzuncompress($code));
             foreach ($codeLines as $line)
@@ -141,7 +141,7 @@
         public function makeMaskNo($maskNo, $width, $s, &$d, $maskGenOnly = false)
         {
             $b = 0;
-            $bitMask = array();
+            $bitMask = [];
 
             $fileName = QR_CACHE_DIR.'mask_'.$maskNo.DIRECTORY_SEPARATOR.'mask_'.$width.'_'.$maskNo.'.dat';
 
@@ -286,9 +286,9 @@
         {
             $minDemerit = PHP_INT_MAX;
             $bestMaskNum = 0;
-            $bestMask = array();
+            $bestMask = [];
 
-            $checked_masks = array(0,1,2,3,4,5,6,7);
+            $checked_masks = [0,1,2,3,4,5,6,7];
 
             if (QR_FIND_FROM_RANDOM !== false) {
 

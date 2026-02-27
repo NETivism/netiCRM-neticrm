@@ -5,45 +5,45 @@ define( 'CIVICRM_SECURE_GROUP_GID',  variable_get('civicrm_secure_group_gid', '0
 define( 'CIVICRM_SECURE_GROUP_RID',  variable_get('civicrm_secure_group_rid', '0') );
 
 function civicrm_secure_group_menu(){
-  $items['admin/config/system/civicrm_secure'] = array(
+  $items['admin/config/system/civicrm_secure'] = [
     'title' => t('CiviCRM Secure Group'),
     'description' => t('CiviCRM secure group setting.'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('civicrm_secure_group_settings'),
+    'page arguments' => ['civicrm_secure_group_settings'],
     'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => ['administer site configuration'],
     'type' => MENU_NORMAL_ITEM,
-  );
+  ];
   return $items;
 }
 
 function civicrm_secure_group_settings(){
   if (!empty(CIVICRM_SECURE_GROUP_GID)) {
-    $form['civicrm_secure_group_gids'] = array(
+    $form['civicrm_secure_group_gids'] = [
       '#markup' => '<div>Current gids: ' . CIVICRM_SECURE_GROUP_GID . '</div>',
-    );
-    $form['civicrm_secure_group_rid'] = array(
+    ];
+    $form['civicrm_secure_group_rid'] = [
       '#markup' => '<div>Current rid: ' . CIVICRM_SECURE_GROUP_RID . '</div>',
-    );
+    ];
   }
-  $form['civicrm_secure_group_reverse'] = array(
+  $form['civicrm_secure_group_reverse'] = [
     '#type' => 'checkbox',
     '#title' => t('Hide not listed groups to role'),
     '#description' => t('Check this will hide groups not listed in civicrm_secure_group_gid when user have role. Uncheck this will show all groups when user have permission "administer CiviCRM"'),
     '#default_value' => variable_get('civicrm_secure_group_reverse', 0),
-  );
+  ];
   return system_settings_form($form);
 }
 
 function civicrm_secure_group_requirements($phase) {
-  $requirements = array();
+  $requirements = [];
   $t = get_t();
   if ($phase == 'runtime') {
-    $requirements['civicrm_secure_group'] = array(
+    $requirements['civicrm_secure_group'] = [
       'title' => $t('CiviCRM Secure Group'),
       'description' => $t('Secure Gruop module enabled, but no any CiviCRM group and Drupal role set. This may have secure problem, add conf civicrm_secure_group_gid and civicrm_secure_group_rid into your settings.php'),
       'value' => 'GID:'. variable_get('civicrm_secure_group_gid', '') . ', RID:'.variable_get('civicrm_secure_group_rid', ''),
-    );
+    ];
     if(empty(CIVICRM_SECURE_GROUP_GID) || empty(CIVICRM_SECURE_GROUP_RID)) {
       $requirements['civicrm_secure_group']['severity'] = REQUIREMENT_ERROR;
     }

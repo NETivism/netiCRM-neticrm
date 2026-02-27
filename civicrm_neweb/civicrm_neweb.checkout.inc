@@ -7,10 +7,10 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $neweb_instruments = _civicrm_neweb_instrument();
   $instrument_code = $neweb_instruments[$instrument_name]['code'];
   // The first, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array(
+  $record = [
     'cid' => $params['contributionID'], 
     'created' => REQUEST_TIME
-  );
+  ];
   db_merge("civicrm_contribution_neweb")->key($record)->execute();
 
 
@@ -31,8 +31,8 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
       break;
   }
   // now process contribution to save some default value
-  $contrib_params = array( 'id' => $params['contributionID'] );
-  $contrib_values = $contrib_ids = array();
+  $contrib_params = [ 'id' => $params['contributionID'] ];
+  $contrib_values = $contrib_ids = [];
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   if($params['civicrm_instrument_id']){
     $contrib_values['payment_instrument_id'] = $params['civicrm_instrument_id'];
@@ -50,11 +50,11 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
   $_SESSION['CiviCRM'][$form_key]['params']['returnvalue'] = $params_form['returnvalue'];
 
   // making redirect form
-  $alter = array(
+  $alter = [
     'module' => 'civicrm_neweb',
     'billing_mode' => $payment_processor['billing_mode'],
     'params' => $params_form,
-  );
+  ];
   drupal_alter('civicrm_checkout_params', $alter);
 
   // avoid doesn't execute update.php , check the new column existed.
@@ -79,7 +79,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
       if($new_pstatus = array_search('Pending from pay later', $pstatus)){
         CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $params['participantID'], 'status_id', $new_pstatus, 'id');
         $sql = 'SELECT id FROM civicrm_participant WHERE registered_by_id = %1';
-        $dao = CRM_Core_DAO::executeQuery($sql, array(1 => array($params['participantID'], 'Integer')));
+        $dao = CRM_Core_DAO::executeQuery($sql, [1 => [$params['participantID'], 'Integer']]);
         while($dao->fetch()){
           CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $dao->id, 'status_id', $new_pstatus, 'id');
         }
@@ -91,7 +91,7 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
 
     if(!empty($result_obj)){
       $sql = "SELECT return_data FROM civicrm_contribution_neweb WHERE cid = %1";
-      $vars = array(1 => array($contribution->id, 'Integer'));
+      $vars = [1 => [$contribution->id, 'Integer']];
       $data = CRM_Core_DAO::singleValueQuery($sql, $vars);
       if(!empty($data)){
         $result = $data;
@@ -99,10 +99,10 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
         $result = json_encode($result_obj);
       }
       $sql = "UPDATE civicrm_contribution_neweb SET return_data = %1 WHERE cid = %2";
-      $vars = array(
-        1 => array($result, 'String'),
-        2 => array($contribution->id, 'Integer'),
-      );
+      $vars = [
+        1 => [$result, 'String'],
+        2 => [$contribution->id, 'Integer'],
+      ];
       CRM_Core_DAO::executeQuery($sql, $vars);
 
       // Set expire time
@@ -112,23 +112,23 @@ function civicrm_neweb_do_transfer_checkout($params, $component, &$payment_proce
       }
       if(!empty($expire_date)){
         $sql = "UPDATE civicrm_contribution SET expire_date = %1 WHERE id = %2";
-        $vars = array(
-          1 => array( $expire_date, 'String'),
-          2 => array( $contribution->id, 'Integer'),
-        );
+        $vars = [
+          1 => [ $expire_date, 'String'],
+          2 => [ $contribution->id, 'Integer'],
+        ];
         CRM_Core_DAO::executeQuery($sql, $vars);
       }
 
       require_once("civicrm_neweb.notify.inc");
       civicrm_neweb_notify_generate($contribution->id, TRUE);
       $civi_base_url = CRM_Utils_System::currentPath();
-      $query = array(
+      $query = [
         '_qf_ThankYou_display' => 'true',
         'qfKey' => $params['qfKey'],
         'instrument' => $instrument_code,
-      );
+      ];
       CRM_Core_Session::storeSessionObjects( );
-      drupal_goto($civi_base_url, array('query' => $query,));
+      drupal_goto($civi_base_url, ['query' => $query,]);
     }
   }
 }
@@ -142,7 +142,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
   // building params
   $amount = $params['currencyID'] == 'TWD' && strstr($params['amount'], '.') ? substr($params['amount'], 0, strpos($params['amount'],'.')) .'.00' : $params['amount'];
   $name = function_exists('truncate_utf8') ? truncate_utf8($params['item_name'], 10) : $params['item_name'];
-  $neweb_params = array(
+  $neweb_params = [
     "MerchantNumber" => $payment_processor['user_name'],
     "OrderNumber"    => $params['trxn_id'],
     "Amount"         => $amount,
@@ -156,7 +156,7 @@ function _civicrm_neweb_mpp(&$params, $component, $payment_processor, $neweb_ins
     "iphonepage"     => 1,
     "#action"        => $payment_processor['url_site'],
     "#paymentProcessor" => $payment_processor,
-  );
+  ];
   $neweb_params["checksum"] = md5($payment_processor['user_name'].$neweb_params['OrderNumber'].$payment_processor['signature'].$amount);
   global $language;
   if ($language->language == 'en') {
@@ -179,7 +179,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
     $amount = $params['amount'];
   }
   
-  $post = array();
+  $post = [];
   $post['merchantnumber'] = $payment_processor['password'];
   $post['ordernumber'] = $params['trxn_id'];
   $post['amount'] = $amount;
@@ -215,7 +215,7 @@ function _civicrm_neweb_ezpay(&$params, $component, $payment_processor, $neweb_i
 }
 
 function _civicrm_neweb_notify_url(&$vars, $path, $component){
-  $query = array();
+  $query = [];
   $query['contact_id'] = $vars['contactID'];
   $query['cid'] = $vars['contributionID'];
   $query['module'] = $component;
@@ -251,10 +251,10 @@ function _civicrm_neweb_notify_url(&$vars, $path, $component){
 
   return url(
     $path,
-    array(
+    [
       'query'=> $query,
       'absolute' => true,
-    )
+    ]
   );
 }
 
@@ -323,9 +323,9 @@ function print_redirect(){
 }
 
 function _civicrm_neweb_get_mobile_params(){
-  $params = array(
+  $params = [
     'session_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/sessions',
     'transact_url' => 'https://testmaple2.neweb.com.tw/NewebPayment2/applepay/ccaccept',
-  );
+  ];
   return $params;
 }

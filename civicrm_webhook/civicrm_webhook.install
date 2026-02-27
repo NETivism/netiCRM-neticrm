@@ -17,7 +17,7 @@ function civicrm_webhook_install() {
     CRM_Core_DAO::setFieldValue('CRM_Core_DAO_CustomGroup', $groupId, 'collapse_adv_display', 1);
   }
   if(!empty($groupId)){
-    $fields = array();
+    $fields = [];
     $fields['notify'] = _civicrm_demo_create_custom_field('Webhook_Notify_URL', 'Webhook Notify URL', 'String', 'Text', $groupId);
     $fields['redirect'] = _civicrm_demo_create_custom_field('Webhook_Redirect_URL', 'Webhook Redirect URL', 'String', 'Text', $groupId);
     foreach($fields as $field) {

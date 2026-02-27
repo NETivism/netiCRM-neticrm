@@ -5,48 +5,48 @@
  */
 
 function civicrm_nccc_import_menu(){
-  return array(
-    'civicrm/nccc_import' => array(
+  return [
+    'civicrm/nccc_import' => [
       'title' => 'NCCC VPOS data import',
-      'access arguments' => array('import nccc contribution'),
+      'access arguments' => ['import nccc contribution'],
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('civicrm_nccc_import_form'),
+      'page arguments' => ['civicrm_nccc_import_form'],
       'type' => MENU_CALLBACK,
-    )
-  );
+    ]
+  ];
 }
 
 function civicrm_nccc_import_perm(){
-  return array('import nccc contribution');
+  return ['import nccc contribution'];
 }
 
 function civicrm_nccc_import_form($form_state){
   if(isset($_SESSION['nccc_import']) && (!empty($_SESSION['nccc_import']['imported']) || !empty($_SESSION['nccc_import']['skipped'])) ){
     // step 3
     if(!empty($_SESSION['nccc_import']['imported'])) {
-      $form['imported'] = array(
+      $form['imported'] = [
         '#value' => '<h3>'.t('Imported record').'</h3><pre>'.$_SESSION['nccc_import']['imported'].'</pre>',
-      );
+      ];
     }
     if(!empty($_SESSION['nccc_import']['skipped'])) {
-      $form['skipped'] = array(
+      $form['skipped'] = [
         '#type' => 'textarea',
         '#title' => t('Skipped record'),
         '#default_value' => $_SESSION['nccc_import']['skipped'],
         '#prefix' => '<div style="font-family:font-family:\'Courier New\',Courier,monospace;">',
         '#suffix' => '</div>',
-      );	
+      ];	
     }
 
     // submit form
-    $form['step'] = array(
+    $form['step'] = [
       '#type' => 'hidden',
       '#value' => 3,
-    );
-    $form['submit'] = array(
+    ];
+    $form['submit'] = [
       '#type' => 'submit',
       '#value' => t('Done'),
-    ); 
+    ]; 
     return $form;
   }
   elseif(isset($_SESSION['nccc_import']) && !empty($_SESSION['nccc_import']['data'])){
@@ -58,26 +58,26 @@ function civicrm_nccc_import_form($form_state){
       $status = 0;
       $found = $status = '';
       // skip saved record
-      $params = array(
+      $params = [
         'invoice_id' => $r['#invoice_id'],
         'version' => 3,
-      );
+      ];
       $c = civicrm_api('contribution', 'get', $params);
       if(count($c['values'])){
         $contribution = reset($c['values']);
         // contribution alwready exists
-        $found = t('Duplicate contribution <a href="!clink" target="_blank">!cid</a>', array('!clink'=> url('civicrm/contact/view/contribution', array('query' => "reset=1&id={$c['id']}&cid={$contribution['contact_id']}&action=view")), '!cid' => $c['id']));
+        $found = t('Duplicate contribution <a href="!clink" target="_blank">!cid</a>', ['!clink'=> url('civicrm/contact/view/contribution', ['query' => "reset=1&id={$c['id']}&cid={$contribution['contact_id']}&action=view"]), '!cid' => $c['id']]);
         $status = 1;
       }
       else{
-        $params = array(
+        $params = [
           'external_identifier' => $r['#external_identifier'],
           'version' => 3,
-        );
+        ];
         $c = civicrm_api('contact', 'get', $params);
         if(empty($c['values'])){
           // not found
-          $found = t('Contact not found.<br />Would you like <a href="!crmadd" target="_blank">add one</a> with external ID !ext.', array('!crmadd' => url('civicrm/contact/add', array('query' => 'reset=1&ct=Individual&external_id='.$r['#external_identifier'])), '!ext' => $r['#external_identifier']));
+          $found = t('Contact not found.<br />Would you like <a href="!crmadd" target="_blank">add one</a> with external ID !ext.', ['!crmadd' => url('civicrm/contact/add', ['query' => 'reset=1&ct=Individual&external_id='.$r['#external_identifier']]), '!ext' => $r['#external_identifier']]);
           $status = 2;
         }
         else{
@@ -88,11 +88,11 @@ function civicrm_nccc_import_form($form_state){
           $contact_id = $contact['contact_id'];
         }
       }
-      $found = array(
+      $found = [
         '#contact_id' => $contact_id,
         'status' => $status,
         'msg' => $found,
-      );
+      ];
       $found += $parsed[$l];
       $parsed[$l] = $found;
     }
@@ -107,7 +107,7 @@ function civicrm_nccc_import_form($form_state){
       });
     });';
     drupal_add_js($js, 'inline', 'footer');
-    $header = array(
+    $header = [
       t('Status'),
       t('Message'),
       t('Store num'),
@@ -120,7 +120,7 @@ function civicrm_nccc_import_form($form_state){
       t('Valid Date'),
       t('Note'),
       '--',
-    );
+    ];
     $data = $parsed;
     foreach($data as $k => $v){
       foreach($v as $kk => $vv){
@@ -129,24 +129,24 @@ function civicrm_nccc_import_form($form_state){
         }
       }
     }
-    $form['body_parsed'] = array(
+    $form['body_parsed'] = [
       '#value' => '<div id="import-table">'.theme('table', $header, $data).'</div>',
-    );
-    $form['step'] = array(
+    ];
+    $form['step'] = [
       '#type' => 'hidden',
       '#value' => 2,
-    );
-    $form['submit'] = array(
+    ];
+    $form['submit'] = [
       '#prefix' => '<div class="container-inline">',
       '#type' => 'submit',
       '#value' => t('Import'),
-      '#attributes' => array('onclick' => 'confirm("'.t('Are you sure you want to continue? We will ignore line with errors(marked as red.)').'")'),
-    ); 
-    $form['cancel'] = array(
+      '#attributes' => ['onclick' => 'confirm("'.t('Are you sure you want to continue? We will ignore line with errors(marked as red.)').'")'],
+    ]; 
+    $form['cancel'] = [
       '#type' => 'submit',
       '#value' => t('Cancel'),
       '#suffix' => '</div>',
-    ); 
+    ]; 
     return $form;
   }
   elseif(isset($_SESSION['nccc_import']) && !empty($_SESSION['nccc_import']['body'])){
@@ -160,7 +160,7 @@ function civicrm_nccc_import_form($form_state){
   unset($_SESSION['nccc_import']);
 
   // text area form
-  $form['body'] = array(
+  $form['body'] = [
     '#type' => 'textarea',
     '#title' => t('Donation Data'),
     '#required' => TRUE,
@@ -168,17 +168,17 @@ function civicrm_nccc_import_form($form_state){
     '#default_value' => $body_default,
     '#prefix' => '<div style="font-family:font-family:\'Courier New\',Courier,monospace;">',
     '#suffix' => '</div>',
-  );	
-  $form['step'] = array(
+  ];	
+  $form['step'] = [
     '#type' => 'hidden',
     '#value' => 1,
-  );
+  ];
 
   // submit form
-  $form['submit'] = array(
+  $form['submit'] = [
     '#type' => 'submit',
     '#value' => t('Verify data'),
-  ); 
+  ]; 
 
   return $form;
 }
@@ -198,7 +198,7 @@ function civicrm_nccc_import_form_validate($form, &$form_state){
     
     // Each line should be at least 120 digit
     if (strlen($line)<120){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#1', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#1', '!line' => $line]));
     }
 
     // nccc acount is always the same
@@ -206,46 +206,46 @@ function civicrm_nccc_import_form_validate($form, &$form_state){
     //dpm($strCheck);
     $ncccact = "0125001976";
     if ($strCheck != $ncccact){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#2', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#2', '!line' => $line]));
     }		
 
     // There are 3 zeros after credit card number
     $strCheck = substr($line, 34, 3); // should be 3 zero   
     //dpm($strCheck);
     if ($strCheck != "000"){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#3', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#3', '!line' => $line]));
     }
 
     // there are 8 empty digit after donation amount
     $strCheck = substr($line, 45, 8); // the 8 digit is empty   
     //dpm($strCheck);
     if ($strCheck != "        "){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#4', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#4', '!line' => $line]));
     }
 
     // the 2 digit is either 00 or 01 [00一般交易 01退貨]
     $strCheck = substr($line, 53, 2); // should be 00 or 01   
     if (!($strCheck = "00" || $strCheck = "01")){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#5', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#5', '!line' => $line]));
     }
 
     // There are 31 empty digit
     $strCheck = substr($line, 65, 31); 
     if ($strCheck != "                               "){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#6', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#6', '!line' => $line]));
     }
 
     // 6 empty digit
     $strCheck = substr($line, 112, 6); 
     if ($strCheck != "      "){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#7', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#7', '!line' => $line]));
     }
 
     // The last 2 digit is 02
     $strCheck = substr($line, strlen($line)-2, 2); 
     //dpm($strCheck);
     if ($strCheck != "02"){
-      form_set_error('body', t('Wrong format at column !column , line: !line', array('!column' => '#8', '!line' => $line)));
+      form_set_error('body', t('Wrong format at column !column , line: !line', ['!column' => '#8', '!line' => $line]));
     }
 
     // Get next line 
@@ -258,9 +258,9 @@ function civicrm_nccc_import_form_submit($form, &$form_state){
   if($form_state['values']['op'] == t('Cancel')){
     $body = $_SESSION['nccc_import']['body'];
     unset($_SESSION['nccc_import']);
-    $_SESSION['nccc_import'] = array(
+    $_SESSION['nccc_import'] = [
       'body' => $body,
-    );
+    ];
     return;
   }
 
@@ -280,7 +280,7 @@ function civicrm_nccc_import_form_submit($form, &$form_state){
         }
         else{
           // import contribution
-          $params = array( 
+          $params = [ 
             'contact_id' => $d['#contact_id'],
             'receive_date' => '20'.ltrim($d['delidate'], '20'), // only for this centry
             'total_amount' => $d['amount'],
@@ -290,7 +290,7 @@ function civicrm_nccc_import_form_submit($form, &$form_state){
             'source' => 'NCCC txt',
             'contribution_status_id' => 1,
             'version' => 3,
-          );
+          ];
 
           $r = civicrm_api( 'contribution','create', $params);
           if(!empty($r['id'])){

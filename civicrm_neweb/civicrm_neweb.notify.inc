@@ -20,7 +20,7 @@ function civicrm_neweb_notify_generate($cid, $send_mail = FALSE){
 }
 
 function civicrm_neweb_notify_bytrxn($trxn_id){
-  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(1 => array($trxn_id, 'String')));
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", [1 => [$trxn_id, 'String']]);
   return civicrm_neweb_notify_info($cid);
 }
 
@@ -55,7 +55,7 @@ function civicrm_neweb_notify_info($cid){
     }
     elseif(!empty($info['barcode1'])){
       $barcodepath = $payment_processor['url_api'].'BarcodeGenerator?barcode=';
-      $barcode = array($info['barcode1'], $info['barcode2'], $info['barcode3']);
+      $barcode = [$info['barcode1'], $info['barcode2'], $info['barcode3']];
       foreach($barcode as $k => $b){
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" height="40px" width="'.(strlen($b)*15+30).'px" /></div><div style="font-size:13px;padding-bottom:4px;">'.$b.'</div>';
         // $return['條碼'.($k+1)] = $return['#barcode'.$k];
@@ -78,7 +78,7 @@ function civicrm_neweb_notify_info($cid){
   }
 
   // error fallback
-  return array();
+  return [];
 }
 
 function civicrm_neweb_notify_display($info, $payment_instrument_id = NULL){

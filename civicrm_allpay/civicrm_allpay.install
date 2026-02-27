@@ -57,14 +57,14 @@ function civicrm_allpay_install() {
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
   $next = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE option_group_id = {$gid} ORDER BY value DESC");
   
-  $group_params = array('name' => 'payment_instrument');
+  $group_params = ['name' => 'payment_instrument'];
   foreach($new_instrument as $k => $v){
-    $params = array(
+    $params = [
       'name' => $k,
       'label' => $v['label'],
       'is_active' => 1,
       'is_reserved' => 1,
-    );
+    ];
     if ($v['code'] == 'WebATM' || $v['code'] == 'Alipay') {
       $params['is_active'] = 0;
     }
@@ -128,12 +128,12 @@ function civicrm_allpay_update_7101(){
   $result = CRM_Core_DAO::executeQuery("SELECT id, is_test FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY%'");
   while($result->fetch()){
     $base = $result->is_test ? ALLPAY_TEST_DOMAIN : ALLPAY_REAL_DOMAIN;
-    $update = array(
-      1 => array($base.ALLPAY_URL_SITE,'String'),
-      2 => array($base.ALLPAY_URL_API,'String'),
-      3 => array($base.ALLPAY_URL_RECUR,'String'),
-      9 => array($result->id, 'Integer')
-    );
+    $update = [
+      1 => [$base.ALLPAY_URL_SITE,'String'],
+      2 => [$base.ALLPAY_URL_API,'String'],
+      3 => [$base.ALLPAY_URL_RECUR,'String'],
+      9 => [$result->id, 'Integer']
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET url_site = %1, url_api = %2, url_recur = %3 WHERE id = %9", $update);
   }
 

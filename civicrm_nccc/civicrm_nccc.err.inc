@@ -6,15 +6,15 @@ function civicrm_nccc_err($response_code = NULL){
   else{
     $msg = t('Unknown error');
   }
-  $items = array(
+  $items = [
     '錯誤代碼：'.$response_code,
     '錯誤訊息：'.$msg,
-  );
+  ];
   $output = '很抱歉，您的信用卡刷卡不成功，錯誤訊息可參考下方資訊：';
   $output .= theme('item_list', $items);
   $output .= '若有疑問，可與我們聯絡，提供錯誤訊息以協助處理';
   if(!empty($_SESSION['nccc']['path'])){
-    $output .= '，或您可以'.l('再試一次', $_SESSION['nccc']['path'], array('query' => $_SESSION['nccc']['query']));
+    $output .= '，或您可以'.l('再試一次', $_SESSION['nccc']['path'], ['query' => $_SESSION['nccc']['query']]);
     unset($_SESSION['nccc']);
   }
   $output .= '，謝謝。';
@@ -22,8 +22,8 @@ function civicrm_nccc_err($response_code = NULL){
 }
 
 function _civicrm_nccc_err(){
-  $err = array();
-  $err['responsecode'] = array(
+  $err = [];
+  $err['responsecode'] = [
     "901" => "特店代號格式錯誤",
     "902" => "端末機代號格式錯誤",
     "903" => "訂單編號格式錯誤",
@@ -61,13 +61,13 @@ function _civicrm_nccc_err(){
     "589" => "Blocked BIN ",
     "998" => "轉交發卡行進 3D 認證",
     "999" => "系統",
-  );
+  ];
 
-  $err['bank_success'] = array(
+  $err['bank_success'] = [
     '授權交易成功' => '[00][08][11]',
-  );
+  ];
 
-  $err['bank_error'] = array(
+  $err['bank_error'] = [
     '請與發卡銀行聯絡 (Call Bank)' => '[01][02][P1][P4][P6][P9][T4]',
     '拒絕交易 (Decline)' => '[03][05][06][09][12-15][30-31][39][51][55-58][61-63][65][68][75-92][94][N1-N9][O0-O9][P0][P2][P3][P5][P7][P8][Q0-Q4][Q6-Q9][R0-R8][S4][S5][S6][S7][S8][S9][T5][A3][A9]',
     '沒收卡片 (Pickup)' => '[04][07][34-38][41][43][Q5]',
@@ -79,5 +79,5 @@ function _civicrm_nccc_err(){
     '紅利資料錯誤' => '[AI]',
     '不支援分期交易' => '[AH][AG]',
     '不支援紅利交易' => '[AK][AL]',
-  );
+  ];
 }

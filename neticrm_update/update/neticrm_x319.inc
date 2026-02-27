@@ -2,10 +2,10 @@
 
 function _neticrm_update_update_x319() {
   civicrm_initialize();
-  $updateIndex = array(
-    'civicrm_mailing' => array('is_hidden'),
-    'civicrm_mailing_job' => array('start_date', 'is_test', 'job_type'),
-  );
+  $updateIndex = [
+    'civicrm_mailing' => ['is_hidden'],
+    'civicrm_mailing_job' => ['start_date', 'is_test', 'job_type'],
+  ];
   foreach($updateIndex as $table => $fields) {
     foreach($fields as $field) {
       $check = "SHOW INDEX FROM {$table} WHERE Key_name = 'index_{$field}'";

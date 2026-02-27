@@ -15,28 +15,28 @@ function civicrm_neweb_init(){
  * Implementation of hook_menu
  */
 function civicrm_neweb_menu(){
-  return array(
-    'neweb/ipn' => array(
+  return [
+    'neweb/ipn' => [
       'access callback' => true,
       'page callback' => 'civicrm_neweb_ipn',
       'type' => MENU_CALLBACK,
       'file' => 'civicrm_neweb.ipn.inc',
-    ),
-    'neweb/ipn/%' => array(
+    ],
+    'neweb/ipn/%' => [
       'access callback' => true,
       'page callback' => 'civicrm_neweb_ipn',
-      'page arguments' => array(2),
+      'page arguments' => [2],
       'type' => MENU_CALLBACK,
       'file' => 'civicrm_neweb.ipn.inc',
-    ),
-    'civicrm/contribute/recurring_nw' => array(
+    ],
+    'civicrm/contribute/recurring_nw' => [
       'title' => 'Neweb Recurring contribution management',
-      'access arguments' => array('edit contributions'),
+      'access arguments' => ['edit contributions'],
       'page callback' => 'civicrm_neweb_recurring_page',
       'type' => MENU_CALLBACK,
       'file' => 'civicrm_neweb.pages.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -44,7 +44,7 @@ function civicrm_neweb_menu(){
  */
 function civicrm_neweb_civicrm_buildForm($form_name, &$form){
   $status = $msg = NULL;
-  $params = array();
+  $params = [];
   switch($form_name){
     case 'CRM_Contribute_Form_Contribution_Main':
       // add neweb payment method selection
@@ -96,12 +96,12 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
       $pid = $_GET['id'];
       $pid_test = $pid + 1;
       if($form->_defaultValues['payment_processor_type'] == 'Neweb'){
-        $default = array(
+        $default = [
           'pid' => $pid,
           'ftp_host' => '',
           'ftp_user' => '',
           'ftp_password' => '',
-        );
+        ];
         $ftp = variable_get('civicrm_neweb_ftp_'.$pid, $default);
         $ftp['pid'] = $pid;
         $description = '填入藍新提供的金流說明文件中，伺服器 IP 或網址，<br>不要「sftp://」和斜線等字';
@@ -120,7 +120,7 @@ function civicrm_neweb_civicrm_buildForm($form_name, &$form){
  * Implementation of hook_validate()
  */
 function civicrm_neweb_civicrm_validate($formName, &$fields, &$files, &$form){
-  $error = array();
+  $error = [];
   switch($formName){
     case 'CRM_Contribute_Form_Contribution_Main':
       if($fields['frequency_unit']== 'year' && $form->_paymentProcessor['payment_processor_type'] == 'Neweb'){
@@ -153,12 +153,12 @@ function civicrm_neweb_civicrm_postProcess($form_name, &$form){
   if($form_name == 'CRM_Admin_Form_PaymentProcessor'){
     $pid = $_POST['pid'];
     $pid_test = $pid + 1;
-    $default = array(
+    $default = [
       'pid' => '',
       'ftp_host' => '',
       'ftp_user' => '',
       'ftp_password' => '',
-    );
+    ];
     foreach($default as $k => $v){
       if($_POST[$k]) $default[$k] = $_POST[$k];
       if($_POST['test_'.$k]) $default_test[$k] = $_POST['test_'.$k];
@@ -310,18 +310,18 @@ jQuery(document).ready(function($){
   }
 });  
 ';
-  drupal_add_js($js, array('type' => 'inline', 'scope' => 'footer'));
+  drupal_add_js($js, ['type' => 'inline', 'scope' => 'footer']);
 }
 
 function _civicrm_neweb_instrument($type = 'label'){
-  return array(
-    'Credit Card' => array('label' => '信用卡', 'description' => '', 'code' => 'Credit Card'),
-    'ATM' => array('label' => 'ATM 轉帳', 'description' => '', 'code' => 'ATM'),
-    'Web ATM' => array('label' => '網路 ATM', 'description' => '', 'code' => 'WEBATM'),
-    'Convenient Store' => array('label' => '超商條碼繳費', 'description'=>'', 'code' => 'CS'),
-    'Convenient Store (Code)' => array('label'=>'超商代碼繳費','desc' => '', 'code' => 'MMK'),
-    'Alipay' => array('label' => '支付寶', 'description' => '', 'code' => 'ALIPAY'),
-  );
+  return [
+    'Credit Card' => ['label' => '信用卡', 'description' => '', 'code' => 'Credit Card'],
+    'ATM' => ['label' => 'ATM 轉帳', 'description' => '', 'code' => 'ATM'],
+    'Web ATM' => ['label' => '網路 ATM', 'description' => '', 'code' => 'WEBATM'],
+    'Convenient Store' => ['label' => '超商條碼繳費', 'description'=>'', 'code' => 'CS'],
+    'Convenient Store (Code)' => ['label'=>'超商代碼繳費','desc' => '', 'code' => 'MMK'],
+    'Alipay' => ['label' => '支付寶', 'description' => '', 'code' => 'ALIPAY'],
+  ];
 }
 
 /**
@@ -431,10 +431,10 @@ function _civicrm_neweb_connect($pid, $p_usernumber, $local, $mode, $is_test){
   $ret = false;
 
   if($is_test){
-    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, array());
+    $ftp = variable_get("civicrm_neweb_ftp_test_".$pid, []);
   }
   else{
-    $ftp = variable_get("civicrm_neweb_ftp_".$pid, array());
+    $ftp = variable_get("civicrm_neweb_ftp_".$pid, []);
   }
 
   $function = '_civicrm_neweb_sftp';
@@ -455,11 +455,11 @@ function _civicrm_neweb_mail_error_log_notify($message, $host, $is_test){
     // send email To User1
     $time = REQUEST_TIME;
     $user = user_load(1);
-    $params = array(
+    $params = [
       'host' => $host,
       'message' => $message,
       // 'pid' => $pid,
-      );
+      ];
     drupal_mail('civicrm_neweb', $time, $user->mail , 'zh-tw', $params);
     $sended_sftp_notice_mail = true;
   }
@@ -491,7 +491,7 @@ function civicrm_neweb_mail($key, &$message, $params) {
 function _civicrm_neweb_is_active($is_test){
   civicrm_initialize();
   $is_test = $is_test ? 1 : 0;
-  $ids = array();
+  $ids = [];
   $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = 'Neweb' AND is_active = 1 AND is_test = $is_test");
   while($id = $dao->fetch()){
     $ids[] = $dao->id;
@@ -504,7 +504,7 @@ function _civicrm_neweb_scan_missing_transaction($is_test, $now, $hour, $yesterd
   // only process non-test contribution
   if($hour >= 1 && $hour <= 5 && variable_get('civicrm_neweb_scan_'.$pid.$is_test, 0) < $yesterday){
     // look back 7 days to see if we miss some file from neweb
-    $week = array();
+    $week = [];
     $path = _civicrm_neweb_path($is_test);
     for($i = 1; $i<=7; $i++){
       $offset = $i * 86400;
@@ -560,12 +560,12 @@ function _civicrm_neweb_trxn_id($id, $is_test, $is_recur){
   $trxn_id = $is_recur ? $id + 990000000  : $id;
 
   // prepare for hook
-  $data = array(
+  $data = [
     'module' => 'civicrm_neweb',
     'is_test' => $is_test,
     'trxn_id' => $trxn_id,
     'id' => $id,
-  );
+  ];
   drupal_alter('civicrm_trxn_id', $data);
   return $data['trxn_id'];
 }
@@ -632,7 +632,7 @@ function _civicrm_neweb_recur_trxn($parent, $merchant){
 
 function _civicrm_neweb_cancel_recuring_message($recurID){
   $sql = "SELECT create_date FROM civicrm_contribution_recur WHERE id = %1";
-  $params = array(1 => array($recurID, 'Positive'));
+  $params = [1 => [$recurID, 'Positive']];
   $createDate = CRM_Core_DAO::singleValueQuery($sql, $params);
   if (REQUEST_TIME - strtotime($createDate) <= (3 * 86400) && REQUEST_TIME > strtotime($createDate)) {
     $html = '<h3>藍新金流提醒</h3>

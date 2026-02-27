@@ -1,11 +1,11 @@
 <?php
-function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
+function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   global $language;
   static $custom_strings;
   static $function = NULL;
 
   $old = $string;
-  $langcode = isset($langcode) ? $langcode : $language->language;
+  $langcode = $langcode ?? $language->language;
   if($function === NULL){
     $function = function_exists('locale') ? 'locale' : FALSE;
   }
@@ -15,7 +15,7 @@ function civicrm_alter_translation($string, $args = array(), $langcode = NULL) {
   // handful of string replacements. See settings.php for examples.
   // Cache the $custom_strings variable to improve performance.
   if (!isset($custom_strings[$langcode])) {
-    $custom_strings[$langcode] = variable_get('locale_custom_strings_'. $langcode, array());
+    $custom_strings[$langcode] = variable_get('locale_custom_strings_'. $langcode, []);
   }
   // Custom strings work for English too, even if locale module is disabled.
   if (isset($custom_strings[$langcode][$string])) {

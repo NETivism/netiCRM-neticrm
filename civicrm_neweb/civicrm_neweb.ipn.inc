@@ -21,22 +21,22 @@ function civicrm_neweb_ipn($instrument, $post = NULL, $get = NULL, $print = TRUE
       echo $result;
     }
   }else{
-    watchdog('neweb', "Error for doesn't retrive module from url.", array(), WATCHDOG_WARNING);
+    watchdog('neweb', "Error for doesn't retrive module from url.", [], WATCHDOG_WARNING);
   }
 }
 
 class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
-    static $_paymentProcessor = null;
+    public static $_paymentProcessor = null;
     public $_post = NULL;
     public $_get = NULL;
 
-    function __construct($post, $get) {
+    public function __construct($post, $get) {
         parent::__construct( );
         $this->_post = $post;
         $this->_get = $get;
     }
 
-    static function retrieve( $name, $type, $location = 'POST', $abort = true ) 
+    public static function retrieve( $name, $type, $location = 'POST', $abort = true ) 
     {
         static $store = null;
         $value = CRM_Utils_Request::retrieve( $name, $type, $store,
@@ -49,7 +49,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         return $value;
     }
 
-    function getInput( &$input) {
+    public function getInput( &$input) {
       foreach ($this->_post as $key => $value) {
         $post[strtoupper($key)] = $value;
       }
@@ -68,30 +68,30 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $input['EngName'] = CRM_Utils_Array::value('ENGNAME', $post);
     }
 
-    function addNote($note, &$contribution){
+    public function addNote($note, &$contribution){
       require_once 'CRM/Core/BAO/Note.php';
       $note = date("Y/m/d H:i:s"). ts("Transaction record").": \n".$note."\n===============================\n";
       $note_exists = CRM_Core_BAO_Note::getNote( $contribution->id, 'civicrm_contribution' );
       if(count($note_exists)){
-        $note_id = array( 'id' => reset(array_keys($note_exists)) );
+        $note_id = [ 'id' => reset(array_keys($note_exists)) ];
         $note = $note . reset($note_exists);
       }
       else{
         $note_id = NULL;
       }
       
-      $noteParams = array(
+      $noteParams = [
         'entity_table'  => 'civicrm_contribution',
         'note'          => $note,
         'entity_id'     => $contribution->id,
         'contact_id'    => $contribution->contact_id,
         'modified_date' => date('Ymd')
-      );
+      ];
       CRM_Core_BAO_Note::add( $noteParams, $note_id );
     }
 
 
-    function recur( &$input, &$ids, &$objects) {
+    public function recur( &$input, &$ids, &$objects) {
       // check contribution first.
       $contribution =& $objects['contribution'];
       $order_num = $input['OrderNumber'];
@@ -137,7 +137,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       $recur =& $objects['contributionRecur'];
       if($failed){
         CRM_Core_Error::debug_log_message( "Cancel recurring immediately." );
-        $params = array();
+        $params = [];
         $params['id'] = $recur->id;
         $params['cancel_date'] = date('YmdHis');
         $null = NULL;
@@ -151,7 +151,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         $time = REQUEST_TIME;
         $now = date( 'YmdHis', $time);
         // fix dates that already exist
-        $dates = array('create', 'start', 'end', 'cancel', 'modified');
+        $dates = ['create', 'start', 'end', 'cancel', 'modified'];
         foreach($dates as $date) {
           $name = "{$date}_date";
           if ( $recur->$name ) {
@@ -168,11 +168,11 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
         
         _civicrm_neweb_end_date_calculate($recur);
 
-        $alter = array(
+        $alter = [
           'module' => 'civicrm_neweb',
           'params' => $input,
           'object' => $recur,
-        );
+        ];
         drupal_alter('civicrm_recur_params', $alter);
         
         $params = (array) $alter['object'];
@@ -197,7 +197,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
     }
 
-    function go( &$input, &$ids, &$objects) {
+    public function go( &$input, &$ids, &$objects) {
       $contribution =& $objects['contribution'];
       $order_num = $contribution->id;
       $note = $note ? $note : '';
@@ -264,13 +264,13 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       return $return;
     }
 
-    function ezpay($post){
+    public function ezpay($post){
       require_once 'CRM/Contribute/DAO/Contribution.php';
       require_once 'CRM/Core/Payment/BaseIPN.php';
       require_once 'CRM/Core/Transaction.php';
 
       // Do something when payment processor system send post to call ezpay url.
-      $input = $objects = $ids = $result = array();
+      $input = $objects = $ids = $result = [];
       $result = $post;
 
       require_once("civicrm_neweb.cron.inc");
@@ -331,7 +331,7 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
 
     }
 
-    function getIds( &$ids , $component){
+    public function getIds( &$ids , $component){
       $ids['contact'] = CRM_Utils_Array::value('contact_id', $this->_get);
       $ids['contribution'] = CRM_Utils_Array::value('cid', $this->_get);
       if ( $component == 'event' ) {
@@ -347,9 +347,9 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
       }
     }
 
-    function main( $component = 'contribute', $instrument = NULL , $input = NULL, $ids = NULL, $objects = NULL) {
+    public function main( $component = 'contribute', $instrument = NULL , $input = NULL, $ids = NULL, $objects = NULL) {
       require_once 'CRM/Utils/Request.php';
-      $objects = $ids = $input = array();
+      $objects = $ids = $input = [];
 
       if(empty($instrument)){
         $instrument = arg(2);
@@ -373,14 +373,14 @@ class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
        
       // save record
       $post = !empty($this->_post) ? $this->_post : $input;
-      $record = array(
+      $record = [
         'cid' => $ids['contribution'],
         'prc' => $input['PRC'],
         'src' => $input['SRC'],
         'bankrc' => $input['BankResponseCode'],
         'approvalcode' => $input['ApprovalCode'],
         'data' => json_encode($post),
-      );
+      ];
       drupal_write_record('civicrm_contribution_neweb', $record, 'cid');
 
       if ( ! $this->validateData( $input, $ids, $objects ) ) {
@@ -424,7 +424,7 @@ function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
     if($prc == 8){
   "contribution";
       $error[] = civicrm_neweb_prc($prc);
-      $error[] .= ': '.ts("This may occurred because you press the back button of browser. You can ignore this transaction, and try <a href='%1'>create a new one.</a>.", array($dup_link));
+      $error[] .= ': '.ts("This may occurred because you press the back button of browser. You can ignore this transaction, and try <a href='%1'>create a new one.</a>.", [$dup_link]);
     }
     elseif($prc == 52){
       $error[] = civicrm_neweb_prc($prc);
@@ -451,7 +451,7 @@ function civicrm_neweb_response($prc, $src, $brc = NULL, $mode = 'normal'){
 
 // Bank response	
 function civicrm_neweb_brc($c = NULL){
-  static $code = array();
+  static $code = [];
 
   $code['00'] = ts('BRC: Approved or completed successfully ');
   $code['01'] = ts('BRC: Refer to card issuer');
@@ -521,7 +521,7 @@ function civicrm_neweb_brc($c = NULL){
 
 // Main Response
 function civicrm_neweb_prc($c = NULL){
-  static $code = array();
+  static $code = [];
 
   $code['0'] = ts('PRC: operation success');
   $code['1'] = ts('PRC: operation pending');

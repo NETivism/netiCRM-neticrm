@@ -1,11 +1,11 @@
 <?php
 
 function civicrm_profile_redirect_menu(){
-  $items['civicrm/download'] = array(
+  $items['civicrm/download'] = [
     'page callback' => 'civicrm_profile_redirect',
-    'access arguments' => array('access content'),
+    'access arguments' => ['access content'],
     'type' => MENU_CALLBACK,
-  );
+  ];
   return $items;
 }
 
@@ -14,7 +14,7 @@ function civicrm_profile_redirect(){
   if($download = $_SESSION['CiviCRM']['download']){
     unset($_SESSION['CiviCRM']['download']);
     $o = '<iframe width="1" height="1" frameborder="0" src="'.$download.'"></iframe>';
-    $o .= t('If your download does not start, click <a href="!href">here</a> to procceed download.', array('!href' => $download));
+    $o .= t('If your download does not start, click <a href="!href">here</a> to procceed download.', ['!href' => $download]);
     return $o;
   }
   else{

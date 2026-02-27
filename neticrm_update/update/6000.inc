@@ -6,14 +6,14 @@
  * This file should be civicrm compliant.
  */
 function _neticrm_update_update_6000(){
-  $vard_names = array(
+  $vard_names = [
     'HOME' => 'Home',
     'WORK' => 'Work',
-  );
-  $descriptions = array(
+  ];
+  $descriptions = [
     '主要辦公地點' => 'Primary',
     '其他地點' => 'Other',
-  );
+  ];
   $q = CRM_Core_DAO::executeQuery("SHOW columns from `civicrm_location_type` where field='label'");
   if($q->N === 0){
     CRM_Core_DAO::executeQuery("ALTER TABLE `civicrm_location_type` ADD `label` VARCHAR(255) NOT NULL AFTER `id`, ADD INDEX (`label`) COMMENT 'Location type display label'");

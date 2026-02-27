@@ -1,35 +1,35 @@
 <?php
 
 function civicrm_contribution_cck_menu() {
-  $items['admin/settings/civicrm_contribution_cck'] = array(
+  $items['admin/settings/civicrm_contribution_cck'] = [
     'title' => t('CiviCRM Contribution Sync'),
     'description' => t('Auto create CiviCRM contribution when updating specific content type.'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('civicrm_contribution_cck_admin_settings'),
+    'page arguments' => ['civicrm_contribution_cck_admin_settings'],
     'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => ['administer site configuration'],
     'file' => 'civicrm_contribution_cck.pages.inc',
     'type' => MENU_NORMAL_ITEM,
-  );
-  $items['node/%node/donors'] = array(
+  ];
+  $items['node/%node/donors'] = [
     'title' => 'Donors',
     'page callback' => 'civicrm_contribution_cck_donors',
-    'page arguments' => array(1, 'node'),
+    'page arguments' => [1, 'node'],
     'access callback' => 'civicrm_contribution_cck_access_check',
-    'access arguments' => array('view donor list'),
+    'access arguments' => ['view donor list'],
     'file' => 'civicrm_contribution_cck.pages.inc',
     'type' => MENU_LOCAL_TASK,
     'weight' => 80,
-  );
-  $items['node/%node/civicc_admin_contribution'] = array(
+  ];
+  $items['node/%node/civicc_admin_contribution'] = [
     'title' => 'Contritbution Management',
     'page callback' => 'civicrm_contribution_cck_goto',
-    'page arguments' => array(1, 'node'),
+    'page arguments' => [1, 'node'],
     'access callback' => 'civicrm_contribution_cck_access_check',
-    'access arguments' => array('edit contributions'),
+    'access arguments' => ['edit contributions'],
     'type' => MENU_LOCAL_TASK,
     'weight' => 90,
-  );
+  ];
   return $items;
 }
 
@@ -62,18 +62,18 @@ function civicrm_contribution_cck_access_check($perm){
  * Implementation of hook_theme
  */
 function civicrm_contribution_cck_theme($existing, $type, $theme, $path){
-  return array(
-    'civicrm_contribution_cck_donors' => array(
-      'arguments' => array('type' => NULL, 'node' => NULL, 'donors' => NULL),
+  return [
+    'civicrm_contribution_cck_donors' => [
+      'arguments' => ['type' => NULL, 'node' => NULL, 'donors' => NULL],
       'template' => 'civicrm_contribution_cck_donors',
       'file' => 'civicrm_contribution_cck.pages.inc',
-    ),
-    'civicrm_contribution_cck_donor_item' => array(
-      'arguments' => array('donor' => NULL, 'picture' => NULL, 'amount' => NULL, 'name' => NULL  ),
+    ],
+    'civicrm_contribution_cck_donor_item' => [
+      'arguments' => ['donor' => NULL, 'picture' => NULL, 'amount' => NULL, 'name' => NULL  ],
       'template' => 'civicrm_contribution_cck_donor_item',
       'file' => 'civicrm_contribution_cck.pages.inc',
-    ),
-  );
+    ],
+  ];
 }
 
 function civicrm_contribution_cck_goto(&$node){
@@ -93,26 +93,26 @@ function civicrm_contribution_cck_goto(&$node){
  * hook_perm
  */
 function civicrm_contribution_cck_perm(){
-  return array('view donor list');
+  return ['view donor list'];
 }
 
 /**
  * hook_block
  */
-function civicrm_contribution_cck_block($op = 'list', $delta = 0, $edit = array()){
+function civicrm_contribution_cck_block($op = 'list', $delta = 0, $edit = []){
   if($op == 'list'){
-    $blocks['donor_list'] = array(
+    $blocks['donor_list'] = [
       'info' => t('List donors in block.'),
-    );
+    ];
     return $blocks;
   }
   elseif ($op == 'configure' && $delta == 'donor_list') {
-    $form['items'] = array(
+    $form['items'] = [
       '#type' => 'select', 
       '#title' => t('Number of items'), 
       '#default_value' => variable_get('civicrm_contribution_cck_block_item', 0), 
-      '#options' => array(0 => t('all'),'1', '2', '3', '4','5','6','7','8','9','10'),
-    );
+      '#options' => [0 => t('all'),'1', '2', '3', '4','5','6','7','8','9','10'],
+    ];
     return $form;
   }
   elseif($op == 'save' && $delta == 'donor_list'){
@@ -147,7 +147,7 @@ function civicrm_contribution_cck_block($op = 'list', $delta = 0, $edit = array(
 }
 
 function civicrm_contribution_cck_fields(){
-  return array(
+  return [
     'id' => t('Contribution ID'),
     'contribution_type_id' => t('Contribution Type'),
     'goal_amount' => t('Goal Amount'),
@@ -161,7 +161,7 @@ function civicrm_contribution_cck_fields(){
     'is_allow_other_amount' => t('Allow other amounts'),
     'thankyou_title' => t('Thank-you Page Title'),
     'thankyou_text' => t('Thank-you Message'),
-  );
+  ];
 }
 
 
@@ -208,14 +208,14 @@ function civicrm_contribution_cck_preload(&$node, $contribution_id){
   $query = "SELECT count(*) FROM civicrm_contribution cc WHERE cc.contribution_status_id = 1 AND cc.cancel_date IS NULL AND cc.contribution_page_id = $contribution_id AND is_test = $is_test";
   $contact_total = CRM_Core_DAO::singleValueQuery( $query );
 
-  $return = array(
-    'civicrm_contribution_cck' => array(
+  $return = [
+    'civicrm_contribution_cck' => [
       'id' => $contribution_id,
       'amount_now' => $amount_now,
       'amount_total' => $amount_goal,
       'contact_total' => $contact_total,
-    ),
-  );
+    ],
+  ];
   return $return;
 }
 
@@ -226,7 +226,7 @@ function civicrm_contribution_cck_save(&$node, $op) {
   require_once 'CRM/Core/OptionGroup.php';
 
   $contribution_fields = civicrm_contribution_cck_fields();
-  $params = array();
+  $params = [];
   foreach ($contribution_fields as $f => $name) {
     $fieldname = variable_get("civicc_".$f, '');
     if ($fieldname) {
@@ -287,18 +287,18 @@ function civicrm_contribution_cck_save(&$node, $op) {
   $amount_block = variable_get('civicc_price_amount_block', '');
   if($amount_block){
     $amounts = explode("\n", $amount_block);
-    $options = array();
+    $options = [];
     for($i = 0; $i < 10; $i++){
       if($amounts[$i]){
         list($l, $v) = explode('|', $amounts[$i]);
         if( trim($l) && (strlen( trim($v)) > 0 ) ) {
-          $options[] = array(
+          $options[] = [
             'label'      => $l == '<none>' ? '' : trim($l),
             'value'      => CRM_Utils_Rule::cleanMoney( trim($v) ),
             'weight'     => $i,
             'is_active'  => 1,
             'is_default' => 0,
-          );
+          ];
         }
       }
     } 
@@ -307,7 +307,7 @@ function civicrm_contribution_cck_save(&$node, $op) {
   }
 
   // process instrument
-  $payment_instrument = variable_get('civicc_instrument', array());
+  $payment_instrument = variable_get('civicc_instrument', []);
   if(module_exists('civicrm_instrument') && !empty($payment_instrument) ){
     CRM_Core_DAO::executeQuery("REPLACE INTO civicrm_instrument SET entity_id = {$contribution_id}, entity_table='civicrm_contribution_page', payment_instruments='".serialize($payment_instrument)."'");
   }
@@ -316,16 +316,16 @@ function civicrm_contribution_cck_uf_join($contribution_id, $uf_group_id, $type)
   $entity_table = 'civicrm_contribution_page';
 
   $weight = $type == 'pre' ? 1 : 2;
-  $params =  array( 
+  $params =  [ 
     'module'       => 'CiviContribute',
     'entity_table' => $entity_table,
     'entity_id'    => $contribution_id,
     'weight'       => $weight,
     'uf_group_id'  => $uf_group_id,
     'is_active'    => 1,
-  );
+  ];
 
-  $search = array('entity_table' => $entity_table, 'entity_id' => $contribution_id, 'module'=> 'CiviContribute', 'weight' => $weight);
+  $search = ['entity_table' => $entity_table, 'entity_id' => $contribution_id, 'module'=> 'CiviContribute', 'weight' => $weight];
   $id = civicrm_uf_join_id_find($search);
   if($id){
     $params['id'] = $id;
@@ -336,7 +336,7 @@ function civicrm_contribution_cck_uf_join($contribution_id, $uf_group_id, $type)
 
 function civicrm_contribution_cck_form_alter(&$form, $form_state, $form_id){
   if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id){
-    $available_types = variable_get('civicc_enabled_type', array());
+    $available_types = variable_get('civicc_enabled_type', []);
     if(in_array($form['#node']->type, $available_types) && variable_get('civicc_id', '')) {
       $contribution_id_field = variable_get('civicc_id', ''); 
 
@@ -348,7 +348,7 @@ function civicrm_contribution_cck_form_alter(&$form, $form_state, $form_id){
       foreach($civicc_fields as $k => $name){
         if($field = variable_get('civicc_'.$k, '')){
           // now start to get default option / value from civicrm
-          $options = array();
+          $options = [];
           switch($k) {
             case 'contribution_type_id':
               $options = CRM_Contribute_PseudoConstant::contributionType();
@@ -391,7 +391,7 @@ function civicrm_contribution_cck_hide_field(&$form, &$form_state) {
 }
 
 function civicrm_contribution_cck_check(&$node, $fieldname = 'id'){
-  $available_types = variable_get('civicc_enabled_type', array());
+  $available_types = variable_get('civicc_enabled_type', []);
   $fieldname = variable_get('civicc_'.$fieldname, '');
   if (in_array($node->type, $available_types) && $fieldname) {
     if (isset($node->$fieldname)) {

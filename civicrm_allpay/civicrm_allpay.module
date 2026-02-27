@@ -50,10 +50,10 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
       }
       if(isset($_GET['id']) && $_GET['id']!== NULL){
         $parsed = parse_url($_SERVER['REQUEST_URI']);
-        $_SESSION['allpay'] = array(
+        $_SESSION['allpay'] = [
           'path' => $_GET['q'],
           'query' => $parsed['query'],
-        );
+        ];
       }
       break;
     case 'CRM_Contribute_Form_Contribution_ThankYou':
@@ -62,7 +62,7 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
         return;
       }
       $status = $msg = NULL;
-      $params = array();
+      $params = [];
       CRM_Core_Error::debug_var('form->_submitValues', $form->_submitValues); 
       if(!empty($form->_submitValues['PaymentType']) && !empty($form->_submitValues['MerchantTradeNo'])){
         // Credit card have result immediately
@@ -109,12 +109,12 @@ function civicrm_allpay_civicrm_buildForm($form_name, &$form){
  * Implementation of hook_civicrm_validate()
  */
 function civicrm_allpay_civicrm_validate($form_name, &$form){
-  $errors = array();
+  $errors = [];
   if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
     if(!empty($form['payment_processor'])){
-      $params = array(
-        1 => array($form['payment_processor'], 'Integer'),
-      );
+      $params = [
+        1 => [$form['payment_processor'], 'Integer'],
+      ];
       $processor_type = CRM_Core_DAO::singleValueQuery("SELECT payment_processor_type FROM civicrm_payment_processor WHERE id = %1", $params);
       if($processor_type == 'ALLPAY'){
         if(!empty($form['installments']) && $form['installments'] > 99){
@@ -160,7 +160,7 @@ function civicrm_allpay_error(){
   foreach($msg as $m){
     $items[] = $m;
   }
-  $output .= theme('item_list', array('items' => $items));
+  $output .= theme('item_list', ['items' => $items]);
   $output .= '</div>';
   return $output;
 }
@@ -183,15 +183,15 @@ function civicrm_allpay_cron(){
 }
 
 function _civicrm_allpay_instrument($type = 'normal'){
-  $i = array(
-    'Credit Card' => array('label' => '信用卡', 'desc' => '', 'code' => 'Credit'),
-    'ATM' => array('label' => 'ATM 轉帳', 'desc' => '', 'code' => 'ATM'),
-    'Web ATM' => array('label' => 'Web ATM', 'desc' => '', 'code' => 'WebATM'),
-    'Convenient Store' => array('label' => '超商條碼繳費', 'desc'=>'', 'code' => 'BARCODE'),
-    'Convenient Store (Code)' => array('label'=>'超商代碼','desc' => '', 'code' => 'CVS'),
-    'Alipay' => array('label'=> '支付寶', 'desc' => '', 'code' => 'Alipay'),
+  $i = [
+    'Credit Card' => ['label' => '信用卡', 'desc' => '', 'code' => 'Credit'],
+    'ATM' => ['label' => 'ATM 轉帳', 'desc' => '', 'code' => 'ATM'],
+    'Web ATM' => ['label' => 'Web ATM', 'desc' => '', 'code' => 'WebATM'],
+    'Convenient Store' => ['label' => '超商條碼繳費', 'desc'=>'', 'code' => 'BARCODE'],
+    'Convenient Store (Code)' => ['label'=>'超商代碼','desc' => '', 'code' => 'CVS'],
+    'Alipay' => ['label'=> '支付寶', 'desc' => '', 'code' => 'Alipay'],
     // 'Tenpay' => array('label'=> '財付通', 'desc' => '', 'code' => 'Tenpay'),
-  );
+  ];
   if($type == 'form_name'){
     foreach($i as $name => $data){
       $form_name = preg_replace('/[^0-9a-z]+/i', '_', strtolower($name));
@@ -236,17 +236,17 @@ function civicrm_allpay_notify_generate($cid, $send_mail = FALSE){
 }
 
 function civicrm_allpay_notify_bytrxn($trxn_id){
-  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", array(1 => array($trxn_id, 'String')));
+  $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1", [1 => [$trxn_id, 'String']]);
   return civicrm_allpay_notify_info($cid);
 }
 
 function civicrm_allpay_notify_info($cid){
-  $data = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", array(':cid' => $cid))->fetchField();
+  $data = db_query("SELECT data FROM {civicrm_contribution_allpay} WHERE cid = :cid", [':cid' => $cid])->fetchField();
   $json = json_decode($data, TRUE);
   if(!empty($json['#info'])){
     $info =& $json['#info'];
     $type = substr($info['PaymentType'], 0, 3);
-    $return = array();
+    $return = [];
     $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
     switch($type){
       case 'ATM':
@@ -255,14 +255,14 @@ function civicrm_allpay_notify_info($cid){
         $return['繳費期限'] = $info['ExpireDate'];
         break;
       case 'CVS':
-        $help = l('» 步驟說明', 'https://www.ecpay.com.tw/Service/pay_way_cvpay', array('attributes' => array('target' => '_blank')));
+        $help = l('» 步驟說明', 'https://www.ecpay.com.tw/Service/pay_way_cvpay', ['attributes' => ['target' => '_blank']]);
         $return['便利商店繳費代碼'] = $info['PaymentNo'];
         $return['繳費期限'] = $info['ExpireDate'];
         $return[] = $help;
         break;
       case 'BAR':
         $barcodepath = 'https://pay.ecpay.com.tw/bank/tcbank/cnt/GenerateBarcode?barcode=';
-        $barcode = array($info['Barcode1'], $info['Barcode2'], $info['Barcode3']);
+        $barcode = [$info['Barcode1'], $info['Barcode2'], $info['Barcode3']];
         foreach($barcode as $k => $b){
           $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
         }
@@ -279,7 +279,7 @@ function civicrm_allpay_notify_info($cid){
   }
 
   // error fallback
-  return array();
+  return [];
 }
 
 function civicrm_allpay_notify_display($info, $payment_instrument_id = NULL){

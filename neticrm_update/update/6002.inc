@@ -11,10 +11,10 @@ function _neticrm_update_update_6002(){
   while($query->fetch()){
     $city = preg_replace("/(鄉|鎮|市)$/ui", "區", $query->city);
     $sql = "UPDATE civicrm_address SET city = %1 WHERE id = %2";
-    $params = array(
-      1 => array($city, 'String'),
-      2 => array($query->id, 'Integer'),
-    );
+    $params = [
+      1 => [$city, 'String'],
+      2 => [$query->id, 'Integer'],
+    ];
     CRM_Core_DAO::executeQuery($sql, $params);
   }
   return "Successful update Taoyuan address";

@@ -1,13 +1,13 @@
 <?php
 
 function civicrm_goal_alter_menu(){
-  return array(
-    'contribution/achieved' => array(
+  return [
+    'contribution/achieved' => [
       'access callback' => true,
       'page callback' => 'civicrm_goal_alter_page',
       'type' => MENU_CALLBACK,
-    ),
-  );
+    ],
+  ];
 }
 
 /**
@@ -22,7 +22,7 @@ function civicrm_goal_alter_civicrm_buildForm($form_name, &$form) {
         $contribution_page_id = $form->_values['id'];
         $price_set = $form->_values['amount'];
         $query = "SELECT sum( total_amount) as total FROM civicrm_contribution WHERE  is_test = 0  AND contribution_status_id = 1 AND contribution_page_id = %1";
-        $params = array( 1 => array( $contribution_page_id, 'Integer' ) ) ;
+        $params = [ 1 => [ $contribution_page_id, 'Integer' ] ] ;
         $total = CRM_Core_DAO::singleValueQuery( $query, $params );
 
         if($total >= $goal_amount){

@@ -23,7 +23,7 @@ function civicrm_cache_clear_civicrm_post($op, $obj_name, $obj_id, &$obj){
 
 function _civicrm_cache_clear_eventinfo($id){
   if(module_exists('boost')){
-    $url = url('civicrm/event/info', array('query' => 'reset=1&id='.$id));
+    $url = url('civicrm/event/info', ['query' => 'reset=1&id='.$id]);
     $results = db_query("SELECT filename, base_dir FROM {boost_cache} WHERE url LIKE '%%%s%%'", $url);
     while($f = db_fetch_array($results)){
       $files[] = $f;
