@@ -1,5 +1,5 @@
 <?php
-function civicrm_statistics_cron(){
+function civicrm_statistics_cron() {
   // only collect who has membership profile, because we need to know if they opt-out
   $member = _neticrm_preset_membership();
   if (empty($member['status'])) {

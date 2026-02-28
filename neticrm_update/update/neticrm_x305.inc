@@ -17,4 +17,4 @@ function _neticrm_update_update_x305() {
   else {
     return 'The pattern already exists, skipped.';
   }
-} 
+}

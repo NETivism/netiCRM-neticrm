@@ -3,7 +3,7 @@
 /**
  * Implement hook_install
  */
-function civicrm_field_i18n_install(){
+function civicrm_field_i18n_install() {
   module_set_weight('content_translation', 200);
   civicrm_initialize();
   $params = [

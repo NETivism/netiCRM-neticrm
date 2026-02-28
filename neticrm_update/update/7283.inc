@@ -12,7 +12,7 @@ function _neticrm_update_update_7283() {
   }
 }
 
-function _insert_state_province($name, $abbreviation){
+function _insert_state_province($name, $abbreviation) {
   civicrm_initialize();
   $sql = "SELECT id FROM civicrm_state_province WHERE country_id = 1191 AND name IN (%1, %2)";
   $params = [
@@ -20,14 +20,15 @@ function _insert_state_province($name, $abbreviation){
     2 => [ts($name), "String"],
   ];
   $id = CRM_Core_DAO::singleValueQuery($sql, $params);
-  if(empty($id)){
+  if (empty($id)) {
     $sql = 'INSERT INTO civicrm_state_province (id, country_id, abbreviation, name) VALUES (NULL, 1191, %1, %2)';
     $params = [
       1 => [$abbreviation, 'String'],
       2 => [ts($name), 'String'],
     ];
     CRM_Core_DAO::executeQuery($sql, $params);
-  }else{
-    CRM_Core_Error::debug_log_message("\n    '".ts($name)."' is already in DB.\n", true);
+  }
+  else {
+    CRM_Core_Error::debug_log_message("\n    '".ts($name)."' is already in DB.\n", TRUE);
   }
 }

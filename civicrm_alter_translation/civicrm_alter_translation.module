@@ -8,7 +8,7 @@ use Drupal\Core\StringTranslation\TranslatableMarkup;
  * @param string $string
  * @param array $args
  * @param string|null $langcode
- * 
+ *
  * @return string
  */
 function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
@@ -37,7 +37,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   }
 
   // fallback to use CRM translation
-  if($string === $untranslate){
+  if ($string === $untranslate) {
     $i18n = CRM_Core_I18n::singleton();
     return $i18n->crm_translate($string, $args);
   }
@@ -46,7 +46,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   }
   else {
     // Transform arguments before inserting them.
-    foreach($args as $k => $v){
+    foreach ($args as $k => $v) {
       $alter_args["%".$k] = $v;
     }
     $new = strtr($string, $alter_args);

@@ -36,7 +36,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
       ->orderBy('pid', 'ASC')
       ->execute();
     $form['#tree'] = TRUE;
-    while($payment = $db->fetchAssoc()) {
+    while ($payment = $db->fetchAssoc()) {
       $pid = $payment['pid'];
       $container = self::singleSettingForm($pid, $payment);
       $form['container'][$pid] = $container;
@@ -48,7 +48,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
-  public function singleSettingForm($pid, $default){
+  public function singleSettingForm($pid, $default) {
     $title = !empty($default) ? t('Pay2go Settings'). ': '.$pid : t('New Pay2go Settings');
     $form = [];
     $form = [
@@ -121,7 +121,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
       ->execute()
       ->fetchAll();
     $exists = [];
-    foreach($settings as $e){
+    foreach ($settings as $e) {
       $exists[$e->pid] = (array) $e;
     }
     $container = $form_state->getValue('container');
@@ -135,7 +135,7 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
             ->condition('pid', $pid)
             ->execute();
         }
-        else{
+        else {
           $fields = [
             'title' => $invoice_setting['title'],
             'serial' => $invoice_setting['serial'],
@@ -152,8 +152,8 @@ class Invpay2goConfigurationForm extends ConfigFormBase {
             ->execute();
         }
       }
-      else{
-        if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
+      else {
+        if (!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
           \Drupal::database()->insert('invpay2go')
             ->fields([
             'title' => $invoice_setting['title'],

@@ -1,7 +1,7 @@
 <?php
 
 function _neticrm_update_update_x323() {
-   civicrm_initialize();
+  civicrm_initialize();
   
   // Check if table exists first
   $query = "SHOW TABLES LIKE 'civicrm_contribution_spgateway'";

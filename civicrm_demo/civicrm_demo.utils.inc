@@ -1,14 +1,14 @@
 <?php
-function civicrm_demo_process_contact($vars){
+function civicrm_demo_process_contact($vars) {
   civicrm_initialize();
 
   $limit = $vars['limit'];
-  while($limit) {
+  while ($limit) {
     // 10% to generate eng name
-    $language = mt_rand(1,50) == 1 ? 'english' : 'chinese';
+    $language = mt_rand(1, 50) == 1 ? 'english' : 'chinese';
     $first_name = _civicrm_demo_rand_firstname($language);
     $last_name = _civicrm_demo_rand_lastname($language);
-    if($language == 'chinese'){
+    if ($language == 'chinese') {
       $sort_name = $last_name.$first_name;
     }
     $params = [
@@ -20,30 +20,30 @@ function civicrm_demo_process_contact($vars){
       'email'         => _civicrm_demo_rand_email(),
       'contact_type'  => 'Individual',
       'individual_prefix' => _civicrm_demo_rand_prefix(),
-      'gender_id' => mt_rand(1,2),
+      'gender_id' => mt_rand(1, 2),
       'birth_date' => _civicrm_demo_rand_birth_realistic(),
     ];
 
     $api_phone_create_home = [
-      'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
+      'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
       'phone_type_id' => 1,
       'location_type' => 'Home'
     ];
     $api_phone_create_fax = [
-      'phone' => '0'.mt_rand(2,39).'-'.mt_rand(1111111, 9999999),
+      'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
       'phone_type_id' =>  2,
       'is_primary' => 1,
       'location_type_id' => 2
     ];
     $params['api.address.create'] = _civicrm_demo_rand_addr($language);
     $params['api.phone.create'] = [$api_phone_create_home, $api_phone_create_fax];
-    $contact = civicrm_api('Contact', 'create', $params );
+    $contact = civicrm_api('Contact', 'create', $params);
 
     $limit--;
   }
 }
 
-function civicrm_demo_process_event($vars){
+function civicrm_demo_process_event($vars) {
   $now = time();
 
   civicrm_initialize();
@@ -63,7 +63,7 @@ function civicrm_demo_process_event($vars){
 
   // Always create templates first
   $template_limit = min($vars['limit'], count($template_titles));
-  for($i = 0; $i < $template_limit; $i++){
+  for ($i = 0; $i < $template_limit; $i++) {
     $seed = $i % count($template_titles);
     $params = ['version' => 3];
     $params['title'] = $template_titles[$seed];
@@ -82,13 +82,13 @@ function civicrm_demo_process_event($vars){
       $params['max_participants'] = 5;
     }
 
-    if($seed == 0 || $seed == 4){
+    if ($seed == 0 || $seed == 4) {
       $params['max_participants'] = "";
     }
-    if($seed == 3 || $seed == 4){
+    if ($seed == 3 || $seed == 4) {
       $params['requires_approval'] = 1;
     }
-    if($seed == 2){
+    if ($seed == 2) {
       $params['has_waitlist'] = 1;
     }
 
@@ -131,7 +131,7 @@ function civicrm_demo_process_event($vars){
     ];
 
     $sample_limit = $vars['limit'];
-    for($i = 0; $i < $sample_limit; $i++){
+    for ($i = 0; $i < $sample_limit; $i++) {
       $seed = $i % count($sample_titles);
       $params = ['version' => 3];
       $params['title'] = $sample_titles[$seed];
@@ -145,10 +145,10 @@ function civicrm_demo_process_event($vars){
       $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
       $params['max_participants'] = 50;
 
-      if($seed == 3 || $seed == 4){
+      if ($seed == 3 || $seed == 4) {
         $params['requires_approval'] = 1;
       }
-      if($seed == 2){
+      if ($seed == 2) {
         $params['has_waitlist'] = 1;
       }
 
@@ -173,7 +173,7 @@ function civicrm_demo_process_event($vars){
   }
 }
 
-function civicrm_demo_process_contribution($vars){
+function civicrm_demo_process_contribution($vars) {
   civicrm_initialize();
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
@@ -208,14 +208,16 @@ function civicrm_demo_process_contribution($vars){
   $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
   $contribution_type_id = reset($types);
   $counter = 0;
-  while($dao->fetch()){
+  while ($dao->fetch()) {
     $count_contact++;
     $page_id = $contribution_page_id[$count_contact%$page_id_num];
     $contact_id = $dao->id;
     $insert = [];
-    for($i = 0; $i < $contrib_per_contact; $i++){
+    for ($i = 0; $i < $contrib_per_contact; $i++) {
       $counter++;
-      if($counter > $contrib_limit) break;
+      if ($counter > $contrib_limit) {
+        break;
+      }
 
       $amount = _civicrm_demo_rand_amount();
       $a = number_format($amount, 2, '.', '');
@@ -224,9 +226,9 @@ function civicrm_demo_process_contribution($vars){
       $year = date('Y', $rand_ts);
       $month = date('m', $rand_ts);
       $day = date('d', $rand_ts);
-      $hour = sprintf('%02s', mt_rand(0,23));
-      $min = sprintf('%02s', mt_rand(0,59));
-      $trxn_id = 'd-'.mt_rand(100,999).'-'.mt_rand(100, 999).'-'.CRM_Utils_String::createRandom(8);
+      $hour = sprintf('%02s', mt_rand(0, 23));
+      $min = sprintf('%02s', mt_rand(0, 59));
+      $trxn_id = 'd-'.mt_rand(100, 999).'-'.mt_rand(100, 999).'-'.CRM_Utils_String::createRandom(8);
 
       $insert[$i] = [
         'contact_id'             => $contact_id,
@@ -245,7 +247,7 @@ function civicrm_demo_process_contribution($vars){
       $fields = array_keys($insert[0]);
       $sql = "INSERT INTO civicrm_contribution (".implode(',', $fields).") \nVALUES \n";
       $values = [];
-      foreach($insert as $idx => $val) {
+      foreach ($insert as $idx => $val) {
         $values[$idx] = "('".implode("','", $val)."')";
       }
       $sql .= implode(",\n", $values);
@@ -260,7 +262,7 @@ function civicrm_demo_process_contribution($vars){
 /**
  * Generate recurring contributions with monthly installment records
  */
-function civicrm_demo_process_contribution_recur($vars){
+function civicrm_demo_process_contribution_recur($vars) {
   civicrm_initialize();
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
@@ -287,7 +289,7 @@ function civicrm_demo_process_contribution_recur($vars){
   $three_months_duration = 86400 * 90;
 
   $recur_count = 0;
-  while($dao->fetch() && $recur_count < $recur_limit) {
+  while ($dao->fetch() && $recur_count < $recur_limit) {
     $contact_id = $dao->id;
     $amount = $amounts[array_rand($amounts)];
 
@@ -362,7 +364,7 @@ function civicrm_demo_process_contribution_recur($vars){
         $fields = array_keys($insert[0]);
         $sql = "INSERT INTO civicrm_contribution (" . implode(',', $fields) . ") \nVALUES \n";
         $values = [];
-        foreach($insert as $k => $val) {
+        foreach ($insert as $k => $val) {
           $values[$k] = "('" . implode("','", $val) . "')";
         }
         $sql .= implode(",\n", $values);
@@ -377,7 +379,7 @@ function civicrm_demo_process_contribution_recur($vars){
   }
 }
 
-function civicrm_demo_process_membership($vars){
+function civicrm_demo_process_membership($vars) {
   civicrm_initialize();
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $sample_ci = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data_ci', FALSE);
@@ -385,12 +387,12 @@ function civicrm_demo_process_membership($vars){
   $domain_id = CRM_Core_Config::domainID();
 
   // check if any organization contact exists
-	$params = [
-		'contact_type' => 'Organization',
-		'options.limit' => 1,
-		'version' => 3,
-	];
-	$results = civicrm_api('Contact', 'get', $params);
+  $params = [
+      'contact_type' => 'Organization',
+      'options.limit' => 1,
+      'version' => 3,
+  ];
+  $results = civicrm_api('Contact', 'get', $params);
 
   // create organization for membership
   $org_id = 0;
@@ -420,15 +422,15 @@ function civicrm_demo_process_membership($vars){
     ];
     $membership_type = civicrm_api('membership_type', 'get', $params);
     if (!empty($membership_type['count'])) {
-      foreach($membership_type['values'] as $mem_type) {
-        if($mem_type['id']) {
+      foreach ($membership_type['values'] as $mem_type) {
+        if ($mem_type['id']) {
           $membership_type_id = $mem_type['id'];
           break;
         }
       }
     }
     else {
-      $params = [ 
+      $params = [
         'name' => '一般會員',
         'description' => '由系統建立的一般會員類型示範',
         'member_of_contact_id' => $org_id,
@@ -454,11 +456,11 @@ function civicrm_demo_process_membership($vars){
   // only create demo membership when sample data needed
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   if ($membership_type_id && $sample) {
-		$membership_limit = $vars['limit']; // total limit this batch
+    $membership_limit = $vars['limit']; // total limit this batch
     $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND()";
     $dao = CRM_Core_DAO::executeQuery($sql);
     $membership_count = 0;
-    while($dao->fetch()){
+    while ($dao->fetch()) {
       $membership_count++;
       $start_year = (int) date('Y');
       $start_year -= mt_rand(0, 5);
@@ -474,7 +476,7 @@ function civicrm_demo_process_membership($vars){
         'is_test' => $is_test,
         'version' => 3,
       ];
-      $mem = civicrm_api('membership','create', $params);
+      $mem = civicrm_api('membership', 'create', $params);
       if ($mem['id']) {
         $membership_count++;
       }
@@ -485,10 +487,10 @@ function civicrm_demo_process_membership($vars){
   }
 }
 
-function civicrm_demo_create_contribution_page($payment_processor_type){
+function civicrm_demo_create_contribution_page($payment_processor_type) {
   $sample = \Drupal\Core\Site\Settings::get('civicrm_demo.sample_data', FALSE);
   $payment_page = \Drupal::state()->get('civicrm_demo.payment_page', []);
-  if(isset($payment_page[$payment_processor_type])){
+  if (isset($payment_page[$payment_processor_type])) {
     return $payment_page[$payment_processor_type];
   }
   // setup payment processor
@@ -517,12 +519,12 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     $params['payment_processor'] = $processors;
   }
   else {
-    $params['is_pay_later'] = 1; 
+    $params['is_pay_later'] = 1;
     $params['pay_later_text'] = '請設定您的金流服務';
     $params['pay_later_receipt'] = '選擇金流服務商完成設定，即可提供正式的線上付款工具。';
   }
   $result = civicrm_api('ContributionPage', 'create', $params);
-  if(!empty($result['id'])){
+  if (!empty($result['id'])) {
     $contribution_page_id = $result['id'];
     $payment_instrument = [
       'credit_card' => 1,
@@ -536,7 +538,7 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
     $payment_page[$payment_processor_type] = $contribution_page_id;
     \Drupal::state()->set('civicrm_demo.payment_page', $payment_page);
   }
-  else{
+  else {
     $contribution_page_id = 1;
   }
   if ($sample) {
@@ -550,13 +552,13 @@ function civicrm_demo_create_contribution_page($payment_processor_type){
   return $contribution_page_id;
 }
 
-function civicrm_demo_create_custom_profile(){
+function civicrm_demo_create_custom_profile() {
   civicrm_initialize();
   $group = _civicrm_demo_create_custom_group('receipt_info', '收據需求欄位');
   $uf_group = _civicrm_demo_create_uf_group('receipt_infomation', '收據資訊');
 
   // custom fields
-  if(!empty($group['id'])){
+  if (!empty($group['id'])) {
     $fields = [];
     $options = [
       'no' => ['label' => '不要（無抵稅需求/不用寄給我收據）', 'value' => '0', 'is_active' => 1, 'weight' => 1],
@@ -570,7 +572,7 @@ function civicrm_demo_create_custom_profile(){
   }
 
   // uf fields
-  if(!empty($uf_group['id'])){
+  if (!empty($uf_group['id'])) {
     $uf_fields = [];
     $uf_fields['receipt_yn'] = _civicrm_demo_create_uf_field('是否需要收據', 'Contribution', 'custom_'.$fields['receipt_yn']['id'], $uf_group['id'], TRUE);
     $uf_fields['receipt_title'] = _civicrm_demo_create_uf_field('收據抬頭', 'Contribution', 'custom_'.$fields['receipt_title']['id'], $uf_group['id']);
@@ -645,12 +647,12 @@ function civicrm_demo_create_custom_profile(){
   // set contribution page default custom pre/post
   $payment_page = \Drupal::state()->get('civicrm_demo.payment_page', []);
 
-  foreach($payment_page as $page_id){
+  foreach ($payment_page as $page_id) {
     _civicrm_demo_create_uf_join($page_id, $uf_group_pre_id, $uf_group['id']);
   }
 }
 
-function civicrm_demo_process_track($trackVars = NULL){
+function civicrm_demo_process_track($trackVars = NULL) {
   extract($trackVars);
   if (!$pageType) {
     $pid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution_page ORDER BY id ASC");
@@ -670,7 +672,7 @@ function civicrm_demo_process_track($trackVars = NULL){
         'pageType' => 'civicrm_event',
       ];
       civicrm_demo_process_track($vars);
-    } 
+    }
     return;
   }
   if (!empty($pageId) && !empty($pageType)) {
@@ -700,7 +702,7 @@ function civicrm_demo_process_track($trackVars = NULL){
     }
 
     $limit = $limit ? $limit : 500;
-    for($i = 0; $i < $limit; $i++){
+    for ($i = 0; $i < $limit; $i++) {
       // Sparse date distribution over 2.5 years
       if (mt_rand(1, 100) <= 90) {
         $referrer_type = $major_referrers[array_rand($major_referrers)];
@@ -715,8 +717,8 @@ function civicrm_demo_process_track($trackVars = NULL){
         'session_key' => rand(1, 5000),
         'counter' => rand(1, 3),
         'referrer_type' => $referrer_type,
-        'state' => ($pageType == 'civicrm_event') ? mt_rand(0,4) : mt_rand(1,4),
-        'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 900) + 600*mt_rand(1,12)),
+        'state' => ($pageType == 'civicrm_event') ? mt_rand(0, 4) : mt_rand(1, 4),
+        'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 900) + 600*mt_rand(1, 12)),
       ];
 
       // 1/10 records link to entity
@@ -745,16 +747,16 @@ function civicrm_demo_process_track($trackVars = NULL){
  * @param $component_id integer
  * return integer instance_id
  */
-function civicrm_demo_add_report($label, $desc, $url, $class, $component_id){
+function civicrm_demo_add_report($label, $desc, $url, $class, $component_id) {
   $group_params = ['name' => ('report_template')];
   require_once 'CRM/Core/OptionValue.php';
 
   $exists = CRM_Core_OptionGroup::getRowValues('report_template', $class, 'name', 'String', FALSE);
-  if(!empty($exists)){
+  if (!empty($exists)) {
     $action = CRM_Core_Action::UPDATE;
     $id = $exists['id'];
   }
-  else{
+  else {
     $action = CRM_Core_Action::ADD;
     $id = NULL;
   }
@@ -772,14 +774,14 @@ function civicrm_demo_add_report($label, $desc, $url, $class, $component_id){
   return $added;
 }
 
-function _civicrm_demo_rand_lastname($type = 'chinese'){
+function _civicrm_demo_rand_lastname($type = 'chinese') {
   // chinese
-  if($type == 'chinese'){
+  if ($type == 'chinese') {
     $seed = [
       '李','王','張','劉','陳','楊','黃','趙','周','吳','徐','孫','朱','馬','胡','郭','林','何','高','梁','鄭','羅','宋','謝','唐','韓','曹','許','鄧','蕭',' 馮','曾','程','蔡','彭','潘','袁','于','董','余',' 蘇','葉','呂','魏','蔣','田','杜','丁','沈','姜',' 范','江','傅','鍾','盧','汪','戴','崔','任','陸',' 廖','姚','方','金','邱','夏','譚','韋','賈','鄒',' 石','熊','孟','秦','閻','薛','侯','雷','白','龍','段','郝','孔','邵','史','毛','常','萬','顧','賴','武','康','賀','嚴','尹','錢','施','牛','洪','龔',
     ];
   }
-  else{
+  else {
     $seed = [
       'Smith','Johnson','Williams','Brown','Jones','Miller','Davis','Garcia','Rodriguez','Wilson','Martinez','Anderson','Taylor','Thomas','Hernandez','Moore','Martin','Jackson','Thompson','White','Lopez','Lee','Gonzalez','Harris','Clark','Lewis','Robinson','Walker','Perez','Hall','Young','Allen','Sanchez','Wright','King','Scott','Green','Baker','Adams','Nelson','Hill','Ramirez','Campbell','Mitchell','Roberts','Carter','Phillips','Evans','Turner','Torres','Parker','Collins','Edwards','Stewart','Flores','Morris','Nguyen','Murphy','Rivera','Cook','Rogers','Morgan','Peterson','Cooper','Reed','Bailey','Bell','Gomez','ward','Ward','Cox','Diaz','Richardson','Wood','Watson','Brooks','Bennett','Gray','James','Reyes','Cruz','Hughes','Price','Myers','Long','Foster','Sanders','Ross','Morales','Powell','Sullivan','Russell','Ortiz','Jenkins','Gutierrez','Perry','Butler','Barnes','Fisher',
     ];
@@ -788,14 +790,14 @@ function _civicrm_demo_rand_lastname($type = 'chinese'){
   return $seed[$key];
 }
 
-function _civicrm_demo_rand_firstname($type = 'chinese'){
+function _civicrm_demo_rand_firstname($type = 'chinese') {
   // chinese
-  if($type == 'chinese'){
+  if ($type == 'chinese') {
     $seed = [
       '雅婷 ','怡君 ','雅雯 ','宗翰 ','怡婷 ','家豪 ','冠宇 ','詩涵 ','婉婷 ','承翰 ','郁婷 ','柏翰 ','彥廷 ','詩婷 ','鈺婷 ','冠廷 ','佩珊 ','欣怡 ','家瑋 ','思穎 ','佳蓉 ','佳穎','志豪','怡萱','筱涵',
     ];
   }
-  else{
+  else {
     $seed = [
       'Jacob','Ethan','Michael','Jayden','William','Alexander','Noah','Daniel','Aiden','Anthony',
       'Isabella','Mia','Ashley','Emily','Sophia','Brianna','Melanie','Samantha','Genesis','Kayla',
@@ -805,11 +807,11 @@ function _civicrm_demo_rand_firstname($type = 'chinese'){
   return $seed[$key];
 }
 
-function _civicrm_demo_rand_birth(){
+function _civicrm_demo_rand_birth() {
   $base = time()-86400*365*3;
   $time = mt_rand(0, $base);
   $prev = mt_rand(0, 1);
-  if($prev){
+  if ($prev) {
     $time = 0-$time;
   }
   return date('YMDHis', $time);
@@ -819,7 +821,7 @@ function _civicrm_demo_rand_birth(){
  * Generate realistic birth date with normal distribution age 16-70
  * Uses Box-Muller transform, centered at age 40, std dev 12
  */
-function _civicrm_demo_rand_birth_realistic(){
+function _civicrm_demo_rand_birth_realistic() {
   $u1 = mt_rand(1, 999999) / 1000000;
   $u2 = mt_rand(1, 999999) / 1000000;
   $z0 = sqrt(-2 * log($u1)) * cos(2 * M_PI * $u2);
@@ -833,7 +835,7 @@ function _civicrm_demo_rand_birth_realistic(){
 /**
  * Generate realistic Taiwan street address
  */
-function _civicrm_demo_rand_street_tw(){
+function _civicrm_demo_rand_street_tw() {
   $streets = [
     '中山路', '忠孝路', '仁愛路', '信義路', '和平路',
     '中正路', '建國路', '復興路', '民族路', '民權路',
@@ -871,7 +873,7 @@ function _civicrm_demo_rand_street_tw(){
  * Generate realistic donation amount
  * ~75% under 1200, ~15% 1200-5000, ~8% 5000-15000, ~2% 15000-100000
  */
-function _civicrm_demo_rand_amount(){
+function _civicrm_demo_rand_amount() {
   $r = mt_rand(1, 100);
   if ($r <= 75) {
     // Under 1200: common small amounts
@@ -895,17 +897,17 @@ function _civicrm_demo_rand_amount(){
   }
 }
 
-function _civicrm_demo_rand_prefix(){
+function _civicrm_demo_rand_prefix() {
   $array = [
     '女士',
     '小姐',
     '先生',
   ];
-  $seed = mt_rand(0,2);
+  $seed = mt_rand(0, 2);
   return $array[$seed];
 }
 
-function _civicrm_demo_rand_email(){
+function _civicrm_demo_rand_email() {
   $name = trim(strtolower(_civicrm_demo_rand_firstname('english'))).'.'.trim(strtolower(_civicrm_demo_rand_lastname('english')));
   $company = [
     'example.com','test.tw','ilovecivicrm.com','netivism-is-best.com.tw',
@@ -921,8 +923,8 @@ function _civicrm_demo_rand_email(){
   return $convertEmail;
 }
 
-function _civicrm_demo_rand_addr($type = 'chinese'){
-  if($type == 'chinese'){
+function _civicrm_demo_rand_addr($type = 'chinese') {
+  if ($type == 'chinese') {
     // 五都佔 2/3 以上
     $major_cities = ['Taipei City', 'New Taipei City', 'Taichung City', 'Tainan City', 'Kaohsiung City'];
     $other_cities = [
@@ -942,10 +944,10 @@ function _civicrm_demo_rand_addr($type = 'chinese'){
     $street = _civicrm_demo_rand_street_tw();
     $country = 1208;
   }
-  else{
+  else {
     $state_province = 'California';
     $city = 'San Francisco';
-    $street = rand(1,800).', FC Road';
+    $street = rand(1, 800).', FC Road';
     $country = 1228;
   }
 
@@ -959,7 +961,7 @@ function _civicrm_demo_rand_addr($type = 'chinese'){
   ];
 }
 
-function _civicrm_demo_rand_city_postcode($city){
+function _civicrm_demo_rand_city_postcode($city) {
   $array = [
     'Keelung City' => [
       '仁愛區' => '200', '信義區' => '201', '中正區' => '202', '中山區' => '203', '安樂區' => '204', '暖暖區' => '205', '七堵區' => '206'
@@ -1075,16 +1077,16 @@ function _civicrm_demo_rand_city_postcode($city){
       '馬公市' => '880', '西嶼鄉' => '881', '望安鄉' => '882', '七美鄉' => '883', '白沙鄉' => '884', '湖西鄉' => '885'
     ],
   ];
-  if(!empty($array[$city])){
+  if (!empty($array[$city])) {
     $key = array_rand($array[$city]);
     return [$key , $array[$city][$key]];
   }
-  else{
+  else {
     return;
   }
 }
 
-function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
+function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY') {
   civicrm_initialize();
   $payment_processors = [];
   $params = [
@@ -1094,9 +1096,9 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
   $default = _civicrm_demo_processor_default($class_name);
 
   $result = civicrm_api('PaymentProcessorType', 'get', $params);
-  if(!empty($result['count'])){
+  if (!empty($result['count'])) {
     $domain_id = CRM_Core_Config::domainID();
-    foreach($result['values'] as $type_id => $p){
+    foreach ($result['values'] as $type_id => $p) {
       $p = array_merge($p, $default);
       $payment_name = $p['name'].'金流';
       $payment_processor = [
@@ -1104,11 +1106,11 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         'name' => $payment_name,
       ];
       $result = civicrm_api('PaymentProcessor', 'get', $payment_processor);
-      if(!empty($result['count'])){
+      if (!empty($result['count'])) {
         $first = reset($result['values']);
         $payment_processors[] = $first['id'];
       }
-      else{
+      else {
         $payment_processor = [
           'version' => 3,
           'domain_id' => $domain_id,
@@ -1131,7 +1133,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
           'payment_type' => $p['payment_type'],
         ];
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
-        if(is_numeric($result['id'])){
+        if (is_numeric($result['id'])) {
           $payment_processors[] = $result['id'];
         }
 
@@ -1140,7 +1142,7 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
         $payment_processor['url_api'] = !empty($p['url_api_test_default']) ? $p['url_api_test_default'] : NULL;
         $payment_processor['url_recur'] = !empty($p['url_recur_test_default']) ? $p['url_recur_test_default'] : NULL;
         $result = civicrm_api('PaymentProcessor', 'create', $payment_processor);
-        if(is_numeric($result['id'])){
+        if (is_numeric($result['id'])) {
           $payment_processors[] = $result['id'];
         }
       }
@@ -1149,9 +1151,9 @@ function _civicrm_demo_setup_paymentProcessor($class_name = 'Payment_ALLPAY'){
   return $payment_processors;
 }
 
-function _civicrm_demo_processor_default($class_name){
+function _civicrm_demo_processor_default($class_name) {
   $default = [];
-  if($class_name == 'Payment_ALLPAY'){
+  if ($class_name == 'Payment_ALLPAY') {
     \Drupal::moduleHandler()->loadInclude('civicrm_allpay', 'install', 'civicrm_allpay');
     $default['user_name'] = '2000132';
     $default['password'] = '5294y06JbISpM5x9';
@@ -1165,7 +1167,7 @@ function _civicrm_demo_processor_default($class_name){
     $default['url_recur_test'] = CRM_Core_Payment_ALLPAY::ALLPAY_TEST_DOMAIN . CRM_Core_Payment_ALLPAY::ALLPAY_URL_RECUR;
   }
 
-  if($class_name == 'Payment_SPGATEWAY'){
+  if ($class_name == 'Payment_SPGATEWAY') {
     $default['user_name'] = 'MS3240578';
     $default['password'] = 'DLJ2NeCY3FY54ahvmZGHVW7POQIcz48c';
     $default['signature'] = 'QReE6RCaxBgCLx78';
@@ -1174,13 +1176,13 @@ function _civicrm_demo_processor_default($class_name){
   return $default;
 }
 
-function _civicrm_demo_create_custom_group($name, $title){
+function _civicrm_demo_create_custom_group($name, $title) {
   $params = [
     'title' => $title,
     'version' => 3,
   ];
   $custom_group = civicrm_api('custom_group', 'get', $params);
-  if(empty($custom_group['id'])){
+  if (empty($custom_group['id'])) {
     $params = [
       'title' => $title,
       'name' => $name,
@@ -1193,19 +1195,19 @@ function _civicrm_demo_create_custom_group($name, $title){
       'is_active' => 1,
       'version' => 3,
     ];
-    $custom_group = civicrm_api( 'custom_group','create',$params );
+    $custom_group = civicrm_api('custom_group', 'create', $params);
   }
   return $custom_group;
 }
 
-function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL, $options = NULL, $options_per_line = NULL){
+function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type, $group_id, $default = NULL, $options = NULL, $options_per_line = NULL) {
   $params = [
     'label' => $title,
     'version' => 3,
   ];
   $last_weight = CRM_Core_DAO::singleValueQuery("SELECT weight FROM civicrm_custom_field WHERE custom_group_id = $group_id ORDER BY weight DESC");
   $field = civicrm_api('custom_field', 'get', $params);
-  if(empty($field['id'])){
+  if (empty($field['id'])) {
     $params = [
       'custom_group_id' => $group_id,
       'name' => $name,
@@ -1220,10 +1222,10 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
       'version' => 3,
     ];
     if (!empty($options)) {
-      $params['option_values'] = $options; 
+      $params['option_values'] = $options;
       $params['options_per_line'] = $options_per_line;
     }
-    if(!is_null($default)){
+    if (!is_null($default)) {
       $params['default_value'] = $default;
     }
     $field = civicrm_api('custom_field', 'create', $params);
@@ -1231,13 +1233,13 @@ function _civicrm_demo_create_custom_field($name, $title, $data_type, $html_type
   return $field;
 }
 
-function _civicrm_demo_create_uf_group($name, $title){
+function _civicrm_demo_create_uf_group($name, $title) {
   $params = [
     'title' => $title,
     'version' => 3,
   ];
   $uf_group = civicrm_api('uf_group', 'get', $params);
-  if(empty($uf_group['id'])){
+  if (empty($uf_group['id'])) {
     $params = [
       'name' => $name,
       'title' => $title,
@@ -1265,7 +1267,7 @@ function _civicrm_demo_create_uf_group($name, $title){
     $uf_group = civicrm_api('uf_group', 'create', $params);
 
     // remove all unecessery uf_join
-    if($uf_group['id']){
+    if ($uf_group['id']) {
       $query_params = [
         1 => [$uf_group['id'], 'Integer'],
       ];
@@ -1276,14 +1278,14 @@ function _civicrm_demo_create_uf_group($name, $title){
   return $uf_group;
 }
 
-function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 0){
+function _civicrm_demo_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 0) {
   $params = [
     'field_type' => $field_type,
     'field_name' => $field_name,
     'version' => 3,
   ];
   $uf_field = civicrm_api('uf_field', 'get', $params);
-  if(empty($uf_field['id'])){
+  if (empty($uf_field['id'])) {
     $last_weight = CRM_Core_DAO::singleValueQuery("SELECT weight FROM civicrm_uf_field WHERE uf_group_id = $uf_group_id ORDER BY weight DESC");
     $params = [
       'label' => $title,
@@ -1321,9 +1323,11 @@ function _civicrm_demo_create_event_participants($event_id, $max, $is_test) {
   ];
   $contacts = civicrm_api('Contact', 'get', $params2);
   $j = 0;
-  foreach($contacts['values'] as $contact){
+  foreach ($contacts['values'] as $contact) {
     $j++;
-    if($j > $max) break;
+    if ($j > $max) {
+      break;
+    }
     $params3 = ['version' => 3];
     $params3['contact_id'] = $contact['contact_id'];
     $params3['event_id'] = $event_id;
@@ -1336,7 +1340,7 @@ function _civicrm_demo_create_event_participants($event_id, $max, $is_test) {
   }
 }
 
-function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
+function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post) {
   $params = [
     'module' => 'CiviContribute',
     'entity_table' => 'civicrm_contribution_page',
@@ -1380,7 +1384,7 @@ function _civicrm_demo_create_uf_join($page_id, $custom_pre, $custom_post){
  *     msg_html => message html at civicrm_msg_template
  * @return bool
  */
-function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_language = NULL, $additional_params = []){
+function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_language = NULL, $additional_params = []) {
   civicrm_initialize();
   if (empty($group_name)) {
     return FALSE;
@@ -1391,7 +1395,7 @@ function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_lang
 
   $tpl = [];
   $tpl_path = \Drupal::service('extension.list.module')->getPath('civicrm').'/../xml/templates/message_templates/';
-  foreach(['subject', 'text', 'html'] as $tpl_type) {
+  foreach (['subject', 'text', 'html'] as $tpl_type) {
     if ($tpl_language) {
       $tmp_path = $tpl_path.$value_name.'_'.$tpl_type.'.'.$tpl_language.'.tpl';
       if (file_exists($tmp_path)) {
@@ -1410,7 +1414,7 @@ function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_lang
   $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = %1", [
     1 => [$group_name, 'String'],
   ]);
-  if(empty($option_group_id)){
+  if (empty($option_group_id)) {
     return FALSE;
   }
 
@@ -1425,10 +1429,10 @@ function _civicrm_demo_create_update_msg_tpl($group_name, $value_name, $tpl_lang
   ];
 
   $option_id = array_search($value_name, $group_values);
-  if(!empty($option_id)){
+  if (!empty($option_id)) {
     $action = CRM_Core_Action::UPDATE;
   }
-  else{
+  else {
     $option_id = NULL;
     $action = CRM_Core_Action::ADD;
   }
@@ -1469,20 +1473,20 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
   $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", [
     1 => [$option->id, 'Integer'],
   ]);
-  if($reserved_id){
+  if ($reserved_id) {
     $params['id'] = $reserved_id;
   }
 
   // add or update reserved template
   $reserved = CRM_Core_BAO_MessageTemplates::add($params);
 
-  if(!$diverted){
+  if (!$diverted) {
     $params['is_default'] = 1;
     $params['is_reserved'] = 0;
     $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", [
       1 => [$option->id, 'Integer'],
     ]);
-    if($default_id){
+    if ($default_id) {
       $params['id'] = $default_id;
     }
     $default = CRM_Core_BAO_MessageTemplates::add($params);

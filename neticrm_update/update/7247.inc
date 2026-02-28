@@ -1,18 +1,18 @@
 <?php
 
-function _neticrm_update_update_7247(){
+function _neticrm_update_update_7247() {
   civicrm_initialize();
   $sql = "SELECT @@GLOBAL.innodb_file_format;";
   $value = CRM_Core_DAO::singleValueQuery($sql);
-  if($value == 'Antelope'){
-    CRM_Core_Error::debug_log_message("Database variable 'innodb_file_format' is not 'Barracuda', Stop update.", true);
-    return False;
+  if ($value == 'Antelope') {
+    CRM_Core_Error::debug_log_message("Database variable 'innodb_file_format' is not 'Barracuda', Stop update.", TRUE);
+    return FALSE;
   }
 
   $converter = new CRMCharsetConverter($charset, $collation);
   $dao = CRM_Core_DAO::executeQuery("SHOW DATABASES");
-  while($dao->fetch()){
-    if($dao->Database != 'information_schema'){
+  while ($dao->fetch()) {
+    if ($dao->Database != 'information_schema') {
       $databases[] = $dao->Database;
     }
   }
@@ -70,12 +70,14 @@ class CRMCharsetConverter {
     $params = [];
     foreach ($args as $str => $value) {
       $i++;
-      $query = str_replace($str, '%'.$i , $query);
-      if($str == ':comment'){
+      $query = str_replace($str, '%'.$i, $query);
+      if ($str == ':comment') {
         $params[$i] = [$value, 'String'];
-      }elseif($str == ':default'){
+      }
+      elseif ($str == ':default') {
         $params[$i] = $value;
-      }else{
+      }
+      else {
         $params[$i] = [$value, 'Text'];
       }
     }
@@ -142,9 +144,9 @@ class CRMCharsetConverter {
     // Deal only with Drupal managed tables.
     $dao = CRM_Core_DAO::executeQuery("SHOW TABLES");
     $inx = "Tables_in_".$database;
-    while($dao->fetch()){
-      $table_name = $dao->{$inx}; 
-      if(strpos($table_name, 'civicrm') === 0){
+    while ($dao->fetch()) {
+      $table_name = $dao->{$inx};
+      if (strpos($table_name, 'civicrm') === 0) {
         $this->convertTable($table_name, $charset, $collation);
       }
     }
@@ -198,7 +200,7 @@ class CRMCharsetConverter {
     $row = CRM_Core_DAO::executeQuery("SHOW FULL FIELDS FROM " . $table_name);
     $charset = $charset ? $charset : $this->charset;
     $collation = $collation ? $collation : $this->collation;
-    while($row->fetch()){
+    while ($row->fetch()) {
       // Skip fields that don't have collation, as they are probably int or similar.
       // or if we are using that collation for this field already save a query
       // or is not binary.
@@ -252,11 +254,13 @@ class CRMCharsetConverter {
         ':comment' => $row->Comment,
       ];
       if (strstr($default, ':default')) {
-        if($row->Default == "CURRENT_TIMESTAMP" ){
+        if ($row->Default == "CURRENT_TIMESTAMP") {
           $params[':default'] = ["CURRENT_TIMESTAMP", "Text"];
-        }elseif(CRM_Utils_Rule::numeric($row->Default)){
+        }
+        elseif (CRM_Utils_Rule::numeric($row->Default)) {
           $params[':default'] = [$row->Default, "Int"];
-        }else{
+        }
+        else {
           $params[':default'] = [$row->Default, "String"];
         }
         

@@ -3,18 +3,18 @@
 /**
  * 產生銷帳編號
  */
-function esunbank_serial($code, $number, $length){
+function esunbank_serial($code, $number, $length) {
   $code = (string)$code;
   $number = (string)$number;
   $len = strlen($code.$number);
-  if($len <= $length -1){
+  if ($len <= $length -1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $serial = $code.str_repeat('0', $zero_count).$number;
     $serial .= esunbank_check_serial($serial);
     return $serial;
   }
-  else{
+  else {
     return 'serial-too-long';
   }
 }
@@ -22,19 +22,19 @@ function esunbank_serial($code, $number, $length){
 /**
  * 產生銷帳編號附帶金額檢驗
  */
-function esunbank_serial_price($code, $number, $length, $price){
+function esunbank_serial_price($code, $number, $length, $price) {
   $code = (string)$code;
   $number = (string)$number;
 
   $len = strlen($code.$number);
-  if($len <= $length -1){
+  if ($len <= $length -1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $serial = $code.str_repeat('0', $zero_count).$number;
     $serial .= esunbank_check_serial_price($serial, $price);
     return $serial;
   }
-  else{
+  else {
     return 'serial-too-long';
   }
 }
@@ -43,17 +43,17 @@ function esunbank_serial_price($code, $number, $length, $price){
  * 產生銷帳編號附帶繳款截止日
  * 繳款截止日前30日必須繳款
  */
-function esunbank_serial_price_date($code, $number, $length, $price, $timestamp){
+function esunbank_serial_price_date($code, $number, $length, $price, $timestamp) {
   $code = (string)$code;
   $number = (string)$number;
 
   $len = strlen($code.$number) + 4;
-  if($len > $length - 1){
+  if ($len > $length - 1) {
     $cut = $len - ($length - 1);
     $number = substr($number, $cut);
     $len = strlen($code.$number) + 4;
   }
-  if($len <= $length -1){
+  if ($len <= $length -1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $date = date('md', $timestamp);
@@ -61,7 +61,7 @@ function esunbank_serial_price_date($code, $number, $length, $price, $timestamp)
     $serial .= esunbank_check_serial_price($serial, $price);
     return $serial;
   }
-  else{
+  else {
     return 'serial-too-long';
   }
 }
@@ -70,18 +70,18 @@ function esunbank_serial_price_date($code, $number, $length, $price, $timestamp)
  * 產生銷帳編號附帶繳款截止日與時間
  * 繳款截止日時前240小時必須繳款
  */
-function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp){
+function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp) {
   $code = (string)$code;
   $number = (string)$number;
 
   $len = strlen($code.$number) + 5;
 
-  if($len > $length - 1){
+  if ($len > $length - 1) {
     $cut = $len - ($length - 1);
     $number = substr($number, $cut);
     $len = strlen($code.$number) + 5;
   }
-  if($len <= $length -1){
+  if ($len <= $length -1) {
     // zero padding
     $zero_count = $length - 1 - $len;
 
@@ -92,7 +92,7 @@ function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp)
     $serial .= esunbank_check_serial_price($serial, $price);
     return $serial;
   }
-  else{
+  else {
     return 'serial-too-long';
   }
 
@@ -100,33 +100,33 @@ function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp)
 
 /**
  * 檢核帳號
- */ 
-function esunbank_check_serial($serial){
+ */
+function esunbank_check_serial($serial) {
   return _esunbank_check_calc($serial);
 }
 
 /**
  * 檢核帳號與金額
  */
-function esunbank_check_serial_price($serial, $price){
+function esunbank_check_serial_price($serial, $price) {
   return _esunbank_check_calc($serial, $price);
 }
 
-function _esunbank_check_calc($serial, $price = NULL){
+function _esunbank_check_calc($serial, $price = NULL) {
   $check = 0;
   $serial = (string)$serial;
   $ary = str_split($serial);
   $ary = array_reverse($ary);
-  foreach($ary as $k => $v){
+  foreach ($ary as $k => $v) {
     $plus = $k%9+1;
     $check += $v*$plus;
   }
-  if(!empty($price)){
+  if (!empty($price)) {
     $price = (float) $price;
     $price = (string)$price;
     $ary = str_split($price);
     $ary = array_reverse($ary);
-    foreach($ary as $k => $v){
+    foreach ($ary as $k => $v) {
       $plus = $k%9+1;
       $check += $v*$plus;
     }
@@ -138,7 +138,7 @@ function _esunbank_check_calc($serial, $price = NULL){
 /**
  * 超商條碼A
  */
-function esunbank_store_a($timestamp, $code){
+function esunbank_store_a($timestamp, $code) {
   $year = _esunbank_year2roc($timestamp);
   $year = substr($year, -2);
   $date = $year . date('md', $timestamp);
@@ -150,12 +150,12 @@ function esunbank_store_a($timestamp, $code){
 /**
  * 超商條碼B
  */
-function esunbank_store_b($serial){
+function esunbank_store_b($serial) {
   $len = 16 - strlen($serial);
-  if($len > 0){
+  if ($len > 0) {
     $bar2 = $serial.str_repeat('0', $len);
   }
-  else{
+  else {
     $bar2 = $serial;
   }
 
@@ -165,11 +165,11 @@ function esunbank_store_b($serial){
 /**
  * 超商條碼C
  */
-function esunbank_store_c($timestamp, $price, $a, $b){
+function esunbank_store_c($timestamp, $price, $a, $b) {
   $date = date('md', $timestamp);
   $price = (string) $price;
   $len = 9-strlen($price);
-  if($len > 0){
+  if ($len > 0) {
     $price = str_repeat('0', $len).$price;
   }
   $bar3 = $date.'#@'.$price;
@@ -182,22 +182,30 @@ function esunbank_store_c($timestamp, $price, $a, $b){
 /**
  * 超商條碼驗證檢核
  */
-function _esunbank_store_calc($type, $a, $b, $c){
+function _esunbank_store_calc($type, $a, $b, $c) {
   $map = _esunbank_store_calc_map();
   $run = [$a, $b, $c];
   $sum = [];
-  foreach($run as $k => $s){
+  foreach ($run as $k => $s) {
     $ary = str_split($s);
     $sum[$k] = 0;
-    foreach($ary as $key => $char){
-      $even = ($key+1)%2 == 0 ? true : false;
-      if($type == 'odd' && $even) continue;
-      if($type == 'even' && !$even) continue;
-      if($char == '#') continue;
-      if($char == '@') continue;
+    foreach ($ary as $key => $char) {
+      $even = ($key+1)%2 == 0 ? TRUE : FALSE;
+      if ($type == 'odd' && $even) {
+        continue;
+      }
+      if ($type == 'even' && !$even) {
+        continue;
+      }
+      if ($char == '#') {
+        continue;
+      }
+      if ($char == '@') {
+        continue;
+      }
 
       // start calc
-      if(!is_numeric($char)){
+      if (!is_numeric($char)) {
         $char = $map[$char];
       }
       $sum[$k] += $char;
@@ -205,15 +213,15 @@ function _esunbank_store_calc($type, $a, $b, $c){
   }
   $total = array_sum($sum);
   $check = $total%11;
-  if($type == 'odd'){
+  if ($type == 'odd') {
     return $check == 10 ? 'B' : ($check == 0 ? 'A' : $check);
   }
-  else{
+  else {
     return $check == 10 ? 'Y' : ($check == 0 ? 'X' : $check);
   }
 }
 
-function _esunbank_store_calc_map(){
+function _esunbank_store_calc_map() {
   $ary = [
     'A' => 1,
     'B' => 2,
@@ -248,21 +256,25 @@ function _esunbank_store_calc_map(){
 /**
  * 郵局條碼a
  */
-function esunbank_postoffice_a(){
+function esunbank_postoffice_a() {
   return '50079841';
 }
 
 /**
  * 郵局條碼b
  */
-function esunbank_postoffice_b($timestamp, $serial, $a, $c){
+function esunbank_postoffice_b($timestamp, $serial, $a, $c) {
   $year = _esunbank_year2roc($timestamp);
   $len = 3 - strlen($year);
-  if($len > 0) $year = str_repeat('0', $len).$year;
+  if ($len > 0) {
+    $year = str_repeat('0', $len).$year;
+  }
   $date = $year . date('md', $timestamp);
 
   $len = 16 - strlen($serial);
-  if($len > 0) $serial .= str_repeat('0', $len);
+  if ($len > 0) {
+    $serial .= str_repeat('0', $len);
+  }
 
   $bar = $date.$serial;
   $code = _esunbank_postoffice_calc($a, $bar, $c);
@@ -272,37 +284,37 @@ function esunbank_postoffice_b($timestamp, $serial, $a, $c){
 /**
  * 郵局條碼c
  */
-function esunbank_postoffice_c($price){
+function esunbank_postoffice_c($price) {
   return (string) $price;
 }
 
 /**
  * 郵局檢查碼
  */
-function _esunbank_postoffice_calc($a, $b, $c){
+function _esunbank_postoffice_calc($a, $b, $c) {
   $ary['a'] = str_split($a);
   $ary['b'] = str_split($b);
   $ary['c'] = str_split($c);
   $sum = 0;
-  foreach($ary as $v){
-    foreach($v as $vv){
+  foreach ($ary as $v) {
+    foreach ($v as $vv) {
       $sum += $vv;
     }
   }
   return $sum%10;
 }
 
-function _esunbank_year2roc($timestamp){
+function _esunbank_year2roc($timestamp) {
   $ac = date('Y', $timestamp);
   $ac = (int)$ac;
   $roc = $ac - 1911;
-  if($roc < 1){
+  if ($roc < 1) {
     return FALSE;
   }
   return $roc;
 }
 
-function _esunbank_check_api(){
+function _esunbank_check_api() {
   $code = 99123;
   $number = 3939889;
   $length = 13;

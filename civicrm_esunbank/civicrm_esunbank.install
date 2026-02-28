@@ -8,7 +8,7 @@
 /**
  * Implementation of hook_schema()
  */
-function civicrm_esunbank_schema(){
+function civicrm_esunbank_schema() {
   $schema['civicrm_contribution_esunbank'] = [
     'description' => 'Civicrm Esunbank payment records',
     'fields' => [
@@ -76,7 +76,7 @@ function civicrm_esunbank_schema(){
  * Implementation of hook_install()
  */
 function civicrm_esunbank_install() {
-  civicrm_initialize( );
+  civicrm_initialize();
 
   // new payment processor
   $ppt_id= CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor_type WHERE name LIKE 'ESUNBANK'");
@@ -139,12 +139,12 @@ function civicrm_esunbank_install() {
   ];
   $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE option_group_id = {$payment_instrument_gid} AND name = 'Esunbank'");
   $dao->fetch();
-  if($dao->id){
+  if ($dao->id) {
     $params['value'] = $dao->value;
     $action = CRM_Core_Action::UPDATE;
     $option_value_id = $dao->id;
   }
-  else{
+  else {
     $action = CRM_Core_Action::ADD;
     $option_value_id = 0;
   }

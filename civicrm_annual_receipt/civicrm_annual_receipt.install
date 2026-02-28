@@ -21,8 +21,8 @@ function civicrm_annual_receipt_install() {
     'name' => 'custom_search',
   ];
   CRM_Core_OptionValue::getValues($group_params, $custom_search);
-  foreach($custom_search as $cid => $c){
-    if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
+  foreach ($custom_search as $cid => $c) {
+    if ($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt') {
       $custom_search_id = $cid;
       $custom_obj = $c;
     }
@@ -48,7 +48,7 @@ function civicrm_annual_receipt_install() {
 /**
  * Implementation of hook_uninstall()
  */
-function civicrm_annual_receipt_uninstall(){
+function civicrm_annual_receipt_uninstall() {
   civicrm_initialize();
   $custom_search_id = NULL;
   $custom_search = [];
@@ -56,8 +56,8 @@ function civicrm_annual_receipt_uninstall(){
     'name' => 'custom_search',
   ];
   CRM_Core_OptionValue::getValues($group_params, $custom_search);
-  foreach($custom_search as $cid => $c){
-    if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
+  foreach ($custom_search as $cid => $c) {
+    if ($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt') {
       $custom_search_id = $cid;
       break;
     }
@@ -67,7 +67,7 @@ function civicrm_annual_receipt_uninstall(){
 
 function _civicrm_annual_receipt_add_update_pdf_print_tpl() {
   $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
-  if(empty($option_group_id)){
+  if (empty($option_group_id)) {
     return FALSE;
   }
 
@@ -84,10 +84,10 @@ function _civicrm_annual_receipt_add_update_pdf_print_tpl() {
   ];
 
   $option_id = array_search('receipt_letter_annual', $group_values);
-  if(!empty($option_id)){
+  if (!empty($option_id)) {
     $action = CRM_Core_Action::UPDATE;
   }
-  else{
+  else {
     $option_id = NULL;
     $action = CRM_Core_Action::ADD;
   }
@@ -126,20 +126,20 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
   $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", [
     1 => [$option->id, 'Integer'],
   ]);
-  if($reserved_id){
+  if ($reserved_id) {
     $params['id'] = $reserved_id;
   }
 
   // add or update reserved template
   $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
 
-  if(!$diverted){
+  if (!$diverted) {
     $params['is_default'] = 1;
     $params['is_reserved'] = 0;
     $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", [
       1 => [$option->id, 'Integer'],
     ]);
-    if($default_id){
+    if ($default_id) {
       $params['id'] = $default_id;
     }
     $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);

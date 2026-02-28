@@ -29,7 +29,8 @@ function civicrm_alter_translation_uninstall() {
     $result->allowRowCount = TRUE;
     $num_deleted = $result->rowCount();
     $result->execute();
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     \Drupal::logger('civicrm_alter_translation')->error($e->getMessage());
   }
 }

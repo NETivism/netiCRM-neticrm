@@ -25,7 +25,7 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
 
   $type_params = ['id' => $object->contribution_type_id];
   $type_detail = [];
-	CRM_Core_DAO::commonRetrieve('CRM_Contribute_DAO_ContributionType', $type_params, $type_detail);
+  CRM_Core_DAO::commonRetrieve('CRM_Contribute_DAO_ContributionType', $type_params, $type_detail);
   $tax_rate = $type_detail['tax_rate'];
   $tax_type = $type_detail['is_taxreceipt'] == -1 ? ts('Tax free') : ($type_detail['is_taxreceipt'] == 1 ? ts('Normal tax or zero tax') : ts('None'));
   $field_info['contributionType'] = ['label' => ts('Contribution Type'), 'value_label' => $types[$object->contribution_type_id] . "({$tax_type}: {$tax_rate}%)"];
@@ -51,7 +51,7 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
       $exists['receipt_status'] = $exists['issue_response']->Status == 'SUCCESS' ? $status : 0;
       $exists['receipt_message'] = $exists['issue_response']->Message;
       $mapping = _civicrm_invpay2go_field_info_mapping();
-      foreach($mapping as $k => $v) {
+      foreach ($mapping as $k => $v) {
         if ($k == 'InvoiceStatus' || $k == 'TaxRate' || $k == 'TaxType') {
           if ($k == 'InvoiceStatus') {
             $exists['receipt_info'][$mapping[$k]] = $status == 1 ? '已開立' : ($status == 2 ? '<span class="font-red">已作廢</span>' : '等待同步');
@@ -62,7 +62,7 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
           }
           if ($k == 'TaxType') {
             $tax_type = $exists['search_response']->Result->$k;
-            switch($tax_type) {
+            switch ($tax_type) {
               case '1':
                 $tax_type = '應稅';
                 break;
@@ -90,7 +90,7 @@ function civicrm_invpay2go_civicrm_prepareTaxReceipt($contribution_id, &$tpl_par
  * Implement hook_civicrm_validateTaxReceipt
 
  */
-function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt){
+function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receipt) {
   $config = CRM_Core_Config::singleton();
   $success = _civicrm_invpay2go_check_success($receipt);
 
@@ -147,15 +147,15 @@ function civicrm_invpay2go_civicrm_validateTaxReceipt($contribution_id, &$receip
   }
 
   // the only thing we can print.
-  if($success) {
+  if ($success) {
     return ['print' => TRUE];
   }
-	return [];
+  return [];
 }
 
-function _civicrm_invpay2go_check_success(&$receipt){
+function _civicrm_invpay2go_check_success(&$receipt) {
   if (!empty($receipt) && $receipt['module'] == 'civicrm_invpay2go') {
-    if(isset($receipt['issue_response']->Status) && $receipt['issue_response']->Status == 'SUCCESS') {
+    if (isset($receipt['issue_response']->Status) && $receipt['issue_response']->Status == 'SUCCESS') {
       if ($receipt['receipt_status'] != 2) { // not 作廢
         return TRUE;
       }
@@ -248,7 +248,7 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
         if (strstr($form_name, 'CRM_Event_Form_Registration_')) {
           $pageType = $form->_values['event']['contribution_type_id'];
         }
-        else{
+        else {
           $pageType = $form->_values['contribution_type_id'];
         }
         if (!empty($pageType) && isset($taxTypes[$pageType])) {
@@ -266,10 +266,10 @@ function civicrm_invpay2go_civicrm_buildForm($form_name, &$form) {
         }
       }
       break;
-    // custom fields ajax form when edit contribution
+      // custom fields ajax form when edit contribution
     case 'CRM_Contribute_Form_Contribution':
       $taxTypes = CRM_Contribute_PseudoConstant::contributionType(NULL, 'is_taxreceipt');
-      if ((!empty($form->_contactID) || !empty($form->_id) ) && empty($_GET['snippet'])) {
+      if ((!empty($form->_contactID) || !empty($form->_id)) && empty($_GET['snippet'])) {
         $params = ['id' => $form->_contactID];
         $contactInfo = [];
         $returnProperities = ['contact_type', 'sic_code'];
@@ -309,25 +309,25 @@ cj(document).ready(function($){
 
           $config = CRM_Core_Config::singleton();
           $available = [];
-          foreach($config as $key => $v){
+          foreach ($config as $key => $v) {
             if (strstr($key, 'taxReceipt')) {
               $available[$key] = $v;
             }
           }
           
           $field_index = [];
-          foreach($form->_elementIndex as $idx => $dontcare) {
-            foreach($available as $key => $custom_id) {
+          foreach ($form->_elementIndex as $idx => $dontcare) {
+            foreach ($available as $key => $custom_id) {
               if (strstr($idx, 'custom_'.$custom_id)) {
                 $field_index[$key] = $idx;
               }
             }
           }
 
-          foreach($field_index as $key => $idx) {
+          foreach ($field_index as $key => $idx) {
             $element = $form->getElement($idx);
             if ($element->_type == 'group') {
-              foreach($element->_elements as $e) {
+              foreach ($element->_elements as $e) {
                 $e->setAttribute('data-invpay2go', $key);
                 if ($success || $key == 'taxReceiptPaper') {
                   $e->freeze();
@@ -392,22 +392,22 @@ function civicrm_invpay2go_civicrm_alterTemplateVars(&$resourceName, &$vars) {
   }
 }
 
-function civicrm_invpay2go_civicrm_export(&$exportTempTable, &$header, &$columns, &$exportMode){
+function civicrm_invpay2go_civicrm_export(&$exportTempTable, &$header, &$columns, &$exportMode) {
   if ($exportMode == CRM_Export_Form_Select::CONTRIBUTE_EXPORT) {
     $config = CRM_Core_Config::singleton();
     $column_name = 'custom_'.$config->taxReceiptNumber;
     $has_column = FALSE;
-    foreach($columns as $name) {
+    foreach ($columns as $name) {
       list($column) = explode(' ', $name);
       if ($column == $column_name) {
         $has_column = TRUE;
         break;
       }
     }
-    if ($has_column){
+    if ($has_column) {
       $invoice_ids = [];
       $dao = CRM_Core_DAO::executeQuery("SELECT $column_name FROM $exportTempTable");
-      while($dao->fetch()) {
+      while ($dao->fetch()) {
         $invoice_ids[] = $dao->$column_name;
       }
       if (!empty($invoice_ids)) {
@@ -415,7 +415,7 @@ function civicrm_invpay2go_civicrm_export(&$exportTempTable, &$header, &$columns
         $invoice_str = "'".implode("','", $invoice_ids)."'";
         $status_str = '\\\\\\\"InvoiceStatus\\\\\\\":\\\\\\\"2\\\\\\\"';
         $dao = CRM_Core_DAO::executeQuery("SELECT invoice_number, search_response FROM invpay2go_invoice WHERE invoice_number IN ($invoice_str) AND search_response LIKE '%$status_str%'");
-        while($dao->fetch()) {
+        while ($dao->fetch()) {
           $invoice_update[] = $dao->invoice_number;
         }
         if (!empty($invoice_update)) {
@@ -427,18 +427,18 @@ function civicrm_invpay2go_civicrm_export(&$exportTempTable, &$header, &$columns
   }
 }
 
-function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$object){
+function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$object) {
   $allowed = [
     'CRM/Event/Form/Registration/Register.tpl',
     'CRM/Contribute/Form/Contribution/Main.tpl',
     'CRM/Event/Form/Registration/Confirm.tpl',
     'CRM/Contribute/Form/Contribution/Confirm.tpl',
   ];
-  if (in_array($tpl, $allowed) && $object->controller->_print != 4 && !empty($object->_invpay2goElements))  {
+  if (in_array($tpl, $allowed) && $object->controller->_print != 4 && !empty($object->_invpay2goElements)) {
     require_once 'CRM/Core/Smarty/resources/String.php';
     civicrm_smarty_register_string_resource();
     $smarty =& CRM_Core_Smarty::singleton();
-    foreach($object->_invpay2goElements as $field){
+    foreach ($object->_invpay2goElements as $field) {
       $html = $smarty->fetch($field['string_tpl']);
       $replace .= $html;
     }
@@ -476,7 +476,7 @@ function civicrm_invpay2go_civicrm_validate($form_name, &$fields, &$files, &$for
     case 'CRM_Event_Form_Registration_Register':
       if (isset($fields['taxReceiptType']) && !empty($form->_invpay2goElements)) {
         $elements = $form->_invpay2goElements;
-        foreach($elements as $k => $e) {
+        foreach ($elements as $k => $e) {
           if (isset($fields[$k])) {
             $elements[$k]['value'] = $fields[$k];
           }
@@ -515,14 +515,14 @@ function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
       if ($form_name == 'CRM_Event_Form_Registration_Confirm') {
         $contributionId = $form->_contributionID;
       }
-      elseif($form_name == 'CRM_Contribute_Form_Contribution_Confirm') {
+      elseif ($form_name == 'CRM_Contribute_Form_Contribution_Confirm') {
         $contributionId = $form->_params['contributionID'];
       }
       if (isset($submitted['taxReceiptType']) && !empty($contributionId)) {
         $customValues = [];
         foreach ($submitted as $key => $value) {
           if (strstr($key, 'taxReceipt')) {
-            if(!empty($config->$key) && is_numeric($config->$key)) {
+            if (!empty($config->$key) && is_numeric($config->$key)) {
               $customId = $config->$key;
               $customValues['custom_'.$customId] = $value;
             }
@@ -539,7 +539,7 @@ function civicrm_invpay2go_civicrm_postProcess($form_name, &$form) {
         $paperReceipt = $form->_submitValues['tax_receipt_paper'] ? $form->_submitValues['tax_receipt_paper'] : 0;
         $contribution = new CRM_Contribute_DAO_Contribution();
         $contribution->id = $form->_id;
-        if($contribution->find(TRUE)) {
+        if ($contribution->find(TRUE)) {
           $result = [];
           // generate trxn_id for tax receipt
           civicrm_invpay2go_create_taxreceipt($form->_id, $result, $contribution, $paperReceipt);
@@ -565,8 +565,8 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
     'taxReceiptItem' => ['title' => '發票品項'],
   ];
   $invpay2goElements = $form->get('invpay2goElements');
-  foreach($elements as $key => $e) {
-    if(!empty($config->$key) && is_numeric($config->$key)) {
+  foreach ($elements as $key => $e) {
+    if (!empty($config->$key) && is_numeric($config->$key)) {
       $field = new CRM_Core_DAO_CustomField();
       $field->id = $config->$key;
       if ($field->find(TRUE)) {
@@ -579,7 +579,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
             '' => ts('-- 請選擇捐贈單位 --'),
           ];
           $list = explode("\n", $config->taxReceiptDonateSelect);
-          foreach($list as $position => $text){
+          foreach ($list as $position => $text) {
             if (preg_match('/(.*)\|(.*)/', $text, $matches)) {
               $number = $matches[1];
               $npo_name = $matches[2];
@@ -590,7 +590,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
           }
           $form->add('select', $key, $title, $npos, $required);
         }
-        elseif($key == 'taxReceiptItem') {
+        elseif ($key == 'taxReceiptItem') {
           $taxReceiptItemDefault = !empty($field->default_value) ? $field->default_value : $form->_invpay2goPage['name'];
           $form->add('hidden', 'taxReceiptItem', $taxReceiptItemDefault);
         }
@@ -599,7 +599,7 @@ function _civcirm_invpay2go_form_elements($form_name, &$form) {
         }
         $element = $form->getElement($key);
         if ($element->_type == 'group') {
-          foreach($element->_elements as $ele) {
+          foreach ($element->_elements as $ele) {
             $ele->setAttribute('data-invpay2go', $key);
           }
         }
@@ -632,7 +632,7 @@ function _civicrm_invpay2go_get_field_info($contribution_id) {
   $custom_values = CRM_Core_BAO_CustomValueTable::getEntityValues($contribution_id, 'Contribution');
   $custom_fields = CRM_Core_BAO_CustomField::getFields('Contribution');
   $display = [];
-  foreach($config as $key => $v){
+  foreach ($config as $key => $v) {
     if (strstr($key, 'taxReceipt') && !empty($custom_fields[$v]['label'])) {
       $label = $custom_fields[$v]['label'];
       $value = $custom_values[$v];
@@ -658,7 +658,7 @@ function _civicrm_invpay2go_get_field_info($contribution_id) {
   return $display;
 }
 
-function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info, $force_paper = FALSE){
+function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info, $force_paper = FALSE) {
   civicrm_initialize();
 
   $types = CRM_Contribute_PseudoConstant::contributionType();
@@ -666,7 +666,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   $item_name = $field_info['taxReceiptItem']['value'];
   $params = ['id' => $contribution['contribution_type_id']];
   $type_detail = [];
-	CRM_Core_DAO::commonRetrieve('CRM_Contribute_DAO_ContributionType', $params, $type_detail);
+  CRM_Core_DAO::commonRetrieve('CRM_Contribute_DAO_ContributionType', $params, $type_detail);
   $tax_rate = $type_detail['tax_rate'];
 
   if (empty($tax_rate)) {
@@ -685,7 +685,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   $tax_amt = round($total_amt - $amt);
   $amt = $total_amt - $tax_amt;
 
-  switch($field_info['taxReceiptType']['value']) {
+  switch ($field_info['taxReceiptType']['value']) {
     case 'elec':
       $conditional_params = [
         'Category' => 'B2C',
@@ -740,7 +740,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
       break;
   }
 
-  switch($type_detail['is_taxreceipt']) {
+  switch ($type_detail['is_taxreceipt']) {
     case '-1':
       $conditional_params['TaxType'] = 3; // tax free
       $conditional_params['TaxRate'] = 0;
@@ -790,9 +790,9 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
   return $params;
 }
 
-function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
+function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE) {
   $errors = [];
-  switch($fields['taxReceiptType']['value']) {
+  switch ($fields['taxReceiptType']['value']) {
     case 'elec':
       if ($fields['taxReceiptDeviceType']['value'] == '2') {
         // nothing
@@ -848,7 +848,7 @@ function _civcirm_invpay2go_params_validation(&$fields, $remove_unused = FALSE){
         unset($fields['taxReceiptDonate']);
       }
       break;
-    // fallback error
+      // fallback error
     default:
       $errors['taxReceiptType'] = ts('Missing required field: %1', [1 => $fields['taxReceiptType']['title']]);
       break;

@@ -60,4 +60,3 @@ function _neticrm_update_update_7278() {
   }
   echo "Contribution SMS and Event Registration SMS added to activity types.";
 }
-

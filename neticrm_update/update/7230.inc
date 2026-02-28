@@ -17,11 +17,11 @@ function _neticrm_update_update_7230_helper($name) {
   while ($dao->fetch()) {
     $result[$dao->value][] = $dao->id;
   }
-  foreach($result as $r) {
+  foreach ($result as $r) {
     $id = 0;
     if (count($r) > 1) {
       $id = reset($r);
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_option_value WHERE id = %1", [1 => [$id, 'Integer']]);
-    } 
+    }
   }
 }

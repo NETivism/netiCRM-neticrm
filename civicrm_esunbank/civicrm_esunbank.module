@@ -3,10 +3,10 @@
 /**
  * Implementation of hook_menu()
  */
-function civicrm_esunbank_menu(){
+function civicrm_esunbank_menu() {
   return [
     'payment-esunbank/ipn' => [
-      'access callback' => true,
+      'access callback' => TRUE,
       'page callback' => 'civicrm_esunbank_ipn',
       'page arguments' => [2],
       'type' => MENU_CALLBACK,
@@ -19,18 +19,18 @@ function civicrm_esunbank_menu(){
 /**
  * Implementation of hook_cron()
  */
-function civicrm_esunbank_cron(){
+function civicrm_esunbank_cron() {
   // expired
   // every day, we check if payment should expired.
   // we will expired payment in 10 day before. (only for esunbank instrument)
   $now = CRM_REQUEST_TIME;
   $last = \Drupal::state()->get('civicrm_esunbank.last_cron', []);
-  if(date('G') > 2 && date('G') < 5 && $now - $last > 86000){
+  if (date('G') > 2 && date('G') < 5 && $now - $last > 86000) {
     $statuses = CRM_Contribute_PseudoConstant::contributionStatus(NULL, 'name');
     $instrument_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', 'Esunbank', 'value', 'name');
     $overdue = array_search('Overdue', $statuses);
     $pending = array_search('Pending', $statuses);
-    if(!empty($instrument_id) && !empty($overdue) && !($pending)){
+    if (!empty($instrument_id) && !empty($overdue) && !($pending)) {
       $days_before = date('YmdHis', $now - 86400*40);
       $days_after = date('YmdHis', $now - 86400*35);
       CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET contribution_status_id = %1 WHERE contribution_status_id = %2 AND created_date > %3 AND created_date < %4 AND payment_instrument_id = %5", [
@@ -46,29 +46,29 @@ function civicrm_esunbank_cron(){
 }
 
 
-function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$selector){
-  if($context == 'contribution' && !empty($rows)){
+function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$selector) {
+  if ($context == 'contribution' && !empty($rows)) {
     $instrument_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', 'Esunbank', 'value', 'name');
     $ids = [];
-    foreach($rows as $k => $r){
-      if($r['contribution_status_id'] == 2){
+    foreach ($rows as $k => $r) {
+      if ($r['contribution_status_id'] == 2) {
         $ids[$k] = $r['contribution_id'];
       }
     }
 
-    if(count($ids)){
+    if (count($ids)) {
       $processor = $pids = [];
       $cfg = \Drupal::config('esunbank.admin_settings');
       $expired_day = !empty($cfg->get('expiry_days')) ? $cfg->get('expiry_days') : ESUNBANK_DEFUALT_EXPIRY_DAYS;
       $least_day = date('Y-m-d H:i:s', strtotime('-'.$expired_day.' days'));
       $query = CRM_Core_DAO::executeQuery("SELECT id, payment_processor_id as pid FROM civicrm_contribution WHERE id IN (".implode(',', $ids).") AND payment_instrument_id = %1 AND payment_processor_id IS NOT NULL AND created_date >= '{$least_day}'", [1 => [$instrument_id, 'Integer']]);
-      while($query->fetch()){
-        if(empty($processor[$query->pid]) && !empty($query->pid)){
+      while ($query->fetch()) {
+        if (empty($processor[$query->pid]) && !empty($query->pid)) {
           $processor[$query->pid][0] = CRM_Core_BAO_PaymentProcessor::getPayment($query->pid, 'live');
           $processor[$query->pid][1] = CRM_Core_BAO_PaymentProcessor::getPayment($query->pid, 'test');
         }
         $k = array_search($query->id, $ids);
-        if(!empty($rows[$k])){
+        if (!empty($rows[$k])) {
           $pp =& $processor[$query->pid][$rows[$k]['is_test']];
           $url = [
             'code' => $pp['user_name'],

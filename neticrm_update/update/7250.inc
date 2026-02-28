@@ -24,19 +24,19 @@ function _neticrm_update_update_7250() {
   $sqls = explode("\n", $all_sql);
   foreach ($sqls as $sql) {
     // Validate is exist if sql is inserting new country
-    if(substr($sql,0,6) == 'INSERT'){
+    if (substr($sql, 0, 6) == 'INSERT') {
       preg_match('/\("(\d{4})"/', $sql, $result);
       $valid_sql = "SELECT id FROM civicrm_country WHERE id = %1;";
       $params = [1 => [$result[1], "Integer"]];
       $is_exist = CRM_Core_DAO::singleValueQuery($valid_sql, $params);
-      if($is_exist){
-        CRM_Core_Error::debug_log_message("\nThe country id = {$result[1]} is exist, Skip insert the country.\n", true);
+      if ($is_exist) {
+        CRM_Core_Error::debug_log_message("\nThe country id = {$result[1]} is exist, Skip insert the country.\n", TRUE);
         continue;
       }
     }
 
     // execute sql;
-    CRM_Core_Error::debug_log_message("\nProcess sql: $sql\n", true);
+    CRM_Core_Error::debug_log_message("\nProcess sql: $sql\n", TRUE);
     CRM_Core_DAO::executeQuery($sql);
   }
 }

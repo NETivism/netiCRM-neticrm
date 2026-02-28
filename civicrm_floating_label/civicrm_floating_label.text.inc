@@ -5,10 +5,9 @@
  * Do not touch anything else
  */
 class CiviCRM_Floating_Label_text extends HTML_QuickForm_text {
-  public function __construct($elementName=null, $elementLabel=null, $attributes=null)
-  {
+  public function __construct($elementName=NULL, $elementLabel=NULL, $attributes=NULL) {
     parent::__construct($elementName, $elementLabel, $attributes);
-    $this->_persistantFreeze = true;
+    $this->_persistantFreeze = TRUE;
     $this->setType('text');
 
     // set placeholder to make sure floating label work

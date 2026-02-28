@@ -2,7 +2,7 @@
 function _neticrm_update_update_7287() {
   $dao = CRM_Core_DAO::executeQuery("SELECT provider_id FROM civicrm_im WHERE 1 GROUP BY provider_id");
   $existsProvider = [];
-  while($dao->fetch()) {
+  while ($dao->fetch()) {
     $existsProvider[] = $dao->provider_id;
   }
   $disableProvider = array_diff([1,2,3,4,5], $existsProvider);
@@ -22,7 +22,7 @@ function _neticrm_update_update_7287() {
       $params[3] = [ $max+1, 'Positive'];
       $sql = "INSERT INTO `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`) VALUES
        (%1, %2,  %3, %2,  NULL, 0, NULL, %3, NULL, 0, 0, 1, NULL, NULL)";
-       CRM_Core_DAO::executeQuery($sql, $params);
+      CRM_Core_DAO::executeQuery($sql, $params);
     }
   }
 

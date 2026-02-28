@@ -10,7 +10,7 @@ function _neticrm_update_update_7282() {
     trim(file_get_contents($path."contribution_online_receipt_subject.tpl")),
     trim(file_get_contents($path."contribution_offline_receipt_subject.tpl")),
   ];
-  foreach($search as $k => $pattern) {
+  foreach ($search as $k => $pattern) {
     CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_subject = REPLACE(msg_subject, %1, %2) WHERE msg_subject LIKE %1", [
       1 => [$pattern, 'String'],
       2 => [$replace[$k], 'String'],

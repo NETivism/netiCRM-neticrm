@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7213(){
+function _neticrm_update_update_7213() {
   civicrm_initialize();
   $workflow = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE name = 'receipt_letter'");
 
@@ -20,26 +20,26 @@ function _neticrm_update_update_7213(){
           )
       ';
   $params = [1 => [$workflow, 'Integer']];
-  $diverted_id = CRM_Core_DAO::singleValueQuery($sql,$params);
+  $diverted_id = CRM_Core_DAO::singleValueQuery($sql, $params);
   $is_customized = !empty($diverted_id);
-  if($is_customized){
+  if ($is_customized) {
     $customized_html = CRM_Core_DAO::singleValueQuery("SELECT msg_html FROM civicrm_msg_template WHERE workflow_id = $workflow AND is_reserved = 0");
   }
 
   // Remove origin msg template
   $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = $workflow AND is_reserved = 1");
-  if($id){
+  if ($id) {
     CRM_Core_BAO_MessageTemplates::del($id);
   }
   $id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = $workflow AND is_reserved = 0");
-  if($id){
+  if ($id) {
     CRM_Core_BAO_MessageTemplates::del($id);
   }
 
   // Add new msg template
   $name = '紙本收據';
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/receipt_letter_';
-  if(is_file($path.'html.zh_TW.tpl')){
+  if (is_file($path.'html.zh_TW.tpl')) {
     $html = $is_customized ? $customized_html : file_get_contents($path.'html.zh_TW.tpl');
     
     $text = file_get_contents($path.'text.tpl');
@@ -58,7 +58,7 @@ function _neticrm_update_update_7213(){
     CRM_Core_BAO_MessageTemplates::add($params);
     $params['is_default'] = 0;
     $params['is_reserved'] = 1;
-    if($is_customized){
+    if ($is_customized) {
       $params['msg_html'] = file_get_contents($path.'html.zh_TW.tpl');
     }
 
@@ -66,7 +66,8 @@ function _neticrm_update_update_7213(){
     CRM_Core_BAO_MessageTemplates::add($params);
 
     return "Success to update receipt_letter message template.";
-  }else{
+  }
+  else {
     return ['#abort' => ['success' => FALSE, 'query' => 'You need /xml/templates/message_templates/receipt_letter_html.zh_TW.tpl in CiviCrm direction to finish update.']];
   }
 }

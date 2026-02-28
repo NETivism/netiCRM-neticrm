@@ -5,10 +5,10 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7208(){
+function _neticrm_update_update_7208() {
   $params = ['version' => 3, 'name' => 'recur_frequency_units'];
   $result = civicrm_api('OptionGroup', 'Get', $params);
-  if(!empty($result['id'])){
+  if (!empty($result['id'])) {
     $query_params = [
       1 => [$result['id'], 'Integer'],
       2 => ['week', 'String'],
@@ -18,10 +18,10 @@ function _neticrm_update_update_7208(){
 
     // update contribution page settings
     $query = CRM_Core_DAO::executeQuery("SELECT id, recur_frequency_unit FROM civicrm_contribution_page WHERE recur_frequency_unit LIKE '%week%' OR recur_frequency_unit LIKE '%day%'");
-    while($query->fetch()){
+    while ($query->fetch()) {
       $units = explode(CRM_Core_BAO_CustomOption::VALUE_SEPERATOR, $query->recur_frequency_unit);
-      foreach($units as $k => $v){
-        if($v == 'day' || $v == 'week'){
+      foreach ($units as $k => $v) {
+        if ($v == 'day' || $v == 'week') {
           unset($units[$k]);
         }
       }

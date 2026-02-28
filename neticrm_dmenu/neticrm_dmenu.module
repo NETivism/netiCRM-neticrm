@@ -50,7 +50,7 @@ function neticrm_dmenu_toolbar() {
 /**
  * Implement hook_preprocess_page
  */
-function neticrm_dmenu_preprocess_page(&$variables){
+function neticrm_dmenu_preprocess_page(&$variables) {
   $user = \Drupal::currentUser();
   if ($user->hasPermission('access CiviCRM')) {
     civicrm_initialize();

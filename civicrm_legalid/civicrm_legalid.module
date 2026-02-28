@@ -3,18 +3,18 @@
 /**
  * Implementation of hook_buildForm()
  */
-function civicrm_legalid_civicrm_buildForm( $formName, &$form ) {
+function civicrm_legalid_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Contact_Form_Contact') {
     // ssn
     $form->addElement('text', 'legal_identifier', ts('Legal Identifier'));
 
     // this will retrieve the contact id
-    $contactID = $form->getVar( '_contactId' );
+    $contactID = $form->getVar('_contactId');
 
-    if ( $contactID ) {
+    if ($contactID) {
       // setdefault if legal_identifier is saved
-      $defaults['legal_identifier'] = CRM_Core_DAO::singleValueQuery( "SELECT legal_identifier FROM civicrm_contact WHERE id = {$contactID}" );
-      $form->setdefaults( $defaults );
+      $defaults['legal_identifier'] = CRM_Core_DAO::singleValueQuery("SELECT legal_identifier FROM civicrm_contact WHERE id = {$contactID}");
+      $form->setdefaults($defaults);
     }
   }
 }
@@ -22,49 +22,49 @@ function civicrm_legalid_civicrm_buildForm( $formName, &$form ) {
 /**
  * Implementation of hook_validate()
  */
-function civicrm_legalid_civicrm_validate( $formName, &$fields, &$files, &$form ) {
+function civicrm_legalid_civicrm_validate($formName, &$fields, &$files, &$form) {
   $errors = [ ];
   if ($formName == 'CRM_Contact_Form_Contact') {
-    $contactID = $form->getVar( '_contactId' );
-    if ( !empty($fields['legal_identifier']) ) {
+    $contactID = $form->getVar('_contactId');
+    if (!empty($fields['legal_identifier'])) {
       // duplicate
-      $qvar = [ 
+      $qvar = [
         1 => [$fields['legal_identifier'], 'String' ],
       ];
       $sql = "SELECT id, display_name FROM civicrm_contact WHERE is_deleted = 0 AND LOWER(legal_identifier) = %1";
-      if($contactID){
+      if ($contactID) {
         // when update
         $qvar[2] = [$contactID, 'Integer' ];
         $sql .= " AND id != %2";
       }
       $dao = CRM_Core_DAO::executeQuery($sql, $qvar);
       $dao->fetch();
-      if($dao->id){
+      if ($dao->id) {
         $link = CRM_Utils_System::href($dao->display_name, 'civicrm/contact/add', 'reset=1&action=update&context=search&cid='.$dao->id);
         $errors['legal_identifier'] = ts("Duplicate legal identifier with %1", [1 => $link]);
       }
     }
   }
-  return empty( $errors ) ? true : $errors;
+  return empty($errors) ? TRUE : $errors;
 }
 
 /**
  * Implementation of hook_postProcess()
  */
-function civicrm_legalid_civicrm_postProcess( $formName, &$form ) {
+function civicrm_legalid_civicrm_postProcess($formName, &$form) {
   if ($formName == 'CRM_Contact_Form_Contact') {
     // this will give you the SSN submitted value
-    $values = $form->exportValues( );
+    $values = $form->exportValues();
     $legalid = CRM_Utils_Type::escape($values['legal_identifier'], 'String');
 
     // this will retrieve the contact id
-    $contactID = $form->getVar( '_contactId' );
+    $contactID = $form->getVar('_contactId');
 
     // we need to check if entry exists for current contact in training_ssn table
     // if yes then update else insert
-    if(!empty($contactID)){
+    if (!empty($contactID)) {
       $qvar = [1 => [$contactID, 'Integer' ]];
-      $exists_legalid = CRM_Core_DAO::singleValueQuery( "SELECT id FROM civicrm_contact WHERE id = %1", $qvar);
+      $exists_legalid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contact WHERE id = %1", $qvar);
 
       if ($exists_legalid) {
         $qvar[2] = [$legalid, 'String' ];
@@ -78,13 +78,13 @@ function civicrm_legalid_civicrm_postProcess( $formName, &$form ) {
 /**
  * Implementation of hook_pageRun()
  */
-function civicrm_legalid_civicrm_pageRun( &$page ) {
-  if ( is_a( $page, 'CRM_Contact_Page_View_Summary' ) ) {
-     // this will retrieve the contact id
-    $contactID = $page->getVar( '_contactId' );
+function civicrm_legalid_civicrm_pageRun(&$page) {
+  if (is_a($page, 'CRM_Contact_Page_View_Summary')) {
+    // this will retrieve the contact id
+    $contactID = $page->getVar('_contactId');
     // get the ssn number and set it to the templaet
     $qvar = [1 => [$contactID, 'Integer' ]];
-    $legalid = CRM_Core_DAO::singleValueQuery( "SELECT legal_identifier FROM civicrm_contact WHERE id = %1", $qvar);
+    $legalid = CRM_Core_DAO::singleValueQuery("SELECT legal_identifier FROM civicrm_contact WHERE id = %1", $qvar);
     $page->assign('legal_identifier', $legalid);
   }
 }

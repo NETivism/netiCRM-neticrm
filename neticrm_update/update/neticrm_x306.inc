@@ -13,7 +13,7 @@ function _neticrm_update_update_x306() {
     CRM_Core_DAO::executeQuery($sql);
   }
 
-  // add activity types 
+  // add activity types
   _neticrm_update_add_activity_type_x306('Contribution Notification Email', 'CiviContribute');
   _neticrm_update_add_activity_type_x306('Event Notification Email', 'CiviEvent');
   _neticrm_update_add_activity_type_x306('Membership Notification Email', 'CiviMember');
@@ -75,7 +75,7 @@ function _neticrm_update_update_x306() {
 
   // add event transactional table
   $exists = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name = 'civicrm_mailing_event_transactional'");
-  if(!$exists){
+  if (!$exists) {
     $sql = "CREATE TABLE civicrm_mailing_event_transactional (
       id int unsigned NOT NULL AUTO_INCREMENT  ,
       event_queue_id int unsigned NOT NULL   COMMENT 'FK to EventQueue',

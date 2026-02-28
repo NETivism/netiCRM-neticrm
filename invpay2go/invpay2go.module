@@ -29,7 +29,7 @@ function invpay2go_theme($existing, $type, $theme, $path) {
  * @param bool $extra
  *   Fetch extra info from api search
  */
-function invpay2go_api_run($params, $api_params, $is_test, $extra = TRUE){
+function invpay2go_api_run($params, $api_params, $is_test, $extra = TRUE) {
   \Drupal::moduleHandler()->loadInclude('invpay2go', 'inc', 'invpay2go.lib');
   _invpay2go_api_params($api_params, $is_test);
   $req = new Pay2goInvoice($api_params, $is_test);
@@ -63,7 +63,7 @@ function invpay2go_api_search($params, $api_params, $is_test) {
   return $search;
 }
 
-function _invpay2go_api_params(&$api_params, $is_test){
+function _invpay2go_api_params(&$api_params, $is_test) {
   if (!empty($api_params['pid'])) {
     $merchant = invpay2go_merchant_load($api_params['pid']);
     if ($is_test) {
@@ -85,7 +85,7 @@ function _invpay2go_api_params(&$api_params, $is_test){
  * @param string $order_number
  * @param string $invoice_number
  */
-function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search = TRUE){
+function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search = TRUE) {
   \Drupal::moduleHandler()->loadInclude('invpay2go', 'inc', 'invpay2go.lib');
   if ($order_number) {
     $record = Pay2goInvoice::getRecord($order_number);
@@ -94,7 +94,7 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search
     $record = Pay2goInvoice::getRecord(NULL, $invoice_number);
   }
   if ($record) {
-    if (($search === 'force') || 
+    if (($search === 'force') ||
       (empty($record['search_response']) && $search && !empty($record['issue_response']->Result->TotalAmt))
     ) {
       $totalAmt = $record['issue_response']->Result->TotalAmt;
@@ -125,18 +125,18 @@ function invpay2go_api_get($order_number = NULL, $invoice_number = NULL, $search
  * @return string
  *   Return printing html with inline css style prepared for printing
  */
-function invpay2go_api_print(&$object){
+function invpay2go_api_print(&$object) {
   \Drupal::moduleHandler()->loadInclude('invpay2go', 'inc', 'invpay2go.lib');
   return Pay2goInvoice::printReceipt($object);
 }
 
-function invpay2go_api_fields($apitype){
+function invpay2go_api_fields($apitype) {
   \Drupal::moduleHandler()->loadInclude('invpay2go', 'inc', 'invpay2go.lib');
   return Pay2goInvoice::fields($apitype);
 }
 
 function invpay2go_merchant_load($pid = NULL, $fields = []) {
-  $select = \Drupal::database()->select('invpay2go','inv');
+  $select = \Drupal::database()->select('invpay2go', 'inv');
   if (empty($fields)) {
     $fields = [];
   }
@@ -160,7 +160,7 @@ function invpay2go_api_barcode($string) {
   require_once('barcode/barcode39.inc');
 
   $bar = new Barcode39($string);
-  $bar->barcode_text = false;
+  $bar->barcode_text = FALSE;
   $bar->barcode_bar_thick = 2;
   $bar->barcode_bar_thin = 1;
   $bar->barcode_height = 50;

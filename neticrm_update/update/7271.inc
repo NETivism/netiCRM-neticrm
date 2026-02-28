@@ -4,9 +4,8 @@
  * @file
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7271()
-{
-// add is_qrcode column to event
+function _neticrm_update_update_7271() {
+  // add is_qrcode column to event
   $sql = "SHOW COLUMNS FROM civicrm_contribution_page WHERE field LIKE 'installments_option'";
   $dao = CRM_Core_DAO::executeQuery($sql);
   if (empty($dao->N)) {

@@ -7,19 +7,19 @@ function _neticrm_update_update_7221() {
   civicrm_initialize();
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_contribution_page' AND column_name = 'recur_fail_notify'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
-  if(!$exists){
+  if (!$exists) {
     $alter_query = "ALTER TABLE `civicrm_contribution_page` ADD `recur_fail_notify` VARCHAR(255) NULL  COMMENT 'comma-separated list of email addresses to each time a recurring is failed' AFTER `receipt_text`";
     CRM_Core_DAO::executeQuery($alter_query);
   }
 
 
-  // Check: 
+  // Check:
   $id = CRM_Core_DAO::singleValueQuery("SELECT ov.id FROM civicrm_option_value ov INNER JOIN civicrm_option_group og WHERE og.name = 'msg_tpl_workflow_contribution' AND ov.name = 'contribution_recur_fail_notify'");
-  if(!empty($id)){
+  if (!empty($id)) {
     return FALSE;
   }
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_contribution'");
-  if(empty($gid)){
+  if (empty($gid)) {
     return FALSE;
   }
 

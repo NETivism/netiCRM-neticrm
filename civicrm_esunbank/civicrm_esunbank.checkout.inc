@@ -10,7 +10,7 @@
  * @param $component
  * @param $payment_processor
  */
-function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor, &$form){
+function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor, &$form) {
   // First, we insert every contribution into record. After this, we'll use update for the record.
   $record = ['created' => time()];
   \Drupal::database()->merge('civicrm_contribution_esunbank')
@@ -19,10 +19,10 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
     ->execute();
 
   $controller_name = get_class($form->controller);
-  if($controller_name){
+  if ($controller_name) {
     $form_key = $controller_name.'_'.$vars['qfKey'];
   }
-  else{
+  else {
     $form_key = $vars['qfKey'];
   }
   $civi_base_url = CRM_Utils_System::currentPath();
@@ -69,23 +69,23 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   // Special hacking for display trxn_id after thank you page.
   $_SESSION['CiviCRM'][$form_key]['params']['trxn_id'] = $contribution->trxn_id;
   $_SESSION['CiviCRM'][$form_key]['params']['is_pay_later'] = 1;
-  if($component == 'event'){
+  if ($component == 'event') {
     $values =& $_SESSION['CiviCRM'][$form_key]['values']['event'];
   }
-  else{
+  else {
     $values =& $_SESSION['CiviCRM'][$form_key]['values'];
   }
-  if(empty($_SESSION['CiviCRM'][$form_key]['params']['sent'])){
+  if (empty($_SESSION['CiviCRM'][$form_key]['params']['sent'])) {
     $invoice_link = '<a href="'.$tpl['invoice_link'].'" target="_blank">付款單</a>';
     $invoice_link_text = <<<EOT
     <div>如果您沒有看到繳費單視窗，點此<strong>開啟{$invoice_link}</strong></div>
     EOT;
     $values['thankyou_text'] .= $invoice_link_text;
 
-    if(!empty($vars['email-5'])){
+    if (!empty($vars['email-5'])) {
       $email = $vars['email-5'];
     }
-    else{
+    else {
       $email = CRM_Contact_BAO_Contact::getPrimaryEmail($vars['contactID']);
     }
 
@@ -95,28 +95,28 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
     $from_emails = [];
     $from_default = '';
     CRM_Core_OptionValue::getValues(['name' => 'from_email_address'], $from_emails);
-    foreach($from_emails as $id => $v){
-      if($v['is_default'] == 1){
+    foreach ($from_emails as $id => $v) {
+      if ($v['is_default'] == 1) {
         $from_default = $v['label'];
         break;
       }
     }
-    if($component == 'event'){
+    if ($component == 'event') {
       // after saved record, we should modify the status of participant / membership
       $participant_id = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_ParticipantPayment', $vars['contributionID'], 'participant_id', 'contribution_id');
-      if($participant_id){
+      if ($participant_id) {
         $pstatus = CRM_Event_PseudoConstant::participantStatus();
-        if($new_pstatus = array_search('Pending from pay later', $pstatus)){
+        if ($new_pstatus = array_search('Pending from pay later', $pstatus)) {
           CRM_Core_DAO::setFieldValue('CRM_Event_DAO_Participant', $participant_id, 'status_id', $new_pstatus, 'id');
         }
       }
 
-      if($values['event']['confirm_from_name'] && $values['event']['confirm_from_email']){
+      if ($values['event']['confirm_from_name'] && $values['event']['confirm_from_email']) {
         $from = $values['event']['confirm_from_name']. '<'.$values['event']['confirm_from_email'];
       }
     }
-    else{ // contribute
-      if($values['receipt_from_name'] && $values['receipt_from_email']){
+    else { // contribute
+      if ($values['receipt_from_name'] && $values['receipt_from_email']) {
         $from = $values['receipt_from_name']. ' <'.$values['receipt_from_email'].'>';
       }
     }
@@ -133,18 +133,19 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
     ];
     CRM_Core_BAO_MessageTemplates::sendTemplate($send_params);
     // prevent re-send invoice
-    $_SESSION['CiviCRM'][$form_key]['params']['sent'] = true;;
+    $_SESSION['CiviCRM'][$form_key]['params']['sent'] = TRUE;
+    ;
   }
 
   require_once 'CRM/Core/Session.php';
-  CRM_Core_Session::storeSessionObjects( );
+  CRM_Core_Session::storeSessionObjects();
 
   // redirect to thank-you page
   $uri = CRM_Utils_System::url($civi_base_url, "_qf_ThankYou_display=true&qfKey={$vars['qfKey']}");
   CRM_Utils_System::redirect($uri);
 }
 
-function civicrm_esunbank_convert_css($html){
+function civicrm_esunbank_convert_css($html) {
   preg_match('/text\/css.*href="([^"].+\.css)"/i', $html, $matches);
   $css = file_get_contents($matches[1]);
 

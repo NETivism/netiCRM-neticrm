@@ -2,9 +2,9 @@
 
 class Pay2goInvoice {
 
-  public CONST INVPAY2GO_TEST = 'https://cinv.ezpay.com.tw';
-  public CONST INVPAY2GO_PROD = 'https://inv.ezpay.com.tw';
-  public CONST RESPONSE_TYPE = 'JSON';
+  public const INVPAY2GO_TEST = 'https://cinv.ezpay.com.tw';
+  public const INVPAY2GO_PROD = 'https://inv.ezpay.com.tw';
+  public const RESPONSE_TYPE = 'JSON';
 
   public $isTest = 0;
   public $status = 0;
@@ -51,7 +51,7 @@ class Pay2goInvoice {
    * @param bool $isTest
    *   A boolean indicate if this api call test or not.
    */
-  public function __construct($apiParams, $isTest){
+  public function __construct($apiParams, $isTest) {
     extract($apiParams);
     if (empty($merchantId) || empty($key) || empty($iv) || is_null($isTest)) {
       throw new Exception('Required parameters missing: merchantId, key, iv, isTest');
@@ -165,9 +165,9 @@ class Pay2goInvoice {
   /**
    * Record type
    */
-  private function recordType(){
+  private function recordType() {
     $recordField = '';
-    switch($this->apiType) {
+    switch ($this->apiType) {
       case 'invoice_issue':
       case 'invoice_touch_issue':
         $recordField = 'issue_response';
@@ -227,13 +227,13 @@ class Pay2goInvoice {
   /**
    * Helper function for curl post data
    */
-  public static function curlPost($url, $postData){
+  public static function curlPost($url, $postData) {
     $curlOptions = [
       CURLOPT_URL => $url,
-      CURLOPT_HEADER => false,
-      CURLOPT_RETURNTRANSFER => true,
+      CURLOPT_HEADER => FALSE,
+      CURLOPT_RETURNTRANSFER => TRUE,
       CURLOPT_USERAGENT => 'pay2go client',
-      CURLOPT_FOLLOWLOCATION => true,
+      CURLOPT_FOLLOWLOCATION => TRUE,
       CURLOPT_SSL_VERIFYPEER => FALSE,
       CURLOPT_SSL_VERIFYHOST => FALSE,
       CURLOPT_POST => '1',
@@ -248,7 +248,7 @@ class Pay2goInvoice {
       $err = curl_errno($ch);
       $curlError = [$errno => $err];
     }
-    else{
+    else {
       $curlError = [];
     }
     curl_close($ch);
@@ -262,28 +262,28 @@ class Pay2goInvoice {
   /**
    * Helper function for get record
    */
-  public static function getRecord($order_number = null, $invoice_number = null){
-    if(!empty($order_number)) {
+  public static function getRecord($order_number = NULL, $invoice_number = NULL) {
+    if (!empty($order_number)) {
       $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE order_number = :or", [':or' => $order_number])->fetchObject();
     }
-    elseif(!empty($invoice_number)) {
+    elseif (!empty($invoice_number)) {
       $record = \Drupal::database()->query("SELECT * FROM {invpay2go_invoice} WHERE invoice_number = :in", [':in' => $invoice_number])->fetchObject();
     }
     if (!empty($record->order_number)) {
       $return = [];
-      foreach($record as $key => $r){
+      foreach ($record as $key => $r) {
         if (strstr($key, 'response')) {
           $json = json_decode($r);
           if ($json) {
             foreach ($json as $k => $v) {
-              if($k == 'Result' && !empty($v)) {
+              if ($k == 'Result' && !empty($v)) {
                 $json->Result = json_decode($v);
               }
             }
             $return[$key] = $json;
           }
         }
-        else{
+        else {
           $return[$key] = $r;
         }
       }
@@ -294,7 +294,7 @@ class Pay2goInvoice {
   /**
    * Helper function to get full array
    */
-  public static function getInfo($object){
+  public static function getInfo($object) {
     $info = [];
     if (!empty($object['issue_response']->Result)) {
       $info = (array) $object['issue_response']->Result;
@@ -322,8 +322,8 @@ class Pay2goInvoice {
    *   invalid_response is flatten json object in string
    *   allowance_response is flatten json object in string
    */
-  public static function writeRecord($orderNumber, $record){
-    if(!empty($orderNumber)) {
+  public static function writeRecord($orderNumber, $record) {
+    if (!empty($orderNumber)) {
       $exists = \Drupal::database()->query("SELECT order_number FROM {invpay2go_invoice} WHERE order_number = :order_number", [':order_number' => $orderNumber])->fetchObject();
     }
     \Drupal::database()->merge('invpay2go_invoice')
@@ -341,7 +341,7 @@ class Pay2goInvoice {
    * @return string
    *   Return printing html with inline css style prepared for printing
    */
-  public static function printReceipt($object){
+  public static function printReceipt($object) {
     $print = '';
     if (is_string($object)) {
       $object = self::getRecord($object);
@@ -384,7 +384,7 @@ class Pay2goInvoice {
   /**
    * Helper function for encrypt
    */
-  public static function encrypt($string, $key, $iv){
+  public static function encrypt($string, $key, $iv) {
     $data = self::padding($string);
     $openssl = extension_loaded('openssl') ? TRUE : FALSE;
     $mcrypt = extension_loaded('mcrypt') ? TRUE : FALSE;
@@ -394,7 +394,7 @@ class Pay2goInvoice {
 
     if ($openssl) {
       $keyLen = strlen($key);
-      switch($keyLen) {
+      switch ($keyLen) {
         case 16:
           $encoding = 'AES-128-CBC';
           break;
@@ -420,7 +420,7 @@ class Pay2goInvoice {
   /**
    * Helper functioh for check code
    */
-  public static function checkCode($result, $key, $iv){
+  public static function checkCode($result, $key, $iv) {
     if (!is_array($result)) {
       $result = (array) $result;
     }
@@ -433,7 +433,7 @@ class Pay2goInvoice {
     if ($check === $code) {
       return TRUE;
     }
-    else{
+    else {
       return FALSE;
     }
   }
@@ -444,7 +444,7 @@ class Pay2goInvoice {
   public static function fields($type, $isResponse = FALSE) {
     $fields = [];
     if ($isResponse) {
-      switch($type){
+      switch ($type) {
         case 'invoice_issue':
           $fields = explode(',', 'MerchantID,InvoiceTransNo,MerchantOrderNo,TotalAmt,InvoiceNumber,RandomNum,CreateTime,CheckCode,BarCode,QRcodeL,QRcodeR');
           break;
@@ -457,7 +457,7 @@ class Pay2goInvoice {
       }
     }
     else {
-      switch($type){
+      switch ($type) {
         case 'invoice_issue':
           $fields = explode(',', 'RespondType,Version,TimeStamp,TransNum,MerchantOrderNo,Status,CreateStatusTime,Category,BuyerName,BuyerUBN,BuyerAddress,BuyerEmail,CarrierType,CarrierNum,LoveCode,PrintFlag,TaxType,TaxRate,CustomsClearance,Amt,AmtSales,AmtZero,AmtFree,TaxAmt,TotalAmt,ItemName,ItemCount,ItemUnit,ItemPrice,ItemAmt,ItemTaxType,Comment');
           break;

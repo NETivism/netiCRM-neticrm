@@ -30,7 +30,7 @@ function civicrm_invpay2go_install() {
   }
 
   // custom fields
-  if(!empty($group_id)){
+  if (!empty($group_id)) {
     \Drupal::configFactory()->getEditable('civicrm_invpay2go.settings')
       ->set('invoice_group', $group_id)
       ->save();

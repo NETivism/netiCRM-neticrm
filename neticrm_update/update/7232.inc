@@ -7,7 +7,7 @@
 function _neticrm_update_update_7232() {
   civicrm_initialize();
 
-  // 取得正確的 tpl html 
+  // 取得正確的 tpl html
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/event_online_receipt_html.tpl';
   $tpl_html = file_get_contents($path);
 
@@ -18,7 +18,7 @@ function _neticrm_update_update_7232() {
 
   print("msg_workflow_id : $msg_workflow_id\n");
 
-  if($msg_workflow_id){
+  if ($msg_workflow_id) {
     print("有紙本收據範本");
     $msg_html = CRM_Core_DAO::singleValueQuery("SELECT msg_html FROM civicrm_msg_template WHERE workflow_id = $msg_workflow_id AND is_reserved = 1;");
 
@@ -34,30 +34,32 @@ function _neticrm_update_update_7232() {
             )
         ';
     $params = [1 => [$msg_workflow_id, 'Integer']];
-    $diverted_id = CRM_Core_DAO::singleValueQuery($sql,$params);
+    $diverted_id = CRM_Core_DAO::singleValueQuery($sql, $params);
     print("diverted_id : $diverted_id\n");
     $is_customized = !empty($diverted_id);
-    if($is_customized){
+    if ($is_customized) {
       print("有客製範本");
       print("is_customized : $is_customized\n");
       $customized_html = CRM_Core_DAO::singleValueQuery("SELECT msg_html FROM civicrm_msg_template WHERE workflow_id = $msg_workflow_id AND is_reserved = 0");
     }
 
     // 如果 tpl 和預設不一樣，取代預設範本
-    if($msg_html != $tpl_html){
+    if ($msg_html != $tpl_html) {
       print(" tpl 和預設不一樣，取代預設範本");
       $params = [
         1 => [$tpl_html, 'String'],
       ];
       CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1 WHERE workflow_id = $msg_workflow_id AND is_reserved = 1", $params);
 
-      if(empty($diverted_id)){
+      if (empty($diverted_id)) {
         print("沒有客製收據，套用範本到客製收據");
         CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1 WHERE msg_title = '$msg_title' AND is_reserved = 0", $params);
-      }else{
+      }
+      else {
         print("有客製收據，範本不套用到客製收據");
       }
-    }else{
+    }
+    else {
       print("預設範本已是最新的，不用更新");
     }
   }

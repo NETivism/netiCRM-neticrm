@@ -1,15 +1,15 @@
 <?php
-function _neticrm_update_update_7239(){
+function _neticrm_update_update_7239() {
   $msg_title = ts('Events - Registration Confirmation Invite');
   $params = [1 => [$msg_title, 'String']];
   $msg_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE msg_title = %1 AND is_reserved = 1", $params);
 
-  if(!empty($msg_id)){
+  if (!empty($msg_id)) {
   }
 
   // updating template
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/participant_confirm_';
-  if(!empty($msg_id) && is_file($path.'html.tpl')){
+  if (!empty($msg_id) && is_file($path.'html.tpl')) {
     $html = file_get_contents($path.'html.tpl');
     $text = file_get_contents($path.'text.tpl');
     $params = [

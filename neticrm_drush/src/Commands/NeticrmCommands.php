@@ -23,17 +23,17 @@ class NeticrmCommands extends DrushCommands {
     $jobs = \Drupal::config('neticrm_drush.settings')->get('drush_neticrm_schedule');
     $error = FALSE;
     $function_file = \Drupal::service('extension.list.module')->getPath('civicrm').'/../bin/cron/'.$function.'.inc';
-    if(empty($function)){
+    if (empty($function)) {
       $error = "You need to specify first argument. Possible values:\n  ".implode("\n  ", array_keys($jobs));
     }
-    elseif(!file_exists($function_file)){
+    elseif (!file_exists($function_file)) {
       $error = "Schedule job function not exists. Possible values:\n  ".implode("\n  ", array_keys($jobs));
     }
   
-    if($error){
+    if ($error) {
       throw new \Exception($error);
     }
-    else{
+    else {
       $now = time();
       $force = $options['force'] ? TRUE : FALSE;
       $last = $jobs[$function]['last'];
@@ -56,7 +56,7 @@ class NeticrmCommands extends DrushCommands {
         }
       }
       $settings = \Drupal::configFactory()->getEditable('neticrm_drush.settings');
-      if($force || ($now - $last > $frequency && date('G') >= $min_hour && date('G') <= $max_hour)){
+      if ($force || ($now - $last > $frequency && date('G') >= $min_hour && date('G') <= $max_hour)) {
         $this->init();
         require_once($function_file);
         $function();
@@ -64,7 +64,7 @@ class NeticrmCommands extends DrushCommands {
         $jobs[$function]['last'] = $now;
         $settings->set('drush_neticrm_schedule', $jobs)->save();
       }
-      else{
+      else {
         $this->logger("neticrm_drush")->notice($function." didn't run. (limited on every $frequency seconds)");
       }
     }
@@ -96,7 +96,7 @@ class NeticrmCommands extends DrushCommands {
    *
    * @return void
    */
-  public function set_domain(){
+  public function set_domain() {
     civicrm_initialize();
     $smtp_mail = \CRM_Mailing_BAO_Mailing::defaultFromMail();
     if (empty($smtp_mail)) {
@@ -122,7 +122,7 @@ class NeticrmCommands extends DrushCommands {
    *
    * @return void
    */
-  public function send_welcome_mail(){
+  public function send_welcome_mail() {
     $account = \Drupal\user\Entity\User::load(3);
     $smtp_settings = \Drupal::config('smtp.settings');
     if (!empty($account) && !empty($smtp_settings->get('smtp_username'))) {
@@ -173,7 +173,7 @@ class NeticrmCommands extends DrushCommands {
       $sql = "SELECT * FROM civicrm_membership WHERE 1";
       $dao = \CRM_Core_DAO::executeQuery($sql);
     }
-    while($dao->fetch()) {
+    while ($dao->fetch()) {
       $calcDates = \CRM_Member_BAO_MembershipType::getDatesForMembershipType($dao->membership_type_id, $dao->join_date, $dao->start_date, $dao->end_date);
       $params = [];
       if (!empty($calcDates['reminder_date'])) {
@@ -240,7 +240,7 @@ class NeticrmCommands extends DrushCommands {
     $time = is_numeric($options['time']) ? $options['time'] : CRM_REQUEST_TIME;
 
     if (!empty($rid) && $rid === 'ridIsEmpty') {
-      switch($paymentProcessor) {
+      switch ($paymentProcessor) {
         case 'tappay':
           $error = \CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
           if (!empty($error)) {
@@ -262,7 +262,7 @@ class NeticrmCommands extends DrushCommands {
       }
     }
     elseif (!empty($rid) && is_numeric($rid)) {
-      switch($paymentProcessor) {
+      switch ($paymentProcessor) {
         case 'tappay':
           \CRM_Core_Payment_TapPay::doCheckRecur($rid, $time);
           break;
@@ -334,7 +334,7 @@ class NeticrmCommands extends DrushCommands {
   /**
    * Bootstrap function for civicrm
    */
-  private function init(){
+  private function init() {
     $user = \Drupal\user\Entity\User::load(1);
     civicrm_initialize();
   }

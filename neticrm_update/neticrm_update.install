@@ -1,9 +1,9 @@
 <?php
 /**
  * netiCRM update main install file
- * 
+ *
  * Every file in update/*.inc should use this style to handling update success or not
- * 
+ *
  * ```php
  * // success
  * #return 'Messages';     # drupal 6,7,9: this will display success message
@@ -12,27 +12,27 @@
 
  * // failed, error,  schema_version will not be update
  * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
- * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+ * #return FALSE;          # drupal 6,7,9: this will trigger error,
 
  * // should never use
  * #throw UpdateException  # drupal 9 only, will be fatal error on drupal 6,7
  * #throw DrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
  * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
  * ```
- * 
+ *
  */
 
 use Drupal\Core\Utility\UpdateException;
 
 /**
  * Include correct file for update
- * 
+ *
  * @return mixed
  */
-function neticrm_update_load_include($func){
-  if(function_exists('civicrm_initialize')){
+function neticrm_update_load_include($func) {
+  if (function_exists('civicrm_initialize')) {
     $n = substr($func, strrpos($func, '_')+1);
-    if(is_numeric($n)){
+    if (is_numeric($n)) {
       civicrm_initialize();
       \Drupal::moduleHandler()->loadInclude('neticrm_update', 'inc', 'neticrm_update.lib');
       $path = dirname(__FILE__).'/update/';
@@ -47,7 +47,7 @@ function neticrm_update_load_include($func){
         $func = '_neticrm_update_update_x'.substr($n, 1); # eg. _neticrm_update_update_x300()
       }
       // if not, it's drupal version sensitive update
-      elseif(file_exists($filename)){
+      elseif (file_exists($filename)) {
         require_once $filename;
         $func = '_'.$func;
       }
@@ -55,7 +55,7 @@ function neticrm_update_load_include($func){
         throw new UpdateException("Can not find update file in $filename or $neticrm_update when updating $func");
       }
 
-      if(function_exists($func)){
+      if (function_exists($func)) {
         $result = $func();
         if ($result === FALSE) {
           throw new UpdateException("Update failed in $func with no detail");
@@ -81,7 +81,7 @@ function neticrm_update_load_include($func){
       throw new UpdateException("$n should be numeric, but it's not when updating $func");
     }
   }
-  else{
+  else {
     throw new UpdateException("No civicrm installed / initialized. when updating $func");
   }
   throw new UpdateException("Unknow error when updating $func");
@@ -89,7 +89,7 @@ function neticrm_update_load_include($func){
 
 /**
  * refs #31657, First update function for drupal 9.
- * 
+ *
  * Only for test propose
  */
 function neticrm_update_update_9300() {

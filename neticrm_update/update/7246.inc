@@ -1,6 +1,6 @@
 <?php
 
-function _neticrm_update_update_7246(){
+function _neticrm_update_update_7246() {
   // Change bounce_reason to text
   $sql = "ALTER TABLE `civicrm_mailing_event_bounce` CHANGE `bounce_reason` `bounce_reason` TEXT NULL DEFAULT NULL COMMENT 'The reason the email bounced.'";
   CRM_Core_DAO::executeQuery($sql);

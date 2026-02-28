@@ -5,9 +5,9 @@
  * Do not touch anything else
  */
 class CiviCRM_Floating_Label_textarea extends HTML_QuickForm_textarea {
-  public function __construct($elementName=null, $elementLabel=null, $attributes=null) {
+  public function __construct($elementName=NULL, $elementLabel=NULL, $attributes=NULL) {
     parent::__construct($elementName, $elementLabel, $attributes);
-    $this->_persistantFreeze = true;
+    $this->_persistantFreeze = TRUE;
     $this->_type = 'textarea';
 
     // set placeholder to make sure floating label work

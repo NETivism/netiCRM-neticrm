@@ -1,5 +1,5 @@
 <?php
-function _neticrm_update_update_7269(){
+function _neticrm_update_update_7269() {
   // add is_qrcode column to event
   $sql = "SHOW COLUMNS FROM civicrm_event WHERE field LIKE 'is_qrcode'";
   $dao = CRM_Core_DAO::executeQuery($sql);

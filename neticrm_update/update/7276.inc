@@ -32,10 +32,10 @@ function _neticrm_update_update_7276() {
       '550 relaying.+not allowed',
     ],
   ];
-  foreach($bouncese as $type => $patterns) {
+  foreach ($bouncese as $type => $patterns) {
     $typeId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_mailing_bounce_type WHERE name LIKE %1", [1 => [$type, 'String']]);
     if ($typeId) {
-      foreach($patterns as $pattern) {
+      foreach ($patterns as $pattern) {
         $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_mailing_bounce_pattern WHERE pattern LIKE %1", [1 => [$pattern, 'String']]);
         if (!$exists) {
           CRM_Core_DAO::executeQuery("INSERT INTO civicrm_mailing_bounce_pattern (bounce_type_id, pattern) VALUES (%1, %2)", [

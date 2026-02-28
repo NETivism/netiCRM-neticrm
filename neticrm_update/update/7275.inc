@@ -42,7 +42,7 @@ function _neticrm_update_update_7275() {
 
   // third, add message template to exists workflow
   $metaWorkflowId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_meta'");
-  if(!empty($metaWorkflowId)){
+  if (!empty($metaWorkflowId)) {
     $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE name = 'batch_complete_notification'");
     if (!$exists) {
       $group_params = [
