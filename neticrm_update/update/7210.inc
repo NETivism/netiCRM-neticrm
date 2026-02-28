@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7210(){
+function _neticrm_update_update_7210() {
   $old =  [
     'Registered' => '巳登記',
     'Attended' => '出席',
@@ -20,8 +20,8 @@ function _neticrm_update_update_7210(){
     'Rejected' => '已拒絕',
     'Expired' => '已清除',
   ];
-  foreach($old as $name => $label){
-    if(ts($name) != $label){
+  foreach ($old as $name => $label) {
+    if (ts($name) != $label) {
       $sql = "UPDATE civicrm_participant_status_type SET label = %1 WHERE name = %2 AND label = %3";
       $params = [
         1 => [ts($name), 'String'], // new translations

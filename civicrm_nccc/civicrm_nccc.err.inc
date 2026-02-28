@@ -1,9 +1,9 @@
 <?php
-function civicrm_nccc_err($response_code = NULL){
-  if($response_code){
+function civicrm_nccc_err($response_code = NULL) {
+  if ($response_code) {
     $msg = $_GET['msg'];
   }
-  else{
+  else {
     $msg = t('Unknown error');
   }
   $items = [
@@ -13,7 +13,7 @@ function civicrm_nccc_err($response_code = NULL){
   $output = '很抱歉，您的信用卡刷卡不成功，錯誤訊息可參考下方資訊：';
   $output .= theme('item_list', $items);
   $output .= '若有疑問，可與我們聯絡，提供錯誤訊息以協助處理';
-  if(!empty($_SESSION['nccc']['path'])){
+  if (!empty($_SESSION['nccc']['path'])) {
     $output .= '，或您可以'.l('再試一次', $_SESSION['nccc']['path'], ['query' => $_SESSION['nccc']['query']]);
     unset($_SESSION['nccc']);
   }
@@ -21,7 +21,7 @@ function civicrm_nccc_err($response_code = NULL){
   return $output;
 }
 
-function _civicrm_nccc_err(){
+function _civicrm_nccc_err() {
   $err = [];
   $err['responsecode'] = [
     "901" => "特店代號格式錯誤",

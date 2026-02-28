@@ -104,7 +104,7 @@ echo $receipt['SiteName'];
   <div class="center">發票號碼：<?php print $receipt['InvoiceNumber']; ?></div>
   <h3>交易明細資料</h3>
   <table class="tax-receipt-table items">
-    <?php foreach($receipt['ItemDetail'] as $item) { ?>
+    <?php foreach ($receipt['ItemDetail'] as $item) { ?>
     <tr class="tax-receipt-row">
       <td class="tax-receipt-col"><?php print $item->ItemName.'x'.$item->ItemNum ?></td>
       <td class="tax-receipt-col"><?php print '$'.$item->ItemPrice; ?></td>

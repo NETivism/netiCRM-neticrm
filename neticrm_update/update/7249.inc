@@ -13,7 +13,7 @@ function _neticrm_update_update_7249() {
         2 => [$module, 'String'],
       ];
       $fid = CRM_Core_DAO::singleValueQuery($sql, $params);
-      if(empty($fid)){
+      if (empty($fid)) {
         $need_execute = TRUE;
         break;
         break;
@@ -21,7 +21,7 @@ function _neticrm_update_update_7249() {
     }
   }
 
-  if(empty($need_execute)){
+  if (empty($need_execute)) {
     return 'user page already has contained field "first_name" and "last_name"';
   }
 
@@ -32,18 +32,20 @@ function _neticrm_update_update_7249() {
 
   $sql = "SELECT id FROM civicrm_uf_field WHERE uf_group_id = 1 AND is_active = 1 AND field_name = 'last_name';";
   $last_name_fid = CRM_Core_DAO::singleValueQuery($sql);
-  if(!$first_name_fid || !$last_name_fid){
+  if (!$first_name_fid || !$last_name_fid) {
     echo "The fields 'last_name', 'first_name' is not found in uf group where id = 1. Create another one.";
     // Add new uf_group to edit first_name and last_name
     $uf_group_id = _update_7249_create_uf_group('first_and_last_name', '姓氏與名字');
     $last_name_fid = _update_7249_create_uf_field('姓氏', 'Individual', 'last_name', $uf_group_id, 1);
     $first_name_fid = _update_7249_create_uf_field('名字', 'Individual', 'first_name', $uf_group_id, 1);
-    if(!$uf_group_id || !$last_name_fid || !$first_name_fid){
-      return false;
-    }else{
+    if (!$uf_group_id || !$last_name_fid || !$first_name_fid) {
+      return FALSE;
+    }
+    else {
       echo "Created new uf group contains 'last_name', 'first_name' fields. Where uf_group_id = $uf_group_id";
     }
-  }else{
+  }
+  else {
     echo "Found '姓名與地址' uf group. Id = 1.";
     _update_7249_update_uf_field_is_required($first_name_fid);
     _update_7249_update_uf_field_is_required($last_name_fid);
@@ -52,19 +54,19 @@ function _neticrm_update_update_7249() {
   $_1 = _update_7249_check_add_user_custom_profile($uf_group_id, 'Profile');
   $_2 = _update_7249_check_add_user_custom_profile($uf_group_id, 'User Registration');
   $_3 = _update_7249_check_add_user_custom_profile($uf_group_id, 'User Account');
-  if(!$_1 || !$_2 || !$_3){
+  if (!$_1 || !$_2 || !$_3) {
     echo "Some error occurs when add uf_join to uf_group.Please check CiviCRM logs";
-    return false;
+    return FALSE;
   }
 }
 
-function _update_7249_update_uf_field_is_required($uf_field_id){
+function _update_7249_update_uf_field_is_required($uf_field_id) {
   $sql = "UPDATE civicrm_uf_field SET is_required = 1 WHERE id = %1";
   $params = [1 => [$uf_field_id, 'Integer']];
   CRM_Core_DAO::executeQuery($sql, $params);
 }
 
-function _update_7249_create_uf_group($name, $title){
+function _update_7249_create_uf_group($name, $title) {
   $params = [
     'name' => $name,
     'title' => $title,
@@ -89,15 +91,15 @@ function _update_7249_create_uf_group($name, $title){
     'debug' => 1,
   ];
   $uf_group = civicrm_api('uf_group', 'create', $params);
-  if($uf_group['is_error']){
-    CRM_Core_Error::debug_log_message("Create uf group failed.", true);
-    CRM_Core_Error::debug_var('api_return', $uf_group, false);
-    return false;
+  if ($uf_group['is_error']) {
+    CRM_Core_Error::debug_log_message("Create uf group failed.", TRUE);
+    CRM_Core_Error::debug_var('api_return', $uf_group, FALSE);
+    return FALSE;
   }
   return $uf_group['id'];
 }
 
-function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 1){
+function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_group_id, $is_required = 1) {
   $last_weight = CRM_Core_DAO::singleValueQuery("SELECT weight FROM civicrm_uf_field WHERE uf_group_id = $uf_group_id ORDER BY weight DESC");
   $params = [
     'label' => $title,
@@ -113,21 +115,21 @@ function _update_7249_create_uf_field($title, $field_type, $field_name, $uf_grou
   ];
 
   $uf_field = civicrm_api('uf_field', 'create', $params);
-  if($uf_field['is_error']){
-    CRM_Core_Error::debug_log_message("Create uf field failed.", true);
-    CRM_Core_Error::debug_var('api_return', $uf_field, false);
-    return false;
+  if ($uf_field['is_error']) {
+    CRM_Core_Error::debug_log_message("Create uf field failed.", TRUE);
+    CRM_Core_Error::debug_var('api_return', $uf_field, FALSE);
+    return FALSE;
   }
   return $uf_field['id'];
 }
 
-function _update_7249_check_add_user_custom_profile($uf_group_id, $module){
+function _update_7249_check_add_user_custom_profile($uf_group_id, $module) {
   $sql = "SELECT id FROM civicrm_uf_join WHERE uf_group_id = %1 AND module = %2;";
   $params = [
     1 => [$uf_group_id, 'Integer'],
     2 => [$module, 'String'],
   ];
-  if(!CRM_Core_DAO::singleValueQuery($sql, $params)){
+  if (!CRM_Core_DAO::singleValueQuery($sql, $params)) {
     $params = [
       'module' => $module,
       'uf_group_id' => $uf_group_id,
@@ -137,11 +139,11 @@ function _update_7249_check_add_user_custom_profile($uf_group_id, $module){
       'sequential' => 1,
     ];
     $uf_join = civicrm_api('uf_join', 'create', $params);
-    if($uf_join['is_error']){
-      CRM_Core_Error::debug_log_message("Create uf join failed.", true);
-      CRM_Core_Error::debug_var('api_return', $uf_join, false);
-      return false;
+    if ($uf_join['is_error']) {
+      CRM_Core_Error::debug_log_message("Create uf join failed.", TRUE);
+      CRM_Core_Error::debug_var('api_return', $uf_join, FALSE);
+      return FALSE;
     }
-    return true;
+    return TRUE;
   }
 }

@@ -1,12 +1,11 @@
 <?php
 
-function civicrm_statistics_build_fetch_url($sitekey, $type = 'annual', $year = NULL){
+function civicrm_statistics_build_fetch_url($sitekey, $type = 'annual', $year = NULL) {
   $base = 'https://neticrm.tw/neticrm/statistics';
   return $base."/fetch?sitekey={$sitekey}&type={$type}&year={$year}";
 }
 
-
-function civicrm_statistics_table($flip = FALSE){
+function civicrm_statistics_table($flip = FALSE) {
   $tables = [
     'civicrm_contact' => 'cc',
     'civicrm_contact.gender' => 'cc.g',
@@ -29,29 +28,29 @@ function civicrm_statistics_table($flip = FALSE){
     'civicrm_event' => 'ce',
     'civicrm_participant' => 'cp',
   ];
-  if($flip){
+  if ($flip) {
     return array_flip($tables);
   }
   return $tables;
 }
 
-function civicrm_statistics_normalize(&$rows, $num){
+function civicrm_statistics_normalize(&$rows, $num) {
   $null = reset($rows);
-  if(is_array($null)){
-    foreach($null as $k => $v){
+  if (is_array($null)) {
+    foreach ($null as $k => $v) {
       $null[$k] = 0;
     }
   }
-  else{
+  else {
     $null = 0;
   }
   $clone = $rows;
   $rows = [];
-  for($i = 0; $i < $num; $i++){
-    if(!isset($clone[$i])){
+  for ($i = 0; $i < $num; $i++) {
+    if (!isset($clone[$i])) {
       $rows[$i] = $null;
     }
-    else{
+    else {
       $rows[$i] = $clone[$i];
     }
   }
@@ -66,7 +65,7 @@ function civicrm_statistics_annual_fetch($base_year, $force = FALSE) {
   }
   else {
     $result = civicrm_statistics_annual_data($base_year);
-    cache_set('civicrm_statistics_annual_'.$base_year, $result, 'cache', time() + 86400*7);
+    cache_set('civicrm_statistics_annual_'.$base_year, $result, 'cache', time() + 86400 * 7);
   }
 
   if (!empty($result)) {
@@ -90,14 +89,14 @@ function civicrm_statistics_annual_data($base_year, $run_only = []) {
   $last_year = (string) $last_year;
 
   $result = [];
-  foreach($tables as $table => $t){
+  foreach ($tables as $table => $t) {
     if (!empty($run_only)) {
       if (!in_array($table, $run_only)) {
         continue;
       }
     }
 
-    switch($table) {
+    switch ($table) {
       case 'contact':
         $params = [
           'name' => $table,
@@ -110,7 +109,7 @@ function civicrm_statistics_annual_data($base_year, $run_only = []) {
         break;
 
       case 'mailing':
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = civicrm_statistics_annual_query_modify($t, $y, "SELECT mailing_id FROM civicrm_mailing_job WHERE status = 'Complete' AND is_test = 0 AND parent_id IS NULL AND %start AND %end");
           $query = CRM_Core_DAO::executeQuery($sql);
           $leveling = [
@@ -127,17 +126,29 @@ function civicrm_statistics_annual_data($base_year, $run_only = []) {
             'opened_rate' => $leveling,
             'clicked_rate' => $leveling,
           ];
-          while($query->fetch()) {
+          while ($query->fetch()) {
             if ($query->mailing_id) {
               $delivered = CRM_Mailing_Event_BAO_Delivered::getTotalCount($query->mailing_id, NULL);
               $opened = CRM_Mailing_Event_BAO_Opened::getTotalCount($query->mailing_id, NULL, TRUE);
               $url_opened = CRM_Mailing_Event_BAO_TrackableURLOpen::getTotalCount($query->mailing_id, NULL, TRUE);
-              if ($delivered < 100) continue;
-              elseif ($delivered <= 500) $level = '100-500';
-              elseif ($delivered <= 1000) $level = '500-1000';
-              elseif ($delivered <= 5000) $level = '1000-5000';
-              elseif ($delivered <= 10000) $level = '5000-10000';
-              elseif ($delivered > 10000) $level = '10000';
+              if ($delivered < 100) {
+                continue;
+              }
+              elseif ($delivered <= 500) {
+                $level = '100-500';
+              }
+              elseif ($delivered <= 1000) {
+                $level = '500-1000';
+              }
+              elseif ($delivered <= 5000) {
+                $level = '1000-5000';
+              }
+              elseif ($delivered <= 10000) {
+                $level = '5000-10000';
+              }
+              elseif ($delivered > 10000) {
+                $level = '10000';
+              }
 
               $num['delivered'][$level] += $delivered;
               $num['opened'][$level] += $opened;
@@ -145,7 +156,7 @@ function civicrm_statistics_annual_data($base_year, $run_only = []) {
             }
           }
           if (!empty($num)) {
-            foreach($num['delivered'] as $level => $val) {
+            foreach ($num['delivered'] as $level => $val) {
               $val = !empty($val) ? $val : 0;
               $num['opened_rate'][$level] = ($val > 0 && $num['opened'][$level] > 0) ? $num['opened'][$level] / $val : 0.0;
               $num['clicked_rate'][$level] = ($val > 0 && $num['url_opened'][$level] > 0) ? $num['url_opened'][$level] / $val : 0.0;
@@ -156,7 +167,7 @@ function civicrm_statistics_annual_data($base_year, $run_only = []) {
                 $num['clicked_rate'][$level] = 0.0;
               }
             }
-            foreach($num as $type => $level) {
+            foreach ($num as $type => $level) {
               $result['mailing_'.$type.'_'.$y] = $level;
             }
           }
@@ -226,7 +237,6 @@ ON base_year.contact_id = last_year.contact_id
         $result[$table.'_amount_'.$base_year] = ($second - $recurring);
         $result[$table.'_amount_'.$last_year] = $first;
         $result[$table.'_amount_overlap_'.$base_year] = $recurring;
-
 
         // lifetime
         $sql = "
@@ -307,7 +317,7 @@ GROUP BY donors.contribution_status_id
 
       case 'contribution_leveling':
         // amount leveling
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT cc.contact_id, SUM(cc.total_amount) as annual_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND %start AND %end GROUP BY cc.contact_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_{$y} (INDEX annual_amount (annual_amount)) $sql";
@@ -324,14 +334,14 @@ GROUP BY donors.contribution_status_id
             ) c
             GROUP BY c.level ORDER BY c.level";
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table.'_'.$y][$query->level] = $query->count;
           }
           CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_{$y}");
         }
 
         // non recur amount leveling
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT cc.contact_id, SUM(cc.total_amount) as annual_amount FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NULL AND %start AND %end GROUP BY cc.contact_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_nonrecur_{$y} (INDEX annual_amount (annual_amount)) $sql";
@@ -348,14 +358,14 @@ GROUP BY donors.contribution_status_id
             ) c
             GROUP BY c.level ORDER BY c.level";
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table.'_nonrecur_'.$y][$query->level] = $query->count;
           }
           CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_nonrecur_{$y}");
         }
 
         // leveling by age
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT cc.contact_id, YEAR(CURRENT_TIMESTAMP) - YEAR(c.birth_date) - (RIGHT(CURRENT_TIMESTAMP, 5) < RIGHT(c.birth_date, 5)) as age FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND c.birth_date IS NOT NULL AND %start AND %end GROUP BY cc.contact_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_age_{$y} (INDEX age (age)) $sql";
@@ -374,12 +384,12 @@ GROUP BY donors.contribution_status_id
             ) c
             GROUP BY c.age ORDER BY c.age";
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table.'_age_'.$y][$query->age] = $query->count;
           }
           CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_age_{$y}");
         }
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT cc.contact_id, SUM(cc.total_amount) as total_amount, YEAR(CURRENT_TIMESTAMP) - YEAR(c.birth_date) - (RIGHT(CURRENT_TIMESTAMP, 5) < RIGHT(c.birth_date, 5)) as age FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND c.birth_date IS NOT NULL AND %start AND %end GROUP BY cc.contact_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $sql = "CREATE TEMPORARY TABLE IF NOT EXISTS {$table}_age_sum_{$y} (INDEX age (age)) $sql";
@@ -398,7 +408,7 @@ GROUP BY donors.contribution_status_id
             ) c
             GROUP BY c.age ORDER BY c.age";
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table.'_age_amount_'.$y][$query->age] = $query->sum;
           }
           CRM_Core_DAO::executeQuery("DROP TEMPORARY TABLE {$table}_age_sum_{$y}");
@@ -406,12 +416,12 @@ GROUP BY donors.contribution_status_id
 
         // state and province leveling
         $states = CRM_Core_PseudoConstant::stateProvince();
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT f.state_province_id, COUNT(f.id) as count FROM (SELECT c.id, a.state_province_id FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id INNER JOIN civicrm_address a ON c.id = a.contact_id AND a.is_primary = 1 LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND a.state_province_id IS NOT NULL AND %start AND %end GROUP BY cc.contact_id) f GROUP BY f.state_province_id ORDER BY state_province_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
 
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $state = $states[$query->state_province_id];
             if (empty($state)) {
               continue;
@@ -461,25 +471,25 @@ GROUP BY donors.contribution_status_id
         civicrm_statistics_annual_query_result($result, $params);
 
         $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
-        foreach([$base_year, $last_year] as $y) {
+        foreach ([$base_year, $last_year] as $y) {
           $sql = "SELECT MONTH(cf.receive_date) as `month`, SUM(cf.total_amount) as `sum` FROM (SELECT cc.id, cc.total_amount, cc.receive_date as receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.contribution_recur_id IS NULL AND %start AND %end ) cf GROUP BY MONTH(cf.receive_date) ORDER BY MONTH(cf.receive_date)";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table."_monthly_".$y][$query->month] = $query->sum;
           }
 
           $sql = "SELECT MONTH(ccc.receive_date) as `month`, SUM(total_amount) as `sum` FROM (SELECT cc.total_amount, cc.receive_date FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.contribution_recur_id IS NOT NULL AND cc.payment_processor_id IS NOT NULL AND %start AND %end) ccc GROUP BY MONTH(ccc.receive_date)";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $result[$table."_monthly_recur_".$y][$query->month] = $query->sum;
           }
 
           $sql = "SELECT cc.payment_instrument_id, SUM(total_amount) as `sum` FROM civicrm_contribution cc LEFT JOIN civicrm_participant_payment p ON p.contribution_id = cc.id LEFT JOIN civicrm_membership_payment m ON m.contribution_id = cc.id WHERE cc.is_test = 0 AND cc.contribution_status_id = 1 AND p.id IS NULL AND m.id IS NULL AND cc.payment_processor_id IS NOT NULL AND cc.payment_instrument_id IS NOT NULL AND %start AND %end GROUP BY cc.payment_instrument_id";
           $sql = civicrm_statistics_annual_query_modify($t, $y, $sql);
           $query = CRM_Core_DAO::executeQuery($sql);
-          while($query->fetch()) {
+          while ($query->fetch()) {
             $label = $query->payment_instrument_id."-".$instruments[$query->payment_instrument_id];
             $result[$table."_instrument_".$y][$label] = $query->sum;
           }
@@ -506,7 +516,6 @@ GROUP BY donors.contribution_status_id
           'fields' => ['count'],
         ];
         civicrm_statistics_annual_query_result($result, $params);
-
 
         $params = [
           'name' => 'event_participant_free',
@@ -645,7 +654,7 @@ GROUP BY donors.contribution_status_id
   return $result;
 }
 
-function civicrm_statistics_annual_table($flip = FALSE){
+function civicrm_statistics_annual_table($flip = FALSE) {
   $tables = [
     'contact' => ['table_alias' => 'contact_join', 'date_field' => 'join_date', 'primary_id' => 'entity_id'],
     'mailing' => ['table_alias' => 'civicrm_mailing_job', 'date_field' => 'start_date', 'primary_id' => 'mailing_id'],
@@ -660,35 +669,35 @@ function civicrm_statistics_annual_table($flip = FALSE){
     'trend_event' => ['table_alias' => 'p', 'date_field' => 'register_date', 'primary_id' => 'id'],
     'track' => ['table_alias' => 't', 'date_field' => 'visit_date', 'primary_id' => 'id'],
   ];
-  if($flip){
+  if ($flip) {
     return array_flip($tables);
   }
   return $tables;
 }
 
 function civicrm_statistics_annual_query_result(&$result, $params) {
-  foreach($params['years'] as $y) {
+  foreach ($params['years'] as $y) {
     $table = $params['table'];
     $sql = civicrm_statistics_annual_query_modify($table, $y, $params['sql']);
     $query = CRM_Core_DAO::executeQuery($sql);
     if (!empty($params['allrows'])) {
       $group = [];
-      while($query->fetch()) {
-        foreach($params['fields'] as $k => $f) {
+      while ($query->fetch()) {
+        foreach ($params['fields'] as $k => $f) {
           $idx = $query->$k;
           $result[$params['name'].'_'.$k.'_'.$f.'_'.$y][$idx] = $query->$f;
           $group[] = $params['name'].'_'.$k.'_'.$f.'_'.$y;
         }
       }
       if (!empty($group) && is_numeric($params['allrows'])) {
-        foreach($group as $g) {
+        foreach ($group as $g) {
           civicrm_statistics_normalize($result[$g], $params['allrows']);
         }
       }
     }
     else {
       $query->fetch();
-      foreach($params['fields'] as $f) {
+      foreach ($params['fields'] as $f) {
         $result[$params['name'].'_'.$f.'_'.$y] = $query->$f;
       }
     }

@@ -5,14 +5,14 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7209(){
+function _neticrm_update_update_7209() {
   $title = '參加活動最多的人';
   $desc = '顯示參加活動最多的人報表';
   $url = 'contact/topparticipant';
-  $class= 'CRM_Report_Form_Contact_Participate';
+  $class = 'CRM_Report_Form_Contact_Participate';
 
   $result = neticrm_update_add_report($title, $desc, $url, $class, NULL);
-  if($result->id){
+  if ($result->id) {
     // add instance
     $sql = <<<EOD
     INSERT INTO `civicrm_report_instance` ( `domain_id`, `title`, `report_id`, `description`, `permission`, `form_values`)
@@ -21,7 +21,7 @@ function _neticrm_update_update_7209(){
     CRM_Core_DAO::executeQuery($sql);
     return 'Successful added report';
   }
-  else{
+  else {
     return FALSE;
   }
 }

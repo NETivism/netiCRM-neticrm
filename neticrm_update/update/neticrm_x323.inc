@@ -1,18 +1,18 @@
 <?php
 
 function _neticrm_update_update_x323() {
-   civicrm_initialize();
-  
+  civicrm_initialize();
+
   // Check if table exists first
   $query = "SHOW TABLES LIKE 'civicrm_contribution_spgateway'";
   $result = CRM_Core_DAO::executeQuery($query);
   $table_exists = $result->N > 0;
-  
+
   if (!$table_exists) {
     echo "Table civicrm_contribution_spgateway does not exist. Skipping update.";
     return;
   }
-  
+
   $query = "SHOW COLUMNS FROM `civicrm_contribution_spgateway` LIKE 'token_value'";
   $result = CRM_Core_DAO::executeQuery($query);
   $column_exists = $result->N > 0;

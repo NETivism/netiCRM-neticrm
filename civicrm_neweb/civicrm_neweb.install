@@ -8,7 +8,7 @@
 /**
  * Implementation of hook_schema()
  */
-function civicrm_neweb_schema(){
+function civicrm_neweb_schema() {
   $schema['civicrm_contribution_neweb'] = [
     'name' => 'civicrm_contribution_neweb',
     'fields' => [
@@ -121,13 +121,12 @@ function civicrm_neweb_schema(){
   return $schema;
 }
 
- 
 /**
  * Implementation of hook_install()
  */
 function civicrm_neweb_install() {
   // drupal_install_schema('civicrm_neweb');
-  civicrm_initialize( );
+  civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once('CRM/Core/OptionValue.php');
   require_once('CRM/Core/Action.php');
@@ -143,9 +142,9 @@ function civicrm_neweb_install() {
   include_once "civicrm_neweb.module";
   $new_instrument = _civicrm_neweb_instrument();
   $instrument_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
-  
+
   $group_params = ['name' => 'payment_instrument'];
-  foreach($new_instrument as $k => $v){
+  foreach ($new_instrument as $k => $v) {
     $params = [
       'name' => $k,
       'label' => $v['label'],
@@ -154,12 +153,12 @@ function civicrm_neweb_install() {
     ];
     $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE option_group_id = {$instrument_id} AND name = '$k'");
     $dao->fetch();
-    if($dao->id){
+    if ($dao->id) {
       $params['value'] = $dao->value;
       $action = CRM_Core_Action::UPDATE;
       $option_value_id = $dao->id;
     }
-    else{
+    else {
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
     }
@@ -196,22 +195,22 @@ function civicrm_neweb_enable() {
   civicrm_neweb_create_dir('neweb_test');
 }
 
-function civicrm_neweb_create_dir($directory){
+function civicrm_neweb_create_dir($directory) {
   $directory_file_path = 'public://' . $directory;
   $htaccess_lines = "order allow,deny\ndeny from all\n";
   file_prepare_directory($directory_file_path, FILE_CREATE_DIRECTORY);
   $newebpath = variable_get('file_public_path', conf_path() . '/files') . '/' . $directory;
-  
-  if (($fp = @fopen($newebpath . '/.htaccess', 'w')) && @fputs($fp, $htaccess_lines)) {
+
+  if (($fp = @fopen($newebpath . '/.htaccess', 'w')) && @fwrite($fp, $htaccess_lines)) {
     fclose($fp);
     chmod($newebpath . '/.htaccess', 0664);
   }
-  else{
+  else {
     $message = "Security warning: Couldn't modify .htaccess file. Please create a .htaccess file in your %directory directory which contains the following lines: <code>!htaccess</code> or add them to the existing .htaccess file";
     $replace = ['%directory' => $newebpath, '!htaccess' => '<br />' . nl2br(check_plain($htaccess_lines))];
     drupal_set_message(t($message, $replace), "error");
     watchdog('civicrm_neweb', t($message, $replace), WATCHDOG_ERROR);
-  } 
+  }
 }
 
 /**
@@ -225,12 +224,12 @@ function civicrm_neweb_disable() {
 }
 
 /**
- * hook_update 
+ * hook_update
  */
-function civicrm_neweb_update_6105(){
+function civicrm_neweb_update_6105() {
   $schema = drupal_get_schema_unprocessed('civicrm_neweb');
-  foreach($schema as $name => $table){
-    if($name != 'civicrm_contribution_neweb_recur'){
+  foreach ($schema as $name => $table) {
+    if ($name != 'civicrm_contribution_neweb_recur') {
       unset($schema[$name]);
     }
   }
@@ -242,7 +241,7 @@ function civicrm_neweb_update_6105(){
   return $ret;
 }
 
-function civicrm_neweb_update_6106(){
+function civicrm_neweb_update_6106() {
   civicrm_neweb_create_dir('neweb');
   civicrm_neweb_create_dir('neweb_test');
   $ret = [];
@@ -250,24 +249,24 @@ function civicrm_neweb_update_6106(){
   return $ret;
 }
 
-function civicrm_neweb_update_6107(){
-  civicrm_initialize( );
+function civicrm_neweb_update_6107() {
+  civicrm_initialize();
   $new_instrument = _civicrm_neweb_instrument();
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
 
-  foreach($new_instrument as $k => $v){
+  foreach ($new_instrument as $k => $v) {
     $ids[] = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE option_group_id = {$gid} AND name = '$k'");
   }
-  if(count($ids)){
+  if (count($ids)) {
     CRM_Core_DAO::singleValueQuery("Update civicrm_option_value SET is_reserved = 1 WHERE id IN(".implode(',', $ids).") AND is_reserved = 0");
   }
 
   return [];
 }
 
-function civicrm_neweb_update_6108(){
+function civicrm_neweb_update_6108() {
   $ret = [];
-  
+
   db_add_field($ret, 'civicrm_contribution_neweb', 'created', [
     'description' => 'Submit time for user confirmed transaction.',
     'type' => 'int',
@@ -277,37 +276,39 @@ function civicrm_neweb_update_6108(){
   return $ret;
 }
 
-function civicrm_neweb_update_6109(){
+function civicrm_neweb_update_6109() {
   $date_field = ['created_date', 'receive_date', 'receipt_date', 'cancel_date', 'thankyou_date'];
   civicrm_initialize();
   $query = CRM_Core_DAO::executeQuery("SELECT count(id) as counter, group_concat(id) as ids, group_concat(receipt_id) as receipt_ids FROM civicrm_contribution where receipt_id IS NOT NULL AND receipt_id != '' group by receipt_id having count(id) > 1");
-  while($query->fetch()){
+  while ($query->fetch()) {
     $ids = $receipt_ids = [];
     $ids = explode(',', $query->ids);
     $receipt_ids = explode(',', $query->receipt_ids);
-    foreach($ids as $k => $id){
+    foreach ($ids as $k => $id) {
       // skip first
-      if(!$k) continue;
+      if (!$k) {
+        continue;
+      }
       // fix following
       $c = new CRM_Contribute_DAO_Contribution();
       $c->id = $id;
-      $c->find(true);
+      $c->find(TRUE);
       // clear duplicate
       $c->receipt_id = NULL;
 
       // re-calculate receipt_id for correct month
       $receipt_id = CRM_Contribute_BAO_Contribution::genReceiptID($c, FALSE, TRUE, TRUE);
-      if($receipt_id){
+      if ($receipt_id) {
         $c->receipt_id = $receipt_id;
       }
-      else{
+      else {
         $c->receipt_id = 'null';
       }
-      foreach($date_field as $f){
-        if(!empty($c->{$f}) && $c->{$f} !== 'null'){
+      foreach ($date_field as $f) {
+        if (!empty($c->{$f}) && $c->{$f} !== 'null') {
           $c->{$f} = CRM_Utils_Date::isoToMysql($c->{$f});
         }
-        else{
+        else {
           $c->{$f} = 'null';
         }
       }
@@ -321,7 +322,7 @@ function civicrm_neweb_update_6109(){
 /**
  * Write ftp infomation from single payment processor to multiple.
  */
-function civicrm_neweb_update_7201(){
+function civicrm_neweb_update_7201() {
   $tests = [0,1];
   foreach ($tests as $item) {
     $test = $item ? "" : "_test" ;
@@ -334,17 +335,20 @@ function civicrm_neweb_update_7201(){
   $ftp = variable_get('civicrm_neweb_ftp', NULL);
   $ftp_test = variable_get('civicrm_neweb_ftp_test', NULL);
 
-  if(empty($ftp) && empty($ftp_test))return ;
+  if (empty($ftp) && empty($ftp_test)) {
+    return ;
+  }
 
   civicrm_initialize();
   $sql = "SELECT id, is_test FROM `civicrm_payment_processor` WHERE `payment_processor_type` = 'Neweb'";
   $dao = CRM_Core_DAO::executeQuery($sql);
-  while($dao->fetch()){
+  while ($dao->fetch()) {
     $pid = $dao->id;
-    if($dao->is_test == 0){
-       variable_set('civicrm_neweb_ftp_'.$pid, $ftp);  
-    }else{
-      variable_set('civicrm_neweb_ftp_test_'.$pid, $ftp_test);  
+    if ($dao->is_test == 0) {
+      variable_set('civicrm_neweb_ftp_'.$pid, $ftp);
+    }
+    else {
+      variable_set('civicrm_neweb_ftp_test_'.$pid, $ftp_test);
     }
   }
 
@@ -370,22 +374,22 @@ function civicrm_neweb_update_7200() {
 /**
  * Update variable in _civicrm_neweb_scan_missing_transaction function
  */
-function civicrm_neweb_update_7202(){
+function civicrm_neweb_update_7202() {
   variable_del('civicrm_neweb_scan');
 }
 
 /**
  * Update sql avoid payment_processor_id IS NULL
  */
-function civicrm_neweb_update_7203(){
-  include_once(__DIR__.'/civicrm_neweb.module'); 
+function civicrm_neweb_update_7203() {
+  include_once(__DIR__.'/civicrm_neweb.module');
   civicrm_initialize();
-  // Get first neweb payment processor id 
+  // Get first neweb payment processor id
   $pids = _civicrm_neweb_is_active(0);
-  if(!empty($pids)) {
+  if (!empty($pids)) {
     $ppid = min($pids);
-    
-    // Run Sql 
+
+    // Run Sql
     $sql = "UPDATE civicrm_contribution c INNER JOIN civicrm_contribution_neweb_recur cnr ON c.contribution_recur_id = cnr.recur_id SET c.payment_processor_id = $ppid WHERE c.is_test = 0 AND c.payment_processor_id IS NULL";
     CRM_Core_DAO::executeQuery($sql);
 
@@ -394,11 +398,10 @@ function civicrm_neweb_update_7203(){
   }
 }
 
-
 /**
  * Add new column to contribution_neweb for non-sync instrument msg. refs #16908
  */
-function civicrm_neweb_update_7204(){
+function civicrm_neweb_update_7204() {
   if (!db_field_exists('civicrm_contribution_neweb', 'post_data')) {
     db_add_field('civicrm_contribution_neweb', 'post_data', [
       'description' => 'Transaction response object from neweb.',
@@ -419,7 +422,7 @@ function civicrm_neweb_update_7204(){
 /**
  * Update translations
  */
-function civicrm_neweb_update_7206(){
+function civicrm_neweb_update_7206() {
   require_once DRUPAL_ROOT . '/includes/locale.inc';
   $module_root = drupal_get_path('module', 'civicrm_neweb');
   // make a new $file object
@@ -435,15 +438,14 @@ function civicrm_neweb_update_7206(){
 /**
  * Update translations
  */
-function civicrm_neweb_update_7207(){
+function civicrm_neweb_update_7207() {
   return civicrm_neweb_update_7206();
 }
-
 
 /**
  * refs #21929 . add post data field on db for applepay transact.
 */
-function civicrm_neweb_update_7208(){
+function civicrm_neweb_update_7208() {
   if (!db_field_exists('civicrm_contribution_neweb', 'post_data_transact')) {
     db_add_field('civicrm_contribution_neweb', 'post_data_transact', [
       'description' => 'Record transact post cmd data.',

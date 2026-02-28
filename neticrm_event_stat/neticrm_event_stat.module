@@ -2,10 +2,10 @@
 /**
  * hook civicrm_searchTasks
  */
-function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks){
+function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks) {
   static $executed;
-  if($objectType=="event" && !$executed){
-    if(is_numeric($_GET['event'])&& $_GET['event']){
+  if ($objectType == "event" && !$executed) {
+    if (is_numeric($_GET['event']) && $_GET['event']) {
       $event_id = $_GET['event'];
       $sql = "SELECT p.contact_id, c.sort_name, (
         SELECT count(pp.id)FROM {civicrm_participant} pp WHERE pp.contact_id = p.contact_id AND pp.is_test = 0
@@ -16,12 +16,12 @@ function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks){
       ORDER BY times DESC";
 
       $result = db_query($sql, $event_id);
-      while($r = db_fetch_object($result)){
+      while ($r = db_fetch_object($result)) {
         $calc['total']++;
-        if($r->times > 1){
+        if ($r->times > 1) {
           //How many people attend many times?
           $calc['attended']++;
-          if($calc['attended'] < 7){
+          if ($calc['attended'] < 7) {
             $calc['attendee'][$r->sort_name] = $r->times;
           }
         }
@@ -34,13 +34,13 @@ function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks){
 
       $bar = [];
       $bar[] = [t('Participant'),t('Count')];
-      if($calc['attended']>=1){
-        foreach($calc['attendee'] as $n => $t){
+      if ($calc['attended'] >= 1) {
+        foreach ($calc['attendee'] as $n => $t) {
           $bar[] = [$n, (int)$t];
         }
       }
       $setting = [
-        'neticrm_event_stat'=> [
+        'neticrm_event_stat' => [
           'event' => $event_id,
           'pie' => $pie,
           'bar' => $bar,
@@ -51,14 +51,12 @@ function neticrm_event_stat_civicrm_searchTasks($objectType, &$tasks){
         ],
       ];
 
-        
       drupal_set_html_head('<script type="text/javascript" src="//www.google.com/jsapi"></script>');
       drupal_add_js(drupal_get_path('module', 'neticrm_event_stat'). '/neticrm_event_stat.js');
       drupal_add_css(drupal_get_path('module', 'neticrm_event_stat'). '/neticrm_event_stat.css');
 
-
-      /** 
-       * Part two: 
+      /**
+       * Part two:
        * Count how many participants each status.
        */
 

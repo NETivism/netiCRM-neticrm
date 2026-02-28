@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_schema()
  */
-function invpay2go_schema(){
+function invpay2go_schema() {
   $schema['invpay2go'] = [
     'fields' => [
       'pid' => [

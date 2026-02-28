@@ -15,19 +15,19 @@
 function neticrm_update_import_po($pofile, $langcode, $mode = LOCALE_IMPORT_OVERWRITE, $group = 'default') {
   require_once DRUPAL_ROOT . '/includes/locale.inc';
   if (module_exists($pofile)) {
-		$uri = drupal_get_path("module", $module)."/translations/$langcode.po"; 
+    $uri = drupal_get_path("module", $module)."/translations/$langcode.po";
   }
   else {
     $uri = $pofile;
   }
-  
-  $file = new stdClass;
+
+  $file = new stdClass();
   $file->filepath = $uri;
   $file->uri = $uri;
   $file->filename = basename($uri);
   return _locale_import_po($file, $langcode, $mode, $group);
 }
- 
+
 /**
  * Find all po files under a given path
  *
@@ -35,14 +35,15 @@ function neticrm_update_import_po($pofile, $langcode, $mode = LOCALE_IMPORT_OVER
  * @param $recurse boolean
  * @return array of string paths to po files
  */
-function neticrm_update_find_po_files($path, $recurse=TRUE) {
+function neticrm_update_find_po_files($path, $recurse = TRUE) {
   $path = rtrim($path, '/') . '/*';
   $pattern = '/\.po$/';
   $files = [];
-  foreach (glob ($path) as $fullname) {
+  foreach (glob($path) as $fullname) {
     if ($recurse && is_dir($fullname)) {
       $files = array_merge($files, neticrm_update_find_po_files($fullname, $recurse));
-    } else if (preg_match($pattern, $fullname)) {
+    }
+    elseif (preg_match($pattern, $fullname)) {
       $files[] = $fullname;
     }
   }
@@ -56,13 +57,13 @@ function neticrm_update_find_po_files($path, $recurse=TRUE) {
  * @param $desc string
  * return integer id of custom search
  */
-function neticrm_update_add_custom_search($name, $desc){
+function neticrm_update_add_custom_search($name, $desc) {
   $find = [
     1 => [$name, 'String']
   ];
   $exists = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE name LIKE %1", $find);
 
-  if(!$exists){
+  if (!$exists) {
     $params = [
       'label' => $name,
       'name' => $name,
@@ -75,35 +76,35 @@ function neticrm_update_add_custom_search($name, $desc){
     $custom_search = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
     return $custom_search->value;
   }
-  else{
+  else {
     return $exists;
   }
 }
 
 /**
  * Add new civicrm report template and instance
- * 
+ *
  * @param $label string
  * @param $desc string
  * @param $url  string
  * @param $class string
- * @param $component_id integer 
+ * @param $component_id integer
  * return integer instance_id
  */
-function neticrm_update_add_report($label, $desc, $url, $class, $component_id){
+function neticrm_update_add_report($label, $desc, $url, $class, $component_id) {
   $group_params = ['name' => ('report_template')];
   require_once 'CRM/Core/OptionValue.php';
 
   $exists = CRM_Core_OptionGroup::getRowValues('report_template', $class, 'name', 'String', FALSE);
-  if(!empty($exists)){
+  if (!empty($exists)) {
     $action = CRM_Core_Action::UPDATE;
     $id = $exists['id'];
   }
-  else{
+  else {
     $action = CRM_Core_Action::ADD;
     $id = NULL;
   }
-  
+
   $params = [
     'label' => $label,
     'description' => $desc,

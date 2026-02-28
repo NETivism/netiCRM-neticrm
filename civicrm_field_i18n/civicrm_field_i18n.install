@@ -3,7 +3,7 @@
 /**
  * Implement hook_enable
  */
-function civicrm_field_i18n_install(){
+function civicrm_field_i18n_install() {
   db_update('system')
     ->fields(['weight' => 200])
     ->condition('name', 'civicrm_field_i18n', '=')

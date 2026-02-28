@@ -11,7 +11,7 @@ function _neticrm_update_update_7279() {
     'TaiwanACHSearch' => ts('ACH Search'),
   ];
 
-  foreach($searchs as $name => $label){
+  foreach ($searchs as $name => $label) {
     $class = 'CRM_Contact_Form_Search_Custom_'.$name;
     if ($v = array_search($class, $allCustom)) {
       $action = CRM_Core_Action::UPDATE;

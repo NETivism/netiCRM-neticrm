@@ -1,6 +1,6 @@
 <?php
 
-function esunbank_admin_settings(){
+function esunbank_admin_settings() {
   $form['esunbank_contact_info'] = [
     '#type' => 'textarea',
     '#title' => t('Organization Contact info'),

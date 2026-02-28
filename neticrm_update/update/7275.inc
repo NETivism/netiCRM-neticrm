@@ -17,7 +17,7 @@ function _neticrm_update_update_7275() {
   }
 
   // second, add option group and option values
-  $typeGroupId= CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
+  $typeGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
   if (empty($typeGroupId)) {
     CRM_Core_DAO::executeQuery("INSERT INTO civicrm_option_group (`name`, `label`,`description`,`is_reserved`,`is_active`) VALUES ('batch_type', NULL, 'Batch Type', 1, 1)");
     $typeGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'batch_type'");
@@ -42,7 +42,7 @@ function _neticrm_update_update_7275() {
 
   // third, add message template to exists workflow
   $metaWorkflowId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_meta'");
-  if(!empty($metaWorkflowId)){
+  if (!empty($metaWorkflowId)) {
     $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_value WHERE name = 'batch_complete_notification'");
     if (!$exists) {
       $group_params = [

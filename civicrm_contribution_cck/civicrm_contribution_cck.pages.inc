@@ -23,7 +23,7 @@ function civicrm_contribution_cck_admin_settings() {
     '#required' => TRUE,
   ];
 
-  $option_payment_processor =& CRM_Core_PseudoConstant::paymentProcessor( );
+  $option_payment_processor = &CRM_Core_PseudoConstant::paymentProcessor();
   $form['civicc_payment_processor_id'] = [
     '#type' => 'select',
     '#title' => 'Default payment processor for contribution page',
@@ -88,12 +88,13 @@ function civicrm_contribution_cck_admin_settings() {
     '#title' => t('Contribution Page / CCK field mapping'),
   ];
   $fields = content_fields();
-  foreach($fields as $name => $f){
-    if($f['type'] != 'filefield' && $f['type'] != 'content_taxonomy')
+  foreach ($fields as $name => $f) {
+    if ($f['type'] != 'filefield' && $f['type'] != 'content_taxonomy') {
       $option_fields[$name] = $f['type'].":".$f['widget']['label']." ($name)";
+    }
   }
   $civicc_fields = civicrm_contribution_cck_fields();
-  foreach($civicc_fields as $f => $name){
+  foreach ($civicc_fields as $f => $name) {
     $form['civicc_fields']['civicc_'.$f] = [
       '#type' => 'select',
       '#title' => $name,
@@ -103,10 +104,10 @@ function civicrm_contribution_cck_admin_settings() {
     ];
   }
 
-  if(module_exists('civicrm_instrument')){
+  if (module_exists('civicrm_instrument')) {
     $gid = variable_get('civicrm_instrument_gid', 0);
     $instruments = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1");
-    while($instruments->fetch()){
+    while ($instruments->fetch()) {
       $checkbox_name = _civicrm_instrument_form_name($instruments->name);
       $option_instrument[$checkbox_name] = ts($instruments->name);
     }
@@ -117,42 +118,42 @@ function civicrm_contribution_cck_admin_settings() {
       '#options' => $option_instrument,
     ];
   }
-  
+
   return system_settings_form($form);
 }
 
-function civicrm_contribution_cck_donors($node){
+function civicrm_contribution_cck_donors($node) {
   civicrm_initialize();
   $is_test = $_GET['action'] == 'preview' ? 1 : 0;
 
   $donors = civicrm_contribution_cck_donors_filter($node, $is_test);
-  if(empty($donors)){
+  if (empty($donors)) {
     $donors = [ '' => []];
   }
-  foreach($donors as $type => $d){
+  foreach ($donors as $type => $d) {
     $output .= theme("civicrm_contribution_cck_donors", $type, $node, $d);
   }
 
   return $output;
 }
 
-function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NULL){
+function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NULL) {
   require_once("CRM/Contribute/PseudoConstant.php");
   require_once("CRM/Utils/Money.php");
   require_once("api/v2/Contribution.php");
   $limit = $limit ? 'LIMIT 0, '.$limit : '';
   $query = "SELECT u.uf_id as uid, c.display_name, cc.id as contribution_id, cc.total_amount, cc.contact_id, cc.contribution_type_id FROM civicrm_contribution cc INNER JOIN civicrm_contact c ON c.id = cc.contact_id LEFT JOIN civicrm_uf_match u ON cc.contact_id = u.contact_id WHERE cc.contribution_status_id = 1 AND cc.cancel_date IS NULL AND cc.contribution_page_id = {$node->civicrm_contribution_cck['id']} AND cc.is_test = $is_test AND c.is_deleted = 0 ORDER BY cc.receive_date DESC $limit";
 
-  $contact = CRM_Core_DAO::executeQuery( $query );
-  $types = CRM_Contribute_PseudoConstant::contributionType( );
+  $contact = CRM_Core_DAO::executeQuery($query);
+  $types = CRM_Contribute_PseudoConstant::contributionType();
 
   $donors = [];
-  while($contact->fetch()){
+  while ($contact->fetch()) {
     $type = $types[$contact->contribution_type_id];
-    if($contact->uid){
+    if ($contact->uid) {
       $account = db_fetch_object(db_query("SELECT picture, uid, name FROM {users} WHERE uid = %d", $contact->uid));
     }
-    else{
+    else {
       $account = new stdClass();
     }
     $donors[$type][$contact->contribution_id] = [
@@ -168,19 +169,18 @@ function civicrm_contribution_cck_donors_filter($node, $is_test = 0, $limit = NU
   return $donors;
 }
 
-function template_preprocess_civicrm_contribution_cck_donors(&$vars){
+function template_preprocess_civicrm_contribution_cck_donors(&$vars) {
   static $delta;
   $delta++;
   $vars['delta'] = $delta;
-  foreach($vars['donors'] as $d){
+  foreach ($vars['donors'] as $d) {
     $d['picture'] = theme('user_picture', $d['account']);
     $vars['content'] .= theme('civicrm_contribution_cck_donor_item', $d, $d['picture'], $d['amount'], $d['name']);
   }
-  if(!$vars['content']){
+  if (!$vars['content']) {
     $vars['content'] = t('No donations.');
   }
 }
 
-function template_preprocess_civicrm_contribution_cck_donor_item(&$vars){
+function template_preprocess_civicrm_contribution_cck_donor_item(&$vars) {
 }
-

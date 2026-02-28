@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7205(){
+function _neticrm_update_update_7205() {
   $group_params = ['name' => 'safe_file_extension'];
 
   $allowed_extension = [
@@ -17,7 +17,7 @@ function _neticrm_update_update_7205(){
     'rar',
     '7z',
   ];
-  foreach($allowed_extension as $ext){
+  foreach ($allowed_extension as $ext) {
     $action = CRM_Core_Action::ADD;
     $option_value_id = 0;
     $params = [

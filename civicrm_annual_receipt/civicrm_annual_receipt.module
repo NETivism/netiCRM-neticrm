@@ -3,7 +3,7 @@
 /**
  * hook_civicrm_tokens
  */
-function civicrm_annual_receipt_civicrm_tokens(&$tokens){
+function civicrm_annual_receipt_civicrm_tokens(&$tokens) {
   $tokens['receipt'] = [
     'receipt.thisyear' => t('Receipt info in this year'),
     'receipt.lastyear' => t('Receipt info in last year'),
@@ -14,8 +14,8 @@ function civicrm_annual_receipt_civicrm_tokens(&$tokens){
 /**
  * hook_civicrm_tokenvalues
  */
-function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL, $tokens = [], $context = NULL){
-  if(!empty($tokens['receipt'])){
+function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL, $tokens = [], $context = NULL) {
+  if (!empty($tokens['receipt'])) {
     $year = date('Y');
     $header = NULL;
     $header = [
@@ -36,23 +36,23 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
       'rows' => [],
       'attributes' => $attr,
     ];
-    foreach($cids as $k => $cid){
+    foreach ($cids as $k => $cid) {
       // TODO: theme table need to be modify for d7
       $records = [];
-      if(!empty($tokens['receipt']['thisyear'])){
+      if (!empty($tokens['receipt']['thisyear'])) {
         $option = ['year' => $year];
         $records['receipt.thisyear'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
       }
-      if(!empty($tokens['receipt']['lastyear'])){
+      if (!empty($tokens['receipt']['lastyear'])) {
         $option = ['year' => $year - 1];
         $records['receipt.lastyear'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid, $option);
       }
-      if(!empty($tokens['receipt']['all'])){
+      if (!empty($tokens['receipt']['all'])) {
         $records['receipt.all'] = CRM_Contribute_BAO_Contribution::getAnnualReceiptRecord($cid);
       }
-      foreach($records as $type => $row) {
+      foreach ($records as $type => $row) {
         $table['rows'] = [];
-        foreach($row as $key => $col) {
+        foreach ($row as $key => $col) {
           if (!empty($col)) {
             $table['rows'][] = [
               $col['receipt_id'],
@@ -63,7 +63,7 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
             ];
           }
         }
-        if(!empty($table['rows'])){
+        if (!empty($table['rows'])) {
           $values[$cid][$type] = theme('table', $table);
         }
       }
@@ -71,12 +71,11 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
   }
 }
 
-
 /**
  * hook_civicrm_searchTasks
  */
 function civicrm_annual_receipt_civicrm_searchTasks($objectType, &$tasks) {
-  if($objectType == 'contact'){
+  if ($objectType == 'contact') {
     if (CRM_Core_Permission::access('CiviContribute')) {
       $tasks[] = [
         'title' => t('Print Annual Receipt'),

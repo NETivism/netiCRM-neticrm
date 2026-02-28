@@ -1,8 +1,8 @@
 <?php
 
-function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_processor, $is_test){
+function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_processor, $is_test) {
   // these will prevent double submission in ie 10 and below
-  if(empty($vars['contributionID']) || !empty($_SESSION['ebill_ba']['submitted'])){
+  if (empty($vars['contributionID']) || !empty($_SESSION['ebill_ba']['submitted'])) {
     unset($_SESSION['ebill_ba']);
     CRM_Utils_System::civiExit();
   }
@@ -26,7 +26,7 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   $_SESSION['CiviCRM'][$form_key]['params']['trxn_id'] = $contribution->trxn_id;
   $vars['trxn_id'] = $contribution->trxn_id;
 
-  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
+  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'], '.')) : $vars['amount'];
 
   $notice_no = sprintf("%016s", $vars['trxn_id']);
   $arguments = [
@@ -47,15 +47,15 @@ function civicrm_ebill_ba_do_transfer_checkout(&$vars, $component, &$payment_pro
   CRM_Utils_System::civiExit();
 }
 
-function _civicrm_ebill_ba_form_redirect($redirect_vars, $payment_url){
+function _civicrm_ebill_ba_form_redirect($redirect_vars, $payment_url) {
   header('Pragma: no-cache');
   header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
   header('Expires: 0');
 
   $js = 'document.forms.redirect.submit();';
   $o .= '<form action="'.$payment_url.'" name="redirect" method="post" id="redirect-form">';
-  foreach($redirect_vars as $k=>$p){
-    if($k[0] != '#'){
+  foreach ($redirect_vars as $k => $p) {
+    if ($k[0] != '#') {
       $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
     }
   }

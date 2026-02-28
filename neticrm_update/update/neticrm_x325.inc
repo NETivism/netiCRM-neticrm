@@ -19,7 +19,8 @@ function _neticrm_update_update_x325() {
       $action = CRM_Core_Action::UPDATE;
       CRM_Core_OptionValue::addOptionValue($params, $groupParams, $action, $optionValueId);
     }
-  } else {
+  }
+  else {
     $action = CRM_Core_Action::ADD;
     $optionValueId = 0;
     CRM_Core_OptionValue::addOptionValue($params, $groupParams, $action, $optionValueId);

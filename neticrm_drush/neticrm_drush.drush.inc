@@ -50,7 +50,7 @@ function neticrm_drush_drush_command() {
     'aliases' => ['neticrm-cache-clear'],
     'callback' => 'drush_neticrm_clear_cache',
   ];
-  
+
   /* Welcome email for user 3 */
   $items['neticrm-set-domain'] = [
     'description' => 'Set domain info.',
@@ -121,7 +121,7 @@ function neticrm_drush_drush_command() {
   return $items;
 }
 
-function drush_neticrm_schedule_job($function = NULL){
+function drush_neticrm_schedule_job($function = NULL) {
   if (!empty(variable_get('maintenance_mode', ''))) {
     drush_log("Site in maintenance mode, no job execute.", "warning");
     return;
@@ -129,13 +129,13 @@ function drush_neticrm_schedule_job($function = NULL){
   $jobs = variable_get('drush_neticrm_schedule', []);
 
   $jobs_default = _drush_neticrm_schedule_default();
-  if(empty($jobs)){
+  if (empty($jobs)) {
     $jobs = $jobs_default;
   }
-  else{
+  else {
     // use default frequency
-    foreach($jobs as $k => $j){
-      if(!empty($jobs_default[$k]['frequency'])){
+    foreach ($jobs as $k => $j) {
+      if (!empty($jobs_default[$k]['frequency'])) {
         $jobs[$k]['frequency'] = $jobs_default[$k]['frequency'];
       }
     }
@@ -143,17 +143,17 @@ function drush_neticrm_schedule_job($function = NULL){
 
   $error = FALSE;
   $function_file = drupal_get_path('module', 'civicrm').'/../bin/cron/'.$function.'.inc';
-  if(empty($function)){
+  if (empty($function)) {
     $error = "You need to specify first argument. Possible values:\n  ".implode("\n  ", array_keys($jobs));
   }
-  elseif(!file_exists($function_file)){
+  elseif (!file_exists($function_file)) {
     $error = 'Schedule job function not exists.';
   }
 
-  if($error){
+  if ($error) {
     drush_set_error($error);
   }
-  else{
+  else {
     $now = time();
     $force = drush_get_option('force', FALSE);
     $last = $jobs[$function]['last'];
@@ -175,7 +175,7 @@ function drush_neticrm_schedule_job($function = NULL){
         $min_hour = $matches[1];
       }
     }
-    if($force || ($now - $last > $frequency && date('G') >= $min_hour && date('G') <= $max_hour)){
+    if ($force || ($now - $last > $frequency && date('G') >= $min_hour && date('G') <= $max_hour)) {
       _neticrm_drush_init();
       require_once($function_file);
       $function();
@@ -183,7 +183,7 @@ function drush_neticrm_schedule_job($function = NULL){
       $jobs[$function]['last'] = $now;
       variable_set('drush_neticrm_schedule', $jobs);
     }
-    else{
+    else {
       drush_log($function." didn't run. (limited on every $frequency seconds)", "warning");
     }
   }
@@ -203,7 +203,7 @@ function drush_neticrm_civimail() {
 }
 
 /* Rebuild crm menu path table from xml files. */
-function drush_neticrm_rebuild_menu(){
+function drush_neticrm_rebuild_menu() {
   civicrm_initialize();
   // refs #31419, clear IDS config
   CRM_Core_IDS::initConfig(NULL, TRUE);
@@ -212,7 +212,7 @@ function drush_neticrm_rebuild_menu(){
   drush_log("CRM menu rebuilt", "ok");
 }
 
-function drush_neticrm_set_domain(){
+function drush_neticrm_set_domain() {
   if (variable_get('smtp_username', '')) {
     $smtp_mail = variable_get('smtp_username', '');
     variable_set('site_mail', $smtp_mail);
@@ -224,7 +224,7 @@ function drush_neticrm_set_domain(){
   }
 }
 
-function drush_neticrm_welcome_mail(){
+function drush_neticrm_welcome_mail() {
   $account = user_load(3);
   if ($account->uid && variable_get('smtp_username', '')) {
     $op = 'register_no_approval_required';
@@ -234,23 +234,22 @@ function drush_neticrm_welcome_mail(){
   }
 }
 
-function drush_neticrm_clear_cache(){
+function drush_neticrm_clear_cache() {
   civicrm_initialize();
   $config = CRM_Core_Config::singleton();
   $config->clearDBCache();
   // refs #31419, do not clean up template_c because we will loss log files
   // $config->cleanup(1);
-  
+
   // refs #31419, instead cleanup template compiler dir, we clear IDS config
   CRM_Core_IDS::initConfig(NULL, TRUE);
   drush_log("netiCRM cache cleared", "ok");
 }
 
-
 /**
  * Bootstrap function for civicrm
  */
-function _neticrm_drush_init(){
+function _neticrm_drush_init() {
   global $user;
   $user = user_load(1);
   civicrm_initialize();
@@ -259,7 +258,7 @@ function _neticrm_drush_init(){
 /**
  * Scheduled Job
  */
-function _drush_neticrm_schedule_default(){
+function _drush_neticrm_schedule_default() {
   return [
     // mass malling
     'run_civimail' => [
@@ -284,14 +283,14 @@ function _drush_neticrm_schedule_default(){
       'frequency' => 86399,
       'last' => 0, // unix timestamp
     ],
-    
+
     // process participant statuses
     'run_participant_processor' => [
       'frequency' => 3600,
       'last' => 0, // unix timestamp
     ],
 
-    // process report 
+    // process report
     'run_civireport_mail' => [
       'frequency' => 86399,
       'last' => 0, // unix timestamp
@@ -312,7 +311,7 @@ function drush_neticrm_member_reminder_date($membership_type_id = NULL) {
     $sql = "SELECT * FROM civicrm_membership WHERE 1";
     $dao = CRM_Core_DAO::executeQuery($sql);
   }
-  while($dao->fetch()) {
+  while ($dao->fetch()) {
     $calcDates = CRM_Member_BAO_MembershipType::getDatesForMembershipType($dao->membership_type_id, $dao->join_date, $dao->start_date, $dao->end_date);
     $params = [];
     if (!empty($calcDates['reminder_date'])) {
@@ -363,7 +362,7 @@ function drush_neticrm_process_recurring() {
   if (!empty($ppName)) {
     $time = drush_get_option('time', CRM_REQUEST_TIME);
     if (!empty($rId) && $rId === 'ridIsEmpty') {
-      switch($ppName) {
+      switch ($ppName) {
         case 'tappay':
           CRM_Core_Payment_TapPay::doExecuteAllRecur($time);
           break;
@@ -373,7 +372,7 @@ function drush_neticrm_process_recurring() {
       }
     }
     elseif (!empty($rId) && is_numeric($rId)) {
-      switch($ppName) {
+      switch ($ppName) {
         case 'tappay':
           CRM_Core_Payment_TapPay::doCheckRecur($rId, $time);
           break;

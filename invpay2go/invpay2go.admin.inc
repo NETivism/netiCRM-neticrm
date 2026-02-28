@@ -13,7 +13,7 @@ function invpay2go_admin_settings() {
     ->orderBy('pid', 'ASC')
     ->execute();
   $form['#tree'] = TRUE;
-  while($payment = $db->fetchAssoc()) {
+  while ($payment = $db->fetchAssoc()) {
     $pid = $payment['pid'];
     $container = _invpay2go_admin_settings_form($pid, $payment);
     $form['container'][$pid] = $container;
@@ -35,7 +35,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
     ->execute()
     ->fetchAll();
   $exists = [];
-  foreach($settings as $e){
+  foreach ($settings as $e) {
     $exists[$e->pid] = (array) $e;
   }
 
@@ -49,7 +49,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           ->condition('pid', $pid)
           ->execute();
       }
-      else{
+      else {
         $fields = [
           'title' => $invoice_setting['title'],
           'serial' => $invoice_setting['serial'],
@@ -66,8 +66,8 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
           ->execute();
       }
     }
-    else{
-      if(!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
+    else {
+      if (!empty($invoice_setting['hashkey']) || !empty($invoice_setting['hashiv']) || !empty($invoice_setting['hashkey_test']) || !empty($invoice_setting['hashiv_test'])) {
         db_insert('invpay2go')
           ->fields([
           'title' => $invoice_setting['title'],
@@ -85,7 +85,7 @@ function invpay2go_admin_settings_submit($form, &$form_state) {
   }
 }
 
-function _invpay2go_admin_settings_form($pid, $default){
+function _invpay2go_admin_settings_form($pid, $default) {
   $form = [];
   $form = [
     '#type' => 'fieldset',

@@ -11,7 +11,7 @@ function _neticrm_update_update_7223() {
     2 => ['{if $is_pay_later}{ts}Invoice{/ts}{else}{ts}Payment Notification{/ts}{/if} - {$title}', 'String'],
   ];
   $success = CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_subject = %1 WHERE msg_subject LIKE %2", $params);
-  
+
   if ($success) {
     return 'Update receipt word successfuly';
   }

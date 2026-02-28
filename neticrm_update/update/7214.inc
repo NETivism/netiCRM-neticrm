@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7214(){
+function _neticrm_update_update_7214() {
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_uf_field' AND column_name = 'website_type_id'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
 

@@ -2,7 +2,7 @@
 function _neticrm_update_update_x312() {
   $optionGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'pcp_status'");
   if ($optionGroupId) {
-    $pcpStatus = CRM_Core_OptionGroup::values('pcp_status',  FALSE, FALSE, FALSE, NULL, 'name');
+    $pcpStatus = CRM_Core_OptionGroup::values('pcp_status', FALSE, FALSE, FALSE, NULL, 'name');
     $exists = array_search('Draft', $pcpStatus);
     if ($exists === FALSE) {
       $sql = "INSERT INTO `civicrm_option_value`
@@ -16,4 +16,3 @@ function _neticrm_update_update_x312() {
     }
   }
 }
-

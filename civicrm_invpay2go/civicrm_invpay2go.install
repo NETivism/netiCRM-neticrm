@@ -14,7 +14,7 @@ function civicrm_invpay2go_install() {
   }
 
   // custom fields
-  if(!empty($group_id)){
+  if (!empty($group_id)) {
     variable_set('civicrm_invpay2go_invoice_group', $group_id);
     $fields = [];
     // radio
@@ -71,7 +71,6 @@ function civicrm_invpay2go_install() {
  */
 function civicrm_invpay2go_uninstall() {
 }
-
 
 /**
  * Add agree note. refs #20311

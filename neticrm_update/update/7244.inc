@@ -1,6 +1,6 @@
 <?php
 
-function _neticrm_update_update_7244(){
+function _neticrm_update_update_7244() {
   $sql = "
 CREATE TABLE civicrm_track (
      id int unsigned NOT NULL AUTO_INCREMENT  COMMENT 'ID for internal usage',

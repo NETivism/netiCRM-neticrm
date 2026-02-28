@@ -62,4 +62,3 @@ function _neticrm_update_update_7260() {
     echo "TapPay is exist in civicrm_payment_processor_type.";
   }
 }
-

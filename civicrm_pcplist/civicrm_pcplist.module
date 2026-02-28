@@ -3,7 +3,7 @@
 /**
  * Implementation of hook_menu()
  */
-function civicrm_pcplist_menu(){
+function civicrm_pcplist_menu() {
   return [
     'civicrm/pcplist/%' => [
       'title'            => 'Personal Campaign Page',
@@ -19,7 +19,7 @@ function civicrm_pcplist_menu(){
 /**
  * Implementation of hook_theme();
  */
-function civicrm_pcplist_theme(){
+function civicrm_pcplist_theme() {
   return [
    'civicrm_pcplist_item' => [
       'arguments' => ['data' => NULL],
@@ -32,12 +32,12 @@ function civicrm_pcplist_theme(){
   ];
 }
 
-function civicrm_pcplist_page($contribution_page_id){
-  civicrm_initialize( );
+function civicrm_pcplist_page($contribution_page_id) {
+  civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once 'CRM/Contribute/BAO/PCP.php';
 
-  if(is_numeric($contribution_page_id)){
+  if (is_numeric($contribution_page_id)) {
     // limited by contribution id
     $where = " AND p.contribution_page_id = $contribution_page_id ";
 
@@ -45,10 +45,10 @@ function civicrm_pcplist_page($contribution_page_id){
     require_once 'CRM/Contribute/DAO/ContributionPage.php';
     $contrib_page = new CRM_Contribute_DAO_ContributionPage();
     $contrib_page->id = $contribution_page_id;
-    if ( $contrib_page->find( true ) ) { 
+    if ($contrib_page->find(TRUE)) {
       drupal_set_title($contrib_page->title. ' - ' . t('Personal Campaign Page'));
-    }   
-    else{
+    }
+    else {
       // 404
       drupal_not_found();
       return;
@@ -60,24 +60,24 @@ function civicrm_pcplist_page($contribution_page_id){
   //$count_sql = "SELECT COUNT(*) FROM civicrm_pcp WHERE status_id = 2 AND is_active = 1".$where;
 
   $rows = CRM_Core_DAO::executeQuery($sql);
-  while($rows->fetch()){
+  while ($rows->fetch()) {
     $data = [];
     $data['pcp_id'] = $rows->id;
     $data['contact_id'] = $rows->contact_id;
     $data['title'] = $rows->title;
     $data['intro_text'] = $rows->intro_text;
     $data['donate_link_text'] = $rows->donate_link_text;
-    $data['donate_link_url'] = CRM_Utils_System::url('civicrm/contribute/transact', "id={$rows->contribution_page_id}&pcpId={$rows->id}&reset=1", true, null, true, true);
+    $data['donate_link_url'] = CRM_Utils_System::url('civicrm/contribute/transact', "id={$rows->contribution_page_id}&pcpId={$rows->id}&reset=1", TRUE, NULL, TRUE, TRUE);
     $data['contribution_page_id '] = $rows->contribution_page_id;
     $data['goal_amount'] = round($rows->goal_amount);
     $data['achieved_amount'] = round($rows->achieved_amount);
     $data['contribution_count'] = $rows->contribution_count;
-    $data['achieved_percentage'] = round(($data['achieved_amount'] / $data['goal_amount'] ) * 100) . '%';
-    $data['view_url'] = CRM_Utils_System::url('civicrm/contribute/pcp/info', 'reset=1&id='.$data['pcp_id'], true, null, true, true);
-    $data['contribution_link'] = l($data['donate_link_text'], 'civicrm/contribute/transact', ['query' => "id={$rows->contribution_page_id}&pcpId={$rows->id}&reset=1", 'absolute' => TRUE] );
+    $data['achieved_percentage'] = round(($data['achieved_amount'] / $data['goal_amount']) * 100) . '%';
+    $data['view_url'] = CRM_Utils_System::url('civicrm/contribute/pcp/info', 'reset=1&id='.$data['pcp_id'], TRUE, NULL, TRUE, TRUE);
+    $data['contribution_link'] = l($data['donate_link_text'], 'civicrm/contribute/transact', ['query' => "id={$rows->contribution_page_id}&pcpId={$rows->id}&reset=1", 'absolute' => TRUE]);
 
-    if ( $file_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_EntityFile', $rows->id , 'file_id', 'entity_id') ) {
-      $data['image_src'] = CRM_Utils_System::url( 'civicrm/file', "reset=1&id=$file_id&eid=$rows->id"); 
+    if ($file_id = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_EntityFile', $rows->id, 'file_id', 'entity_id')) {
+      $data['image_src'] = CRM_Utils_System::url('civicrm/file', "reset=1&id=$file_id&eid=$rows->id");
     }
     $output .= theme("civicrm_pcplist_item", $data);
   }
@@ -89,24 +89,24 @@ function civicrm_pcplist_page($contribution_page_id){
 function _civicrm_pcplist_pager($query) {
   require_once 'CRM/Utils/Pager.php';
 
-  $params['csvString']    = null;
+  $params['csvString']    = NULL;
   $params['buttonTop']    = 'PagerTopButton';
   $params['buttonBottom'] = 'PagerBottomButton';
   $params['rowCount']     = CRM_Utils_Pager::PAGE_ROWCOUNT;
-  if ( ! $params['rowCount'] ) {
-      $params['rowCount'] = CRM_Utils_Pager::ROWCOUNT;
+  if (!$params['rowCount']) {
+    $params['rowCount'] = CRM_Utils_Pager::ROWCOUNT;
   }
-  $result = CRM_Core_DAO::executeQuery( $query );
+  $result = CRM_Core_DAO::executeQuery($query);
   $result->fetch();
   $params['total'] = $result->count;
-  return new CRM_Utils_Pager( $params );
+  return new CRM_Utils_Pager($params);
 }
 
 function template_preprocess_civicrm_pcplist_item(&$vars, $hook) {
-  foreach($vars['data'] as $k => $v){
+  foreach ($vars['data'] as $k => $v) {
     $vars[$k] = $v;
   }
-  if(!$vars['image_src']){
+  if (!$vars['image_src']) {
     $vars['image_src'] = '/sites/default/files/imagecache/news_thumb/imagefield_default_images/news_default.gif';
   }
 }

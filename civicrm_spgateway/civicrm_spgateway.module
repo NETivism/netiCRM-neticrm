@@ -3,11 +3,11 @@
 /**
  * Implementation of hook_civicrm_buildForm()
  */
-function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
-  switch($form_name){
+function civicrm_spgateway_civicrm_buildForm($form_name, &$form) {
+  switch ($form_name) {
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
-      if(!preg_match("/SPGATEWAY/",$form->_paymentProcessor['payment_processor_type'])){
+      if (!preg_match("/SPGATEWAY/", $form->_paymentProcessor['payment_processor_type'])) {
         return;
       }
       $msg = NULL;
@@ -22,16 +22,16 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
         $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['TradeInfo'], $form->_paymentProcessor);
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
       }
-      if(!empty($form->_submitValues['Period']) && empty($return_params)){
+      if (!empty($form->_submitValues['Period']) && empty($return_params)) {
         $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['Period'], $form->_paymentProcessor);
         $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
       }
       CRM_Core_Error::debug_var('spgateway_frontend_return', $return_params);
       // Credit card have result immediately
-      if(isset($form->_submitValues) && ($return_params['PaymentType'] == 'CREDIT' || !empty($return_params['PeriodAmt']))) {
+      if (isset($form->_submitValues) && ($return_params['PaymentType'] == 'CREDIT' || !empty($return_params['PeriodAmt']))) {
         $params['trxn_id'] = $return_params['MerchantOrderNo'];
-        if(array_key_exists('RespondCode', $return_params)){
-          if($return_params['RespondCode'] == '00'){ // success
+        if (array_key_exists('RespondCode', $return_params)) {
+          if ($return_params['RespondCode'] == '00') { // success
             $status = 1;
           }
           else {
@@ -54,7 +54,7 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
         if (!empty($form->_submitValues['TradeInfo'])) {
           $return_params_decrypt = CRM_Core_Payment_SPGATEWAYAPI::recurDecrypt($form->_submitValues['TradeInfo'], $form->_paymentProcessor);
           $return_params = CRM_Core_Payment_SPGATEWAYAPI::dataDecode($return_params_decrypt);
-          if(!empty($return_params['MerchantOrderNo']) && $saved_params['trxn_id'] == $return_params['MerchantOrderNo']){
+          if (!empty($return_params['MerchantOrderNo']) && $saved_params['trxn_id'] == $return_params['MerchantOrderNo']) {
             $contrib_params = ['trxn_id' => $return_params['MerchantOrderNo']];
             $contrib_values = $contrib_ids = [];
             CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
@@ -62,26 +62,27 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
           }
         }
         // MGP version 1.2
-        elseif(!empty($_POST)){
+        elseif (!empty($_POST)) {
           $contrib_params = ['trxn_id' => $saved_params['trxn_id']];
           $contrib_values = $contrib_ids = [];
           CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
           CRM_Core_Payment_SPGATEWAYAPI::writeRecord($contrib_values['id'], $_POST);
         }
 
-        if(!empty($saved_params['trxn_id'])){
+        if (!empty($saved_params['trxn_id'])) {
           $params['trxn_id'] = $saved_params['trxn_id'];
 
           // build notify billing info
           $info = civicrm_spgateway_notify_bytrxn($params['trxn_id']);
-          if($form_name == 'CRM_Event_Form_Registration_ThankYou'){
+          if ($form_name == 'CRM_Event_Form_Registration_ThankYou') {
             $civicrm_instrument_id = $saved_params[0]['civicrm_instrument_id'];
-          }else{
+          }
+          else {
             $civicrm_instrument_id = $saved_params['civicrm_instrument_id'];
           }
           $display = civicrm_spgateway_notify_display($info, $civicrm_instrument_id);
           $isSend = $form->get('invoice_sended', FALSE);
-          if(!empty($contrib_values['id']) && !$isSend){
+          if (!empty($contrib_values['id']) && !$isSend) {
             civicrm_spgateway_notify_generate($contrib_values['id'], TRUE); // send mail
             $form->set('invoice_sended', TRUE);
           }
@@ -98,61 +99,61 @@ function civicrm_spgateway_civicrm_buildForm($form_name, &$form){
 /**
  * Implementation of hook_civicrm_validate()
  */
-function civicrm_spgateway_civicrm_validate($form_name, &$form){
+function civicrm_spgateway_civicrm_validate($form_name, &$form) {
   $errors = [];
-  if($form_name == 'CRM_Contribute_Form_Contribution_Main'){
-    if(!empty($form['payment_processor'])){
+  if ($form_name == 'CRM_Contribute_Form_Contribution_Main') {
+    if (!empty($form['payment_processor'])) {
       $params = [
         1 => [$form['payment_processor'], 'Integer'],
       ];
       $processor_type = CRM_Core_DAO::singleValueQuery("SELECT payment_processor_type FROM civicrm_payment_processor WHERE id = %1", $params);
-      if($processor_type == 'SPGATEWAY'){
-        if(!empty($form['installments']) && $form['installments'] > 99){
+      if ($processor_type == 'SPGATEWAY') {
+        if (!empty($form['installments']) && $form['installments'] > 99) {
           $errors['installments'] = t('Installments of recurring must lower than 99.');
         }
-        if(!empty($form['installments']) && $form['installments'] > 9 && !empty($form['frequency_unit']) && $form['frequency_unit'] == 'year'){
+        if (!empty($form['installments']) && $form['installments'] > 9 && !empty($form['frequency_unit']) && $form['frequency_unit'] == 'year') {
           $errors['installments'] = t('The years of recurring installments must lower than 9.');
-        } 
+        }
       }
     }
   }
-  return empty( $errors ) ? true : $errors;
+  return empty($errors) ? TRUE : $errors;
 }
 
 /**
  * Implementation of hook_civicrm_prepareInvoice()
  */
-function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams){
+function civicrm_spgateway_civicrm_prepareInvoice($contribution_id, &$tplParams) {
   $sql = "SELECT pp.payment_processor_type FROM civicrm_contribution c
     INNER JOIN civicrm_payment_processor pp ON c.payment_processor_id = pp.id
     WHERE c.id = $contribution_id";
   $payment_process_type = CRM_Core_DAO::singleValueQuery($sql);
-  if(preg_match('/SPGATEWAY/', $payment_process_type)){
+  if (preg_match('/SPGATEWAY/', $payment_process_type)) {
     $tplParams = civicrm_spgateway_notify_generate($contribution_id, FALSE);
   }
 }
 
-function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE){
+function civicrm_spgateway_notify_generate($cid, $send_mail = FALSE) {
   civicrm_initialize();
   $info = civicrm_spgateway_notify_info($cid);
-  if(!empty($info)){
+  if (!empty($info)) {
     $info['display'] = civicrm_spgateway_notify_display($info);
-    if($info['#type'] == 'BARCODE'){
+    if ($info['#type'] == 'BARCODE') {
       $info['has_receipt'] = 1;
       $info['display'] = civicrm_spgateway_notify_display_barcode($info);
     }
 
-    if($send_mail){
+    if ($send_mail) {
       $message = '';
       CRM_Contribute_BAO_Contribution::getInvoice($cid, $info, $message, $send_mail);
     }
-    else{
+    else {
       return $info;
     }
   }
 }
 
-function civicrm_spgateway_notify_bytrxn($trxn_id){
+function civicrm_spgateway_notify_bytrxn($trxn_id) {
   $cid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_contribution WHERE trxn_id = %1 OR trxn_id = %2", [
     1 => [$trxn_id, 'String'],
     2 => [$trxn_id.'_1', 'String'],
@@ -160,7 +161,7 @@ function civicrm_spgateway_notify_bytrxn($trxn_id){
   return civicrm_spgateway_notify_info($cid);
 }
 
-function civicrm_spgateway_notify_info($cid){
+function civicrm_spgateway_notify_info($cid) {
   civicrm_initialize();
   $dao = CRM_Core_DAO::executeQuery("SELECT s.data FROM civicrm_contribution_spgateway s WHERE s.cid = %1", [1 => [$cid, 'Integer']]);
   $dao->fetch();
@@ -168,7 +169,7 @@ function civicrm_spgateway_notify_info($cid){
   $type = $json['PaymentType'];
   $return = [];
   $invoice_link = CRM_Contribute_BAO_Contribution_Utils::invoiceLink($cid);
-  switch($type){
+  switch ($type) {
     case 'VACC':
       $return[ts('Bank code')] = $json['BankCode'];
       $return[ts('Virtual account number')] = $json['CodeNo'];
@@ -183,14 +184,14 @@ function civicrm_spgateway_notify_info($cid){
     case 'BARCODE':
       $barcodepath = CRM_Core_Payment_SPGATEWAY::REAL_DOMAIN.'/API/barcode_display/get_barcode_img?barcode_text=';
       $barcode = [$json['Barcode_1'], $json['Barcode_2'], $json['Barcode_3']];
-      foreach($barcode as $k => $b){
+      foreach ($barcode as $k => $b) {
         $return['#barcode'.$k] = '<div><img src="'.$barcodepath.$b.'" alt="'.$b.'" /></div>';
       }
       $return[ts('Payment slip')] = '<a href="'.$invoice_link.'" target="_blank">» '.ts('Print payment slip').'</a>';
       $return[ts('Payment deadline')] = $json['ExpireDate'].' '.$json['ExpireTime'];
       break;
   }
-  if(!empty($return)){
+  if (!empty($return)) {
     $return['#type'] = $type;
     $return['#expire'] = $json['ExpireDate'].' '.$json['ExpireTime'];
     $return['#invoice'] = $invoice_link;
@@ -201,17 +202,17 @@ function civicrm_spgateway_notify_info($cid){
   return [];
 }
 
-function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL){
+function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL) {
   $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
   $output = '';
-  foreach($info as $label => $value){
-    if(preg_match('/^#/', $label)){
+  foreach ($info as $label => $value) {
+    if (preg_match('/^#/', $label)) {
       continue;
     }
-    elseif(is_numeric($label)){
+    elseif (is_numeric($label)) {
       $output .= '<dd>'.' <span>'.$value.'</span></dd>';
     }
-    else{
+    else {
       $output .= '<dd><label>'.$label.':</label>'.' <span>'.$value.'</span></dd>';
     }
   }
@@ -220,10 +221,10 @@ function civicrm_spgateway_notify_display($info, $payment_instrument_id = NULL){
   return $output;
 }
 
-function civicrm_spgateway_notify_display_barcode($info){
+function civicrm_spgateway_notify_display_barcode($info) {
   $output = '<div style="border:1px solid #000;padding:10px;margin:10px;float:right;width:200px;height:175px;color:#777;">代收店舖章</div>';
-  foreach($info as $label => $v){
-    if(preg_match('/^#barcode/', $label)){
+  foreach ($info as $label => $v) {
+    if (preg_match('/^#barcode/', $label)) {
       $output .= '<div>'.$v.'</div>';
     }
   }
@@ -232,7 +233,6 @@ function civicrm_spgateway_notify_display_barcode($info){
   return $output;
 }
 
-
 function civicrm_spgateway_cron() {
   if (!empty(variable_get('maintenance_mode', ''))) {
     return;
@@ -240,10 +240,10 @@ function civicrm_spgateway_cron() {
   $now = time();
 
   civicrm_initialize();
-  // every nights, we check recurring payment result 
+  // every nights, we check recurring payment result
   // First, check the recur which had received ipn notify today.
   $last = variable_get('civicrm_spgateway_recur_from_ipn_sync', 0);
-  if($now - $last > 60000 && date('G') > '17' && date('G') <= '18'){
+  if ($now - $last > 60000 && date('G') > '17' && date('G') <= '18') {
     $filterDatetime = date('Ymd');
     CRM_Core_Payment_SPGATEWAY::syncTransactionWebLog($filterDatetime);
     variable_set('civicrm_spgateway_recur_from_ipn_sync', $now);
@@ -251,7 +251,7 @@ function civicrm_spgateway_cron() {
 
   // Then check all possible recurring to sync.
   $last = variable_get('civicrm_spgateway_recur_sync', 0);
-  if($now - $last > 60000 && date('G') > '18' && date('G') < '23'){
+  if ($now - $last > 60000 && date('G') > '18' && date('G') < '23') {
     civicrm_spgateway_recur_sync();
     variable_set('civicrm_spgateway_recur_sync', $now);
   }
@@ -276,10 +276,10 @@ function civicrm_spgateway_cron() {
   */
 }
 
-function civicrm_spgateway_recur_sync($days = []){
+function civicrm_spgateway_recur_sync($days = []) {
   civicrm_initialize();
 
-  if(empty($days)){
+  if (empty($days)) {
     $days = [
       date('j'),
     ];
@@ -288,9 +288,9 @@ function civicrm_spgateway_recur_sync($days = []){
     }
 
     // when end of month
-		$end_this_month = date('j', strtotime('last day of this month'));
+    $end_this_month = date('j', strtotime('last day of this month'));
     if (date('j') == $end_this_month) {
-      for($i = $end_this_month; $i <= 31; $i++) {
+      for ($i = $end_this_month; $i <= 31; $i++) {
         $days[] = $i;
       }
     }
@@ -302,7 +302,7 @@ function civicrm_spgateway_recur_sync($days = []){
   $query = "SELECT (SELECT count(c.id) FROM civicrm_contribution c WHERE c.contribution_recur_id = r.id AND c.receive_date >= %2 AND c.receive_date <= %3 ) AS contribution_count, r.* FROM civicrm_contribution_recur r
   WHERE r.contribution_status_id = 5 AND r.frequency_unit = 'month' AND (DAY(r.start_date) = %1 OR r.cycle_day = %1)
   ORDER BY r.create_date ASC";
-  foreach($days as $d){
+  foreach ($days as $d) {
     watchdog('civicrm_spgateway', 'Start to sync recurring for day '.$d);
     if ($d >= 29) {
       $d = (string) $d;
@@ -334,9 +334,9 @@ function civicrm_spgateway_recur_sync($days = []){
     $cridBefore3Monthes = CRM_Core_DAO::singleValueQuery($queryBefore3Monthes);
     CRM_Core_Error::debug_var("do_not_execute_crids", $cridBefore3Monthes);
     $cridsArrayBefore3Monthes = explode(',', $cridBefore3Monthes);
-    while($result->fetch()){
+    while ($result->fetch()) {
       CRM_Core_Error::debug_log_message("count: {$result->contribution_count}, recur_id: {$result->id}, recur start_date: {$result->start_date}, recur cycle_day: {$result->cycle_day};");
-      if(empty($result->contribution_count)){
+      if (empty($result->contribution_count)) {
         // Check if last created date is before 3 monthes
         if (!in_array($result->id, $cridsArrayBefore3Monthes)) {
           CRM_Core_Error::debug_log_message("Executing check for recur_id: {$result->id};");
@@ -371,13 +371,12 @@ function civicrm_spgateway_civicrm_enableDisable($recordBAO, $recordID, $isActiv
   }
 }
 
-function civicrm_spgateway_mobile_checkout($type, $post, $objects){
+function civicrm_spgateway_mobile_checkout($type, $post, $objects) {
   $return = CRM_Core_Payment_SPGATEWAY::mobileCheckout($type, $post, $objects);
   return $return;
 }
 
-
-function _civicrm_spgateway_cancel_recuring_message(){
+function _civicrm_spgateway_cancel_recuring_message() {
   $js = '<h3>
 藍新金流提醒
 </h3>
@@ -399,11 +398,10 @@ function _civicrm_spgateway_cancel_recuring_message(){
   return $js;
 }
 
-
-function _civicrm_spgateway_error_msg($code){
+function _civicrm_spgateway_error_msg($code) {
   $code = (string) $code;
   // success
-  if($code == '1' || $code == '2'){
+  if ($code == '1' || $code == '2') {
     return;
   }
 
@@ -448,11 +446,11 @@ function _civicrm_spgateway_error_msg($code){
     'PER10037' => '付款頁參數不足',
     'uncertain' => 'Go check in www.newebpay.com',
   ];
-  if(!empty($msg[$code])){
+  if (!empty($msg[$code])) {
     // return t($msg[$code]);
     return $msg[$code];
   }
-  else{
+  else {
     return t('Error when processing your payment.');
   }
 }

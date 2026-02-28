@@ -4,19 +4,21 @@
  *
  * Support webform_civicrm address
  */
-function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
+function civicrm_twaddress_form_alter(&$form, $form_state, $form_id) {
   static $add;
   $override = [];
   if (substr($form['#id'], 0, 20) == 'webform-client-form-') {
     // for now we only support field below 2 fieldset
-    foreach($form['submitted'] as $k => $c){
-      if(!is_array($c)) continue;
+    foreach ($form['submitted'] as $k => $c) {
+      if (!is_array($c)) {
+        continue;
+      }
       $children = element_children($c);
-      if(count($children)){
-        foreach($children as $name){
+      if (count($children)) {
+        foreach ($children as $name) {
           $cchildren = element_children($form['submitted'][$k][$name]);
-          if(count($cchildren)){
-            foreach($cchildren as $nname){
+          if (count($cchildren)) {
+            foreach ($cchildren as $nname) {
               _civicrm_twaddress_is_addr_field($nname, $form['submitted'][$k][$name][$nname], $override);
             }
           }
@@ -25,18 +27,18 @@ function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
       }
       _civicrm_twaddress_is_addr_field($name, $form['submitted'][$k][$key], $override);
     }
-    if(count($override)>=3){
+    if (count($override) >= 3) {
       // check post value
-      if(!empty($form_state['post'])){
-        foreach($override as $k => $v){
-          foreach($v as $kk => $vv){
+      if (!empty($form_state['post'])) {
+        foreach ($override as $k => $v) {
+          foreach ($v as $kk => $vv) {
             $override[$k][$kk]['default'] = _civicrm_twaddress_search_value($vv['key'], $form_state['post']);
             $override[$k][$kk]['default'] = CRM_Utils_String::xssFilter($override[$k][$kk]['default']);
           }
         }
       }
 
-      if(!$add){
+      if (!$add) {
         $add = _civicrm_twaddress_add_zipcode_js();
       }
       _civicrm_twaddress_webform_js($override, $add_js = TRUE);
@@ -44,24 +46,24 @@ function civicrm_twaddress_form_alter(&$form, $form_state, $form_id){
   }
 }
 
-function _civicrm_twaddress_is_addr_field($name, &$obj, &$override){
-  if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
+function _civicrm_twaddress_is_addr_field($name, &$obj, &$override) {
+  if (strstr($name, 'postal_code') && !strstr($name, 'postal_code_suffix')) {
     $key = _civicrm_twaddress_webform_key($name);
     $override['zipName'][$key]['key'] = $name;
     $override['zipName'][$key]['default'] = '';
   }
-  elseif(strstr($name, 'state_province')){
+  elseif (strstr($name, 'state_province')) {
     $key = _civicrm_twaddress_webform_key($name);
     $override['countyName'][$key]['key'] = $name;
-    foreach($e->_options as $v){
-      if($v['attr']['value']){
+    foreach ($e->_options as $v) {
+      if ($v['attr']['value']) {
         $county_options[$v['attr']['value']] = $v['text'];
       }
     }
     // $default = $default ? $default : $_POST[$name];
     $override['countyName'][$key]['default'] = '';
   }
-  elseif(strstr($name, 'city')){
+  elseif (strstr($name, 'city')) {
     $key = _civicrm_twaddress_webform_key($name);
     // hide field
 
@@ -73,16 +75,15 @@ function _civicrm_twaddress_is_addr_field($name, &$obj, &$override){
   return $override;
 }
 
-
 /**
  * Implementation of hook_civicrm_buildForm().
  */
 function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   static $add;
-  // whatever, reorder. 
+  // whatever, reorder.
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
-    if(strstr($name, 'state_province') || !empty($e->_attributes['state-province'])){
+    if (strstr($name, 'state_province') || !empty($e->_attributes['state-province'])) {
       $element = $form->getElement($name);
 
       $optgrp = FALSE;
@@ -107,19 +108,19 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     return;
   }
   */
-  
+
   // we don't support ajax form
   $deny = [];
-  if(in_array($formName,$deny)){
+  if (in_array($formName, $deny)) {
     return;
   }
-  
+
   // we don't process report form
-  if(strpos($formName, 'Report_Form')){
+  if (strpos($formName, 'Report_Form')) {
     return;
   }
   // we don't change form on step 2 / 3 / 4
-  if(strpos($formName, 'Confirm') || strpos($formName, 'ThankYou')){
+  if (strpos($formName, 'Confirm') || strpos($formName, 'ThankYou')) {
     $js = <<<EOT
     jQuery(function($){
     var arrChecked = [];
@@ -166,7 +167,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       }
     });
     EOT;
-        drupal_add_js($js , 'inline');
+    drupal_add_js($js, 'inline');
     return;
   }
 
@@ -174,32 +175,33 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   $override = [];
   $form_name = $form->_attributes['name'];
   // For user edit -> profile edit page, Dynamic panel.
-  if($form_name == 'Dynamic'){
-    $is_dynamic = true;
-    if(is_numeric(strpos($_GET['q'], 'user/register'))){
+  if ($form_name == 'Dynamic') {
+    $is_dynamic = TRUE;
+    if (is_numeric(strpos($_GET['q'], 'user/register'))) {
       $form_name = 'user-register-form';
-    }else{
+    }
+    else {
       $form_name = 'user-profile-form';
     }
   }
   foreach ($form->_elements as $k => $e) {
     $name = $e->_attributes['name'];
     $default = '';
-    if(strstr($name, 'postal_code') && !strstr($name,'postal_code_suffix')){
+    if (strstr($name, 'postal_code') && !strstr($name, 'postal_code_suffix')) {
       $key = _civicrm_twaddress_key($name);
       $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $override['zipName'][$key]['key'] = $name;
       $override['zipName'][$key]['default'] = $default ? CRM_Utils_String::xssFilter($default) : $form->getElement($name)->_findValue($form->_defaultValues);
     }
-    if(strstr($name, 'state_province')){
+    if (strstr($name, 'state_province')) {
       $key = _civicrm_twaddress_key($name);
       $override['countyName'][$key]['key'] = $name;
-      foreach($e->_options as $v){
-        if($v['attr']['value']){
+      foreach ($e->_options as $v) {
+        if ($v['attr']['value']) {
           $county_options[$v['attr']['value']] = $v['text'];
         }
       }
-      $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL; 
+      $default = isset($form->getElement($name)->_values[0]) ? $form->getElement($name)->_values[0] : NULL;
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
       $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Refs #40341, Check default value to avoid empty array.
@@ -209,11 +211,11 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       // Find that default value is depands on zip code. The code here is no use.
       $override['countyName'][$key]['default'] = $county_options[$default] ?? CRM_Utils_String::xssFilter($default);
     }
-    if(strstr($name, 'city')){
+    if (strstr($name, 'city')) {
       $key = _civicrm_twaddress_key($name);
       // hide field
 
-      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
+      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
       $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Find that default value is depands on zip code. The code here is no use.
@@ -221,10 +223,10 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       $override['areaName'][$key]['name'] = $name;
       $override['areaName'][$key]['default'] = CRM_Utils_String::xssFilter($default);
     }
-    if(strstr($name, 'country')){
+    if (strstr($name, 'country')) {
       $key = _civicrm_twaddress_key($name);
 
-      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL; 
+      $default = isset($form->getElement($name)->_attributes['value']) ? $form->getElement($name)->_attributes['value'] : NULL;
       $default = $default ? $default : $form->getElement($name)->_findValue($form->_defaultValues);
       $default = $default ? $default : ($form->_submitValues[$name] ?? NULL);
       // Find that default value is depands on zip code. The code here is no use.
@@ -244,25 +246,25 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     'CRM_Pledge_Form_Pledge',
   ];
 
-  if(in_array($formName, $allow_load_js)){
+  if (in_array($formName, $allow_load_js)) {
     $add = _civicrm_twaddress_add_zipcode_js();
   }
-  
-  if(count($override)>=3 && $enable){
-    if(!$add){
+
+  if (count($override) >= 3 && $enable) {
+    if (!$add) {
       $add = _civicrm_twaddress_add_zipcode_js();
     }
 
     global $language;
-    if((arg(1) == 'contribute' || arg(1) == 'event' || $is_dynamic) && ($language->language == 'zh-hant' || empty($language->language))){
+    if ((arg(1) == 'contribute' || arg(1) == 'event' || $is_dynamic) && ($language->language == 'zh-hant' || empty($language->language))) {
       $js = _civicrm_twaddress_grouping_js();
     }
 
-    if(!empty($_GET['snippet']) && arg(1) == 'profile' && arg(2) == 'create'){
-      $is_popup = true;
+    if (!empty($_GET['snippet']) && arg(1) == 'profile' && arg(2) == 'create') {
+      $is_popup = TRUE;
     }
 
-    if( (!empty($_GET['snippet']) && $_GET['block'] == 'Address' ) || $is_popup){
+    if ((!empty($_GET['snippet']) && $_GET['block'] == 'Address') || $is_popup) {
       if (is_array($form->_fields)) {
         reset($form->_fields);
       }
@@ -271,7 +273,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
       $js = '<script type="text/javascript">'.$js.'</script>';
       print($js);
     }
-    else{
+    else {
       // Refs #33721, Except for batch update profiles condition.
       if (get_class($form) != 'CRM_Contact_Form_Task_Batch') {
         _civicrm_twaddress_common_js($override, $form_name, $add_js = TRUE);
@@ -280,14 +282,14 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   }
 }
 
-function civicrm_twaddress_extract(&$options){
-  foreach($options as &$o){
+function civicrm_twaddress_extract(&$options) {
+  foreach ($options as &$o) {
     $return[$o['text']] = $o;
   }
   return $return;
 }
 
-function civicrm_twaddress_order(){
+function civicrm_twaddress_order() {
   return
   [
     '', // for order 0
@@ -317,19 +319,19 @@ function civicrm_twaddress_order(){
   ];
 }
 
-function _civicrm_twaddress_add_zipcode_js(){
+function _civicrm_twaddress_add_zipcode_js() {
   global $language;
   $setting['language'] = $language->language;
   drupal_add_js($setting, 'setting');
 
-  $path = drupal_get_path("module",'civicrm_twaddress');
+  $path = drupal_get_path("module", 'civicrm_twaddress');
   drupal_add_js($path."/twzipcode.js");
   $add = 1;
   return $add;
 }
 
-function _civicrm_twaddress_key($name){
-  if(preg_match('/Primary/', $name)){
+function _civicrm_twaddress_key($name) {
+  if (preg_match('/Primary/', $name)) {
     return 'Primary';
   }
   preg_match('/\d/', $name, $matches);
@@ -338,12 +340,12 @@ function _civicrm_twaddress_key($name){
   return $key;
 }
 
-function _civicrm_twaddress_webform_key($name){
+function _civicrm_twaddress_webform_key($name) {
   list($key) = explode('_address', $name);
   return $key;
 }
 
-function _civicrm_twaddress_grouping_js(){
+function _civicrm_twaddress_grouping_js() {
   $js = <<<EOT
       jQuery(function($){
         // find a address group to collapsed to single line
@@ -389,15 +391,15 @@ function _civicrm_twaddress_grouping_js(){
         }
       });
   EOT;
-  drupal_add_js($js , 'inline');
+  drupal_add_js($js, 'inline');
 
   return $js;
 }
 
-function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
+function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE) {
   $return = [];
   $count = 0;
-  foreach($field['areaName'] as $k => $v){
+  foreach ($field['areaName'] as $k => $v) {
     $random_id = mt_rand(1000, 9999);
     $count++;
     $select_id = "twaddr-area-{$k}-{$random_id}";
@@ -415,7 +417,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
     $address_info_array = array_map('strval', $address_info_array);
     $address_info_json = json_encode($address_info_array);
     $js = '';
-    if( !empty($field['country'][$k])){
+    if (!empty($field['country'][$k])) {
       $province_id = _civicrm_twaddress_get_province_id($field['countyName'][$k]['default']);
       $js .= <<<EOT
             if( $("form#{$form_name} select[name='{$field['country'][$k]['name']}'").length ){
@@ -436,7 +438,7 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
 
       EOT;
     }
-    else{
+    else {
       $js .= <<<EOT
             var addressInfo = JSON.parse('{$address_info_json}');
             applyTWZIPAddress("{$select_id}", addressInfo);
@@ -469,10 +471,10 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
         }
       });
     EOT;
-    if($add_js){
-      drupal_add_js($js , 'inline');
+    if ($add_js) {
+      drupal_add_js($js, 'inline');
     }
-    else{
+    else {
       $return[$k] = $js;
     }
   }
@@ -511,20 +513,20 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE){
       })(jQuery);
   EOT;
 
-  if($add_js){
-    drupal_add_js($js , 'inline');
+  if ($add_js) {
+    drupal_add_js($js, 'inline');
   }
-  else{
+  else {
     $return[] = $js;
   }
   $return = array_reverse($return);
   return $return;
 }
 
-function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
+function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE) {
   $return = [];
   $count = 0;
-  foreach($field['areaName'] as $k => $v){
+  foreach ($field['areaName'] as $k => $v) {
     $count++;
     $insert = "<select name='{$field['areaName'][$k]['key']}' class='form-select'></select>";
 
@@ -560,28 +562,28 @@ function _civicrm_twaddress_webform_js($field, $form_name, $add_js = TRUE){
           }
         });
     EOT;
-    if($add_js){
-      drupal_add_js($js , 'inline');
+    if ($add_js) {
+      drupal_add_js($js, 'inline');
     }
-    else{
+    else {
       $return[$k] = $js;
     }
   }
   return $return;
 }
 
-function _civicrm_twaddress_search_value($key, $array){
-  if(!isset($array[$key])){
-    foreach($array as $k => $v){
-      if(is_array($v)){
+function _civicrm_twaddress_search_value($key, $array) {
+  if (!isset($array[$key])) {
+    foreach ($array as $k => $v) {
+      if (is_array($v)) {
         $return = _civicrm_twaddress_search_value($key, $v);
-        if($return){
+        if ($return) {
           break;
         }
       }
     }
   }
-  else{
+  else {
     return $array[$key];
   }
   return $return;
@@ -589,28 +591,28 @@ function _civicrm_twaddress_search_value($key, $array){
 
 function _civicrm_twaddress_get_province_id($name = NULL) {
   $arr = [
-    "南投縣"=> "4855",
-    "臺中市"=> "5219",
-    "臺北市"=> "5221",
-    "臺南市"=> "5224",
-    "臺東縣"=> "4861",
-    "嘉義市"=> "5222",
-    "嘉義縣"=> "4849",
-    "基隆市"=> "4864",
-    "宜蘭縣"=> "4852",
-    "屏東縣"=> "4857",
-    "彰化縣"=> "4848",
-    "新北市"=> "4860",
-    "新竹市"=> "5223",
-    "新竹縣"=> "4850",
-    "桃園市"=> "4862",
-    "澎湖縣"=> "4856",
-    "花蓮縣"=> "4851",
-    "苗栗縣"=> "4854",
-    "連江縣"=> "5225",
-    "金門縣"=> "5226",
-    "雲林縣"=> "4863",
-    "高雄市"=> "5220",
+    "南投縣" => "4855",
+    "臺中市" => "5219",
+    "臺北市" => "5221",
+    "臺南市" => "5224",
+    "臺東縣" => "4861",
+    "嘉義市" => "5222",
+    "嘉義縣" => "4849",
+    "基隆市" => "4864",
+    "宜蘭縣" => "4852",
+    "屏東縣" => "4857",
+    "彰化縣" => "4848",
+    "新北市" => "4860",
+    "新竹市" => "5223",
+    "新竹縣" => "4850",
+    "桃園市" => "4862",
+    "澎湖縣" => "4856",
+    "花蓮縣" => "4851",
+    "苗栗縣" => "4854",
+    "連江縣" => "5225",
+    "金門縣" => "5226",
+    "雲林縣" => "4863",
+    "高雄市" => "5220",
   ];
 
   // If name is provided, return the ID for that specific county/city
@@ -645,7 +647,7 @@ function _civicrm_twaddress_reorder($options) {
       }
     }
 
-    foreach($order as $k => $v) {
+    foreach ($order as $k => $v) {
       if ($k == 0 && isset($options[$k]) && empty($options[$k]['attr']['value'])) {
         // Keep the '-- select --' option
         $neworder[$k] = $options[$k];

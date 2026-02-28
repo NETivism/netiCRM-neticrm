@@ -3,12 +3,12 @@
 /**
  * Provide recurring administration page.
  */
-function civicrm_neweb_recurring_page(){
+function civicrm_neweb_recurring_page() {
   // drupal_get_form();
   // table list of recurring page
   // pager
   civicrm_initialize();
-  if($_GET['action'] == 'stop' && is_numeric(arg(3))){
+  if ($_GET['action'] == 'stop' && is_numeric(arg(3))) {
     $recur_id = arg(3);
     CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET cancel_date = '".date('Y-m-d H:i:s')."' WHERE id = $recur_id");
     drupal_set_message('已成功停止定期定額捐款 #'.arg(3));
@@ -17,12 +17,12 @@ function civicrm_neweb_recurring_page(){
   $rows = [];
   $dao = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution_recur r LEFT JOIN civicrm_contribution_neweb_recur nr ON r.id = nr.recur_id WHERE r.is_test = 0 ORDER BY r.create_date DESC");
   $header = ['#', '聯絡人', '金額', '頻率', '開始', '結束', '取消', '扣款日', '上傳藍新', '異動回覆', '最新交易', '操作'];
-  while($dao->fetch()){
+  while ($dao->fetch()) {
     $group++;
     $class = $group % 2 ? 'even' : 'odd';
     $contact_name = CRM_Core_DAO::singleValueQuery("SELECT display_name FROM civicrm_contact WHERE id = $dao->contact_id");
     $row = [
-      ['data'=>$dao->id, 'rowspan' => 2, 'class' => 'recurring-id'],
+      ['data' => $dao->id, 'rowspan' => 2, 'class' => 'recurring-id'],
       l($contact_name, "civicrm/contact/view", ["query" => "reset=1&cid=$dao->contact_id"]),
       substr($dao->amount, 0, strpos($dao->amount, '.')),
       $dao->installments.ts($dao->frequency_unit),
@@ -38,7 +38,7 @@ function civicrm_neweb_recurring_page(){
     $rows[] = $row;
     $dao2 = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_contribution WHERE contribution_recur_id = $dao->id ORDER BY id ASC");
     $contributions = [];
-    while($dao2->fetch()){
+    while ($dao2->fetch()) {
       $contributions[$dao2->id] = [
         $dao2->trxn_id,
         $dao2->receive_date,
@@ -58,7 +58,7 @@ function civicrm_neweb_recurring_page(){
   $output = theme('table', $header, $rows, ['id' => 'recurring-nw']);
   return $output;
 }
-function civicrm_neweb_recurring_fieldset($form_state, $contrib){
+function civicrm_neweb_recurring_fieldset($form_state, $contrib) {
   $form['contributions'] = [
     '#type' => 'fieldset',
     '#title' => ts('Contribution'),
@@ -72,7 +72,7 @@ function civicrm_neweb_recurring_fieldset($form_state, $contrib){
     '來源',
   ];
   $form['contributions']['contrib'] = [
-    '#markup' => theme('table', $header, $contrib, ['class'=>'recurring-table']),
+    '#markup' => theme('table', $header, $contrib, ['class' => 'recurring-table']),
   ];
   return $form;
 }

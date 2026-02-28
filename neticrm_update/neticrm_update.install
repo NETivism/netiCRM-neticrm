@@ -1,9 +1,9 @@
 <?php
 /**
  * netiCRM update main install file
- * 
+ *
  * Every file in update/*.inc should use this style to handling update success or not
- * 
+ *
  * ```php
  * // success
  * #return 'Messages';     # drupal 6,7,9: this will display success message
@@ -12,38 +12,38 @@
 
  * // failed, error,  schema_version will not be update
  * #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
- * #return FALSE;          # drupal 6,7,9: this will trigger error, 
+ * #return FALSE;          # drupal 6,7,9: this will trigger error,
 
  * // should never use
  * #throw DrupalUpdateException  # drupal 9 only, will be fatal error on drupal 6,7
  * #throw DrupalDrupalUpdateException  # drupal 7 only, will be fatal error on drupal 6,9
  * #return  array('success' => FALSE, 'query' => 'OOO'); # drupal 6 only, will be fatal error on drupal 7,9
  * ```
- * 
+ *
  */
 
 /**
  * Implement hook_install()
  */
-function neticrm_update_install(){
+function neticrm_update_install() {
   // refs #35342, do not install preset here. may have error when civicrm not started
 }
 /**
  * Implement hook_uninstall()
  */
-function neticrm_update_uninstall(){
+function neticrm_update_uninstall() {
   // for interface uninstall
 }
 
 /**
  * Include correct file for update
- * 
+ *
  * @return mixed
  */
-function neticrm_update_load_include($func){
-  if(function_exists('civicrm_initialize')){
-    $n = substr($func, strrpos($func, '_')+1);
-    if(is_numeric($n)){
+function neticrm_update_load_include($func) {
+  if (function_exists('civicrm_initialize')) {
+    $n = substr($func, strrpos($func, '_') + 1);
+    if (is_numeric($n)) {
       civicrm_initialize();
       module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
       $path = dirname(__FILE__).'/update/';
@@ -58,7 +58,7 @@ function neticrm_update_load_include($func){
         $func = '_neticrm_update_update_x'.substr($n, 1); # eg. _neticrm_update_update_x300()
       }
       // if not, it's drupal version sensitive update
-      elseif(file_exists($filename)){
+      elseif (file_exists($filename)) {
         require_once $filename;
         $func = '_'.$func;
       }
@@ -66,7 +66,7 @@ function neticrm_update_load_include($func){
         throw new DrupalUpdateException("Can not find update file in $filename or $neticrm_update when updating $func");
       }
 
-      if(function_exists($func)){
+      if (function_exists($func)) {
         $result = $func();
         if ($result === FALSE) {
           throw new DrupalUpdateException("Update failed in $func with no detail");
@@ -92,7 +92,7 @@ function neticrm_update_load_include($func){
       throw new DrupalUpdateException("$n should be numeric, but it's not when updating $func");
     }
   }
-  else{
+  else {
     throw new DrupalUpdateException("No civicrm installed / initialized. when updating $func");
   }
   throw new DrupalUpdateException("Unknow error when updating $func");
@@ -540,7 +540,7 @@ function neticrm_update_update_7260() {
 }
 
 /**
- * refs #24847, ADD `last_execute_date` to `civicrm_contribution_recur` 
+ * refs #24847, ADD `last_execute_date` to `civicrm_contribution_recur`
  */
 function neticrm_update_update_7261() {
   return neticrm_update_load_include(__FUNCTION__);
@@ -575,7 +575,7 @@ function neticrm_update_update_7265() {
 }
 
 /**
- * Refs #23858, Add index to various track table 
+ * Refs #23858, Add index to various track table
  */
 function neticrm_update_update_7266() {
   return neticrm_update_load_include(__FUNCTION__);
@@ -605,16 +605,14 @@ function neticrm_update_update_7269() {
 /**
  * Refs #24740, Update annual receipt template
  */
-function neticrm_update_update_7270()
-{
+function neticrm_update_update_7270() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
 /**
  * Refs #24499, Add installment_option field
  */
-function neticrm_update_update_7271()
-{
+function neticrm_update_update_7271() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
@@ -640,7 +638,7 @@ function neticrm_update_update_7274() {
 }
 
 /**
- * refs #26345, modify batch database and add related template 
+ * refs #26345, modify batch database and add related template
  */
 function neticrm_update_update_7275() {
   return neticrm_update_load_include(__FUNCTION__);
@@ -760,7 +758,7 @@ function neticrm_update_update_7291() {
 
 /**
  * refs #31657, First update function for drupal 9
- * 
+ *
  * Only for test propose, drupal 9 will be 9300
  */
 function neticrm_update_update_7300() {
@@ -804,7 +802,7 @@ function neticrm_update_update_7305() {
 
 /**
  * refs #33948, add transactional email related db fields
- * 
+ *
  * Add is_hidden field to contribution page, add activity types for transactional email
  * Add default hidden mailing for transactional email. Add a default job for that mailing.
  */

@@ -6,7 +6,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
 
   $old = $string;
   $langcode = $langcode ?? $language->language;
-  if($function === NULL){
+  if ($function === NULL) {
     $function = function_exists('locale') ? 'locale' : FALSE;
   }
 
@@ -27,7 +27,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   }
 
   // fallback to use CRM translation
-  if($string === $old){
+  if ($string === $old) {
     $i18n = CRM_Core_I18n::singleton();
     return $i18n->crm_translate($string, $args);
   }
@@ -36,7 +36,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
   }
   else {
     // Transform arguments before inserting them.
-    foreach($args as $k => $v){
+    foreach ($args as $k => $v) {
       $alter_args["%".$k] = $v;
     }
     return strtr($string, $alter_args);

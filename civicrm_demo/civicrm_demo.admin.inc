@@ -1,11 +1,11 @@
 <?php
 module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
 
-function civicrm_demo_settings(){
+function civicrm_demo_settings() {
   civicrm_initialize();
   $form['operation'] = [
     '#type' => 'radios',
-    '#required' => true,
+    '#required' => TRUE,
     '#title' => ts('Data'),
     '#options' => [
       'contact' => ts('Contacts'),
@@ -23,7 +23,7 @@ function civicrm_demo_settings(){
   $form['start_year'] = [
     '#type' => 'textfield',
     '#title' => ts('Start year'),
-    '#default_value' => date('Y', (time() - 86400*5*365) ),
+    '#default_value' => date('Y', (time() - 86400 * 5 * 365)),
     '#states' => [
       'visible' => [   // action to take.
         ':input[name="operation"]' => ['value' => 'contribution'],
@@ -47,16 +47,16 @@ function civicrm_demo_settings(){
   return $form;
 }
 
-function civicrm_demo_settings_submit($form, &$form_state){
+function civicrm_demo_settings_submit($form, &$form_state) {
   set_time_limit(1200);
   $op = $form_state['values']['operation'];
   $function = 'civicrm_demo_process_'.$op;
   $form_state['values']['function'] = $function;
-  if(function_exists($function)){
-    if($form_state['values']['batch']){
+  if (function_exists($function)) {
+    if ($form_state['values']['batch']) {
       civicrm_demo_batch($form_state['values']);
     }
-    else{
+    else {
       if (!$form_state['values']['is_test']) {
         // not is test, then create demo sample data
         global $conf;
@@ -81,7 +81,7 @@ function civicrm_demo_batch($vars) {
   batch_set($batch);
 }
 
-function civicrm_demo_batch_process($vars, &$context){
+function civicrm_demo_batch_process($vars, &$context) {
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
     $context['sandbox']['max'] = $vars['limit'];
@@ -102,12 +102,12 @@ function civicrm_demo_batch_process($vars, &$context){
   if ($context['sandbox']['progress'] < $context['sandbox']['max']) {
     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];
   }
-  else{
+  else {
     $context['finished'] = 1;
   }
 }
 
-function civicrm_demo_batch_finished($success, $results, $operations){
+function civicrm_demo_batch_finished($success, $results, $operations) {
   if ($success) {
     drupal_set_message('Processed complete');
   }
@@ -119,4 +119,3 @@ function civicrm_demo_batch_finished($success, $results, $operations){
     drupal_set_message($message, 'error');
   }
 }
-

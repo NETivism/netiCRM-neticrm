@@ -15,7 +15,7 @@ function _neticrm_update_update_x301() {
 
   // failed, error,  schema_version will not be update
   #return '[error] ooo';  # drupal 6,7,9: this will trigger error, and display meaningful message
-  #return FALSE;          # drupal 6,7,9: this will trigger error, 
+  #return FALSE;          # drupal 6,7,9: this will trigger error,
 
   // should never use
   #throw UpdateException  # drupal 9 only, will be fatal error on drupal 6,7

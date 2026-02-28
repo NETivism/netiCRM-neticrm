@@ -5,7 +5,6 @@ define('CIVICRM_WEBHOOK_FIELD_REDIRECT', 'Webhook_Redirect_URL');
 define('CIVICRM_WEBHOOK_FIELD_NOTIFY', 'Webhook_Notify_URL');
 define('CIVICRM_WEBHOOK_NOTIFY_FIELD', 'is_test,contact_id,external_identifier,contribution_id,contribution_page_id,contribution_type_id,payment_instrument_id,trxn_id,contribution_status_id,amount_level,currency,total_amount,receipt_id,receipt_date,created_date,receive_date,receipt_id,participant.id,participant.event_id,participant.event_title,participant.participant_status_id,membership.id,membership.status_id,membership.start_date,membership.end_date,membership.membership_type_id');
 
-
 /**
  * Implementation of hook_civicrm_buildForm
  *
@@ -28,7 +27,7 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
           $webhooks[CIVICRM_WEBHOOK_FIELD_NOTIFY] = CRM_Utils_Request::retrieve('_wh_notify', 'Link', CRM_Core_DAO::$_nullObject, FALSE, NULL, 'POST');
         }
         if (!empty($webhooks)) {
-          foreach($webhooks as $hookName => $url) {
+          foreach ($webhooks as $hookName => $url) {
             if ($config->debug && CRM_Utils_Rule::url($url, $config->webhookDomain)) {
               $form->set($hookName, $url);
             }
@@ -42,9 +41,9 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
         }
       }
       break;
-    // trigger webhook redirect on thank you page
-    // note that we won't trigger other activity after buildForm
-    // the module weight default is 110, hook_civicrm_buildForm after this weight will also not triggered
+      // trigger webhook redirect on thank you page
+      // note that we won't trigger other activity after buildForm
+      // the module weight default is 110, hook_civicrm_buildForm after this weight will also not triggered
     case 'CRM_Contribute_Form_Contribution_ThankYou':
     case 'CRM_Event_Form_Registration_ThankYou':
       $config = CRM_Core_Config::singleton();
@@ -60,14 +59,14 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
         }
       }
       break;
-    // modify custom field admin page
+      // modify custom field admin page
     case 'CRM_Custom_Form_Group':
       $id = $form->get('id');
       if ($id) {
         $name = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $id, 'name');
         if ($name == CIVICRM_WEBHOOK_GROUP) {
           $freezeElements = ['title', 'extends', 'is_active'];
-          foreach($freezeElements as $elename) {
+          foreach ($freezeElements as $elename) {
             if (!empty($form->_elementIndex[$elename])) {
               $ele = $form->getElement($elename);
               $ele->freeze();
@@ -80,7 +79,7 @@ function civicrm_webhook_civicrm_buildForm($formName, &$form) {
       $field = $form->getVar('_values');
       if (!empty($field['name']) && in_array($field['name'], [CIVICRM_WEBHOOK_FIELD_NOTIFY, CIVICRM_WEBHOOK_FIELD_REDIRECT])) {
         $freezeElements = ['label', 'is_active', 'is_view'];
-        foreach($freezeElements as $elename) {
+        foreach ($freezeElements as $elename) {
           if (!empty($form->_elementIndex[$elename])) {
             $ele = $form->getElement($elename);
             $ele->freeze();
@@ -116,7 +115,7 @@ function civicrm_webhook_civicrm_postProcess($formName, &$form) {
         }
         $notify = $form->get(CIVICRM_WEBHOOK_FIELD_NOTIFY);
         $notifyFieldId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomField', CIVICRM_WEBHOOK_FIELD_NOTIFY, 'id', 'name');
-        if($notify) {
+        if ($notify) {
           $params['custom_'.$notifyFieldId] = $notify;
         }
         if (!empty($params)) {
@@ -134,7 +133,7 @@ function civicrm_webhook_civicrm_postProcess($formName, &$form) {
           }
         }
       }
-      break; 
+      break;
   }
 }
 
@@ -203,7 +202,7 @@ function civicrm_webhook_civicrm_config(&$config) {
 
 /**
  * Get notify params
- * 
+ *
  * Allow hook_civicrm_webhook_params modify params
  *
  * @param int $contributionId
@@ -237,7 +236,7 @@ function civicrm_webhook_notify_params($contributionId) {
         $contribution['participant'] = reset($result['values']);
       }
     }
-    elseif(!empty($details['membership'])) {
+    elseif (!empty($details['membership'])) {
       $params = [
         'version' => 3,
         'id' => $details['membership'],
@@ -252,7 +251,7 @@ function civicrm_webhook_notify_params($contributionId) {
     // get external id that current api doesn't include
     $externalId = CRM_Core_DAO::getFieldValue('CRM_Contact_DAO_Contact', $contribution['contact_id'], 'external_identifier');
     $contribution['external_identifier'] = !empty($externalId) ? $externalId : '';
-    
+
     // make notify url, we will only send notification in contribution created_date < 31 days
     // this will prevent contribution keep post data to external event editing
     if ($config->webhookDomain) {
@@ -280,7 +279,7 @@ function civicrm_webhook_notify_params($contributionId) {
 
     // build notify params here
     $notifyParams = [];
-    foreach($data['allowed'] as $allow) {
+    foreach ($data['allowed'] as $allow) {
       if (strpos($allow, '.')) {
         list($subElement, $field) = explode('.', $allow, 2);
         if (isset($data['contribution'][$subElement][$field])) {
@@ -303,7 +302,7 @@ function civicrm_webhook_notify_params($contributionId) {
 
 /**
  * Do not send here to prevent block request
- * 
+ *
  * Send curl after shutdown
  *
  * @param string $url
@@ -322,7 +321,7 @@ function _civicrm_webhook_notify_send() {
     if (function_exists('fastcgi_finish_request')) {
       fastcgi_finish_request();
     }
-    foreach($civicrm_webhook as $url => $notify) {
+    foreach ($civicrm_webhook as $url => $notify) {
       $config = CRM_Core_Config::singleton();
       unset($notify[CIVICRM_WEBHOOK_FIELD_NOTIFY]);
       unset($notify[CIVICRM_WEBHOOK_FIELD_REDIRECT]);
@@ -351,11 +350,11 @@ function _civicrm_webhook_notify_send() {
           $response['error_no'] = curl_errno($ch);
           $response['error'] = curl_error($ch);
         }
-        else{
+        else {
           $response['success'] = 'true';
         }
         $message = 'Contribution ID: '.$notify['contribution_id'] .' has webhook notifiction to '.$url."\nResult: ";
-        foreach($response as $idx => $val) {
+        foreach ($response as $idx => $val) {
           $message .= $idx ." => ".$val.",";
         }
         CRM_Core_Error::debug_log_message(trim($message, ','));

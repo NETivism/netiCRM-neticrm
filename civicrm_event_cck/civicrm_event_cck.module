@@ -1,6 +1,6 @@
 <?php
 
-function civicrm_event_cck_menu(){
+function civicrm_event_cck_menu() {
   $items['admin/settings/civicrm_event_cck'] = [
     'title' => 'CiviCRM Event Sync',
     'description' => 'Auto create CiviCRM event when updating specific content type.',
@@ -31,19 +31,19 @@ function civicrm_event_cck_menu(){
   return $items;
 }
 
-function civicrm_event_cck_access_check($perm, $node){
+function civicrm_event_cck_access_check($perm, $node) {
   $event_id = civicrm_event_cck_check($node);
-  switch($perm){ 
+  switch ($perm) {
     case 'edit event participants':
-      if(variable_get('civiec_enable_admin_participants', 0)){
-        if(user_access($perm) && $event_id){
+      if (variable_get('civiec_enable_admin_participants', 0)) {
+        if (user_access($perm) && $event_id) {
           return TRUE;
         }
       }
       break;
     case 'edit all events':
-      if(variable_get('civiec_enable_admin_event', 0)){
-        if(user_access($perm) && $event_id){
+      if (variable_get('civiec_enable_admin_event', 0)) {
+        if (user_access($perm) && $event_id) {
           return TRUE;
         }
       }
@@ -52,19 +52,19 @@ function civicrm_event_cck_access_check($perm, $node){
   return FALSE;
 }
 
-function civicrm_event_cck_goto($node){
+function civicrm_event_cck_goto($node) {
   $event_id = civicrm_event_cck_check($node);
-  if($event_id){
-    switch(arg(2)){
+  if ($event_id) {
+    switch (arg(2)) {
       case 'civiec_participants':
         drupal_goto('civicrm/event/search', "reset=1&force=1&event=$event_id");
         break;
       case 'civiec_admin_event':
-        if($_GET['tab'] && in_array($_GET['tab'], ['eventInfo', 'location', 'fee', 'registration', 'friend'])){
+        if ($_GET['tab'] && in_array($_GET['tab'], ['eventInfo', 'location', 'fee', 'registration', 'friend'])) {
           $tab = $_GET['tab'];
           drupal_goto('civicrm/event/manage/'.$tab, "reset=1&action=update&id=$event_id");
         }
-        else{
+        else {
           drupal_goto('civicrm/event/manage/registration', "reset=1&action=update&id=$event_id");
         }
         break;
@@ -72,7 +72,7 @@ function civicrm_event_cck_goto($node){
   }
 }
 
-function civicrm_event_cck_admin_settings(){
+function civicrm_event_cck_admin_settings() {
   $types = node_get_types('names');
   $form['civiec_enable_register_button'] = [
     '#type' => 'checkbox',
@@ -96,7 +96,7 @@ function civicrm_event_cck_admin_settings(){
     '#options' => $types,
     '#required' => TRUE,
   ];
-  
+
   civicrm_initialize();
   require_once("api/v2/UFGroup.php");
   $option_profile[0] = ts('- select -');
@@ -119,12 +119,13 @@ function civicrm_event_cck_admin_settings(){
     '#title' => 'CiviEvent / CCK field mapping',
   ];
   $fields = content_fields();
-  foreach($fields as $name => $f){
-    if($f['type'] != 'filefield' && $f['type'] != 'content_taxonomy')
+  foreach ($fields as $name => $f) {
+    if ($f['type'] != 'filefield' && $f['type'] != 'content_taxonomy') {
       $option_fields[$name] = $f['type'].":".$f['widget']['label']." ($name)";
+    }
   }
   $civiec_fields = civicrm_event_cck_fields();
-  foreach($civiec_fields as $f => $name){
+  foreach ($civiec_fields as $f => $name) {
     $form['civiec_fields']['civiec_'.$f] = [
       '#type' => 'select',
       '#title' => $name,
@@ -137,27 +138,27 @@ function civicrm_event_cck_admin_settings(){
   return system_settings_form($form);
 }
 
-function civicrm_event_cck_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL){
+function civicrm_event_cck_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   static $event_id;
-  if(!$event_id){
+  if (!$event_id) {
     $event_id = civicrm_event_cck_check($node);
   }
-  if($event_id){
-    if($op == 'view' && $a4){
+  if ($event_id) {
+    if ($op == 'view' && $a4) {
       drupal_add_css(drupal_get_path('module', 'civicrm_event_cck')."/civicrm_event_cck.css");
       civicrm_event_cck_view($node, $event_id);
     }
-    if($op == 'delete' || $op == 'presave'){
+    if ($op == 'delete' || $op == 'presave') {
       civicrm_event_cck_save($node, $op);
     }
   }
 
-  if($op == 'presave' && $event_id === 0){
+  if ($op == 'presave' && $event_id === 0) {
     civicrm_event_cck_save($node, $op);
   }
 }
 
-function civicrm_event_cck_view(&$node, $event_id){
+function civicrm_event_cck_view(&$node, $event_id) {
   civicrm_initialize();
   $button['register'] = [
     'title' => ts("Event Online Registration"),
@@ -167,8 +168,8 @@ function civicrm_event_cck_view(&$node, $event_id){
   ];
 
   $show_field = variable_get("civiec_is_online_registration", 0);
-  if(variable_get('civiec_enable_register_button', 0)){
-    if($node->$show_field){
+  if (variable_get('civiec_enable_register_button', 0)) {
+    if ($node->$show_field) {
       $node->content['civicrm_event_cck_bottom'] = [
         //'#value' => ,
         '#value' => civicrm_event_cck_button($button, $node, 'button'),
@@ -178,47 +179,47 @@ function civicrm_event_cck_view(&$node, $event_id){
   }
 
   // add javascript for admin links
-  if(variable_get('civiec_enable_admin_participants', 0)){
-    drupal_add_js('$(document).ready(function(){ $("a[href*=civiec_participants]").attr("target","_blank"); });','inline', 'footer');
+  if (variable_get('civiec_enable_admin_participants', 0)) {
+    drupal_add_js('$(document).ready(function(){ $("a[href*=civiec_participants]").attr("target","_blank"); });', 'inline', 'footer');
   }
-  if(variable_get('civiec_enable_admin_event', 0)){
+  if (variable_get('civiec_enable_admin_event', 0)) {
   }
 }
-function civicrm_event_cck_button($button, $node, $type){
+function civicrm_event_cck_button($button, $node, $type) {
   return '<div class="civiec-'.$type.'">'.theme('links', $button, ['class' => "links links-$type"]).'</div>';
 }
 
-function civicrm_event_cck_save(&$node, $op){
+function civicrm_event_cck_save(&$node, $op) {
   civicrm_initialize();
   $event_fields = civicrm_event_cck_fields();
   require_once "api/v2/Event.php";
   require_once "api/v2/UFJoin.php";
   $params = [];
-  foreach($event_fields as $f => $name){
+  foreach ($event_fields as $f => $name) {
     $fieldname = variable_get("civiec_".$f, '');
-    if($fieldname){
+    if ($fieldname) {
       $field = $node->$fieldname;
-      if($f == 'id'){
+      if ($f == 'id') {
         $event_id = $field[0]['value'];
         $event_id_field = $fieldname;
       }
-      if($f == 'date'){
-        $params['start_date'] = date('YmdHis',strtotime($field[0]['value']) + $field[0]['offset']);
-        $params['end_date'] = date('YmdHis',strtotime($field[0]['value2']) + $field[0]['offset2']);
+      if ($f == 'date') {
+        $params['start_date'] = date('YmdHis', strtotime($field[0]['value']) + $field[0]['offset']);
+        $params['end_date'] = date('YmdHis', strtotime($field[0]['value2']) + $field[0]['offset2']);
       }
-      elseif($f == 'registration_date'){
-        if(!strstr($field[0]['value'], ':')){
+      elseif ($f == 'registration_date') {
+        if (!strstr($field[0]['value'], ':')) {
           $field[0]['value'] .= ' 00:00:00';
           $field[0]['value2'] .= ' 23:59:59';
         }
-        $params['registration_start_date'] = date('YmdHis',strtotime($field[0]['value']) + $field[0]['offset']);
-        $params['registration_end_date'] = date('YmdHis',strtotime($field[0]['value2']) + $field[0]['offset2']);
+        $params['registration_start_date'] = date('YmdHis', strtotime($field[0]['value']) + $field[0]['offset']);
+        $params['registration_end_date'] = date('YmdHis', strtotime($field[0]['value2']) + $field[0]['offset2']);
       }
-      else{
+      else {
         $params[$f] = $field[0]['value'];
       }
 
-      if($f == 'max_participants'){
+      if ($f == 'max_participants') {
         $max_participants_field = $fieldname;
       }
     }
@@ -232,31 +233,30 @@ function civicrm_event_cck_save(&$node, $op){
 
   // call event api here. http://wiki.civicrm.org/confluence/display/CRMDOC33/Event+APIs
   $result = civicrm_event_create($params);
-  if(!$event_id){
+  if (!$event_id) {
     $event_id = $result['event_id'];
   }
 
-  // we need to save the event_id back to node. 
+  // we need to save the event_id back to node.
   $node->{$event_id_field}[0]['value'] = $event_id;
-
 
   // process uf_join to add custom profiel form to civicrm
   $custom_pre = variable_get('civiec_custom_pre', 0);
   $custom_post = variable_get('civiec_custom_post', 0);
-  if($custom_pre){
+  if ($custom_pre) {
     civicrm_event_cck_uf_join($event_id, $custom_pre, 'pre');
   }
-  if($custom_post){
+  if ($custom_post) {
     civicrm_event_cck_uf_join($event_id, $custom_post, 'post');
   }
 
   // now, start add new ubercart stock
-  if(module_exists('uc_stock') && $node->model){
+  if (module_exists('uc_stock') && $node->model) {
     $field = $node->$max_participants_field;
     $max_participants = $field[0]['value'];
     $sku = $node->model;
     $exists = db_result(db_query("SELECT nid FROM {uc_product_stock} WHERE sku = '%s'", $sku));
-    if(!$exists && $max_participants && is_numeric($max_participants)){
+    if (!$exists && $max_participants && is_numeric($max_participants)) {
       $stock = [
         'sku' => $node->model,
         'nid' => $node->nid,
@@ -268,11 +268,11 @@ function civicrm_event_cck_save(&$node, $op){
   }
 }
 
-function civicrm_event_cck_uf_join($event_id, $uf_group_id, $type){
+function civicrm_event_cck_uf_join($event_id, $uf_group_id, $type) {
   $entity_table = 'civicrm_event';
 
   $weight = $type == 'pre' ? 1 : 2;
-  $params =  [ 
+  $params =  [
     'module'       => 'CiviEvent',
     'entity_table' => $entity_table,
     'entity_id'    => $event_id,
@@ -281,9 +281,9 @@ function civicrm_event_cck_uf_join($event_id, $uf_group_id, $type){
     'is_active'    => 1,
   ];
 
-  $search = ['entity_table' => $entity_table, 'entity_id' => $event_id, 'module'=> 'CiviEvent', 'weight' => $weight];
+  $search = ['entity_table' => $entity_table, 'entity_id' => $event_id, 'module' => 'CiviEvent', 'weight' => $weight];
   $id = civicrm_uf_join_id_find($search);
-  if($id){
+  if ($id) {
     $params['id'] = $id;
   }
   civicrm_uf_join_edit($params);
@@ -291,23 +291,23 @@ function civicrm_event_cck_uf_join($event_id, $uf_group_id, $type){
   $params2 = $params;
   $params2['module'] = 'CiviEvent_Additional';
   unset($params2['id']);
-  $search = ['entity_table' => $entity_table, 'entity_id' => $event_id, 'module'=> 'CiviEvent_Additional'];
+  $search = ['entity_table' => $entity_table, 'entity_id' => $event_id, 'module' => 'CiviEvent_Additional'];
   $id2 = civicrm_uf_join_id_find($search);
-  if($id2){
+  if ($id2) {
     $params2['id'] = $id2;
   }
   civicrm_uf_join_edit($params2);
 }
 
-function civicrm_event_cck_form_alter(&$form, $form_state, $form_id){
-  if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id){
+function civicrm_event_cck_form_alter(&$form, $form_state, $form_id) {
+  if (isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id) {
     $available_types = variable_get('civiec_enabled_type', []);
-    if(in_array($form['#node']->type, $available_types) && variable_get('civiec_id', '')) {
-      $event_id_field = variable_get('civiec_id', ''); 
+    if (in_array($form['#node']->type, $available_types) && variable_get('civiec_id', '')) {
+      $event_id_field = variable_get('civiec_id', '');
       // add drop down select list of "event type" and "attender type"
       civicrm_initialize();
       /*
-      // get default value 
+      // get default value
       if($event_id = $form['#node']->{$event_id_field}[0]['value']){
         $event_type_id = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $event_id, 'event_type_id');
         $default_role_id = CRM_Core_DAO::getFieldValue('CRM_Event_DAO_Event', $event_id, 'default_role_id');
@@ -321,24 +321,24 @@ function civicrm_event_cck_form_alter(&$form, $form_state, $form_id){
       // (This is necessary to avoid the "An illegal choice has been detected. Please contact the site administrator." error.
 
       $civiec_fields = civicrm_event_cck_fields();
-      foreach($civiec_fields as $k => $name){
-        if($field = variable_get('civiec_'.$k, '')){
+      foreach ($civiec_fields as $k => $name) {
+        if ($field = variable_get('civiec_'.$k, '')) {
           // now start to get default option / value from civicrm
           $options = [];
-          switch($k) {
+          switch ($k) {
             case 'default_role_id':
               $options = CRM_Core_OptionGroup::values('participant_role');
               break;
             case 'event_type_id':
-              $options = CRM_Core_OptionGroup::values('event_type'); 
+              $options = CRM_Core_OptionGroup::values('event_type');
               break;
             case 'id':
-              // doing form alter job 
+              // doing form alter job
               $form['#after_build'][] = 'civicrm_event_cck_hide_field';
               break;
           }
-          if(!empty($options)){
-            foreach($options as $k => $v){
+          if (!empty($options)) {
+            foreach ($options as $k => $v) {
               $option_str .= $k.'|'.$v."\n";
             }
             $form['#field_info'][$field]['allowed_values'] = $option_str;
@@ -350,20 +350,20 @@ function civicrm_event_cck_form_alter(&$form, $form_state, $form_id){
   }
 }
 
-function civicrm_event_cck_hide_field(&$form, &$form_state){
-  $event_id_field = variable_get('civiec_id', ''); 
-  if($parent = $form['#field_info'][$event_id_field]['display_settings']['parent']){
+function civicrm_event_cck_hide_field(&$form, &$form_state) {
+  $event_id_field = variable_get('civiec_id', '');
+  if ($parent = $form['#field_info'][$event_id_field]['display_settings']['parent']) {
     $form[$parent][$event_id_field]['#prefix'] = '<div style="display:none">';
     $form[$parent][$event_id_field]['#suffix'] = '</div>';
   }
-  else{
+  else {
     $form[$event_id_field]['#prefix'] = '<div style="display:none">';
     $form[$event_id_field]['#suffix'] = '</div>';
   }
   return $form;
 }
 
-function civicrm_event_cck_fields(){
+function civicrm_event_cck_fields() {
   return [
     'id' => 'Event ID',
     'is_online_registration' => 'Is online registration',
@@ -376,11 +376,11 @@ function civicrm_event_cck_fields(){
   ];
 }
 
-function civicrm_event_cck_check(&$node, $fieldname = 'id'){
+function civicrm_event_cck_check(&$node, $fieldname = 'id') {
   $available_types = variable_get('civiec_enabled_type', []);
   $fieldname = variable_get('civiec_'.$fieldname, '');
-  if(in_array($node->type, $available_types) && $fieldname) {
-    if(isset($node->$fieldname)){
+  if (in_array($node->type, $available_types) && $fieldname) {
+    if (isset($node->$fieldname)) {
       $field = $node->$fieldname;
       $value = $field[0]['value'];
       return $value ? $value : 0;
@@ -389,6 +389,6 @@ function civicrm_event_cck_check(&$node, $fieldname = 'id'){
   return FALSE;
 }
 
-function civicrm_event_cck_timezone($a, $b){
+function civicrm_event_cck_timezone($a, $b) {
 
 }

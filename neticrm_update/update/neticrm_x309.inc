@@ -11,7 +11,7 @@ function _neticrm_update_update_x309() {
   // doing migration
   if ($hasOpenssl && $hasMcrypt) {
     $dao = CRM_Core_DAO::executeQuery("SELECT id, mailing_backend FROM civicrm_preferences WHERE mailing_backend IS NOT NULL");
-    while($dao->fetch()) {
+    while ($dao->fetch()) {
       if (!empty($dao->mailing_backend)) {
         $setting = unserialize($dao->mailing_backend);
         if (!empty($setting['smtpPassword'])) {

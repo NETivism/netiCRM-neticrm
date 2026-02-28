@@ -3,7 +3,7 @@
 /**
  * Implement hook_menu
  */
-function civicrm_participant_serial_menu(){
+function civicrm_participant_serial_menu() {
   return [
     'admin/settings/civicrm_participant_serial' => [
       'title'            => 'CiviCRM Participant Serial',
@@ -17,8 +17,8 @@ function civicrm_participant_serial_menu(){
 /**
  * Implement hook_civicrm_buildForm
  */
-function civicrm_participant_serial_civicrm_buildForm($form_name, &$form){
-  switch($form_name){
+function civicrm_participant_serial_civicrm_buildForm($form_name, &$form) {
+  switch ($form_name) {
     case 'CRM_Event_Form_Registration_AdditionalParticipant':
     case 'CRM_Event_Form_Registration_Register':
       // hide serial field
@@ -32,23 +32,23 @@ function civicrm_participant_serial_civicrm_buildForm($form_name, &$form){
 /**
  * Implement hook_civicrm_preSave
  */
-function civicrm_participant_serial_civicrm_preSave($form_name, &$form){
-  switch($form_name){
+function civicrm_participant_serial_civicrm_preSave($form_name, &$form) {
+  switch ($form_name) {
     case 'CRM_Event_Form_Registration_AdditionalParticipant':
     case 'CRM_Event_Form_Registration_Register':
       $event_id = $form->getVar('_eventId');
       $is_test = $form->getVar('_mode') == 'test' ? 1 : 0;
-      if($cid = variable_get('civicrm_participant_serial', '')){
+      if ($cid = variable_get('civicrm_participant_serial', '')) {
         $qvar = [1 => [$cid, 'Integer']];
         $query = "SELECT cg.table_name, cg.id, cf.column_name, cf.id as fid FROM civicrm_custom_group cg, civicrm_custom_field cf WHERE cf.custom_group_id = cg.id AND cg.is_active = 1  AND cf.is_active = 1 AND cf.id = %1";
         $dao = CRM_Core_DAO::executeQuery($query, $qvar);
-        if($dao->fetch()){
-          if($dao->table_name && $dao->column_name){
+        if ($dao->fetch()) {
+          if ($dao->table_name && $dao->column_name) {
             // try to direct control session value
             $session_id = '_'.$form->controller->_name.'_container';
 
-            foreach($_SESSION[$session_id]['values'] as $k => $v){
-              if(isset($v['custom_'.$cid])){
+            foreach ($_SESSION[$session_id]['values'] as $k => $v) {
+              if (isset($v['custom_'.$cid])) {
                 $count++;
                 $qvar = [
                   1 => [$event_id, 'Integer'],
@@ -56,10 +56,10 @@ function civicrm_participant_serial_civicrm_preSave($form_name, &$form){
                 ];
                 $query = "SELECT t.{$dao->column_name} as serial FROM {$dao->table_name} t INNER JOIN civicrm_participant p ON p.id = t.entity_id WHERE p.event_id = %1 AND p.is_test = %2 ORDER BY t.{$dao->column_name} DESC";
                 $sid = CRM_Core_DAO::singleValueQuery($query, $qvar);
-                if($sid){
-                  $sid+=$count;
+                if ($sid) {
+                  $sid += $count;
                 }
-                else{
+                else {
                   $sid = 0 + $count;
                 }
                 $_SESSION[$session_id]['values'][$k]['custom_'.$cid] = $sid;
@@ -68,23 +68,23 @@ function civicrm_participant_serial_civicrm_preSave($form_name, &$form){
 
           }
         }
-        
+
       }
       break;
   }
 }
 
-function civicrm_participant_serial_settings(){
+function civicrm_participant_serial_settings() {
   civicrm_initialize();
   require_once('CRM/Core/BAO/CustomField.php');
-  $result = CRM_Core_BAO_CustomField::getFields('Participant', true, true);
-  foreach($result as $id => $values){
-    if($values['data_type'] == 'Int'){
+  $result = CRM_Core_BAO_CustomField::getFields('Participant', TRUE, TRUE);
+  foreach ($result as $id => $values) {
+    if ($values['data_type'] == 'Int') {
       $options[$id] = $values['label'];
     }
   }
   $desc = t('You must <a href="!href">create custom field and group</a> in civicrm, setting the field type to "integer" and custom group type to "participant". After create the field, you can go back here to complete setup.', ['!href' => url('civicrm/admin/custom/group', ['query' => 'reset=1'])]);
-  if(!empty($options)){
+  if (!empty($options)) {
     $form['civicrm_participant_serial'] = [
       '#type' => 'select',
       '#title' => t('Participant Serial Number Field'),
@@ -93,9 +93,9 @@ function civicrm_participant_serial_settings(){
       '#default_value' => variable_get('civicrm_participant_serial', ''),
     ];
   }
-  else{
+  else {
     drupal_set_message($desc, 'warning');
   }
   return system_settings_form($form);
-    
+
 }

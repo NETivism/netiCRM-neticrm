@@ -8,7 +8,7 @@
 /**
  * Implementation of hook_schema()
  */
-function civicrm_nccc_schema(){
+function civicrm_nccc_schema() {
   $schema['civicrm_contribution_nccc'] = [
     'fields' => [
       'cid' => [
@@ -123,13 +123,13 @@ function civicrm_nccc_schema(){
   ];
   return $schema;
 }
- 
+
 /**
  * Implementation of hook_install()
  */
 function civicrm_nccc_install() {
   drupal_install_schema('civicrm_nccc');
-  civicrm_initialize( );
+  civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   require_once('CRM/Core/OptionValue.php');
   require_once('CRM/Core/Action.php');
@@ -179,5 +179,3 @@ function civicrm_nccc_disable() {
   CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name LIKE 'NCCC'");
   CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET is_active = 0 WHERE payment_processor_type LIKE 'NCCC'");
 }
-
-
