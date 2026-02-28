@@ -12,7 +12,6 @@ function _neticrm_update_update_7221() {
     CRM_Core_DAO::executeQuery($alter_query);
   }
 
-
   // Check:
   $id = CRM_Core_DAO::singleValueQuery("SELECT ov.id FROM civicrm_option_value ov INNER JOIN civicrm_option_group og WHERE og.name = 'msg_tpl_workflow_contribution' AND ov.name = 'contribution_recur_fail_notify'");
   if (!empty($id)) {
@@ -33,7 +32,7 @@ function _neticrm_update_update_7221() {
   ];
   $option_id = NULL;
   $action = CRM_Core_Action::ADD;
-  
+
   $option = CRM_Core_OptionValue::addOptionValue($option_params, $group_params, $action, $option_id);
 
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/contribution_recur_fail_notify_subject.tpl';

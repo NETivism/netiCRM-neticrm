@@ -29,7 +29,7 @@ class NeticrmCommands extends DrushCommands {
     elseif (!file_exists($function_file)) {
       $error = "Schedule job function not exists. Possible values:\n  ".implode("\n  ", array_keys($jobs));
     }
-  
+
     if ($error) {
       throw new \Exception($error);
     }
@@ -38,7 +38,7 @@ class NeticrmCommands extends DrushCommands {
       $force = $options['force'] ? TRUE : FALSE;
       $last = $jobs[$function]['last'];
       $frequency = $jobs[$function]['frequency'];
-  
+
       $hour = 0;
       $min_hour = 0;
       $max_hour = 24;
@@ -84,7 +84,6 @@ class NeticrmCommands extends DrushCommands {
     \CRM_Core_BAO_Navigation::resetNavigation();
     $this->logger("neticrm_drush")->success("netiCRM menu rebuilt.");
   }
-
 
   /**
    * Set civicrm doamin and drupal site-wide email
@@ -147,7 +146,7 @@ class NeticrmCommands extends DrushCommands {
     $config->clearDBCache();
     // refs #31419, do not clean up template_c because we will loss log files
     // $config->cleanup(1);
-    
+
     // refs #31419, instead cleanup template compiler dir, we clear IDS config
     \CRM_Core_IDS::initConfig(NULL, TRUE);
     $this->logger("neticrm_drush")->success("netiCRM cache cleared");

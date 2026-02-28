@@ -9,7 +9,7 @@ function _neticrm_update_update_7209() {
   $title = '參加活動最多的人';
   $desc = '顯示參加活動最多的人報表';
   $url = 'contact/topparticipant';
-  $class= 'CRM_Report_Form_Contact_Participate';
+  $class = 'CRM_Report_Form_Contact_Participate';
 
   $result = neticrm_update_add_report($title, $desc, $url, $class, NULL);
   if ($result->id) {

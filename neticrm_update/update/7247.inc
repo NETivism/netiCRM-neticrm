@@ -263,7 +263,7 @@ class CRMCharsetConverter {
         else {
           $params[':default'] = [$row->Default, "String"];
         }
-        
+
       }
       $this->query($sql, $params);
     }

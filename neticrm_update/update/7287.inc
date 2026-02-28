@@ -19,7 +19,7 @@ function _neticrm_update_update_7287() {
     $exist = CRM_Core_DAO::singleValueQuery("SELECT name FROM civicrm_option_value WHERE name = %2 AND option_group_id = %1", $params);
     if (empty($exist)) {
       $max = CRM_Core_DAO::singleValueQuery("SELECT MAX(CAST(value AS UNSIGNED)) FROM civicrm_option_value WHERE option_group_id = %1", $params);
-      $params[3] = [ $max+1, 'Positive'];
+      $params[3] = [ $max + 1, 'Positive'];
       $sql = "INSERT INTO `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`) VALUES
        (%1, %2,  %3, %2,  NULL, 0, NULL, %3, NULL, 0, 0, 1, NULL, NULL)";
       CRM_Core_DAO::executeQuery($sql, $params);

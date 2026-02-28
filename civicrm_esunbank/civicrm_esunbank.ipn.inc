@@ -102,7 +102,7 @@ function civicrm_esunbank_parse_response($data) {
 }
 
 class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
-  public static $payment_processor= NULL;
+  public static $payment_processor = NULL;
   public function __construct() {
     parent::__construct();
   }
@@ -131,17 +131,16 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
       */
     }
 
-
     $qfKey = $_GET['qfKey'] ? $_GET['qfKey'] : '';
     $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
 
     // now, retrieve full object by validateData, or false fallback
-    if (! $this->validateData($input, $ids, $objects, FALSE)) {
+    if (!$this->validateData($input, $ids, $objects, FALSE)) {
       return FALSE;
     }
 
     // set global variable for paymentProcessor
-    self::$payment_processor =& $objects['paymentProcessor'];
+    self::$payment_processor = &$objects['paymentProcessor'];
     if ($objects['contribution']->contribution_status_id == 1) {
       // already completed, skip and redirect to thank you page
       if ($qfKey) {
@@ -156,7 +155,7 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
       // start validation
       $transaction = new CRM_Core_Transaction();
       $note = '';
-      $contribution =& $objects['contribution'];
+      $contribution = &$objects['contribution'];
       $contribution->receive_date = date('YmdHis', strtotime($input['payment_datetime']));
       list($source) = explode('-玉山', $contribution->source);
       $contribution->source = $source.'-玉山('.$input['instrument'].')';

@@ -5,7 +5,6 @@ function civicrm_statistics_build_fetch_url($sitekey, $type = 'annual', $year = 
   return $base."/fetch?sitekey={$sitekey}&type={$type}&year={$year}";
 }
 
-
 function civicrm_statistics_table($flip = FALSE) {
   $tables = [
     'civicrm_contact' => 'cc',
@@ -234,7 +233,6 @@ ON base_year.contact_id = last_year.contact_id
         $result[$table.'_amount_'.$base_year] = ($second - $recurring);
         $result[$table.'_amount_'.$last_year] = $first;
         $result[$table.'_amount_overlap_'.$base_year] = $recurring;
-
 
         // lifetime
         $sql = "
@@ -514,7 +512,6 @@ GROUP BY donors.contribution_status_id
           'fields' => ['count'],
         ];
         civicrm_statistics_annual_query_result($result, $params);
-
 
         $params = [
           'name' => 'event_participant_free',

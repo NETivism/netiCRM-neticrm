@@ -26,7 +26,7 @@ function civicrm_alter_translation($string, $args = [], $langcode = NULL) {
 
   $untranslate = $string;
   $languageCode = \Drupal::languageManager()->getCurrentLanguage()->getId();
-  
+
   if ($languageCode != 'en' && !preg_match('/[%][0-9]+/', $string)) {
     $options = [
       'langcode' => $languageCode,

@@ -23,7 +23,7 @@ function civicrm_twaddress_form_alter(&$form, FormStateInterface $form_state, $f
         $children = Element::children($fieldset);
         if (!empty($children)) {
           foreach ($children as $name) {
-            $subchildren= Element::children($form['elements'][$field_key][$name]);
+            $subchildren = Element::children($form['elements'][$field_key][$name]);
             if (!empty($subchildren)) {
               foreach ($subchildren as $subname) {
                 _civicrm_twaddress_is_addr_field($subname, $override);
@@ -36,7 +36,7 @@ function civicrm_twaddress_form_alter(&$form, FormStateInterface $form_state, $f
         }
       }
     }
-    if (count($override)>=3) {
+    if (count($override) >= 3) {
       // attach twddr js
       /* should be attached at webform_civicrm form_alter
       $form['#attached']['library'][] = 'civicrm/civicrm-css-core';
@@ -87,7 +87,6 @@ function _civicrm_twaddress_is_addr_field($name, &$override) {
   }
 }
 
-
 /**
  * Implementation of hook_civicrm_buildForm().
  */
@@ -116,8 +115,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
   }
 
   // we don't support outside of civicrm yet
-  
-  
+
   // we don't support ajax form
   /*
   $deny = array();
@@ -125,7 +123,7 @@ function civicrm_twaddress_civicrm_buildForm($formName, &$form) {
     return;
   }
   */
-  
+
   // we don't process report form
   if (strpos($formName, 'Report_Form')) {
     return;
@@ -245,10 +243,9 @@ function checkForm(){
     }
   }
 
-  if (count($override)>=3 && $enable) {
+  if (count($override) >= 3 && $enable) {
     $current_path = \Drupal::service('path.current')->getPath();
     $path_args = explode('/', ltrim($current_path, '/'));
-
 
     $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
     if (($path_args[1] == 'contribute' || $path_args[1] == 'event' || $is_dynamic) && ($lang == 'zh-hant' || empty($lang))) {
@@ -359,7 +356,6 @@ function civicrm_twaddress_order() {
     '南海諸島',
   ];
 }
-
 
 function civicrm_twaddress_library_info_alter(&$libraries, $extension) {
   if ($extension == 'civicrm') {
@@ -483,7 +479,6 @@ function _civicrm_twaddress_common_js($field, $form_name, $add_js = TRUE) {
     else {
       $js .= 'applyTWZIPAddress("'.$select_id.'",'.$address_info_json.');';
     }
-
 
     $js .= '
         $(document).ajaxComplete(function(event, xhr, settings){
@@ -612,28 +607,28 @@ function _civicrm_twaddress_search_value($key, $array) {
 
 function _civicrm_twaddress_get_province_id($name = NULL) {
   $arr = [
-    "南投縣"=> "4855",
-    "臺中市"=> "5219",
-    "臺北市"=> "5221",
-    "臺南市"=> "5224",
-    "臺東縣"=> "4861",
-    "嘉義市"=> "5222",
-    "嘉義縣"=> "4849",
-    "基隆市"=> "4864",
-    "宜蘭縣"=> "4852",
-    "屏東縣"=> "4857",
-    "彰化縣"=> "4848",
-    "新北市"=> "4860",
-    "新竹市"=> "5223",
-    "新竹縣"=> "4850",
-    "桃園市"=> "4862",
-    "澎湖縣"=> "4856",
-    "花蓮縣"=> "4851",
-    "苗栗縣"=> "4854",
-    "連江縣"=> "5225",
-    "金門縣"=> "5226",
-    "雲林縣"=> "4863",
-    "高雄市"=> "5220",
+    "南投縣" => "4855",
+    "臺中市" => "5219",
+    "臺北市" => "5221",
+    "臺南市" => "5224",
+    "臺東縣" => "4861",
+    "嘉義市" => "5222",
+    "嘉義縣" => "4849",
+    "基隆市" => "4864",
+    "宜蘭縣" => "4852",
+    "屏東縣" => "4857",
+    "彰化縣" => "4848",
+    "新北市" => "4860",
+    "新竹市" => "5223",
+    "新竹縣" => "4850",
+    "桃園市" => "4862",
+    "澎湖縣" => "4856",
+    "花蓮縣" => "4851",
+    "苗栗縣" => "4854",
+    "連江縣" => "5225",
+    "金門縣" => "5226",
+    "雲林縣" => "4863",
+    "高雄市" => "5220",
   ];
 
   // If name is provided, return the ID for that specific county/city

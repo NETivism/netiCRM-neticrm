@@ -131,7 +131,6 @@ function civicrm_event_parent_civicrm_buildForm_regRegister($formName, &$form) {
 
   $_id = $_GET['id'];
 
-
   if (!empty($civicrm_event_parent_gid[$event_id]['parent_gid']) && !empty($rTypeID)) {
     $relation = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_relationship_type WHERE id = ".$rTypeID);
     $relation->fetch();
@@ -215,7 +214,7 @@ function civicrm_event_parent_civicrm_buildForm_regAdditional($formName, &$form)
     $title = \Drupal::service('title_resolver')->getTitle($request, $route_match->getRouteObject());
     CRM_Utils_System::setTitle($title." - ".t(":relation profile form", [':relation' => $relation->{$relation_label}]));
 
-    if (! empty($children)) {
+    if (!empty($children)) {
       $childNum = substr($form->getVar('_name'), 12);
 
       $defaults = [ ];
@@ -253,7 +252,7 @@ function civicrm_event_parent_civicrm_postProcess_regConfirm($class, &$form) {
 
     // get the participantIDS
     $participantIDs = $form->getVar('_participantIDS');
-    
+
     if (!empty($participantIDs)) {
       $pIDString = implode(',', $participantIDs);
 
@@ -323,7 +322,7 @@ function civicrm_event_parent_set_default($cid, &$form, $type) {
   require_once("api/v2/Contact.php");
   $fields = array_keys($form->_fields);
   $params = ['contact_id' => $cid];
-  $retrieved = & civicrm_contact_get($params);
+  $retrieved = &civicrm_contact_get($params);
 
   $fields = array_keys($form->_fields);
   $phone_types = [];
@@ -386,6 +385,6 @@ AND        r.is_active = 1
   while ($dao->fetch()) {
     $children[] = $dao->child_id;
   }
-  
+
   return $children;
 }

@@ -7,7 +7,7 @@ function esunbank_serial($code, $number, $length) {
   $code = (string)$code;
   $number = (string)$number;
   $len = strlen($code.$number);
-  if ($len <= $length -1) {
+  if ($len <= $length - 1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $serial = $code.str_repeat('0', $zero_count).$number;
@@ -27,7 +27,7 @@ function esunbank_serial_price($code, $number, $length, $price) {
   $number = (string)$number;
 
   $len = strlen($code.$number);
-  if ($len <= $length -1) {
+  if ($len <= $length - 1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $serial = $code.str_repeat('0', $zero_count).$number;
@@ -53,7 +53,7 @@ function esunbank_serial_price_date($code, $number, $length, $price, $timestamp)
     $number = substr($number, $cut);
     $len = strlen($code.$number) + 4;
   }
-  if ($len <= $length -1) {
+  if ($len <= $length - 1) {
     // zero padding
     $zero_count = $length - 1 - $len;
     $date = date('md', $timestamp);
@@ -81,12 +81,12 @@ function esunbank_serial_price_hour($code, $number, $length, $price, $timestamp)
     $number = substr($number, $cut);
     $len = strlen($code.$number) + 5;
   }
-  if ($len <= $length -1) {
+  if ($len <= $length - 1) {
     // zero padding
     $zero_count = $length - 1 - $len;
 
     $date = date('z', $timestamp) + 1;
-    $date = str_repeat('0', 3-strlen($date)). $date;
+    $date = str_repeat('0', 3 - strlen($date)). $date;
     $hour = date('H', $timestamp);
     $serial = $code.$date.$hour.str_repeat('0', $zero_count).$number;
     $serial .= esunbank_check_serial_price($serial, $price);
@@ -118,8 +118,8 @@ function _esunbank_check_calc($serial, $price = NULL) {
   $ary = str_split($serial);
   $ary = array_reverse($ary);
   foreach ($ary as $k => $v) {
-    $plus = $k%9+1;
-    $check += $v*$plus;
+    $plus = $k % 9 + 1;
+    $check += $v * $plus;
   }
   if (!empty($price)) {
     $price = (float) $price;
@@ -127,8 +127,8 @@ function _esunbank_check_calc($serial, $price = NULL) {
     $ary = str_split($price);
     $ary = array_reverse($ary);
     foreach ($ary as $k => $v) {
-      $plus = $k%9+1;
-      $check += $v*$plus;
+      $plus = $k % 9 + 1;
+      $check += $v * $plus;
     }
   }
   $check = (string)$check;
@@ -168,7 +168,7 @@ function esunbank_store_b($serial) {
 function esunbank_store_c($timestamp, $price, $a, $b) {
   $date = date('md', $timestamp);
   $price = (string) $price;
-  $len = 9-strlen($price);
+  $len = 9 - strlen($price);
   if ($len > 0) {
     $price = str_repeat('0', $len).$price;
   }
@@ -190,7 +190,7 @@ function _esunbank_store_calc($type, $a, $b, $c) {
     $ary = str_split($s);
     $sum[$k] = 0;
     foreach ($ary as $key => $char) {
-      $even = ($key+1)%2 == 0 ? TRUE : FALSE;
+      $even = ($key + 1) % 2 == 0 ? TRUE : FALSE;
       if ($type == 'odd' && $even) {
         continue;
       }
@@ -212,7 +212,7 @@ function _esunbank_store_calc($type, $a, $b, $c) {
     }
   }
   $total = array_sum($sum);
-  $check = $total%11;
+  $check = $total % 11;
   if ($type == 'odd') {
     return $check == 10 ? 'B' : ($check == 0 ? 'A' : $check);
   }
@@ -301,7 +301,7 @@ function _esunbank_postoffice_calc($a, $b, $c) {
       $sum += $vv;
     }
   }
-  return $sum%10;
+  return $sum % 10;
 }
 
 function _esunbank_year2roc($timestamp) {

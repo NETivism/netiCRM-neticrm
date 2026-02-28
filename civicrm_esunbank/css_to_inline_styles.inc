@@ -58,14 +58,12 @@ class CSSToInlineStyles {
    */
   private $css;
 
-
   /**
    * The processed CSS rules
    *
    * @var	array
    */
   private $cssRules;
-
 
   /**
    * Should the generated HTML be cleaned
@@ -74,14 +72,12 @@ class CSSToInlineStyles {
    */
   private $cleanup = FALSE;
 
-
   /**
    * The encoding to use.
    *
    * @var	string
    */
   private $encoding = 'UTF-8';
-
 
   /**
    * The HTML to process
@@ -90,14 +86,12 @@ class CSSToInlineStyles {
    */
   private $html;
 
-
   /**
    * Use inline-styles block as CSS
    *
    * @var	bool
    */
   private $useInlineStylesBlock = FALSE;
-
 
   /**
    * Creates an instance, you could set the HTML and CSS here, or load it later.
@@ -114,7 +108,6 @@ class CSSToInlineStyles {
       $this->setCSS($css);
     }
   }
-
 
   /**
    * Convert a CSS-selector into an xPath-query
@@ -156,7 +149,6 @@ class CSSToInlineStyles {
     return (string) '//' . preg_replace($cssSelector, $xPathQuery, $selector);
   }
 
-
   /**
    * Calculate the specifity for the CSS-selector
    *
@@ -195,7 +187,6 @@ class CSSToInlineStyles {
     return $specifity;
   }
 
-
   /**
    * Cleanup the generated HTML
    *
@@ -212,7 +203,6 @@ class CSSToInlineStyles {
     // return
     return $html;
   }
-
 
   /**
    * Converts the loaded HTML into an HTML-string with inline styles based on the loaded CSS
@@ -492,7 +482,6 @@ class CSSToInlineStyles {
     return $html;
   }
 
-
   /**
    * Get the encoding to use
    *
@@ -501,7 +490,6 @@ class CSSToInlineStyles {
   private function getEncoding() {
     return $this->encoding;
   }
-
 
   /**
    * Process the loaded CSS
@@ -580,7 +568,6 @@ class CSSToInlineStyles {
     }
   }
 
-
   /**
    * Process the CSS-properties
    *
@@ -621,7 +608,6 @@ class CSSToInlineStyles {
     return $pairs;
   }
 
-
   /**
    * Should the IDs and classes be removed?
    *
@@ -631,7 +617,6 @@ class CSSToInlineStyles {
   public function setCleanup($on = TRUE) {
     $this->cleanup = (bool) $on;
   }
-
 
   /**
    * Set CSS to use
@@ -643,7 +628,6 @@ class CSSToInlineStyles {
     $this->css = (string) $css;
   }
 
-
   /**
    * Set the encoding to use with the DOMDocument
    *
@@ -653,7 +637,6 @@ class CSSToInlineStyles {
   public function setEncoding($encoding) {
     $this->encoding = (string) $encoding;
   }
-
 
   /**
    * Set HTML to process
@@ -665,7 +648,6 @@ class CSSToInlineStyles {
     $this->html = (string) $html;
   }
 
-
   /**
    * Set use of inline styles block
    * If this is enabled the class will use the style-block in the HTML.
@@ -676,7 +658,6 @@ class CSSToInlineStyles {
   public function setUseInlineStylesBlock($on = TRUE) {
     $this->useInlineStylesBlock = (bool) $on;
   }
-
 
   /**
    * Sort an array on the specifity element
@@ -705,7 +686,6 @@ class CSSToInlineStyles {
     return 0;
   }
 }
-
 
 /**
  * CSSToInlineStyles Exception class

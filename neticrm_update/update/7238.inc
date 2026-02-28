@@ -60,7 +60,6 @@ function _neticrm_update_update_7238() {
     CRM_Core_DAO::executeQuery($insert_query);
   }
 
-
   $check_query = "SELECT name FROM civicrm_option_group WHERE name = 'sms_provider_name'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
   if (!$exists) {
@@ -77,7 +76,6 @@ function _neticrm_update_update_7238() {
        ($sms_provider_name_group_id , 'Mitake', 'CRM_SMS_Provider_Mitake', 'http', NULL, 0, NULL, 1, NULL, 0, 1, 1, NULL, NULL);";
     CRM_Core_DAO::executeQuery($insert_query);
   }
-
 
   return 'Add SMS function to database sucessed.';
 }

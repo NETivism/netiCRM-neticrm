@@ -8,7 +8,7 @@ function civicrm_demo_install() {
   include_once __DIR__."/civicrm_demo.module";
   include_once "civicrm_demo.utils.inc";
   civicrm_initialize();
-  
+
   // When installed via neticrmp profile, skip sample data and default data
   // generation here. It will be handled by _neticrmp_demo_data_setup install
   // task which runs after the install form.
@@ -56,7 +56,7 @@ function civicrm_demo_install() {
     $title = '臺灣財政部所得扣除額';
     $desc = '提供給財政部所得扣除額的報表';
     $url = 'contribute/taiwantax';
-    $class= 'CRM_Report_Form_Contribute_TaiwanTax';
+    $class = 'CRM_Report_Form_Contribute_TaiwanTax';
     $components = CRM_Core_Component::getComponents();
     $result = civicrm_demo_add_report($title, $desc, $url, $class, $components['CiviContribute']->componentID);
   }

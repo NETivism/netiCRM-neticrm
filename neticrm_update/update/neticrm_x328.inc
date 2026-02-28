@@ -1,6 +1,5 @@
 <?php
 
-
 function _neticrm_update_update_x328() {
   civicrm_initialize();
   $group_params = ['name' => 'payment_instrument'];

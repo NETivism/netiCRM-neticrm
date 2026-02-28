@@ -5,7 +5,7 @@ const CIVICRM_JVALIDATE_LIBRARY = 'civicrm-js-jvalidate';
 function civicrm_jvalidate_page_attachments(array &$page) {
   $lang = \Drupal::languageManager()->getCurrentLanguage()->getId();
   $config = ['jvalidate' => [
-    'ext'=> t('Phone Ext.'),
+    'ext' => t('Phone Ext.'),
     'extprompt' => t('Enter phone number Ext.'),
     'notw' => t('other format?'),
     'notwprompt' => t('Enter id below.'),
@@ -68,7 +68,7 @@ function civicrm_jvalidate_civicrm_buildForm($formName, &$form) {
     $is_dynamic = TRUE;
   }
 
-  if ($_GET['q'] != 'civicrm/event/register' && $_GET['q'] != 'civicrm/profile/create' && $_GET['q']!= 'civicrm/contribute/transact' && $_GET['q'] != 'civicrm/contact/add' && $_GET['q'] != 'civicrm/profile/edit' && empty($is_dynamic)) {
+  if ($_GET['q'] != 'civicrm/event/register' && $_GET['q'] != 'civicrm/profile/create' && $_GET['q'] != 'civicrm/contribute/transact' && $_GET['q'] != 'civicrm/contact/add' && $_GET['q'] != 'civicrm/profile/edit' && empty($is_dynamic)) {
     return;
   }
 

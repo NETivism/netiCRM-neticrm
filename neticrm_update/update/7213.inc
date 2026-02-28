@@ -41,7 +41,7 @@ function _neticrm_update_update_7213() {
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/receipt_letter_';
   if (is_file($path.'html.zh_TW.tpl')) {
     $html = $is_customized ? $customized_html : file_get_contents($path.'html.zh_TW.tpl');
-    
+
     $text = file_get_contents($path.'text.tpl');
     $subject = file_get_contents($path.'subject.tpl');
     $params = [

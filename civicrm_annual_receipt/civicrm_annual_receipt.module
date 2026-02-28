@@ -71,7 +71,6 @@ function civicrm_annual_receipt_civicrm_tokenValues(&$values, $cids, $job = NULL
   }
 }
 
-
 /**
  * hook_civicrm_searchTasks
  */

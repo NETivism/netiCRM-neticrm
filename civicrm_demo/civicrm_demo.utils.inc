@@ -73,12 +73,12 @@ function civicrm_demo_process_event($vars) {
     $params['is_show_location'] = 0;
     $params['is_template'] = $sample_ci ? 0 : 1;
     $params['template_title'] = $template_titles[$seed];
-    $params['start_date'] = date('Ymd', $now+$i*86400*5);
+    $params['start_date'] = date('Ymd', $now + $i * 86400 * 5);
     $params['max_participants'] = '';
     if ($sample_ci) {
-      $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
-      $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
-      $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
+      $params['end_date'] = date('Ymd', $now + $i * 86400 * 5 + 7200);
+      $params['registration_start_date'] = date('Ymd', $now - ($i + 1) * 86400 * 2);
+      $params['registration_end_date'] = date('Ymd', $now + ($i + 1) * 86400 * 2);
       $params['max_participants'] = 5;
     }
 
@@ -139,10 +139,10 @@ function civicrm_demo_process_event($vars) {
       $params['is_monetory'] = 0;
       $params['event_type_id'] = 1;
       $params['is_show_location'] = 0;
-      $params['start_date'] = date('Ymd', $now+$i*86400*5);
-      $params['end_date'] = date('Ymd', $now+$i*86400*5+7200);
-      $params['registration_start_date'] = date('Ymd', $now-($i+1)*86400*2);
-      $params['registration_end_date'] = date('Ymd', $now+($i+1)*86400*2);
+      $params['start_date'] = date('Ymd', $now + $i * 86400 * 5);
+      $params['end_date'] = date('Ymd', $now + $i * 86400 * 5 + 7200);
+      $params['registration_start_date'] = date('Ymd', $now - ($i + 1) * 86400 * 2);
+      $params['registration_end_date'] = date('Ymd', $now + ($i + 1) * 86400 * 2);
       $params['max_participants'] = 50;
 
       if ($seed == 3 || $seed == 4) {
@@ -210,7 +210,7 @@ function civicrm_demo_process_contribution($vars) {
   $counter = 0;
   while ($dao->fetch()) {
     $count_contact++;
-    $page_id = $contribution_page_id[$count_contact%$page_id_num];
+    $page_id = $contribution_page_id[$count_contact % $page_id_num];
     $contact_id = $dao->id;
     $insert = [];
     for ($i = 0; $i < $contrib_per_contact; $i++) {
@@ -590,7 +590,6 @@ function civicrm_demo_create_custom_profile() {
   ];
   CRM_Core_BAO_ConfigSetting::add($params);
 
-
   // copy uf group
   // Try both Chinese and English titles
   $titles = [
@@ -718,7 +717,7 @@ function civicrm_demo_process_track($trackVars = NULL) {
         'counter' => rand(1, 3),
         'referrer_type' => $referrer_type,
         'state' => ($pageType == 'civicrm_event') ? mt_rand(0, 4) : mt_rand(1, 4),
-        'visit_date' => date('Y-m-d H:i:s', time()-86400*mt_rand(1, 900) + 600*mt_rand(1, 12)),
+        'visit_date' => date('Y-m-d H:i:s', time() - 86400 * mt_rand(1, 900) + 600 * mt_rand(1, 12)),
       ];
 
       // 1/10 records link to entity
@@ -808,11 +807,11 @@ function _civicrm_demo_rand_firstname($type = 'chinese') {
 }
 
 function _civicrm_demo_rand_birth() {
-  $base = time()-86400*365*3;
+  $base = time() - 86400 * 365 * 3;
   $time = mt_rand(0, $base);
   $prev = mt_rand(0, 1);
   if ($prev) {
-    $time = 0-$time;
+    $time = 0 - $time;
   }
   return date('YMDHis', $time);
 }
@@ -913,7 +912,7 @@ function _civicrm_demo_rand_email() {
     'example.com','test.tw','ilovecivicrm.com','netivism-is-best.com.tw',
   ];
   $key = array_rand($company);
-  
+
   $email = $name.'@'.$company[$key];
   // Convert Unicode characters to their ASCII equivalents
   $convertEmail = iconv('UTF-8', 'ASCII//TRANSLIT', $email);
@@ -1272,7 +1271,7 @@ function _civicrm_demo_create_uf_group($name, $title) {
         1 => [$uf_group['id'], 'Integer'],
       ];
       CRM_Core_DAO::executeQuery("DELETE FROM civicrm_uf_join WHERE uf_group_id = %1 AND module != 'CiviContribute'", $query_params);
-    
+
     }
   }
   return $uf_group;

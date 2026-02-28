@@ -31,8 +31,8 @@ function civicrm_esunbank_cron() {
     $overdue = array_search('Overdue', $statuses);
     $pending = array_search('Pending', $statuses);
     if (!empty($instrument_id) && !empty($overdue) && !($pending)) {
-      $days_before = date('YmdHis', $now - 86400*40);
-      $days_after = date('YmdHis', $now - 86400*35);
+      $days_before = date('YmdHis', $now - 86400 * 40);
+      $days_after = date('YmdHis', $now - 86400 * 35);
       CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET contribution_status_id = %1 WHERE contribution_status_id = %2 AND created_date > %3 AND created_date < %4 AND payment_instrument_id = %5", [
         1 => [$overdue, 'Integer'],
         2 => [$pending, 'Integer'],
@@ -44,7 +44,6 @@ function civicrm_esunbank_cron() {
     \Drupal::state()->set('civicrm_esunbank.last_cron', $last);
   }
 }
-
 
 function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$selector) {
   if ($context == 'contribution' && !empty($rows)) {
@@ -69,13 +68,13 @@ function civicrm_esunbank_civicrm_searchColumns($context, &$headers, &$rows, &$s
         }
         $k = array_search($query->id, $ids);
         if (!empty($rows[$k])) {
-          $pp =& $processor[$query->pid][$rows[$k]['is_test']];
+          $pp = &$processor[$query->pid][$rows[$k]['is_test']];
           $url = [
             'code' => $pp['user_name'],
             'number' => $query->id,
             'length' => $pp['password'],
             'price' => round($rows[$k]['total_amount']),
-            'timestamp' => strtotime($rows[$k]['created_date'])+86400*$expired_day,
+            'timestamp' => strtotime($rows[$k]['created_date']) + 86400 * $expired_day,
             'store' => $pp['subject'],
             'type' => $pp['signature'],
             'user' => $rows[$k]['sort_name'],

@@ -31,7 +31,7 @@ use Drupal\Core\Utility\UpdateException;
  */
 function neticrm_update_load_include($func) {
   if (function_exists('civicrm_initialize')) {
-    $n = substr($func, strrpos($func, '_')+1);
+    $n = substr($func, strrpos($func, '_') + 1);
     if (is_numeric($n)) {
       civicrm_initialize();
       \Drupal::moduleHandler()->loadInclude('neticrm_update', 'inc', 'neticrm_update.lib');

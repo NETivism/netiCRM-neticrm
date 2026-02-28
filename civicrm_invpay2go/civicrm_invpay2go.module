@@ -314,7 +314,7 @@ cj(document).ready(function($){
               $available[$key] = $v;
             }
           }
-          
+
           $field_index = [];
           foreach ($form->_elementIndex as $idx => $dontcare) {
             foreach ($available as $key => $custom_id) {
@@ -381,7 +381,7 @@ function civicrm_invpay2go_civicrm_alterTemplateVars(&$resourceName, &$vars) {
       $config = CRM_Core_Config::singleton();
       $cv_id = key($vars['viewCustomData'][$group_id]);
       if ($config->taxReceiptNumber && !empty($vars['viewCustomData'][$group_id][$cv_id]['fields'][$config->taxReceiptNumber])) {
-        $tax_serial =& $vars['viewCustomData'][$group_id][$cv_id]['fields'][$config->taxReceiptNumber];
+        $tax_serial = &$vars['viewCustomData'][$group_id][$cv_id]['fields'][$config->taxReceiptNumber];
         $invoice_id = $tax_serial['field_value'];
         $exists = invpay2go_api_get(NULL, $invoice_id);
         if (!empty($exists['search_response']->Result->InvoiceStatus) && $exists['search_response']->Result->InvoiceStatus == 2) {
@@ -437,7 +437,7 @@ function civicrm_invpay2go_civicrm_alterContent(&$content, $context, $tpl, &$obj
   if (in_array($tpl, $allowed) && $object->controller->_print != 4 && !empty($object->_invpay2goElements)) {
     require_once 'CRM/Core/Smarty/resources/String.php';
     civicrm_smarty_register_string_resource();
-    $smarty =& CRM_Core_Smarty::singleton();
+    $smarty = &CRM_Core_Smarty::singleton();
     foreach ($object->_invpay2goElements as $field) {
       $html = $smarty->fetch($field['string_tpl']);
       $replace .= $html;
@@ -681,7 +681,7 @@ function _civicrm_invpay2go_params_prepare($contact, $contribution, $field_info,
     return;
   }
   $total_amt = round($contribution['total_amount']);
-  $amt = $total_amt / ((100 + $tax_rate)/100);
+  $amt = $total_amt / ((100 + $tax_rate) / 100);
   $tax_amt = round($total_amt - $amt);
   $amt = $total_amt - $tax_amt;
 

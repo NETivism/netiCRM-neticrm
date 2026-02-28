@@ -56,11 +56,11 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form) {
       $entity_id = $form->getVar('_id') ? $form->getVar('_id') : $form->getVar('_eventId');
       if ($form_name == 'CRM_Contribute_Form_Contribution_Main') {
         $entity_table = 'civicrm_contribution_page';
-        $info =& $form->_values;
+        $info = &$form->_values;
       }
       elseif ($form_name == 'CRM_Event_Form_Registration_Register') {
         $entity_table = 'civicrm_event';
-        $info =& $form->_values['event'];
+        $info = &$form->_values['event'];
       }
       else {
         $entity_id = $form->getVar('_entityId');
@@ -258,7 +258,7 @@ jQuery(document).ready(function($){';
   });
   {$text_div}.hide();";
         }
-        $js.='
+        $js .= '
 });
 ';
         CRM_Utils_System::addJs(['type' => 'inline', 'scope' => 'footer'], $js);
@@ -682,7 +682,7 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     }
     foreach ($enabled_instruments as $name => $i) {
       if ($name == 'Convenient Store') {
-        $i['description'].='若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
+        $i['description'] .= '若您是使用手機瀏覽，目前不支援綠界金流的超商條碼，請選擇其他工具';
         $js = 'function show_allpay_msg(){
             $option = cj("[for=civicrm-instrument-dummy-11]");
             if($option.children("#civicrm-instrument-dummy-11").prop("checked")){
@@ -717,8 +717,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'label' => $i['label'],
           'description' => $i['description'],
         ];
@@ -746,8 +746,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'label' => $i['label'],
           'description' => $i['description'],
         ];
@@ -766,8 +766,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'label' => ts($name),
         ];
       }
@@ -788,8 +788,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'label' => ts($name),
         ];
       }
@@ -814,8 +814,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'label' => ts($name),
         ];
       }
@@ -840,8 +840,8 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
           $image = '';
         }
         $radios[$i['value']] = [
-          'form_name'=> $radio_name,
-          'name'=> $name,
+          'form_name' => $radio_name,
+          'name' => $name,
           'image' => $image,
           'label' => $i['label'],
           'description' => $i['description'],

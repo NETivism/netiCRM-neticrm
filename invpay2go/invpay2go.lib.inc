@@ -33,7 +33,7 @@ class Pay2goInvoice {
   ];
 
   protected $apiVersions = [
-  
+
   ];
 
   /**

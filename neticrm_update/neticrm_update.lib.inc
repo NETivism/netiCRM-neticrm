@@ -54,7 +54,7 @@ function neticrm_update_add_report($label, $desc, $url, $class, $component_id) {
     $action = CRM_Core_Action::ADD;
     $id = NULL;
   }
-  
+
   $params = [
     'label' => $label,
     'description' => $desc,

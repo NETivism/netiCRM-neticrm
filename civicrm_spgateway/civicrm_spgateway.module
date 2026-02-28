@@ -236,7 +236,6 @@ function civicrm_spgateway_notify_display_barcode($info) {
   return $output;
 }
 
-
 function civicrm_spgateway_cron() {
   $is_maintenance = \Drupal::state()->get('system.maintenance_mode');
   if ($is_maintenance) {
@@ -366,7 +365,6 @@ function civicrm_spgateway_mobile_checkout($type, $post, $objects) {
   return $return;
 }
 
-
 function _civicrm_spgateway_cancel_recuring_message() {
   $js = '<h3>
 藍新金流提醒
@@ -388,7 +386,6 @@ function _civicrm_spgateway_cancel_recuring_message() {
 </p>';
   return $js;
 }
-
 
 function _civicrm_spgateway_error_msg($code) {
   $code = (string) $code;

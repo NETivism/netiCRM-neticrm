@@ -27,7 +27,6 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   }
   $civi_base_url = CRM_Utils_System::currentPath();
 
-
   // Generate esunbank payment serial
   // the order is matter, see function esunbank_api
 
@@ -63,17 +62,17 @@ function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_pr
   $contrib_values['trxn_id'] = $p['order_number'] ? $p['order_number'] : $p['serial']; // we use payment serial to be trxn_id
   $contrib_values['is_pay_later'] = 1;
   $contrib_values['payment_instrument_id'] = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', 'Esunbank', 'value', 'name');
-  $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
+  $contribution = &CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 
   // Inject some in quickform sessions
   // Special hacking for display trxn_id after thank you page.
   $_SESSION['CiviCRM'][$form_key]['params']['trxn_id'] = $contribution->trxn_id;
   $_SESSION['CiviCRM'][$form_key]['params']['is_pay_later'] = 1;
   if ($component == 'event') {
-    $values =& $_SESSION['CiviCRM'][$form_key]['values']['event'];
+    $values = &$_SESSION['CiviCRM'][$form_key]['values']['event'];
   }
   else {
-    $values =& $_SESSION['CiviCRM'][$form_key]['values'];
+    $values = &$_SESSION['CiviCRM'][$form_key]['values'];
   }
   if (empty($_SESSION['CiviCRM'][$form_key]['params']['sent'])) {
     $invoice_link = '<a href="'.$tpl['invoice_link'].'" target="_blank">付款單</a>';
