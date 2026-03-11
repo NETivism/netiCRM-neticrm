@@ -44,4 +44,3 @@ function _neticrm_update_update_7277() {
     echo "TaiwanACH is exist in civicrm_payment_processor_type.";
   }
 }
-

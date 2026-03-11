@@ -2,7 +2,7 @@
 
 function _neticrm_update_update_x326() {
   civicrm_initialize();
-  
+
   // Add premiums_combination field to civicrm_premiums table
   $query = "SHOW COLUMNS FROM `civicrm_premiums` LIKE 'premiums_combination'";
   $result = CRM_Core_DAO::executeQuery($query);
@@ -24,7 +24,7 @@ function _neticrm_update_update_x326() {
   $query = "SHOW TABLES LIKE 'civicrm_premiums_combination'";
   $result = CRM_Core_DAO::executeQuery($query);
   $table_exists = $result->N > 0;
-  
+
   if (!$table_exists) {
     $query = <<<EOT
       CREATE TABLE `civicrm_premiums_combination` (
@@ -60,7 +60,7 @@ function _neticrm_update_update_x326() {
   $query = "SHOW TABLES LIKE 'civicrm_premiums_combination_products'";
   $result = CRM_Core_DAO::executeQuery($query);
   $table_exists = $result->N > 0;
-  
+
   if (!$table_exists) {
     $query = <<<EOT
       CREATE TABLE `civicrm_premiums_combination_products` (

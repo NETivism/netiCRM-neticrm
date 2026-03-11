@@ -22,21 +22,21 @@
   </head>
 <body>
 <div id="wrap">
-<?php if($logo){ ?>
+<?php if ($logo) { ?>
   <img src="<?php print $vars['logo']; ?>" id="logo" />
 <?php } ?>
 <h1><span>超商/郵局/ATM/玉山銀行代收</span>繳款單</h1>
 <div class="section1 clear-block">
 <h2>第一聯  繳款人收執聯</h2>
   <div class="info-right">
-    <?php if($vars['created_date']){ ?><div class="create-date">取單日期：<?php print $vars['created_date']; ?></div><?php } ?>
-    <?php if($vars['due_date']){ ?><div class="due-date">繳費期限：<?php print $vars['due_date']; ?></div><?php } ?>
+    <?php if ($vars['created_date']) { ?><div class="create-date">取單日期：<?php print $vars['created_date']; ?></div><?php } ?>
+    <?php if ($vars['due_date']) { ?><div class="due-date">繳費期限：<?php print $vars['due_date']; ?></div><?php } ?>
     <div class="stamp">收迄戳記</div>
   </div>
   <div class="info">
     <p><label>訂單編號：</label><?php print $vars['order_number']; ?></p>
-    <?php if($vars['user']){ ?><p><label>繳款人：</label><?php print $vars['user']; ?></p><?php } ?>
-    <?php if($vars['item']){ ?><p><label>繳款項目：</label><?php print $vars['item']; ?></p><?php } ?>
+    <?php if ($vars['user']) { ?><p><label>繳款人：</label><?php print $vars['user']; ?></p><?php } ?>
+    <?php if ($vars['item']) { ?><p><label>繳款項目：</label><?php print $vars['item']; ?></p><?php } ?>
     <p><label>繳款金額：</label><?php print $vars['price']; ?></p>
     <div><img src="<?php print $vars['path'].'images/icons.png'; ?>" border="0" /></div>
     <div class="receipt-info"><?php print $receipt_info; ?></div>
@@ -50,7 +50,7 @@
 <div class="payment-info payment-info-store">
 <h3>便利商店專用（上限2萬元）- 可至統一超商/全家/OK/萊爾富便利商店繳納</h3>
 <?php
-foreach($vars['barcode_store'] as $k => $v){
+foreach ($vars['barcode_store'] as $k => $v) {
   $c++;
   print "<div class=\"bar\">".$v.'<div class="code"><label class="b">條碼'.$c.'：</label>*'.$vars['serial_store'][$k].'*</div></div>';
 }
@@ -87,7 +87,7 @@ foreach($vars['barcode_store'] as $k => $v){
 </div>
 <div class="payment-info payment-info-post-office">
 <h3>郵局專用 - 可至各郵局櫃臺繳納</h3>
-<?php if($postoffice_account){ ?><div class="postoffice-account"><?php print $postoffice_account; ?></div><?php } ?>
+<?php if ($postoffice_account) { ?><div class="postoffice-account"><?php print $postoffice_account; ?></div><?php } ?>
 <div class="bar"><?php print $vars['barcode_postoffice']['a']; ?><div class="code"><label class="b">郵政劃撥：</label>*<?php print $vars['serial_postoffice']['a']; ?>*</div></div>
 <div class="bar"><?php print $vars['barcode_postoffice']['b']; ?><div class="code"><label class="b">繳款帳號：</label>*<?php print $vars['serial_postoffice']['b']; ?>*</div></div>
 <div class="bar"><?php print $vars['barcode_postoffice']['c']; ?><div class="code"><label class="b">繳款金額：</label>*<?php print $vars['serial_postoffice']['c']; ?>*</div></div>

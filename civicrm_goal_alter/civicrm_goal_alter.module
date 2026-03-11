@@ -1,35 +1,35 @@
 <?php
 
-function civicrm_goal_alter_menu(){
-  return array(
-    'contribution/achieved' => array(
-      'access callback' => true,
+function civicrm_goal_alter_menu() {
+  return [
+    'contribution/achieved' => [
+      'access callback' => TRUE,
       'page callback' => 'civicrm_goal_alter_page',
       'type' => MENU_CALLBACK,
-    ),
-  );
+    ],
+  ];
 }
 
 /**
  * Implementation of hook_civicrm_buildForm().
  */
 function civicrm_goal_alter_civicrm_buildForm($form_name, &$form) {
-  switch($form_name){
+  switch ($form_name) {
     case 'CRM_Contribute_Form_Contribution_Main':
       // add neweb payment method selection
       $goal_amount = $form->_values['goal_amount'];
-      if($goal_amount > 0){
+      if ($goal_amount > 0) {
         $contribution_page_id = $form->_values['id'];
         $price_set = $form->_values['amount'];
         $query = "SELECT sum( total_amount) as total FROM civicrm_contribution WHERE  is_test = 0  AND contribution_status_id = 1 AND contribution_page_id = %1";
-        $params = array( 1 => array( $contribution_page_id, 'Integer' ) ) ;
-        $total = CRM_Core_DAO::singleValueQuery( $query, $params );
+        $params = [ 1 => [ $contribution_page_id, 'Integer' ] ] ;
+        $total = CRM_Core_DAO::singleValueQuery($query, $params);
 
-        if($total >= $goal_amount){
+        if ($total >= $goal_amount) {
           // disable
           drupal_goto("contribution/achieved");
         }
-        else{
+        else {
           // add javascript to test
           drupal_add_js(civicrm_goal_alter_js($goal_amount, $total, $price_set), 'inline');
         }
@@ -38,14 +38,14 @@ function civicrm_goal_alter_civicrm_buildForm($form_name, &$form) {
   }
 }
 
-function civicrm_goal_alter_js($goal_amount, $total, $price_set){
+function civicrm_goal_alter_js($goal_amount, $total, $price_set) {
   $max = $goal_amount - $total;
 
   $price_set_js = 'var price = new Array();'."\n";
-  foreach($price_set as $k => $v){
+  foreach ($price_set as $k => $v) {
     $price_set_js .= "price[$k] = {$v['value']};\n";
   }
-  
+
   $js = '
 $(document).ready(function(){
   '.$price_set_js.'
@@ -75,7 +75,7 @@ $(document).ready(function(){
   return $js;
 }
 
-function civicrm_goal_alter_page(){
+function civicrm_goal_alter_page() {
   drupal_set_title("您所存取的募款頁面，已經達到募款金額目標囉！");
   return '&nbsp;';
 }

@@ -4,7 +4,7 @@
  */
 function civicrm_ckeditor_civicrm_buildForm($formName, &$form) {
   foreach ($form->_elements as $element) {
-    if($element->_type == 'CKeditor') {
+    if ($element->_type == 'CKeditor') {
       $path = base_path().drupal_get_path('module', 'civicrm_ckeditor');
       $ckeditor_inline_js = "
         $( function( ) {

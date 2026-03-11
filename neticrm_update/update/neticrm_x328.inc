@@ -1,6 +1,5 @@
 <?php
 
-
 function _neticrm_update_update_x328() {
   civicrm_initialize();
   $group_params = ['name' => 'payment_instrument'];
@@ -13,12 +12,12 @@ function _neticrm_update_update_x328() {
   ];
   $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE name = 'ApplePayFront'");
   $dao->fetch();
-  if($dao->id){
+  if ($dao->id) {
     $params['value'] = $dao->value;
     $action = CRM_Core_Action::UPDATE;
     $option_value_id = $dao->id;
   }
-  else{
+  else {
     $action = CRM_Core_Action::ADD;
     $option_value_id = 0;
   }

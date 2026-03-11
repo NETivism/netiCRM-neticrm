@@ -37,22 +37,22 @@ function _neticrm_update_update_x318() {
 
   // If 'Flydove Smart Marketing' does not exist, insert it as a new option
   if (!$exists) {
-    $group_params = array('name' => 'group_type');
-      $action = CRM_Core_Action::ADD;
-      $option_value_id = 0;
-      $params = array(
-        'option_group_id' => $group_type_group_id,
-        'label' => 'Flydove Smart Marketing',
-        'value' => '3',
-        'name' => NULL,
-        'is_default' => NULL,
-        'weight' => 3,
-      );
+    $group_params = ['name' => 'group_type'];
+    $action = CRM_Core_Action::ADD;
+    $option_value_id = 0;
+    $params = [
+      'option_group_id' => $group_type_group_id,
+      'label' => 'Flydove Smart Marketing',
+      'value' => '3',
+      'name' => NULL,
+      'is_default' => NULL,
+      'weight' => 3,
+    ];
 
-      CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
+    CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
 
-      // Clear cache
-      CRM_Core_OptionGroup::values('group_type', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
+    // Clear cache
+    CRM_Core_OptionGroup::values('group_type', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
   }
 
   // Since `sms_provider_name` option group was already checked in `_neticrm_update_update_7238`, retrieve its ID directly here
@@ -65,10 +65,10 @@ function _neticrm_update_update_x318() {
 
   // If 'Flydove' SMS provider does not exist, insert it as a new option
   if (!$exists) {
-    $group_params = array('name' => 'sms_provider_name');
+    $group_params = ['name' => 'sms_provider_name'];
     $action = CRM_Core_Action::ADD;
     $option_value_id = 0;
-    $params = array(
+    $params = [
       'option_group_id' => $sms_provider_name_group_id,
       'label' => 'Flydove',
       'value' => 'CRM_SMS_Provider_Flydove',
@@ -77,7 +77,7 @@ function _neticrm_update_update_x318() {
       'weight' => 2,
       'is_reserved' => 1,
       'is_active' => 1,
-    );
+    ];
 
     CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
 

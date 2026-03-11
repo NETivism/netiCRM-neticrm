@@ -1,5 +1,5 @@
 <?php
-function _neticrm_update_update_7265(){
+function _neticrm_update_update_7265() {
   $dao = CRM_Core_DAO::executeQuery("SHOW columns from `civicrm_contact` where field = 'created_date'");
   if ($dao->N == 0) {
     $sql = "ALTER TABLE `civicrm_contact` ADD `created_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER `is_deleted`, ADD INDEX `index_created_date` (`created_date`);";
@@ -8,11 +8,11 @@ function _neticrm_update_update_7265(){
     // add default values
     $sql = "SELECT entity_id as contact_id, MIN(modified_date) as created_date FROM `civicrm_log` WHERE `entity_table` LIKE 'civicrm_contact' GROUP BY entity_id ORDER BY entity_id ASC";
     $dao = CRM_Core_DAO::executeQuery($sql);
-    while($dao->fetch()) {
-      $params = array(
-        1 => array($dao->created_date, 'String'),
-        2 => array($dao->contact_id, 'Integer'),
-      );
+    while ($dao->fetch()) {
+      $params = [
+        1 => [$dao->created_date, 'String'],
+        2 => [$dao->contact_id, 'Integer'],
+      ];
       CRM_Core_DAO::executeQuery("UPDATE civicrm_contact SET created_date = %1 WHERE id = %2", $params);
     }
   }
@@ -24,11 +24,11 @@ function _neticrm_update_update_7265(){
 
     $sql = "SELECT entity_id as contact_id, MAX(modified_date) as modified_date FROM `civicrm_log` WHERE `entity_table` LIKE 'civicrm_contact' GROUP BY entity_id ORDER BY entity_id ASC";
     $dao = CRM_Core_DAO::executeQuery($sql);
-    while($dao->fetch()) {
-      $params = array(
-        1 => array($dao->modified_date, 'String'),
-        2 => array($dao->contact_id, 'Integer'),
-      );
+    while ($dao->fetch()) {
+      $params = [
+        1 => [$dao->modified_date, 'String'],
+        2 => [$dao->contact_id, 'Integer'],
+      ];
       CRM_Core_DAO::executeQuery("UPDATE civicrm_contact SET modified_date = %1 WHERE id = %2", $params);
     }
   }

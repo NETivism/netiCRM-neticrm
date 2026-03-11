@@ -27,7 +27,7 @@ function _neticrm_update_update_x306() {
   $mailing->is_hidden = 1;
   $mailing->name = 'Transactional Email';
   if (!$mailing->find(TRUE)) {
-    $params = array(
+    $params = [
       'header_id' => 'null',
       'footer_id' => 'null',
       'reply_id' => 'null',
@@ -58,7 +58,7 @@ function _neticrm_update_update_x306() {
       'dedupe_email' => 0,
       'sms_provider_id' => 'null',
       'is_hidden' => 1,
-    );
+    ];
     $mailing = CRM_Mailing_BAO_Mailing::add($params);
   }
 
@@ -66,18 +66,18 @@ function _neticrm_update_update_x306() {
   $job->mailing_id = $mailing->id;
   $job->is_test = 0;
   if (!$job->find(TRUE)) {
-    $params = array(
+    $params = [
       'mailing_id' => $mailing->id,
       'status' => 'Running',
       'scheduled_date' => 'null',
       'is_test' => 0,
-    );
+    ];
     $job = CRM_Mailing_BAO_Job::create($params);
   }
 
   // add event transactional table
   $exists = CRM_Core_DAO::singleValueQuery("SELECT table_name FROM INFORMATION_SCHEMA.TABLES WHERE table_name = 'civicrm_mailing_event_transactional'");
-  if(!$exists){
+  if (!$exists) {
     $sql = "CREATE TABLE civicrm_mailing_event_transactional (
       id int unsigned NOT NULL AUTO_INCREMENT  ,
       event_queue_id int unsigned NOT NULL   COMMENT 'FK to EventQueue',
@@ -93,21 +93,21 @@ function _neticrm_update_update_x306() {
 function _neticrm_update_add_activity_type_x306($type, $component) {
   $optionGroupId = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'activity_type'");
 
-  $exists = CRM_Core_DAO::singleValueQuery("SELECT name FROM civicrm_option_value WHERE name = %1 AND option_group_id = %2", array(
-    1 => array($type, 'String'),
-    2 => array($optionGroupId, 'Positive')
-  ));
+  $exists = CRM_Core_DAO::singleValueQuery("SELECT name FROM civicrm_option_value WHERE name = %1 AND option_group_id = %2", [
+    1 => [$type, 'String'],
+    2 => [$optionGroupId, 'Positive']
+  ]);
   if (!$exists) {
-    $maxValue = CRM_Core_DAO::singleValueQuery("SELECT MAX(CAST(value AS UNSIGNED)) FROM civicrm_option_value WHERE option_group_id = %1", array(1 => array($optionGroupId, 'Positive')));
-    $params = array(
-      1 => array($optionGroupId, 'Positive'),
-      2 => array($maxValue + 1, 'Positive'),
-      3 => array(ts($type), 'String'),
-      4 => array($type, 'String'),
-    );
+    $maxValue = CRM_Core_DAO::singleValueQuery("SELECT MAX(CAST(value AS UNSIGNED)) FROM civicrm_option_value WHERE option_group_id = %1", [1 => [$optionGroupId, 'Positive']]);
+    $params = [
+      1 => [$optionGroupId, 'Positive'],
+      2 => [$maxValue + 1, 'Positive'],
+      3 => [ts($type), 'String'],
+      4 => [$type, 'String'],
+    ];
     if (!empty($component)) {
-      $componentId = CRM_Core_DAO::singleValueQuery("SELECT MAX(id) FROM civicrm_component WHERE name = %1", array(1 => array($component, 'String')));
-      $params[5] = array($componentId, 'Positive');
+      $componentId = CRM_Core_DAO::singleValueQuery("SELECT MAX(id) FROM civicrm_component WHERE name = %1", [1 => [$component, 'String']]);
+      $params[5] = [$componentId, 'Positive'];
       $sql = "INSERT INTO `civicrm_option_value` (`option_group_id`, `label`, `value`, `name`, `grouping`, `filter`, `is_default`, `weight`, `description`, `is_optgroup`, `is_reserved`, `is_active`, `component_id`, `visibility_id`) VALUES (%1, %3, %2, %4, NULL, 1, 0, %2, '', 0, 1, 1, %5, NULL);";
     }
     else {

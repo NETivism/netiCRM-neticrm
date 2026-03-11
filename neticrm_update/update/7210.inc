@@ -5,8 +5,8 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7210(){
-  $old = array (
+function _neticrm_update_update_7210() {
+  $old =  [
     'Registered' => '巳登記',
     'Attended' => '出席',
     'No-show' => '失約',
@@ -19,15 +19,15 @@ function _neticrm_update_update_7210(){
     'Pending from approval' => '待處理-在審核名單中',
     'Rejected' => '已拒絕',
     'Expired' => '已清除',
-  );
-  foreach($old as $name => $label){
-    if(ts($name) != $label){
+  ];
+  foreach ($old as $name => $label) {
+    if (ts($name) != $label) {
       $sql = "UPDATE civicrm_participant_status_type SET label = %1 WHERE name = %2 AND label = %3";
-      $params = array(
-        1 => array(ts($name), 'String'), // new translations
-        2 => array($name, 'String'),
-        3 => array($label, 'String'),
-      );
+      $params = [
+        1 => [ts($name), 'String'], // new translations
+        2 => [$name, 'String'],
+        3 => [$label, 'String'],
+      ];
       CRM_Core_DAO::executeQuery($sql, $params);
     }
   }

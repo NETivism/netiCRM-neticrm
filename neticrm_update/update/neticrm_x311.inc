@@ -31,4 +31,3 @@ function _neticrm_update_update_x311() {
     echo "civicrm_aicompletion is exist.";
   }
 }
-

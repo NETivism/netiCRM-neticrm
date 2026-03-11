@@ -36,12 +36,12 @@ function civicrm_allpay_schema(){
   return $schema;
 }
 */
- 
+
 /**
  * Implementation of hook_install()
  */
 function civicrm_allpay_install() {
-  civicrm_initialize( );
+  civicrm_initialize();
 
   // new payment processor - credit card (allowed recurring)
   $sql = "INSERT IGNORE INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur, payment_type) VALUES ('ALLPAY', '綠界信用卡', NULL, 1, 0, '商店代號', 'HashKey', 'HashIV', '', 'Payment_ALLPAY', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_RECUR."', NULL, '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_SITE."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_API."', '".ALLPAY_TEST_DOMAIN . ALLPAY_URL_RECUR."', NULL, 4, 1, 1)";
@@ -56,26 +56,26 @@ function civicrm_allpay_install() {
   $new_instrument = _civicrm_allpay_instrument();
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
   $next = CRM_Core_DAO::singleValueQuery("SELECT value FROM civicrm_option_value WHERE option_group_id = {$gid} ORDER BY value DESC");
-  
-  $group_params = array('name' => 'payment_instrument');
-  foreach($new_instrument as $k => $v){
-    $params = array(
+
+  $group_params = ['name' => 'payment_instrument'];
+  foreach ($new_instrument as $k => $v) {
+    $params = [
       'name' => $k,
       'label' => $v['label'],
       'is_active' => 1,
       'is_reserved' => 1,
-    );
+    ];
     if ($v['code'] == 'WebATM' || $v['code'] == 'Alipay') {
       $params['is_active'] = 0;
     }
     $dao = CRM_Core_DAO::executeQuery("SELECT id, value FROM civicrm_option_value WHERE option_group_id = {$gid} AND name = '$k'");
     $dao->fetch();
-    if($dao->id){
+    if ($dao->id) {
       $params['value'] = $dao->value;
       $action = CRM_Core_Action::UPDATE;
       $option_value_id = $dao->id;
     }
-    else{
+    else {
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
     }
@@ -121,31 +121,31 @@ function civicrm_allpay_disable() {
 /**
  * Implementation of hook_update
  */
-function civicrm_allpay_update_7101(){
+function civicrm_allpay_update_7101() {
   civicrm_initialize();
 
   // update payment processor api url
   $result = CRM_Core_DAO::executeQuery("SELECT id, is_test FROM civicrm_payment_processor WHERE payment_processor_type LIKE 'ALLPAY%'");
-  while($result->fetch()){
+  while ($result->fetch()) {
     $base = $result->is_test ? ALLPAY_TEST_DOMAIN : ALLPAY_REAL_DOMAIN;
-    $update = array(
-      1 => array($base.ALLPAY_URL_SITE,'String'),
-      2 => array($base.ALLPAY_URL_API,'String'),
-      3 => array($base.ALLPAY_URL_RECUR,'String'),
-      9 => array($result->id, 'Integer')
-    );
+    $update = [
+      1 => [$base.ALLPAY_URL_SITE,'String'],
+      2 => [$base.ALLPAY_URL_API,'String'],
+      3 => [$base.ALLPAY_URL_RECUR,'String'],
+      9 => [$result->id, 'Integer']
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_payment_processor SET url_site = %1, url_api = %2, url_recur = %3 WHERE id = %9", $update);
   }
 
   // update recur status
-  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing 
+  CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 5 WHERE contribution_status_id = 1"); // processing
   CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution_recur SET contribution_status_id = 1 WHERE contribution_status_id = 3"); // completed
 
   // update translations
-  if(module_exists('neticrm_update')){
+  if (module_exists('neticrm_update')) {
     module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
     $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_allpay').'/translations/');
-    foreach($files as $f){
+    foreach ($files as $f) {
       $filename = basename($f);
       $langcode = substr($filename, 0, strpos($filename, '.'));
       neticrm_update_import_po($f, $langcode);
@@ -166,7 +166,7 @@ function civicrm_allpay_update_7102() {
  * Update allpay to ecpay. refs #18766
  */
 function civicrm_allpay_update_7104() {
-  civicrm_initialize( );
+  civicrm_initialize();
   $sql = "UPDATE civicrm_payment_processor_type SET 
   url_site_default = '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_SITE."',
   url_api_default = '".ALLPAY_REAL_DOMAIN . ALLPAY_URL_API."',
@@ -189,7 +189,7 @@ function civicrm_allpay_update_7104() {
  * Update allpay to ecpay. refs #18766
  */
 function civicrm_allpay_update_7105() {
-  civicrm_initialize( );
+  civicrm_initialize();
   $sql = "UPDATE civicrm_payment_processor_type SET 
   title = REPLACE(title, '歐付寶', '綠界')
   WHERE title LIKE '%歐付寶%'";
@@ -200,10 +200,10 @@ function civicrm_allpay_update_7105() {
  * Update translation. refs #19459
  */
 function civicrm_allpay_update_7106() {
-  if(module_exists('neticrm_update')){
+  if (module_exists('neticrm_update')) {
     module_load_include('inc', 'neticrm_update', 'neticrm_update.lib');
     $files = neticrm_update_find_po_files(drupal_get_path('module', 'civicrm_allpay').'/translations/');
-    foreach($files as $f){
+    foreach ($files as $f) {
       $filename = basename($f);
       $langcode = substr($filename, 0, strpos($filename, '.'));
       neticrm_update_import_po($f, $langcode);

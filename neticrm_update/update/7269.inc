@@ -1,5 +1,5 @@
 <?php
-function _neticrm_update_update_7269(){
+function _neticrm_update_update_7269() {
   // add is_qrcode column to event
   $sql = "SHOW COLUMNS FROM civicrm_event WHERE field LIKE 'is_qrcode'";
   $dao = CRM_Core_DAO::executeQuery($sql);
@@ -14,11 +14,11 @@ function _neticrm_update_update_7269(){
   if (!empty($msg_id) && is_file($path.'event_online_receipt_html.tpl')) {
     $html = file_get_contents($path.'event_online_receipt_html.tpl');
     $text = file_get_contents($path.'event_online_receipt_text.tpl');
-    $params = array(
-      1 => array($html, 'String'),
-      2 => array($text, 'String'),
-      3 => array($msg_id, 'Integer'),
-    );
+    $params = [
+      1 => [$html, 'String'],
+      2 => [$text, 'String'],
+      3 => [$msg_id, 'Integer'],
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1, msg_text = %2 WHERE id = $msg_id", $params);
   }
   unset($msg_id);
@@ -27,11 +27,11 @@ function _neticrm_update_update_7269(){
   if (!empty($msg_id) && is_file($path.'event_offline_receipt_html.tpl')) {
     $html = file_get_contents($path.'event_offline_receipt_html.tpl');
     $text = file_get_contents($path.'event_offline_receipt_text.tpl');
-    $params = array(
-      1 => array($html, 'String'),
-      2 => array($text, 'String'),
-      3 => array($msg_id, 'Integer'),
-    );
+    $params = [
+      1 => [$html, 'String'],
+      2 => [$text, 'String'],
+      3 => [$msg_id, 'Integer'],
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_msg_template SET msg_html = %1, msg_text = %2 WHERE id = $msg_id", $params);
   }
 }

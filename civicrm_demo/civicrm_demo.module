@@ -3,14 +3,14 @@
  * Implementation of hook_menu().
  */
 
-function civicrm_demo_menu(){
-  return array(
-    'admin/config/civicrm_demo' => array(
+function civicrm_demo_menu() {
+  return [
+    'admin/config/civicrm_demo' => [
       'title'            => 'Generate demo data of CiviCRM',
-      'access arguments' => array('administer neticrm'),
+      'access arguments' => ['administer neticrm'],
       'page callback'    => 'drupal_get_form',
-      'page arguments'    => array('civicrm_demo_settings'),
+      'page arguments'    => ['civicrm_demo_settings'],
       'file' => 'civicrm_demo.admin.inc'
-    )
-  );
+    ]
+  ];
 }

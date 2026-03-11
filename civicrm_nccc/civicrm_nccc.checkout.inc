@@ -5,25 +5,25 @@
  *
  * We place the code into drupal inorder to seperate the civicrm.
  * Called by Civicrm doTransferCheckout of Class Payment_NCCC
- * 
- * @param $vars 
- * @param $component 
- * @param $payment_processor 
+ *
+ * @param $vars
+ * @param $component
+ * @param $payment_processor
  */
-function civicrm_nccc_do_transfer_checkout(&$vars, &$component, &$payment_processor){
+function civicrm_nccc_do_transfer_checkout(&$vars, &$component, &$payment_processor) {
   // First, we insert every contribution into record. After this, we'll use update for the record.
-  $record = array('cid' => $vars['contributionID'], 'created' => time());
+  $record = ['cid' => $vars['contributionID'], 'created' => time()];
   drupal_write_record("civicrm_contribution_nccc", $record);
 
   $redirect_vars = _civicrm_nccc_getvars($vars, $component, $payment_processor);
 
   // now process contribution to save some default value
-  $contrib_params = array( 'id' => $vars['contributionID'] );
-  $contrib_values = $contrib_ids = array();
+  $contrib_params = [ 'id' => $vars['contributionID'] ];
+  $contrib_values = $contrib_ids = [];
   CRM_Contribute_BAO_Contribution::getValues($contrib_params, $contrib_values, $contrib_ids);
   $contrib_values['payment_instrument_id'] = 1;
   $contrib_values['trxn_id'] = $payment_processor['signature'].$vars['contributionID'];
-  $contribution =& CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
+  $contribution = &CRM_Contribute_BAO_Contribution::create($contrib_values, $contrib_ids);
 
   // Inject in quickform sessions
   // Special hacking for display trxn_id after thank you page.
@@ -36,11 +36,11 @@ function civicrm_nccc_do_transfer_checkout(&$vars, &$component, &$payment_proces
 
   // move things to CiviCRM cache as needed
   require_once 'CRM/Core/Session.php';
-  CRM_Core_Session::storeSessionObjects( );
+  CRM_Core_Session::storeSessionObjects();
   exit();
 }
 
-function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
+function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor) {
   global $base_url, $base_path, $language;
 
   // notify url for receive payment result
@@ -48,14 +48,14 @@ function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
 
   // for union card
   $civi_base_url = $component == 'event' ? 'civicrm/event/register' : 'civicrm/contribute/transact';
-  $mallurl = url($civi_base_url, array( 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute'=>true));
+  $mallurl = url($civi_base_url, [ 'query' => "_qf_ThankYou_display=1&qfKey={$vars['qfKey']}", 'absolute' => TRUE]);
 
   // building vars
-  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'],'.')) : $vars['amount'];
+  $amount = $vars['currencyID'] == 'TWD' && strstr($vars['amount'], '.') ? substr($vars['amount'], 0, strpos($vars['amount'], '.')) : $vars['amount'];
   $name = truncate_utf8($vars['item_name'], 10);
   $notify_url .= "&qfKey=".$vars['qfKey'];
 
-  $redirect_vars = array(
+  $redirect_vars = [
     "MerchantID" => $payment_processor['user_name'],
     "TerminalID" => $payment_processor['password'],
     "OrderID" => $payment_processor['signature'].$vars['contributionID'],
@@ -65,25 +65,24 @@ function _civicrm_nccc_getvars(&$vars, $component, &$payment_processor){
     "NotifyURL" => $notify_url,
     "#qfKey" => $vars['qfKey'],
     "#action" => $payment_processor['url_site'],
-  );
-  if($payment_processor['subject']){
+  ];
+  if ($payment_processor['subject']) {
     $redirect_vars['CSS_URL'] = $payment_processor['subject'];
   }
-  else{
+  else {
     $redirect_vars['CSS_URL'] = 'https://'.$_SERVER['HTTP_HOST'].base_path().drupal_get_path('module', 'civicrm_nccc').'/civicrm_nccc.css';
   }
-  if(!strstr($language->language, 'zh')){
+  if (!strstr($language->language, 'zh')) {
     $redirect_vars['TEMPLATE'] = 'ENGLISH';
   }
-  else{
+  else {
     $redirect_vars['TEMPLATE'] = 'CHINESE';
   }
 
   return $redirect_vars;
 }
 
-
-function _civicrm_nccc_post_body($redirect_vars){
+function _civicrm_nccc_post_body($redirect_vars) {
   global $base_url, $base_path;
   // load jquery
   drupal_add_js('var nccc = 1', 'inline', 'footer');
@@ -93,8 +92,8 @@ function _civicrm_nccc_post_body($redirect_vars){
   $o .= '<div style="margin:0 auto;width:525px; color:#A00; font-size:16px; text-align:center;">'.$msg.'</div>';
   $o .= '<form action="'.$redirect_vars['#action'].'" name="nccc" method="post" id="nccc-form" target="ncccframe">
   <iframe name="ncccframe" height="600" width="800" scrolling="auto" align="center" frameborder="0" src="'.$redirect_vars['#action'].'"></iframe><a name="1"></a>';
-  foreach($redirect_vars as $k=>$p){
-    if($k[0] != '#'){
+  foreach ($redirect_vars as $k => $p) {
+    if ($k[0] != '#') {
       $o .= '<input type="hidden" name="'.$k.'" value="'.$p.'" />';
     }
   }
@@ -139,13 +138,13 @@ function _civicrm_nccc_post_body($redirect_vars){
   return $o;
 }
 
-function _civirm_nccc_redirect($redirect_vars){
+function _civirm_nccc_redirect($redirect_vars) {
   global $base_url, $base_path;
-  
-  foreach($redirect_vars as $k=>$p){
+
+  foreach ($redirect_vars as $k => $p) {
     $o .= '<input type="hidden" name="post['.$k.']" value="'.$p.'" />'."\n";
   }
-  
+
   return '
   <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
@@ -165,18 +164,18 @@ function _civirm_nccc_redirect($redirect_vars){
   ';
 }
 
-function _civicrm_nccc_notify_url(&$vars, $path, $component){
-  $query = array();
+function _civicrm_nccc_notify_url(&$vars, $path, $component) {
+  $query = [];
   $query[] = "contact_id={$vars['contactID']}";
   $query[] = "cid={$vars['contributionID']}";
   $query[] = "module={$component}";
 
-  if ( $component == 'event' ) {
+  if ($component == 'event') {
     $query[] = "eid={$vars['eventID']}";
     $query[] = "pid={$vars['participantID']}";
   }
   else {
-    if ( $vars['membershipID'] ) {
+    if ($vars['membershipID']) {
       $query[] = "mid=".$vars['membershipID'];
     }
     if ($vars['related_contact']) {
@@ -188,39 +187,38 @@ function _civicrm_nccc_notify_url(&$vars, $path, $component){
   }
 
   // if recurring donations, add a few more items
-  if ( !empty( $vars['is_recur']) ) {
-     if ($vars['contributionRecurID']) {
-       $query[] = "crid={$vars['contributionRecurID']}";
-       $query[] = "cpid={$vars['contributionPageID']}";
-     }
+  if (!empty($vars['is_recur'])) {
+    if ($vars['contributionRecurID']) {
+      $query[] = "crid={$vars['contributionRecurID']}";
+      $query[] = "cpid={$vars['contributionPageID']}";
+    }
   }
 
   $url = url(
     $path,
-    array(
-      'query'=> implode('&', $query),
-      'absolute' => true,
-    )
+    [
+      'query' => implode('&', $query),
+      'absolute' => TRUE,
+    ]
   );
-  if($_SERVER['HTTP_HTTPS'] == 'on' || $_SERVER['HTTPS'] == 'on'){
+  if ($_SERVER['HTTP_HTTPS'] == 'on' || $_SERVER['HTTPS'] == 'on') {
     return str_replace('http://', 'https://', $url);
   }
-  else{
+  else {
     return $url;
   }
 }
 
-function civicrm_nccc_checkout(){
-  if(!empty($_SESSION['nccc']['submitted'])) {
+function civicrm_nccc_checkout() {
+  if (!empty($_SESSION['nccc']['submitted'])) {
     drupal_goto($_SESSION['nccc']['path'], $_SESSION['nccc']['query']);
   }
   drupal_set_header('Pragma: no-cache');
   drupal_set_header('Cache-Control: no-store, no-cache, must-revalidate');
   drupal_set_header('Expires: 0');
 
-  
-  $post =& $_POST['post'];
-  if(empty($post)){
+  $post = &$_POST['post'];
+  if (empty($post)) {
     return t('This page has expired because security reason. Try again for your transactionin open new window.');
   }
   $_SESSION['nccc']['submitted'] = TRUE;

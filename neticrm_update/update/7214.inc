@@ -5,7 +5,7 @@
  *
  * This file should be civicrm compliant.
  */
-function _neticrm_update_update_7214(){
+function _neticrm_update_update_7214() {
   $check_query = "SELECT column_name FROM INFORMATION_SCHEMA.COLUMNS WHERE table_name = 'civicrm_uf_field' AND column_name = 'website_type_id'";
   $exists = CRM_Core_DAO::singleValueQuery($check_query);
 
@@ -14,9 +14,9 @@ function _neticrm_update_update_7214(){
 
     $types = CRM_Core_PseudoConstant::websiteType();
     $website_type_id = key($types);
-    $params = array(
-      1 => array($website_type_id, 'Positive'),
-    );
+    $params = [
+      1 => [$website_type_id, 'Positive'],
+    ];
     CRM_Core_DAO::executeQuery("UPDATE civicrm_uf_field SET website_type_id = %1 WHERE field_name = 'url'", $params);
   }
 

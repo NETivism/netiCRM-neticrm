@@ -15,18 +15,18 @@ function civicrm_annual_receipt_install() {
   _civicrm_annual_receipt_add_update_email_tpl();
 
   // add custom search
-  $custom_search = array();
-  $group_params = array(
+  $custom_search = [];
+  $group_params = [
     'name' => 'custom_search',
-  );
+  ];
   CRM_Core_OptionValue::getValues($group_params, $custom_search);
   $custom_search_id = variable_get('civicrm_annual_receipt_custom_search_id', 0);
-  if($custom_search_id){
-    $custom_obj = isset($custom_search[$custom_search_id]) ? $custom_search[$custom_search_id] : NULL;
+  if ($custom_search_id) {
+    $custom_obj = $custom_search[$custom_search_id] ?? NULL;
   }
-  else{
-    foreach($custom_search as $cid => $c){
-      if($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt'){
+  else {
+    foreach ($custom_search as $cid => $c) {
+      if ($c['name'] == 'CRM_Contact_Form_Search_Custom_AnnualReceipt') {
         $custom_search_id = $cid;
         variable_set('civicrm_annual_receipt_custom_search_id', $cid);
         $custom_obj = $c;
@@ -34,15 +34,15 @@ function civicrm_annual_receipt_install() {
     }
   }
 
-  if(empty($custom_obj)){
+  if (empty($custom_obj)) {
     // create custom search
-    $params = array(
+    $params = [
       'label' => '產生年度收據',
       'name' => 'CRM_Contact_Form_Search_Custom_AnnualReceipt',
       'description' => '',
       'is_active' => 1,
-    );
-    $group_params = array('name' => 'custom_search');
+    ];
+    $group_params = ['name' => 'custom_search'];
     $action = CRM_Core_Action::ADD;
     $custom_obj = CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $custom_search_id);
     variable_set('civicrm_annual_receipt_custom_search_id', $custom_obj->id);
@@ -50,8 +50,8 @@ function civicrm_annual_receipt_install() {
     // create druapl menu for that
     if (module_exists('civicrm_dmenu')) {
       $exists = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/search/AnnualReceipt'")->fetchField();
-      if(!$exists){
-        $plid = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/contribute'")->fetchField(); 
+      if (!$exists) {
+        $plid = db_query("SELECT mlid FROM menu_links WHERE link_path LIKE 'civicrm/contribute'")->fetchField();
         civicrm_dmenu_menu_item(
           'civicrm/search/AnnualReceipt',
           '產生年度收據',
@@ -66,7 +66,7 @@ function civicrm_annual_receipt_install() {
       }
     }
   }
-  elseif($custom_obj['is_active'] == 0){
+  elseif ($custom_obj['is_active'] == 0) {
     // enable custom search
     CRM_Core_BAO_OptionValue::setIsActive($custom_search_id, 1);
   }
@@ -75,16 +75,16 @@ function civicrm_annual_receipt_install() {
 /**
  * Implementation of hook_uninstall()
  */
-function civicrm_annual_receipt_uninstall(){
+function civicrm_annual_receipt_uninstall() {
   civicrm_initialize();
 
-  if(variable_get('civicrm_annual_receipt_default_tpl_id', 0)){
+  if (variable_get('civicrm_annual_receipt_default_tpl_id', 0)) {
     CRM_Core_BAO_MessageTemplates::setIsActive(variable_get('civicrm_annual_receipt_default_tpl_id', 0), 0);
   }
-  if(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)){
+  if (variable_get('civicrm_annual_receipt_reserved_tpl_id', 0)) {
     CRM_Core_BAO_MessageTemplates::setIsActive(variable_get('civicrm_annual_receipt_reserved_tpl_id', 0), 0);
   }
-  if(variable_get('civicrm_annual_receipt_custom_search_id', 0)){
+  if (variable_get('civicrm_annual_receipt_custom_search_id', 0)) {
     CRM_Core_BAO_OptionValue::setIsActive(variable_get('civicrm_annual_receipt_custom_search_id', 0), 0);
   }
 }
@@ -92,7 +92,7 @@ function civicrm_annual_receipt_uninstall(){
 /**
  * Upgrade receipt to support multiple receipt name, #18275
  */
-function civicrm_annual_receipt_update_7202(){
+function civicrm_annual_receipt_update_7202() {
   civicrm_initialize();
   $path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
   $html = file_get_contents($path.'/receipt_letter_annual_html.zh_TW.tpl');
@@ -112,20 +112,20 @@ function civicrm_annual_receipt_update_7202(){
   ");
   $dao->fetch();
   if (empty($dao->id)) {
-    $params = array(
+    $params = [
       'id' => $default_id,
       'msg_html' => $html,
       'is_active' => 1,
-    );
+    ];
     if (!empty($params['id'])) {
       CRM_Core_BAO_MessageTemplates::add($params);
     }
   }
-  $params = array(
+  $params = [
     'id' => $reserved_id,
     'msg_html' => $html,
     'is_active' => 0,
-  );
+  ];
   if (!empty($params['id'])) {
     CRM_Core_BAO_MessageTemplates::add($params);
   }
@@ -135,7 +135,7 @@ function civicrm_annual_receipt_update_7202(){
 /**
  * Add email receipt message template, #34226
  */
-function civicrm_annual_receipt_update_7203(){
+function civicrm_annual_receipt_update_7203() {
   $result = _civicrm_annual_receipt_add_update_pdf_mail_tpl();
   if ($result) {
     $result = _civicrm_annual_receipt_add_update_email_tpl();
@@ -154,7 +154,7 @@ function civicrm_annual_receipt_update_7203(){
 /**
  * refs #41940, update missing annual msg template label
  */
-function civicrm_annual_receipt_update_7204(){
+function civicrm_annual_receipt_update_7204() {
   civicrm_initialize();
   $sql = "SELECT * FROM `civicrm_msg_template` WHERE `msg_subject` LIKE '電子郵件收據 - 年度整合收據PDF' AND IFNULL(msg_title, '') = ''";
 
@@ -175,27 +175,27 @@ function civicrm_annual_receipt_update_7204(){
 
 function _civicrm_annual_receipt_add_update_pdf_print_tpl() {
   $option_group_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name = 'msg_tpl_workflow_receipt'");
-  if(empty($option_group_id)){
+  if (empty($option_group_id)) {
     return FALSE;
   }
 
   $group_name = 'msg_tpl_workflow_receipt';
   $group_values = CRM_Core_OptionGroup::values($group_name, FALSE, FALSE, FALSE, NULL, 'name', FALSE, FALSE, 'id');
   $tpl_path = drupal_get_path('module', 'civicrm').'/../xml/templates/message_templates/';
-  $group_params = array(
+  $group_params = [
     'id' => $option_group_id,
-  );
-  $option_params = array(
+  ];
+  $option_params = [
     'label' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
     'name' => 'receipt_letter_annual',
     'is_active' => TRUE,
-  );
+  ];
 
   $option_id = array_search('receipt_letter_annual', $group_values);
-  if(!empty($option_id)){
+  if (!empty($option_id)) {
     $action = CRM_Core_Action::UPDATE;
   }
-  else{
+  else {
     $option_id = NULL;
     $action = CRM_Core_Action::ADD;
   }
@@ -216,12 +216,12 @@ FROM civicrm_msg_template diverted JOIN civicrm_msg_template orig ON (
 )
 WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig.workflow_id = %1
   ';
-  $diverted = CRM_Core_DAO::singleValueQuery($diverted_query, array(
-    1 => array($option->id, 'Integer'),
-  ));
+  $diverted = CRM_Core_DAO::singleValueQuery($diverted_query, [
+    1 => [$option->id, 'Integer'],
+  ]);
 
   $html = file_get_contents($tpl_path.'/receipt_letter_annual_html.zh_TW.tpl');
-  $params = array(
+  $params = [
     'msg_title' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
     'msg_subject' => file_get_contents($tpl_path.'/receipt_letter_annual_subject.zh_TW.tpl'),
     'msg_text' => '目前僅提供HTML版本收據',
@@ -230,12 +230,12 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
     'workflow_id' => $option->id,
     'is_default' => 0,
     'is_reserved' => 1,
-  );
+  ];
 
-  $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", array(
-    1 => array($option->id, 'Integer'),
-  ));
-  if($reserved_id){
+  $reserved_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 0 AND is_reserved = 1", [
+    1 => [$option->id, 'Integer'],
+  ]);
+  if ($reserved_id) {
     $params['id'] = $reserved_id;
   }
 
@@ -243,13 +243,13 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
   $reserved_tpl = CRM_Core_BAO_MessageTemplates::add($params);
   variable_set('civicrm_annual_receipt_reserved_tpl_id', $reserved_tpl->id);
 
-  if(!$diverted){
+  if (!$diverted) {
     $params['is_default'] = 1;
     $params['is_reserved'] = 0;
-    $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", array(
-      1 => array($option->id, 'Integer'),
-    ));
-    if($default_id){
+    $default_id = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_msg_template WHERE workflow_id = %1 AND is_default = 1 AND is_reserved = 0", [
+      1 => [$option->id, 'Integer'],
+    ]);
+    if ($default_id) {
       $params['id'] = $default_id;
     }
     $default_tpl = CRM_Core_BAO_MessageTemplates::add($params);
@@ -258,22 +258,21 @@ WHERE diverted.workflow_id IS NOT NULL AND orig.workflow_id IS NOT NULL AND orig
 
 }
 
-
 function _civicrm_annual_receipt_add_update_pdf_mail_tpl() {
   // we don't need to setting variable anymore, use demo utils to handling update instead
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
-  $params = array(
+  $params = [
     'option_label' => '電子郵件收據 - 年度整合收據PDF',
     'msg_title' => '電子郵件收據 - 年度整合收據PDF',
-  );
+  ];
   return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_letter_annual', 'zh_TW', $params);
 }
 
 function _civicrm_annual_receipt_add_update_email_tpl() {
   module_load_include("inc", 'civicrm_demo', 'civicrm_demo.utils');
-  $params = array(
+  $params = [
     'option_label' => '電子郵件收據 - 年度整合收據信件內容',
     'msg_title' => '電子郵件收據 - 年度整合收據信件內容',
-  );
+  ];
   return _civicrm_demo_create_update_msg_tpl('msg_tpl_workflow_receipt', 'email_receipt_content_annual', 'zh_TW', $params);
 }

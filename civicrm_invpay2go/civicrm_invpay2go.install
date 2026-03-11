@@ -14,21 +14,21 @@ function civicrm_invpay2go_install() {
   }
 
   // custom fields
-  if(!empty($group_id)){
+  if (!empty($group_id)) {
     variable_set('civicrm_invpay2go_invoice_group', $group_id);
-    $fields = array();
+    $fields = [];
     // radio
-    $type_options = array(
-      'elec' => array('label' => '索取電子發票', 'value' => 'elec', 'is_active' => 1, 'weight' => 1),
-      'donate' => array('label' => '捐發票', 'value' => 'donate', 'is_active' => 1, 'weight' => 2),
-      'company' => array('label' => '三聯式發票', 'value' => 'company', 'is_active' => 1, 'weight' => 3),
-    );
+    $type_options = [
+      'elec' => ['label' => '索取電子發票', 'value' => 'elec', 'is_active' => 1, 'weight' => 1],
+      'donate' => ['label' => '捐發票', 'value' => 'donate', 'is_active' => 1, 'weight' => 2],
+      'company' => ['label' => '三聯式發票', 'value' => 'company', 'is_active' => 1, 'weight' => 3],
+    ];
     $fields['taxreceipt_type'] = _civicrm_demo_create_custom_field('taxreceipt_type', '索取發票類型', 'String', 'Radio', $group_id, NULL, $type_options);
-    $device_type_options = array(
-      'member' => array('label' => '會員載具（由智付通提供）', 'value' => '2', 'is_active' => 1, 'weight' => 1),
-      'cellphone' => array('label' => '手機條碼載具', 'value' => '0', 'is_active' => 1, 'weight' => 2),
-      'identifier' => array('label' => '自然人憑證載具', 'value' => '1', 'is_active' => 1, 'weight' => 3),
-    );
+    $device_type_options = [
+      'member' => ['label' => '會員載具（由智付通提供）', 'value' => '2', 'is_active' => 1, 'weight' => 1],
+      'cellphone' => ['label' => '手機條碼載具', 'value' => '0', 'is_active' => 1, 'weight' => 2],
+      'identifier' => ['label' => '自然人憑證載具', 'value' => '1', 'is_active' => 1, 'weight' => 3],
+    ];
     $fields['taxreceipt_device_type'] = _civicrm_demo_create_custom_field('taxreceipt_device_type', '電子發票載具', 'String', 'Radio', $group_id, NULL, $device_type_options);
 
     // text
@@ -36,21 +36,21 @@ function civicrm_invpay2go_install() {
     $fields['taxreceipt_donate'] = _civicrm_demo_create_custom_field('taxreceipt_donate', '發票捐贈', 'String', 'Text', $group_id);
     $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
     $fields['taxreceipt_serial'] = _civicrm_demo_create_custom_field('taxreceipt_serial', '統一編號', 'String', 'Text', $group_id);
-    CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET help_post = %1 WHERE id = %2", array(
-      1 => array('三聯式發票將會直接寄出電子檔案到您的信箱，不再郵寄紙本列印之電子發票。', 'String'),
-      2 => array($fields['taxreceipt_serial']['id'], 'Integer'),
-    ));
+    CRM_Core_DAO::executeQuery("UPDATE civicrm_custom_field SET help_post = %1 WHERE id = %2", [
+      1 => ['三聯式發票將會直接寄出電子檔案到您的信箱，不再郵寄紙本列印之電子發票。', 'String'],
+      2 => [$fields['taxreceipt_serial']['id'], 'Integer'],
+    ]);
     $fields['taxreceipt_number'] = _civicrm_demo_create_custom_field('taxreceipt_number', '發票序號', 'String', 'Text', $group_id);
     $fields['taxreceipt_item'] = _civicrm_demo_create_custom_field('taxreceipt_item', '發票品項', 'String', 'Text', $group_id);
     $fields['taxreceipt_paper'] = _civicrm_demo_create_custom_field('taxreceipt_paper', '印出紙本發票', 'Boolean', 'Radio', $group_id, 0);
-    $agree_options = array(
-      'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
-    );
+    $agree_options = [
+      'agree' => ['label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1],
+    ];
     $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
   }
 
   // set config
-  $params = array(
+  $params = [
     'taxReceiptType' => $fields['taxreceipt_type']['id'],
     'taxReceiptDeviceType' => $fields['taxreceipt_device_type']['id'],
     'taxReceiptDeviceNumber' => $fields['taxreceipt_device_number']['id'],
@@ -62,7 +62,7 @@ function civicrm_invpay2go_install() {
     'taxReceiptPaper' => $fields['taxreceipt_paper']['id'],
     'taxReceiptAgree' => $fields['taxreceipt_agree']['id'],
     'taxReceiptDonateSelect' => '1234|我的組織名稱',
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 }
 
@@ -72,21 +72,20 @@ function civicrm_invpay2go_install() {
 function civicrm_invpay2go_uninstall() {
 }
 
-
 /**
  * Add agree note. refs #20311
  */
 function civicrm_invpay2go_update_7011() {
   civicrm_initialize();
   $config = CRM_Core_Config::singleton();
-  $return = array( 'success' => FALSE );
+  $return = [ 'success' => FALSE ];
   if (empty($config->taxReceiptAgree)) {
     module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
     $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
-    $agree_options = array(
-      'agree' => array('label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1),
-    );
-    $fields = array();
+    $agree_options = [
+      'agree' => ['label' => '我同意辦理退貨退款時，由賣方代為處理發票及銷貨退回證明單，以加速退貨退款作業。', 'value' => 'agree_credit_note', 'is_active' => 1, 'weight' => 1],
+    ];
+    $fields = [];
     $fields['taxreceipt_agree'] = _civicrm_demo_create_custom_field('taxreceipt_agree', '同意事項', 'String', 'CheckBox', $group_id, NULL, $agree_options);
     if ($fields['taxreceipt_agree']['id']) {
       return 'Success add new crm custom field for civicrm_invpay2go';
@@ -101,15 +100,15 @@ function civicrm_invpay2go_update_7011() {
 function civicrm_invpay2go_update_7012() {
   civicrm_initialize();
   $config = CRM_Core_Config::singleton();
-  $return = array( 'success' => FALSE );
+  $return = [ 'success' => FALSE ];
   if (empty($config->taxReceiptTitle)) {
     module_load_include('inc', 'civicrm_demo', 'civicrm_demo.utils');
     $group_id = variable_get('civicrm_invpay2go_invoice_group', '');
     $fields['taxreceipt_title'] = _civicrm_demo_create_custom_field('taxreceipt_title', '發票抬頭', 'String', 'Text', $group_id);
     if ($fields['taxreceipt_title']['id']) {
-      $params = array(
+      $params = [
         'taxReceiptTitle' => $fields['taxreceipt_title']['id'],
-      );
+      ];
       CRM_Core_BAO_ConfigSetting::add($params);
       $return['success'] = TRUE;
     }

@@ -46,7 +46,7 @@ function civicrm_instrument_install() {
   // drupal_install_schema('civicrm_instrument');
 
   // Save variables
-  civicrm_initialize( );
+  civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
   variable_set('civicrm_instrument_gid', $gid);
@@ -56,7 +56,7 @@ function civicrm_instrument_install() {
   require_once('CRM/Core/OptionValue.php');
   require_once('CRM/Core/Action.php');
   // Add contribution instruments
-  $definition = array(
+  $definition = [
     'Credit Card (Offline)' => '信用卡（非線上）',
     'Credit Card Recurring (Offline)' => '信用卡定期定額（非線上）',
     'Post Office Transfer' => '郵政劃撥',
@@ -71,26 +71,26 @@ function civicrm_instrument_install() {
     'LinePay' => 'LINE Pay',
     'ACH Bank' => 'ACH 銀行',
     'ACH Post' => 'ACH 郵局',
-  );
+  ];
 
-  $values = array();
+  $values = [];
   $values = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
-  $group_params = array('name' => 'payment_instrument');
-  $params = array(
+  $group_params = ['name' => 'payment_instrument'];
+  $params = [
     'is_active' => 1,
-  );
-  foreach($definition as $name => $label){
-    $params = array();
+  ];
+  foreach ($definition as $name => $label) {
+    $params = [];
     $params['label'] = $label;
     $params['name'] = $name;
     $params['is_active'] = 1;
     if (substr($name, 0, 3) == 'ACH') {
-      $params['weight'] = CRM_Core_DAO::singleValueQuery("SELECT MAX(weight) FROM civicrm_option_value WHERE option_group_id = %1", array(1 => array($gid, 'Positive'))) + 1;
+      $params['weight'] = CRM_Core_DAO::singleValueQuery("SELECT MAX(weight) FROM civicrm_option_value WHERE option_group_id = %1", [1 => [$gid, 'Positive']]) + 1;
     }
-    if($values[$label]){
+    if ($values[$label]) {
       // skipped, won't update.
     }
-    else{
+    else {
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
       if ($params['name'] == 'Web ATM') {
@@ -112,19 +112,18 @@ function civicrm_instrument_uninstall() {
   variable_del('civicrm_instrument_gid');
 }
 
-
 /* update */
-function civicrm_instrument_update_6001(){
-  civicrm_initialize( );
+function civicrm_instrument_update_6001() {
+  civicrm_initialize();
 
   $query = "UPDATE civicrm_payment_processor_type SET is_active = 0 WHERE name != 'GW' AND name != 'Neweb'";
   CRM_Core_DAO::executeQuery($query);
 
-  return array('success' => 'Successful update. ', 'query' => check_plain($query));
+  return ['success' => 'Successful update. ', 'query' => check_plain($query)];
 }
 
-function civicrm_instrument_update_6002(){
-  civicrm_initialize( );
+function civicrm_instrument_update_6002() {
+  civicrm_initialize();
   require_once "CRM/Core/DAO.php";
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
 
@@ -133,60 +132,60 @@ function civicrm_instrument_update_6002(){
   require_once('CRM/Core/OptionValue.php');
   require_once('CRM/Core/Action.php');
   // Add contribution instruments
-  $definition = array(
+  $definition = [
     'UnionPay' => '銀聯卡',
-  );
+  ];
 
-  $values = array();
+  $values = [];
   $values = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
-  $group_params = array('name' => 'payment_instrument');
-  $params = array(
+  $group_params = ['name' => 'payment_instrument'];
+  $params = [
     'is_active' => 1,
-  );
-  foreach($definition as $name => $label){
-    $params = array();
+  ];
+  foreach ($definition as $name => $label) {
+    $params = [];
     $params['label'] = $label;
     $params['name'] = $name;
     $params['is_active'] = 1;
-    if($values[$label]){
+    if ($values[$label]) {
       // skipped, won't update.
     }
-    else{
+    else {
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
       CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
     }
   }
-  return array('success' => 'Successful added UnionPay payment method', 'query' => 'none');
+  return ['success' => 'Successful added UnionPay payment method', 'query' => 'none'];
 }
 
-function civicrm_instrument_update_6003(){
+function civicrm_instrument_update_6003() {
   civicrm_initialize();
-  
+
   $payment_instrument = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
   $payment_instrument = array_keys($payment_instrument);
 
-  $definition = array(
+  $definition = [
     'ApplePay' => 'Apple Pay',
     'GooglePay' => 'Google Pay',
-  );
+  ];
 
-  $values = array();
-  $group_params = array('name' => 'payment_instrument');
-  $params = array(
+  $values = [];
+  $group_params = ['name' => 'payment_instrument'];
+  $params = [
     'is_active' => 1,
-  );
-  foreach($definition as $name => $label){
-    if(!in_array($label, $payment_instrument)){
-      $params = array();
+  ];
+  foreach ($definition as $name => $label) {
+    if (!in_array($label, $payment_instrument)) {
+      $params = [];
       $params['label'] = $label;
       $params['name'] = $name;
       $params['is_active'] = 1;
       $params['is_reserved'] = 1;
-      if($values[$label]){
+      if ($values[$label]) {
         // skipped, won't update.
       }
-      else{
+      else {
         $action = CRM_Core_Action::ADD;
         $option_value_id = 0;
         CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
@@ -198,17 +197,17 @@ function civicrm_instrument_update_6003(){
 /**
  * Add linepay instrument. Refs #23639.
  */
-function civicrm_instrument_update_7004(){
+function civicrm_instrument_update_7004() {
   civicrm_initialize();
   $payment_instrument = CRM_Core_OptionGroup::values('payment_instrument', TRUE);
   $payment_instrument = array_keys($payment_instrument);
 
-  $group_params = array('name' => 'payment_instrument');
-  $params = array();
+  $group_params = ['name' => 'payment_instrument'];
+  $params = [];
   $name = 'LinePay';
   $label = 'LINE Pay';
-  if(!in_array($label, $payment_instrument)){
-    $params = array();
+  if (!in_array($label, $payment_instrument)) {
+    $params = [];
     $params['label'] = 'LINE Pay';
     $params['name'] = 'LinePay';
     $params['is_active'] = 1;
@@ -237,20 +236,20 @@ function civicrm_instrument_update_7106() {
   $payment_instrument = array_keys($payment_instrument);
   $gid = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_option_group WHERE name LIKE 'payment_instrument'");
 
-  $definition = array(
+  $definition = [
     'ACH Bank' => 'ACH 銀行',
     'ACH Post' => 'ACH 郵局',
-  );
+  ];
 
-  $group_params = array('name' => 'payment_instrument');
-  foreach($definition as $name => $label){
-    if(!in_array($label, $payment_instrument)){
-      $params = array();
+  $group_params = ['name' => 'payment_instrument'];
+  foreach ($definition as $name => $label) {
+    if (!in_array($label, $payment_instrument)) {
+      $params = [];
       $params['label'] = $label;
       $params['name'] = $name;
       $params['is_active'] = 1;
       $params['is_reserved'] = 1;
-      $params['weight'] = CRM_Core_DAO::singleValueQuery("SELECT MAX(weight) FROM civicrm_option_value WHERE option_group_id = %1", array(1 => array($gid, 'Positive'))) + 1;
+      $params['weight'] = CRM_Core_DAO::singleValueQuery("SELECT MAX(weight) FROM civicrm_option_value WHERE option_group_id = %1", [1 => [$gid, 'Positive']]) + 1;
       $action = CRM_Core_Action::ADD;
       $option_value_id = 0;
       CRM_Core_OptionValue::addOptionValue($params, $group_params, $action, $option_value_id);
@@ -267,17 +266,17 @@ function civicrm_instrument_update_7107() {
   $instruments = CRM_Contribute_PseudoConstant::paymentInstrument();
   // Credit card enabled
   if (!empty($instruments[1]) && ($instruments[1] == 'Credit Card' || $instruments[1] == ts('Credit Card'))) {
-    $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = %1", array(
-      1 => array('TapPay', 'String')
-    ));
-    $processorIds = array();
-    while($dao->fetch()) {
+    $dao = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE payment_processor_type = %1", [
+      1 => ['TapPay', 'String']
+    ]);
+    $processorIds = [];
+    while ($dao->fetch()) {
       $processorIds[] = $dao->id;
     }
     if (!empty($processorIds)) {
-      CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = 1 WHERE payment_instrument_id IS NULL AND payment_processor_id IN (%1)", array(
-        1 => array(implode(',', $processorIds), 'CSInts')
-      ));
+      CRM_Core_DAO::executeQuery("UPDATE civicrm_contribution SET payment_instrument_id = 1 WHERE payment_instrument_id IS NULL AND payment_processor_id IN (%1)", [
+        1 => [implode(',', $processorIds), 'CSInts']
+      ]);
     }
   }
 }

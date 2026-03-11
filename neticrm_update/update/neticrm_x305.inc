@@ -9,12 +9,12 @@ function _neticrm_update_update_x305() {
   if (empty($ruleId)) {
     $typeId = CRM_Core_DAO::singleValueQuery("SELECT id FROM `civicrm_mailing_bounce_type` WHERE name = 'Relay'");
     $sql = "INSERT INTO `civicrm_mailing_bounce_pattern` (`bounce_type_id`, `pattern`) VALUES (%1, '550.+blacklisted');";
-    CRM_Core_DAO::executeQuery($sql, array(
-      1 => array($typeId, 'Positive'),
-    ));
+    CRM_Core_DAO::executeQuery($sql, [
+      1 => [$typeId, 'Positive'],
+    ]);
     return 'Added pattern successed.';
   }
   else {
     return 'The pattern already exists, skipped.';
   }
-} 
+}

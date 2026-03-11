@@ -2,16 +2,16 @@
 
 function civicrm_backer_autoimport_install() {
   civicrm_initialize();
-  
+
   $exists = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor_type WHERE class_name LIKE 'Payment_Backer'");
-  if (!$exists){
+  if (!$exists) {
     $sql = "INSERT INTO civicrm_payment_processor_type (name, title, description, is_active, is_default, user_name_label, password_label, signature_label, subject_label, class_name, url_site_default, url_api_default, url_recur_default, url_button_default, url_site_test_default, url_api_test_default, url_recur_test_default, url_button_test_default, billing_mode, is_recur ) VALUES ('BACKER', '".ts("Backer Founder")."', NULL, 1, 0, '".ts('Contribution Page')."', 'Secret Key', NULL, NULL, 'Payment_Backer', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 7, 0)";
     CRM_Core_DAO::executeQuery($sql);
   }
 
   // add relationship
   $types = CRM_Core_PseudoConstant::relationshipType();
-  foreach($types as $tid => $type) {
+  foreach ($types as $tid => $type) {
     if ($type['label_a_b'] == ts('Orderer') && $type['label_b_a'] == ts('Recipient') && $type['contact_type_a'] == '' && $type['contact_type_b'] == '') {
       $rtypeId = $tid;
       break;
@@ -22,7 +22,7 @@ function civicrm_backer_autoimport_install() {
     }
   }
   if (!$rtypeId) {
-    $params = array(
+    $params = [
       'label_a_b' => ts('Orderer'),
       'label_b_a' => ts('Recipient'),
       'description' => ts("Used for").': '.ts('Backer Auto Import'),
@@ -34,22 +34,22 @@ function civicrm_backer_autoimport_install() {
       'contact_types_b' => '',
       'contact_sub_type_a' => '',
       'contact_sub_type_b' => '',
-    );
-    $ids = array();
+    ];
+    $ids = [];
     $saved = CRM_Contact_BAO_RelationshipType::add($params, $ids);
     $rtypeId = $saved->id;
   }
-  $params = array(
+  $params = [
     'backerFounderRelationship' => $rtypeId,
-  );
+  ];
   CRM_Core_BAO_ConfigSetting::add($params);
 
   // Add backer custom receipt options. Refs #38459.
-  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $backerReceiptOptions = ['single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據'];
   $config = CRM_Core_Config::singleton();
   $fieldId = $config->receiptYesNo;
   $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
-  $params = array( 1 => array($fieldId, 'Positive'));
+  $params = [ 1 => [$fieldId, 'Positive']];
   $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
   foreach ($backerReceiptOptions as $option_value => $option_lebel) {
     $optionValue = new CRM_Core_DAO_OptionValue();
@@ -65,13 +65,13 @@ function civicrm_backer_autoimport_install() {
 /**
  * Add backer custom receipt options. Refs #38459.
  */
-function civicrm_backer_autoimport_update_7101(){
+function civicrm_backer_autoimport_update_7101() {
   civicrm_initialize();
-  $backerReceiptOptions = array('single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據');
+  $backerReceiptOptions = ['single_e_receipt' => '單次寄送電子收據', 'annual_e_receipt' => '年度寄送電子收據'];
   $config = CRM_Core_Config::singleton();
   $fieldId = $config->receiptYesNo;
   $sql = "SELECT option_group_id FROM civicrm_custom_field WHERE id = %1";
-  $params = array( 1 => array($fieldId, 'Positive'));
+  $params = [ 1 => [$fieldId, 'Positive']];
   $groupId = CRM_Core_DAO::singleValueQuery($sql, $params);
   foreach ($backerReceiptOptions as $option_value => $option_lebel) {
     $optionValue = new CRM_Core_DAO_OptionValue();

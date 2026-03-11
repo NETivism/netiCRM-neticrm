@@ -1,18 +1,18 @@
 <?php
 
-function _neticrm_update_update_7247(){
+function _neticrm_update_update_7247() {
   civicrm_initialize();
   $sql = "SELECT @@GLOBAL.innodb_file_format;";
   $value = CRM_Core_DAO::singleValueQuery($sql);
-  if($value == 'Antelope'){
-    CRM_Core_Error::debug_log_message("Database variable 'innodb_file_format' is not 'Barracuda', Stop update.", true);
-    return False;
+  if ($value == 'Antelope') {
+    CRM_Core_Error::debug_log_message("Database variable 'innodb_file_format' is not 'Barracuda', Stop update.", TRUE);
+    return FALSE;
   }
 
   $converter = new CRMCharsetConverter($charset, $collation);
   $dao = CRM_Core_DAO::executeQuery("SHOW DATABASES");
-  while($dao->fetch()){
-    if($dao->Database != 'information_schema'){
+  while ($dao->fetch()) {
+    if ($dao->Database != 'information_schema') {
       $databases[] = $dao->Database;
     }
   }
@@ -65,18 +65,20 @@ class CRMCharsetConverter {
    *
    * @see DatabaseConnection::query()
    */
-  public function query($query, array $args = array()) {
+  public function query($query, array $args = []) {
     $i = 0;
-    $params = array();
+    $params = [];
     foreach ($args as $str => $value) {
       $i++;
-      $query = str_replace($str, '%'.$i , $query);
-      if($str == ':comment'){
-        $params[$i] = array($value, 'String');
-      }elseif($str == ':default'){
+      $query = str_replace($str, '%'.$i, $query);
+      if ($str == ':comment') {
+        $params[$i] = [$value, 'String'];
+      }
+      elseif ($str == ':default') {
         $params[$i] = $value;
-      }else{
-        $params[$i] = array($value, 'Text');
+      }
+      else {
+        $params[$i] = [$value, 'Text'];
       }
     }
     $dao = CRM_Core_DAO::executeQuery($query, $params);
@@ -120,10 +122,10 @@ class CRMCharsetConverter {
     CRM_Core_Error::debug_log_message('Converting database: ' . $database_name, 1);
     $sql = "ALTER DATABASE `" . $database_name . "` CHARACTER SET = :charset COLLATE = :collation;";
 
-    return $this->query($sql, array(
+    return $this->query($sql, [
       ':charset' => $charset ? $charset : $this->charset,
       ':collation' => $collation ? $collation : $this->collation,
-    ));
+    ]);
   }
 
   /**
@@ -142,9 +144,9 @@ class CRMCharsetConverter {
     // Deal only with Drupal managed tables.
     $dao = CRM_Core_DAO::executeQuery("SHOW TABLES");
     $inx = "Tables_in_".$database;
-    while($dao->fetch()){
-      $table_name = $dao->{$inx}; 
-      if(strpos($table_name, 'civicrm') === 0){
+    while ($dao->fetch()) {
+      $table_name = $dao->{$inx};
+      if (strpos($table_name, 'civicrm') === 0) {
         $this->convertTable($table_name, $charset, $collation);
       }
     }
@@ -172,10 +174,10 @@ class CRMCharsetConverter {
     $this->query("ALTER TABLE " . $table_name . " ROW_FORMAT=DYNAMIC ENGINE=INNODB");
     $sql = "ALTER TABLE " . $table_name . " CHARACTER SET = :charset COLLATE = :collation";
     CRM_Core_Error::debug_log_message('Converting table: ' . $table_name, 1);
-    $result = $this->query($sql, array(
+    $result = $this->query($sql, [
       ':charset' => $charset ? $charset : $this->charset,
       ':collation' => $collation ? $collation : $this->collation,
-    ));
+    ]);
     $this->convertTableFields($table_name, $charset, $collation);
     $this->query("OPTIMIZE TABLE " . $table_name);
     return $result;
@@ -198,7 +200,7 @@ class CRMCharsetConverter {
     $row = CRM_Core_DAO::executeQuery("SHOW FULL FIELDS FROM " . $table_name);
     $charset = $charset ? $charset : $this->charset;
     $collation = $collation ? $collation : $this->collation;
-    while($row->fetch()){
+    while ($row->fetch()) {
       // Skip fields that don't have collation, as they are probably int or similar.
       // or if we are using that collation for this field already save a query
       // or is not binary.
@@ -246,20 +248,22 @@ class CRMCharsetConverter {
               $row->Extra . " " .
               "COMMENT :comment";
 
-      $params = array(
+      $params = [
         ':charset' => $charset,
         ':collation' => $collation,
         ':comment' => $row->Comment,
-      );
+      ];
       if (strstr($default, ':default')) {
-        if($row->Default == "CURRENT_TIMESTAMP" ){
-          $params[':default'] = array("CURRENT_TIMESTAMP", "Text");
-        }elseif(CRM_Utils_Rule::numeric($row->Default)){
-          $params[':default'] = array($row->Default, "Int");
-        }else{
-          $params[':default'] = array($row->Default, "String");
+        if ($row->Default == "CURRENT_TIMESTAMP") {
+          $params[':default'] = ["CURRENT_TIMESTAMP", "Text"];
         }
-        
+        elseif (CRM_Utils_Rule::numeric($row->Default)) {
+          $params[':default'] = [$row->Default, "Int"];
+        }
+        else {
+          $params[':default'] = [$row->Default, "String"];
+        }
+
       }
       $this->query($sql, $params);
     }
