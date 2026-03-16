@@ -303,3 +303,10 @@ function neticrm_update_update_9330() {
 function neticrm_update_update_9331() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #45798, Disable removed payment processor types and their instances.
+ */
+function neticrm_update_update_9332() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
