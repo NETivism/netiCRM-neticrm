@@ -979,3 +979,10 @@ function neticrm_update_update_7331() {
 function neticrm_update_update_7332() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #44373, Add missing uid column to civicrm_contribution_mypay_log.
+ */
+function neticrm_update_update_7333() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
