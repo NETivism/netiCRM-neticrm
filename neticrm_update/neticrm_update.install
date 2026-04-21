@@ -317,3 +317,10 @@ function neticrm_update_update_9332() {
 function neticrm_update_update_9333() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #45339, rename CKEditor option label to CKEditor4
+ */
+function neticrm_update_update_9334() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
