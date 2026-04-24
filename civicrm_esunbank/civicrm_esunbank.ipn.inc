@@ -167,6 +167,7 @@ class CRM_Core_Payment_ESUNBANKIPN extends CRM_Core_Payment_BaseIPN {
       $note .= $input['instrument']."\n";
       $note .= 'Bank process date:'. $input['process_date'];
       $this->addNote($note, $contribution);
+      $transaction->commit();
 
       // printing OK!!
       return 'OK';
