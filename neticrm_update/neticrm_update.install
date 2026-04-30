@@ -338,3 +338,10 @@ function neticrm_update_update_9335() {
 function neticrm_update_update_9336() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #43799, add show_remaining to civicrm_price_set
+ */
+function neticrm_update_update_9337() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
