@@ -993,3 +993,10 @@ function neticrm_update_update_7333() {
 function neticrm_update_update_7334() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #42832, set useReceiptTitleForDonorCredit default (0 for existing sites)
+ */
+function neticrm_update_update_7335() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
