@@ -120,6 +120,8 @@ function civicrm_event_parent_civicrm_buildForm_regRegister($formName, &$form) {
     return;
   }
 
+  $action = $form->getVar('_action');
+
   $cid = CRM_Utils_Request::retrieve('cid', 'Integer', $form, FALSE, NULL, $_REQUEST);
   $session = CRM_Core_Session::singleton();
   $contact_id = $session->get('userID');
@@ -142,16 +144,18 @@ function civicrm_event_parent_civicrm_buildForm_regRegister($formName, &$form) {
 
     // handling redirection
     if ($cid === NULL && $contact_id && $uid) {
-      drupal_goto('civicrm/event/register', ['query' => [
-        'reset' => 1,
-        'cid' => 0,
-        'mainID' => $contact_id,
-        'id' => $event_id,
-      ]]);
+      $query = ['reset' => 1, 'cid' => 0, 'mainID' => $contact_id, 'id' => $event_id];
+      if ($action & CRM_Core_Action::PREVIEW) {
+        $query['action'] = 'preview';
+      }
+      drupal_goto('civicrm/event/register', ['query' => $query]);
     }
     if (!$mainID) {
       // redirect to parent profile create form
       if (!$uid) {
+        if ($action & CRM_Core_Action::PREVIEW) {
+          $session->set('event_parent_preview', 1);
+        }
         drupal_goto('civicrm/profile/create', ['query' => [
           'gid' => $civicrm_event_parent_gid[$event_id]['parent_gid'],
           'reset' => 1,
@@ -303,7 +307,13 @@ function civicrm_event_parent_civicrm_postProcess_profileEdit($class, &$form) {
   $event_id = CRM_Utils_Request::retrieve('event_id', 'Integer', $form, FALSE, NULL, $_REQUEST);
 
   if ($mainID && $event_id) {
-    $url = CRM_Utils_System::url('civicrm/event/register', "reset=1&id={$event_id}&cid=0&mainID={$mainID}");
+    $session = CRM_Core_Session::singleton();
+    $params = "reset=1&id={$event_id}&cid=0&mainID={$mainID}";
+    if ($session->get('event_parent_preview')) {
+      $params .= "&action=preview";
+      $session->set('event_parent_preview', NULL);
+    }
+    $url = CRM_Utils_System::url('civicrm/event/register', $params);
     CRM_Utils_System::redirect($url);
   }
 }
