@@ -345,3 +345,10 @@ function neticrm_update_update_9336() {
 function neticrm_update_update_9337() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * Add contribution_recur_id and reg_key to civicrm_contribution_linepay for LINE Pay preapproved payment support
+ */
+function neticrm_update_update_9338() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
