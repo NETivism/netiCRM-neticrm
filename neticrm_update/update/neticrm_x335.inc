@@ -1,25 +1,19 @@
 <?php
 function _neticrm_update_update_x335() {
-  $domainId = CRM_Core_Config::domainID();
-  $backend = CRM_Core_DAO::singleValueQuery(
-    "SELECT config_backend FROM civicrm_domain WHERE id = %1",
-    [1 => [$domainId, 'Integer']]
-  );
-  $values = $backend ? unserialize($backend) : [];
-
-  // Skip if already explicitly written (avoid overwriting manual choice)
-  if (is_array($values) && array_key_exists('useReceiptTitleForDonorCredit', $values)) {
-    return 'useReceiptTitleForDonorCredit already set, skipping.';
+  $exists = CRM_Core_DAO::singleValueQuery("
+    SELECT COUNT(*)
+    FROM information_schema.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = 'civicrm_contribution_page'
+      AND COLUMN_NAME = 'redirect_page_id'
+  ");
+  if ($exists) {
+    return 'Column redirect_page_id already exists, skipping.';
   }
-
-  // Detect existing site: has contribution records => upgrade (preserve legacy behavior)
-  $contribCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM civicrm_contribution");
-  if ($contribCount > 0) {
-    $config = CRM_Core_Config::singleton();
-    $configParams = get_object_vars($config);
-    $configParams['useReceiptTitleForDonorCredit'] = 0;
-    CRM_Core_BAO_ConfigSetting::add($configParams);
-    return 'Existing site detected: useReceiptTitleForDonorCredit set to 0 to preserve legacy behavior.';
-  }
-  return 'Fresh install detected: keeping default behavior.';
+  CRM_Core_DAO::executeQuery("
+    ALTER TABLE civicrm_contribution_page
+    ADD COLUMN redirect_page_id INT UNSIGNED DEFAULT NULL
+    COMMENT 'Target contribution page id to redirect when this page is disabled. NULL means show unavailable notice.'
+  ");
+  return 'Column redirect_page_id added to civicrm_contribution_page.';
 }

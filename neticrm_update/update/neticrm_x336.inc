@@ -1,19 +1,25 @@
 <?php
 function _neticrm_update_update_x336() {
-  $exists = CRM_Core_DAO::singleValueQuery("
-    SELECT COUNT(*)
-    FROM information_schema.COLUMNS
-    WHERE TABLE_SCHEMA = DATABASE()
-      AND TABLE_NAME = 'civicrm_price_set'
-      AND COLUMN_NAME = 'show_remaining'
-  ");
-  if ($exists) {
-    return 'Column show_remaining already exists in civicrm_price_set, skipping.';
+  $domainId = CRM_Core_Config::domainID();
+  $backend = CRM_Core_DAO::singleValueQuery(
+    "SELECT config_backend FROM civicrm_domain WHERE id = %1",
+    [1 => [$domainId, 'Integer']]
+  );
+  $values = $backend ? unserialize($backend) : [];
+
+  // Skip if already explicitly written (avoid overwriting manual choice)
+  if (is_array($values) && array_key_exists('useReceiptTitleForDonorCredit', $values)) {
+    return 'useReceiptTitleForDonorCredit already set, skipping.';
   }
-  CRM_Core_DAO::executeQuery("
-    ALTER TABLE civicrm_price_set
-    ADD COLUMN show_remaining TINYINT DEFAULT 0
-    COMMENT 'Show remaining capacity on frontend price field options'
-  ");
-  return 'Column show_remaining added to civicrm_price_set.';
+
+  // Detect existing site: has contribution records => upgrade (preserve legacy behavior)
+  $contribCount = CRM_Core_DAO::singleValueQuery("SELECT COUNT(*) FROM civicrm_contribution");
+  if ($contribCount > 0) {
+    $config = CRM_Core_Config::singleton();
+    $configParams = get_object_vars($config);
+    $configParams['useReceiptTitleForDonorCredit'] = 0;
+    CRM_Core_BAO_ConfigSetting::add($configParams);
+    return 'Existing site detected: useReceiptTitleForDonorCredit set to 0 to preserve legacy behavior.';
+  }
+  return 'Fresh install detected: keeping default behavior.';
 }

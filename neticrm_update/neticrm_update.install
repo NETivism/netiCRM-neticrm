@@ -988,22 +988,29 @@ function neticrm_update_update_7333() {
 }
 
 /**
- * refs #42406, add redirect_page_id to civicrm_contribution_page
+ * refs #45339, rename CKEditor to CKEditor4, add CKEditor5 option, add editor_allow_all_content column
  */
 function neticrm_update_update_7334() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
 /**
- * refs #42832, set useReceiptTitleForDonorCredit default (0 for existing sites)
+ * refs #42406, add redirect_page_id to civicrm_contribution_page
  */
 function neticrm_update_update_7335() {
   return neticrm_update_load_include(__FUNCTION__);
 }
 
 /**
- * refs #43799, add show_remaining to civicrm_price_set
+ * refs #42832, set useReceiptTitleForDonorCredit default (0 for existing sites)
  */
 function neticrm_update_update_7336() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #43799, add show_remaining to civicrm_price_set
+ */
+function neticrm_update_update_7337() {
   return neticrm_update_load_include(__FUNCTION__);
 }
