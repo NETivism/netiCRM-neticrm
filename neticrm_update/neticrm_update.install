@@ -345,3 +345,17 @@ function neticrm_update_update_9336() {
 function neticrm_update_update_9337() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #45339, add CKEditor5 option to wysiwyg_editor for existing sites
+ */
+function neticrm_update_update_9338() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
+
+/**
+ * refs #45339, add editor_allow_all_content column to civicrm_preferences
+ */
+function neticrm_update_update_9339() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
