@@ -50,5 +50,23 @@ function _neticrm_update_update_x334() {
     ");
   }
 
-  return 'CKEditor4 rename + CKEditor5 option + editor_allow_all_content done.';
+  // Step 4: Disable TinyMCE (value=1). It has no registered QuickForm element,
+  // so it is a dead option; existing editor_id=1 sites fall back to textarea.
+  $tinyMceActive = CRM_Core_DAO::singleValueQuery("
+    SELECT ov.is_active
+    FROM civicrm_option_value ov
+    INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id
+    WHERE og.name = 'wysiwyg_editor' AND ov.value = '1'
+  ");
+  if ($tinyMceActive == 1) {
+    CRM_Core_DAO::executeQuery("
+      UPDATE civicrm_option_value ov
+      INNER JOIN civicrm_option_group og ON og.id = ov.option_group_id
+      SET ov.is_active = 0
+      WHERE og.name = 'wysiwyg_editor' AND ov.value = '1'
+    ");
+    CRM_Core_OptionGroup::values('wysiwyg_editor', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
+  }
+
+  return 'CKEditor4 rename + CKEditor5 option + editor_allow_all_content + TinyMCE disabled done.';
 }
