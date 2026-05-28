@@ -1,6 +1,7 @@
 <?php
 function _neticrm_update_update_x334() {
   civicrm_initialize();
+  $messages = [];
 
   // Step 1: Rename CKEditor -> CKEditor4 in wysiwyg_editor option group
   $currentLabel = CRM_Core_DAO::singleValueQuery("
@@ -17,6 +18,10 @@ function _neticrm_update_update_x334() {
       WHERE og.name = 'wysiwyg_editor' AND ov.value = '2'
     ");
     CRM_Core_OptionGroup::values('wysiwyg_editor', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
+    $messages[] = 'CKEditor renamed to CKEditor4.';
+  }
+  else {
+    $messages[] = 'CKEditor rename: skipping.';
   }
 
   // Step 2: Add CKEditor5 (value=4) option to wysiwyg_editor group on existing sites.
@@ -38,6 +43,10 @@ function _neticrm_update_update_x334() {
       WHERE og.name = 'wysiwyg_editor'
     ");
     CRM_Core_OptionGroup::values('wysiwyg_editor', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
+    $messages[] = 'CKEditor5 option added.';
+  }
+  else {
+    $messages[] = 'CKEditor5 option: skipping.';
   }
 
   // Step 3: Add editor_allow_all_content column on existing sites. New sites get it via
@@ -48,6 +57,10 @@ function _neticrm_update_update_x334() {
       ALTER TABLE `civicrm_preferences`
       ADD COLUMN `editor_allow_all_content` tinyint DEFAULT 0 COMMENT 'If set, WYSIWYG editors allow all HTML content including script tags (XSS risk).'
     ");
+    $messages[] = 'editor_allow_all_content column added.';
+  }
+  else {
+    $messages[] = 'editor_allow_all_content column: skipping.';
   }
 
   // Step 4: Disable TinyMCE (value=1). It has no registered QuickForm element,
@@ -66,7 +79,11 @@ function _neticrm_update_update_x334() {
       WHERE og.name = 'wysiwyg_editor' AND ov.value = '1'
     ");
     CRM_Core_OptionGroup::values('wysiwyg_editor', FALSE, FALSE, FALSE, NULL, 'label', TRUE, TRUE);
+    $messages[] = 'TinyMCE disabled.';
+  }
+  else {
+    $messages[] = 'TinyMCE disable: skipping.';
   }
 
-  return 'CKEditor4 rename + CKEditor5 option + editor_allow_all_content + TinyMCE disabled done.';
+  return implode(' ', $messages);
 }
