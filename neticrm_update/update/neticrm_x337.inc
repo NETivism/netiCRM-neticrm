@@ -9,9 +9,9 @@ function _neticrm_update_update_x337() {
       ADD COLUMN `show_remaining` tinyint DEFAULT 0 COMMENT 'Show remaining capacity on frontend price field options'
     EOT;
     CRM_Core_DAO::executeQuery($sql);
-    echo "Added show_remaining to civicrm_price_set.\n";
+    return 'Added show_remaining to civicrm_price_set.';
   }
   else {
-    echo "civicrm_price_set show_remaining already exists, skipping.\n";
+    return 'Column show_remaining already exists in civicrm_price_set, skipping.';
   }
 }
