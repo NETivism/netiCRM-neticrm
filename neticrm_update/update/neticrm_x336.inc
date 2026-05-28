@@ -21,5 +21,5 @@ function _neticrm_update_update_x336() {
     CRM_Core_BAO_ConfigSetting::add($configParams);
     return 'Existing site detected: useReceiptTitleForDonorCredit set to 0 to preserve legacy behavior.';
   }
-  return 'Fresh install detected: keeping default behavior.';
+  return 'Fresh install detected: keeping Variables.php default (1).';
 }
