@@ -31,12 +31,14 @@ function _neticrm_update_update_x322() {
     $sql = "CREATE TABLE civicrm_contribution_mypay_log (
       id int unsigned NOT NULL AUTO_INCREMENT COMMENT 'MyPay Log ID',
       contribution_id int unsigned DEFAULT NULL COMMENT 'Contribuution ID',
+      uid varchar(255) DEFAULT NULL COMMENT 'The uid in mypay transaction.',
       url varchar(255) COMMENT 'Request URL',
-      cmd varchar(255) COMMENT 'Request URL',
+      cmd varchar(255) COMMENT 'Request Command',
       date datetime COMMENT 'Request Date Time',
       post_data text COMMENT 'Request Post Data',
       return_data text COMMENT 'Request Return Data',
       PRIMARY KEY (id),
+      INDEX UI_uid(uid),
       INDEX UI_url(url),
       INDEX UI_date(date),
       CONSTRAINT FK_civicrm_contribution_mypay_log_contribution_id FOREIGN KEY (contribution_id) REFERENCES civicrm_contribution(id) ON DELETE
