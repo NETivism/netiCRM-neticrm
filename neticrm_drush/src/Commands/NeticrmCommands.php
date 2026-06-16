@@ -258,6 +258,15 @@ class NeticrmCommands extends DrushCommands {
             $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
           }
           break;
+        case 'linepay':
+          $error = \CRM_Core_Payment_LinePay::doExecuteAllRecur($time);
+          if (!empty($error)) {
+            throw new \Exception($error);
+          }
+          else {
+            $this->logger("neticrm_drush")->success("$paymentProcessor recurring process success.");
+          }
+          break;
       }
     }
     elseif (!empty($rid) && is_numeric($rid)) {
@@ -267,6 +276,9 @@ class NeticrmCommands extends DrushCommands {
           break;
         case 'spgateway':
           \CRM_Core_Payment_SPGATEWAY::doCheckRecur($rid, $time);
+          break;
+        case 'linepay':
+          \CRM_Core_Payment_LinePay::doCheckRecur($rid, $time);
           break;
       }
     }

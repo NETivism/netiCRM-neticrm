@@ -39,6 +39,38 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form) {
         $form->addCheckBox('payment_instrument', ts('Payment Instrument'), $options);
         $form->setDefaults($default_instruments);
 
+        // refs #45587, LINE Pay preapproved recurring only supports monthly,
+        // disable the yearly recurring unit and explain when LINE Pay is enabled.
+        if ($mobile_payment_processor) {
+          $linepay_name = _civicrm_instrument_form_name('LinePay');
+          $year_desc = ts('LINE Pay recurring contributions only support monthly, yearly is not available.');
+          $js = '
+cj(document).ready(function($){
+  var $linepay = $("input[name=\'payment_instrument[' . $linepay_name . ']\']");
+  var $cell = $(".crm-contribution-form-block-recur_frequency_unit td");
+  var $year = $cell.find("input[name=\'recur_frequency_unit[year]\']");
+  function toggleLinePayYear(){
+    if (!$linepay.length || !$year.length) {
+      return;
+    }
+    if ($linepay.is(":checked")) {
+      $year.prop("checked", false).prop("disabled", true);
+      if ($cell.find(".linepay-year-desc").length === 0) {
+        $cell.append("<span class=\'description linepay-year-desc\'>' . $year_desc . '</span>");
+      }
+    }
+    else {
+      $year.prop("disabled", false);
+      $cell.find(".linepay-year-desc").remove();
+    }
+  }
+  toggleLinePayYear();
+  $linepay.change(toggleLinePayYear);
+});
+';
+          CRM_Utils_System::addJs(['type' => 'inline', 'scope' => 'footer'], $js);
+        }
+
         // Make payment proccessor relative to recur form display.
         /*
         $query = CRM_Core_DAO::executeQuery("SELECT id FROM civicrm_payment_processor WHERE is_recur = 1");
@@ -134,30 +166,43 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form) {
         if (empty($credit_card_iid)) {
           $credit_card_iid = '1';
         }
+        // refs #45587, LINE Pay preapproved recurring is allowed alongside credit card.
+        $linepay_recur_enabled = (!empty($form->_paymentProcessors) && _civicrm_instrument_linepay_recur_enabled($form->_paymentProcessors)) ? '1' : '';
+        $linepay_iid = isset($all_instruments['LinePay']['value']) ? $all_instruments['LinePay']['value'] : '';
         $js = '
         cj(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
             var credit_card_iid = "'.$credit_card_iid.'";
+            var linepay_recur_enabled = "'.$linepay_recur_enabled.'";
+            var linepay_iid = "'.$linepay_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
               // display "need creditcard" message
+              var recur_msg = (linepay_recur_enabled && linepay_iid) ? "'.ts("You have to use credit card or LINE Pay for recurring contribution.").'" : "'.ts("You have to use credit card for recurring contribution.").'";
               if ($(".instrument-section .label .need-creditcard-message").length == 0) {
-                $(".instrument-section .label").append("<div class=\'need-creditcard-message\'>'.ts("You have to use credit card for recurring contribution.").'</div>");
+                $(".instrument-section .label").append("<div class=\'need-creditcard-message\'></div>");
               }
-              $(".need-creditcard-message").show();
+              $(".need-creditcard-message").html(recur_msg).show();
 
-              // disable not creditcard instrument
+              // recurring is allowed for credit card, and for LINE Pay when 定期定額 is enabled
               $creditCardInput = $(".instrument-section [data-credit-card=\'1\']");
-              $notCreditCardInput = $(".instrument-section [data-credit-card=\'0\']");
-              if($creditCardInput.length > 0) {
-                $creditCardInput.attr("checked", true);
-                $("input[name=civicrm_instrument_id]").val(credit_card_iid);
+              $linepayInput = (linepay_recur_enabled && linepay_iid) ? $("#civicrm-instrument-dummy-" + linepay_iid) : $();
+              $allowedRecurInput = $creditCardInput.add($linepayInput);
+              $disableInput = $(".instrument-section [data-credit-card=\'0\']").not($linepayInput);
+
+              $allowedRecurInput.removeAttr("disabled");
+              $disableInput.attr("disabled", "disabled");
+
+              // keep the current selection if it is allowed, otherwise pick the first allowed
+              var $checked = $(".instrument-section input[name=civicrm_instrument_id_dummy]:checked");
+              if ($allowedRecurInput.length > 0 && ($checked.length == 0 || $disableInput.is($checked))) {
+                $allowedRecurInput.first().prop("checked", true);
+                $("input[name=civicrm_instrument_id]").val($allowedRecurInput.first().val());
               }
-              else {
-                $notCreditCardInput.attr("checked", false);
+              else if ($allowedRecurInput.length == 0) {
+                $disableInput.prop("checked", false);
               }
-              $notCreditCardInput.attr("disabled", "disabled");
             }
             else {
               // hide "need creditcard" message
@@ -314,7 +359,11 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
           'required_credit_card' => '',
           'is_recur_only' => '',
         ];
-        if (empty($fields['payment_instrument']['credit_card'])) {
+        // refs #45587, LINE Pay preapproved (定期定額) also supports recurring, so
+        // it satisfies the recurring requirement alongside credit card.
+        $linepayRecur = !empty($fields['payment_instrument']['linepay'])
+          && _civicrm_instrument_linepay_recur_enabled($fields['payment_processor']);
+        if (empty($fields['payment_instrument']['credit_card']) && !$linepayRecur) {
           $problem = ts("Recurring Contribution").": ".ts('%1 is a required field.', [1 => ts('Credit Card')]);
           $js_settings['required_credit_card'] = $problem;
           $errors['payment_instrument_credit_card'] = $problem;
@@ -322,14 +371,20 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
         if (!empty($fields['is_recur_only'])) {
           $problem = ts('You cannot set up a recurring contribution if you are not paying online by credit card.');
           foreach ($fields['payment_instrument'] as $k => $v) {
-            if ($k != 'credit_card') {
-              $js_settings['is_recur_only'] = $problem;
-              $errors['payment_instrument_is_recur_only'] = $problem;
-              break;
+            if ($k == 'credit_card' || ($k == 'linepay' && $linepayRecur)) {
+              continue;
             }
+            $js_settings['is_recur_only'] = $problem;
+            $errors['payment_instrument_is_recur_only'] = $problem;
+            break;
           }
         }
         CRM_Utils_System::addJs(['civicrm_instrument' => $js_settings], 'setting');
+        // refs #45587, block saving a yearly recurring on LINE Pay 定期定額,
+        // which the preapproved flow cannot charge (monthly only).
+        if ($linepayRecur && !empty($fields['recur_frequency_unit']['year'])) {
+          $errors['linepay_recur_year'] = ts('LINE Pay recurring contributions only support monthly, please remove the yearly option.');
+        }
         if (!empty($errors)) {
           $js = 'cj(document).ready(function($){
     if ($("#crm-container label[for^=payment_instrument]").length) {
@@ -537,6 +592,29 @@ cj(document).ready(function($){
  */
 function _civicrm_instrument_form_name($name) {
   return preg_replace('/[^0-9a-z]+/i', '_', strtolower($name));
+}
+
+/**
+ * refs #45587, whether a selected Mobile processor has LINE Pay 定期定額 enabled.
+ *
+ * The recurring flag is stored in the payment processor subject column ('1').
+ */
+function _civicrm_instrument_linepay_recur_enabled($payment_processor) {
+  if (empty($payment_processor) || !is_array($payment_processor)) {
+    return FALSE;
+  }
+  $ids = array_keys(array_filter($payment_processor));
+  if (empty($ids)) {
+    return FALSE;
+  }
+  // include test payment
+  foreach($ids as $id) {
+    if ( $id%2 === 1) {
+      $ids[] = $id+1;
+    }
+  }
+  $ids = implode(',', array_map('intval', $ids));
+  return (bool) CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE id IN ($ids) AND payment_processor_type = 'Mobile' AND subject = '1' AND LENGTH(url_site) > 0 LIMIT 1");
 }
 
 function civicrm_instrument_by_id($id, $field = NULL) {
