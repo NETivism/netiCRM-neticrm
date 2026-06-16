@@ -369,6 +369,15 @@ function drush_neticrm_process_recurring() {
         case 'spgateway':
           CRM_Core_Payment_SPGATEWAY::doExecuteAllRecur($time);
           break;
+        case 'linepay':
+          $error = CRM_Core_Payment_LinePay::doExecuteAllRecur($time);
+          if (!empty($error)) {
+            drush_set_error($error);
+          }
+          else {
+            drush_log("$ppName recurring process success.", "ok");
+          }
+          break;
       }
     }
     elseif (!empty($rId) && is_numeric($rId)) {
@@ -378,6 +387,9 @@ function drush_neticrm_process_recurring() {
           break;
         case 'spgateway':
           CRM_Core_Payment_SPGATEWAY::doCheckRecur($rId, $time);
+          break;
+        case 'linepay':
+          CRM_Core_Payment_LinePay::doCheckRecur($rId, $time);
           break;
       }
     }
