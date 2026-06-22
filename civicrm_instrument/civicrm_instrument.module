@@ -275,39 +275,9 @@ cj(document).ready(function($){
         }
       }
       break;
-    case 'CRM_Admin_Form_PaymentProcessor':
-      if ($form->_defaultValues['payment_processor_type'] == 'Mobile') {
-        $options = [];
-        $is_test = ['0' => '', '1' => 'test_'];
-        $js = '
-jQuery(document).ready(function($){';
-        foreach ($is_test as $is_test_value => $is_test_str) {
-          $options[$is_test_value] = [];
-          $sql = "SELECT id, name, user_name FROM civicrm_payment_processor WHERE class_name IN ('Payment_ALLPAY', 'Payment_SPGATEWAY') AND is_test = $is_test_value GROUP BY user_name;";
-          $dao = CRM_Core_DAO::executeQuery($sql);
-          while ($dao->fetch()) {
-            $options[$is_test_value][] = "<option value='{$dao->id}'>{$dao->user_name} ({$dao->name})</option>";
-          }
-          $text_div = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield")';
-          $text_field = '$(".crm-paymentProcessor-form-block-'.$is_test_str.'user_name .crm-form-textfield input")';
-          $select_field = '$("#'.$is_test_str.'used_payment_processor_id")';
-          $js .= "
-  if({$text_field}.val() == ''){
-    {$text_field}.val('none');
-  }
-  {$text_div}.after(\"<div class='crm-form-select'><select name='{$is_test_str}used_payment_processor_id' id='{$is_test_str}used_payment_processor_id' class='form-select required'><option value='none'>".ts('None')." / ".ts('Line Pay Only')."</option>".implode('', $options[$is_test_value])."</select></div>\")
-  {$select_field}.val({$text_field}.val());
-  {$select_field}.change(function(){
-    {$text_field}.val($(this).val());
-  });
-  {$text_div}.hide();";
-        }
-        $js .= '
-});
-';
-        drupal_add_js($js, ['type' => 'inline', 'scope' => 'footer']);
-      }
-      break;
+    // refs #45595, the Mobile (LINE Pay) payment processor admin form logic was
+    // moved into CRM_Core_Payment_Mobile::getAdminFields() +
+    // templates/CRM/Admin/Form/PaymentProcessor.tpl so the form is self-contained.
   }
 }
 
