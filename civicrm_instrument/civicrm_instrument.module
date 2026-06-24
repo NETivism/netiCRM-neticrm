@@ -27,7 +27,15 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form) {
         $gid = variable_get('civicrm_instrument_gid', 0);
         $option = CRM_Core_DAO::executeQuery("SELECT * FROM civicrm_option_value WHERE option_group_id = {$gid} AND is_active = 1 AND is_reserved = 1 AND name NOT LIKE 'ach%' ORDER BY weight ASC");
 
-        $mobile_payment_processor = CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
+        $mobile_processor = CRM_Core_DAO::executeQuery("SELECT id, subject FROM civicrm_payment_processor WHERE is_active = 1 AND is_test = 0 AND payment_processor_type = 'Mobile';");
+        $mobile_payment_processor = NULL;
+        // refs #45587, the mobile payment subject flag = '1' means LINE Pay
+        // preapproved recurring is enabled in the backend.
+        $linepay_recur_enabled = FALSE;
+        if ($mobile_processor->fetch()) {
+          $mobile_payment_processor = $mobile_processor->id;
+          $linepay_recur_enabled = ((string) $mobile_processor->subject === '1');
+        }
         $mobile_instruments = ['ApplePay', 'ApplePayFront', 'GooglePay', 'LinePay'];
 
         while ($option->fetch()) {
@@ -41,7 +49,8 @@ function civicrm_instrument_civicrm_buildForm($form_name, &$form) {
 
         // refs #45587, LINE Pay preapproved recurring only supports monthly,
         // disable the yearly recurring unit and explain when LINE Pay is enabled.
-        if ($mobile_payment_processor) {
+        // Only apply when the mobile payment subject (LINE Pay Recurring) is checked.
+        if ($mobile_payment_processor && $linepay_recur_enabled) {
           $linepay_name = _civicrm_instrument_form_name('LinePay');
           $year_desc = ts('LINE Pay recurring contributions only support monthly, yearly is not available.');
           $js = '
@@ -168,7 +177,7 @@ cj(document).ready(function($){
         }
         // refs #45587, LINE Pay preapproved recurring is allowed alongside credit card.
         $linepay_recur_enabled = (!empty($form->_paymentProcessors) && _civicrm_instrument_linepay_recur_enabled($form->_paymentProcessors)) ? '1' : '';
-        $linepay_iid = isset($all_instruments['LinePay']['value']) ? $all_instruments['LinePay']['value'] : '';
+        $linepay_iid = $all_instruments['LinePay']['value'] ?? '';
         $js = '
         cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
@@ -275,9 +284,9 @@ cj(document).ready(function($){
         }
       }
       break;
-    // refs #45595, the Mobile (LINE Pay) payment processor admin form logic was
-    // moved into CRM_Core_Payment_Mobile::getAdminFields() +
-    // templates/CRM/Admin/Form/PaymentProcessor.tpl so the form is self-contained.
+      // refs #45595, the Mobile (LINE Pay) payment processor admin form logic was
+      // moved into CRM_Core_Payment_Mobile::getAdminFields() +
+      // templates/CRM/Admin/Form/PaymentProcessor.tpl so the form is self-contained.
   }
 }
 
@@ -579,9 +588,9 @@ function _civicrm_instrument_linepay_recur_enabled($payment_processor) {
     return FALSE;
   }
   // include test payment
-  foreach($ids as $id) {
-    if ( $id%2 === 1) {
-      $ids[] = $id+1;
+  foreach ($ids as $id) {
+    if ($id % 2 === 1) {
+      $ids[] = $id + 1;
     }
   }
   $ids = implode(',', array_map('intval', $ids));
