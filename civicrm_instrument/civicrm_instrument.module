@@ -128,6 +128,10 @@ cj(document).ready(function($){
 
       // check if this page is multiple payment processor
       if (!empty($type) && $snippet == 4) {
+        // refs #45587, re-evaluate LINE Pay recurring against the selected
+        // processor only, so checkRecur() matches the server-side per-processor
+        // validation in CRM_Contribute_Form_Contribution_Main::formRule.
+        $selected_linepay_recur = _civicrm_instrument_linepay_recur_enabled([intval($type) => 1]) ? '1' : '';
         $output = '';
         $output .= '
         <style>
@@ -146,6 +150,7 @@ cj(document).ready(function($){
          }
         </style>
         <script>
+          window.civicrm_instrument_linepay_recur = "'.$selected_linepay_recur.'";
           cj(document).ready(function($){
             checkRecur();
 
@@ -183,7 +188,9 @@ cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
             var credit_card_iid = "'.$credit_card_iid.'";
-            var linepay_recur_enabled = "'.$linepay_recur_enabled.'";
+            // refs #45587, prefer the per-processor flag refreshed on each
+            // payment processor switch (snippet=4), fallback to the page-wide value.
+            var linepay_recur_enabled = window.civicrm_instrument_linepay_recur !== undefined ? window.civicrm_instrument_linepay_recur : "'.$linepay_recur_enabled.'";
             var linepay_iid = "'.$linepay_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
@@ -586,12 +593,10 @@ function _civicrm_instrument_linepay_recur_enabled($payment_processor) {
   if (empty($ids)) {
     return FALSE;
   }
-  // include test payment
-  foreach ($ids as $id) {
-    if ($id % 2 === 1) {
-      $ids[] = $id + 1;
-    }
-  }
+  // Note: no live/test id pairing here. The ids passed in are already the
+  // exact rows the form uses (getPayments() keys test-mode processors by the
+  // test row's own id), so expanding to id+1 would let a test processor's
+  // subject = 1 wrongly enable LINE Pay recurring on a live page.
   $ids = implode(',', array_map('intval', $ids));
   return (bool) CRM_Core_DAO::singleValueQuery("SELECT id FROM civicrm_payment_processor WHERE id IN ($ids) AND payment_processor_type = 'Mobile' AND subject = '1' AND LENGTH(url_site) > 0 LIMIT 1");
 }
