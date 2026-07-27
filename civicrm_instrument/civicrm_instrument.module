@@ -190,7 +190,7 @@ cj(document).ready(function($){
             var credit_card_iid = "'.$credit_card_iid.'";
             // refs #45587, prefer the per-processor flag refreshed on each
             // payment processor switch (snippet=4), fallback to the page-wide value.
-            var linepay_recur_enabled = window.civicrm_instrument_linepay_recur !== undefined ? window.civicrm_instrument_linepay_recur : "'.$linepay_recur_enabled.'";
+            var linepay_recur_enabled = "'.$linepay_recur_enabled.'";
             var linepay_iid = "'.$linepay_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
