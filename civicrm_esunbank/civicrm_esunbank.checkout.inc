@@ -12,10 +12,11 @@
  */
 function civicrm_esunbank_do_transfer_checkout(&$vars, &$component, &$payment_processor, &$form) {
   // First, we insert every contribution into record. After this, we'll use update for the record.
-  $record = ['created' => time()];
+  // Use insertFields() (not fields()) so 'created' is only set on first insert
+  // and is never overwritten by a later merge (e.g. retry/regenerate payment code).
   \Drupal::database()->merge('civicrm_contribution_esunbank')
+    ->insertFields(['created' => time()])
     ->keys(['cid' => $vars['contributionID']])
-    ->fields($record)
     ->execute();
 
   $controller_name = get_class($form->controller);

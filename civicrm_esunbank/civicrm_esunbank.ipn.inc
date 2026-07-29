@@ -3,6 +3,8 @@
  * Helper function for receive pingback from payment server
  */
 function civicrm_esunbank_ipn($post = NULL, $silent = NULL) {
+  ## Can be tested by IPN POST:
+  ## curl -X POST "https://<domain>/payment-esunbank/ipn" --data-urlencode $'Data=20260729,銀行,1,33333000014161,1890,2026-07-29 12:00:00'
   // detect variables
   if (empty($_POST) && empty($post)) {
     CRM_Core_Error::debug_log_message('Esunbank payment error, Could not find POST data from payment server.');
@@ -35,6 +37,7 @@ function civicrm_esunbank_ipn($post = NULL, $silent = NULL) {
           $query->fetch();
           if ($query->id) {
             \Drupal::database()->merge('civicrm_contribution_esunbank')
+              ->insertFields(['created' => time()])
               ->keys(['cid' => $query->id])
               ->fields($response)
               ->execute();
