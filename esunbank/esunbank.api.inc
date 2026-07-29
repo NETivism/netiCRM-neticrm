@@ -114,24 +114,25 @@ function esunbank_check_serial_price($serial, $price) {
 
 function _esunbank_check_calc($serial, $price = NULL) {
   $check = 0;
-  $serial = (string)$serial;
+  $serial = (string) $serial;
   $ary = str_split($serial);
   $ary = array_reverse($ary);
   foreach ($ary as $k => $v) {
     $plus = $k % 9 + 1;
-    $check += $v * $plus;
+    // PHP 8: int*string TypeError on non-numeric chars; (int) matches PHP 7 coercion.
+    $check += (int) $v * $plus;
   }
   if (!empty($price)) {
     $price = (float) $price;
-    $price = (string)$price;
+    $price = (string) $price;
     $ary = str_split($price);
     $ary = array_reverse($ary);
     foreach ($ary as $k => $v) {
       $plus = $k % 9 + 1;
-      $check += $v * $plus;
+      $check += (int) $v * $plus;
     }
   }
-  $check = (string)$check;
+  $check = (string) $check;
   return substr($check, -1);
 }
 
@@ -206,9 +207,10 @@ function _esunbank_store_calc($type, $a, $b, $c) {
 
       // start calc
       if (!is_numeric($char)) {
-        $char = $map[$char];
+        $char = $map[$char] ?? 0;
       }
-      $sum[$k] += $char;
+      // PHP 8: int+string TypeError on leftover non-numeric chars.
+      $sum[$k] += (int) $char;
     }
   }
   $total = array_sum($sum);
@@ -285,20 +287,23 @@ function esunbank_postoffice_b($timestamp, $serial, $a, $c) {
  * 郵局條碼c
  */
 function esunbank_postoffice_c($price) {
-  return (string) $price;
+  // Barcode C is amount digits only; strip decimals (e.g. "1000.00").
+  return (string) (int) $price;
 }
 
 /**
  * 郵局檢查碼
  */
 function _esunbank_postoffice_calc($a, $b, $c) {
-  $ary['a'] = str_split($a);
-  $ary['b'] = str_split($b);
-  $ary['c'] = str_split($c);
+  $ary['a'] = str_split((string) $a);
+  $ary['b'] = str_split((string) $b);
+  $ary['c'] = str_split((string) $c);
   $sum = 0;
   foreach ($ary as $v) {
     foreach ($v as $vv) {
-      $sum += $vv;
+      // PHP 8: int+string TypeError on non-numeric chars (letters/dot).
+      // (int) cast restores PHP 7 coercion (non-numeric => 0).
+      $sum += (int) $vv;
     }
   }
   return $sum % 10;
