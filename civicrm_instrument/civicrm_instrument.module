@@ -180,22 +180,22 @@ cj(document).ready(function($){
         if (empty($credit_card_iid)) {
           $credit_card_iid = '1';
         }
-        // refs #45587, LINE Pay preapproved recurring is allowed alongside credit card.
-        $linepay_recur_enabled = (!empty($form->_paymentProcessors) && _civicrm_instrument_linepay_recur_enabled($form->_paymentProcessors)) ? '1' : '';
+        // refs #45587, is any processor on the page LINE Pay recur enabled (for message text)
+        $linepay_recur_enabled_any = (!empty($form->_paymentProcessors) && _civicrm_instrument_linepay_recur_enabled($form->_paymentProcessors)) ? '1' : '';
         $linepay_iid = $all_instruments['LinePay']['value'] ?? '';
         $js = '
         cj(document).ready(function($){
           // checkRecur function trigger when #is_recur radio options changing.
           checkRecur = function(){
             var credit_card_iid = "'.$credit_card_iid.'";
-            // refs #45587, prefer the per-processor flag refreshed on each
-            // payment processor switch (snippet=4), fallback to the page-wide value.
-            var linepay_recur_enabled = "'.$linepay_recur_enabled.'";
+            var linepay_recur_enabled_any = "'.$linepay_recur_enabled_any.'";
+            // refs #45587, per-processor flag for enabling instrument inputs, refreshed on processor switch
+            var linepay_recur_enabled = window.civicrm_instrument_linepay_recur !== undefined ? window.civicrm_instrument_linepay_recur : linepay_recur_enabled_any;
             var linepay_iid = "'.$linepay_iid.'";
             var is_recur = $("input[name=is_recur]:checked").val();
             if(is_recur == "1") {
               // display "need creditcard" message
-              var recur_msg = (linepay_recur_enabled && linepay_iid) ? "'.ts("You have to use credit card or LINE Pay for recurring contribution.").'" : "'.ts("You have to use credit card for recurring contribution.").'";
+              var recur_msg = (linepay_recur_enabled_any && linepay_iid) ? "'.ts("You have to use credit card or LINE Pay for recurring contribution.").'" : "'.ts("You have to use credit card for recurring contribution.").'";
               if ($(".instrument-section .label .need-creditcard-message").length == 0) {
                 $(".instrument-section .label").append("<div class=\'need-creditcard-message\'></div>");
               }
