@@ -422,7 +422,6 @@ function civicrm_neweb_process_upload($is_test, $pid) {
   else {
     $payment = $p->getPayment($pid, 'live');
   }
-  // $rows = [];
 
   // check first insert and recurring contributions.
   // need check nextday for support neweb only allow upload new transaction after today
