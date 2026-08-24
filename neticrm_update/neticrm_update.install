@@ -359,3 +359,10 @@ function neticrm_update_update_9338() {
 function neticrm_update_update_9339() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #46672, backfill conversation_id for rows written between x339 and the multi turn backend
+ */
+function neticrm_update_update_9340() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
