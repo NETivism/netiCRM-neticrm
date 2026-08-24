@@ -352,3 +352,10 @@ function neticrm_update_update_9337() {
 function neticrm_update_update_9338() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #46672, add conversation_id to civicrm_aicompletion for multi turn AI chat
+ */
+function neticrm_update_update_9339() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
