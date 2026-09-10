@@ -1,7 +1,21 @@
 <?php
 
+use Drupal\neticrm_drush\MessageTemplateScanner;
+
 function neticrm_drush_drush_command() {
   $items = [];
+  $items['neticrm-message-template-scan'] = [
+    'description' => 'Check custom message templates, then enable secure Smarty rendering.',
+    'examples' => [
+      'drush neticrm-message-template-scan --check-only' => 'Report incompatible custom templates without enabling strict rendering.',
+      'drush neticrm-message-template-scan' => 'Enable secure rendering only after every custom template passes.',
+    ],
+    'options' => [
+      'check-only' => 'Validate templates without changing civicrm.settings.php.',
+    ],
+    'aliases' => ['neticrm:message-template-scan'],
+    'callback' => 'drush_neticrm_message_template_scan',
+  ];
   $items['neticrm-schedule'] = [
     'description' => 'Process sending civicrm command line schedule job',
     'examples' => [
@@ -119,6 +133,55 @@ function neticrm_drush_drush_command() {
   ];
 
   return $items;
+}
+
+/**
+ * Check custom message templates, then enable secure Smarty rendering.
+ */
+function drush_neticrm_message_template_scan() {
+  _neticrm_drush_init();
+  require_once __DIR__ . '/src/MessageTemplateScanner.php';
+
+  $dao = CRM_Core_DAO::executeQuery('SELECT id, workflow_id, is_default, is_reserved, msg_subject, msg_text, msg_html FROM civicrm_msg_template ORDER BY id');
+  $templates = [];
+  while ($dao->fetch()) {
+    $templates[] = $dao->toArray();
+  }
+  $dao->free();
+  $templates = MessageTemplateScanner::customTemplates($templates);
+  $failures = 0;
+  foreach ($templates as $template) {
+    foreach (MessageTemplateScanner::FIELDS as $field) {
+      try {
+        // Compile only: never render database content or send a message.
+        $problems = CRM_Core_Smarty::validateUntrusted((string) $template[$field], TRUE);
+      }
+      catch (Throwable $e) {
+        $problems = [$e->getMessage()];
+      }
+      foreach ($problems as $problem) {
+        drush_log(sprintf('Template %d, %s: %s', $template['id'], $field, $problem), 'error');
+        $failures++;
+      }
+    }
+  }
+  if ($failures) {
+    return drush_set_error('NETICRM_MESSAGE_TEMPLATE_SCAN', sprintf('%d template problems found; CiviCRM settings were not changed.', $failures));
+  }
+  drush_log(sprintf('%d custom message templates passed strict validation.', count($templates)), 'ok');
+  if (drush_get_option('check-only', FALSE)) {
+    return;
+  }
+  if (!defined('CIVICRM_SETTINGS_PATH')) {
+    return drush_set_error('NETICRM_MESSAGE_TEMPLATE_SCAN', 'CIVICRM_SETTINGS_PATH is not defined; strict rendering was not enabled.');
+  }
+  try {
+    MessageTemplateScanner::enable(CIVICRM_SETTINGS_PATH);
+  }
+  catch (Throwable $e) {
+    return drush_set_error('NETICRM_MESSAGE_TEMPLATE_SCAN', $e->getMessage());
+  }
+  drush_log('CIVICRM_SECURE_MESSAGE_TEMPLATES is enabled in civicrm.settings.php for subsequent requests.', 'ok');
 }
 
 function drush_neticrm_schedule_job($function = NULL) {

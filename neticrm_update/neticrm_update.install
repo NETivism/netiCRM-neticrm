@@ -1035,3 +1035,10 @@ function neticrm_update_update_7339() {
 function neticrm_update_update_7340() {
   return neticrm_update_load_include(__FUNCTION__);
 }
+
+/**
+ * refs #47845, repair the PCP supporter notification text template.
+ */
+function neticrm_update_update_7341() {
+  return neticrm_update_load_include(__FUNCTION__);
+}
