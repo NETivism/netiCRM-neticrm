@@ -3,8 +3,59 @@
 namespace Drupal\neticrm_drush\Commands;
 
 use Drush\Commands\DrushCommands;
+use Drupal\neticrm_drush\MessageTemplateScanner;
 
 class NeticrmCommands extends DrushCommands {
+  /**
+   * Check custom message templates, then enable secure Smarty rendering.
+   *
+   * @command neticrm:message-template-scan
+   * @aliases neticrm-message-template-scan
+   * @option check-only Validate templates without changing civicrm.settings.php.
+   * @usage drush neticrm:message-template-scan --check-only
+   *   Report incompatible custom templates without enabling strict rendering.
+   * @usage drush neticrm:message-template-scan
+   *   Enable secure rendering only after every custom template passes.
+   */
+  public function messageTemplateScan($options = ['check-only' => FALSE]) {
+    \Drupal::service('civicrm')->initialize();
+    $dao = \CRM_Core_DAO::executeQuery('SELECT id, workflow_id, is_default, is_reserved, msg_subject, msg_text, msg_html FROM civicrm_msg_template ORDER BY id');
+    $templates = [];
+    while ($dao->fetch()) {
+      $templates[] = $dao->toArray();
+    }
+    $dao->free();
+    $templates = MessageTemplateScanner::customTemplates($templates);
+    $failures = 0;
+    foreach ($templates as $template) {
+      foreach (MessageTemplateScanner::FIELDS as $field) {
+        try {
+          // Compile only: never render database content or send a message.
+          $problems = \CRM_Core_Smarty::validateUntrusted((string) $template[$field], TRUE);
+        }
+        catch (\Throwable $e) {
+          $problems = [$e->getMessage()];
+        }
+        foreach ($problems as $problem) {
+          $this->logger()->error(sprintf('Template %d, %s: %s', $template['id'], $field, $problem));
+          $failures++;
+        }
+      }
+    }
+    if ($failures) {
+      throw new \RuntimeException(sprintf('%d template problems found; CiviCRM settings were not changed.', $failures));
+    }
+    $this->logger()->success(sprintf('%d custom message templates passed strict validation.', count($templates)));
+    if (!empty($options['check-only'])) {
+      return;
+    }
+    if (!defined('CIVICRM_SETTINGS_PATH')) {
+      throw new \RuntimeException('CIVICRM_SETTINGS_PATH is not defined; strict rendering was not enabled.');
+    }
+    MessageTemplateScanner::enable(CIVICRM_SETTINGS_PATH);
+    $this->logger()->success('CIVICRM_SECURE_MESSAGE_TEMPLATES is enabled in civicrm.settings.php for subsequent requests.');
+  }
+
   /**
    * Run neticrm schedule job base on frequency
    *
