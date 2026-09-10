@@ -10,7 +10,7 @@ class MessageTemplateScanner {
   const FIELDS = ['msg_subject', 'msg_text', 'msg_html'];
 
   /**
-   * Find user templates and workflow defaults changed from the reserved copy.
+   * Find workflow defaults changed from or missing their reserved copy.
    */
   public static function customTemplates(array $templates): array {
     $reserved = [];
@@ -22,14 +22,15 @@ class MessageTemplateScanner {
 
     $custom = [];
     foreach ($templates as $template) {
-      if (!empty($template['is_reserved'])) {
+      // Newsletter and ordinary user templates do not use Smarty rendering.
+      if (!empty($template['is_reserved']) || empty($template['workflow_id']) || empty($template['is_default'])) {
         continue;
       }
       $workflow = $template['workflow_id'];
-      if (empty($workflow) || (!empty($template['is_default']) && !isset($reserved[$workflow]))) {
+      if (!isset($reserved[$workflow])) {
         $custom[] = $template;
       }
-      elseif (!empty($template['is_default'])) {
+      else {
         foreach (self::FIELDS as $field) {
           if ((string) $template[$field] !== (string) $reserved[$workflow][$field]) {
             $custom[] = $template;

@@ -19,7 +19,7 @@ class NeticrmCommands extends DrushCommands {
    */
   public function messageTemplateScan($options = ['check-only' => FALSE]) {
     \Drupal::service('civicrm')->initialize();
-    $dao = \CRM_Core_DAO::executeQuery('SELECT id, workflow_id, is_default, is_reserved, msg_subject, msg_text, msg_html FROM civicrm_msg_template ORDER BY id');
+    $dao = \CRM_Core_DAO::executeQuery('SELECT id, workflow_id, is_default, is_reserved, msg_subject, msg_text, msg_html FROM civicrm_msg_template WHERE workflow_id IS NOT NULL AND (is_default = 1 OR is_reserved = 1) ORDER BY id');
     $templates = [];
     while ($dao->fetch()) {
       $templates[] = $dao->toArray();
