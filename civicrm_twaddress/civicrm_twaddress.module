@@ -181,11 +181,13 @@ function checkForm(){
 
   $enable = TRUE;
   $override = [];
+  $is_dynamic = FALSE;
   $form_name = $form->_attributes['name'];
   // For user edit -> profile edit page, Dynamic panel.
   if ($form_name == 'Dynamic') {
     $is_dynamic = TRUE;
-    if (is_numeric(strpos($_GET['q'], 'user/register'))) {
+    // Drupal 10 has no $_GET['q'], tell the two CMS pages apart by route.
+    if (\Drupal::routeMatch()->getRouteName() === 'user.register') {
       $form_name = 'user-register-form';
     }
     else {
