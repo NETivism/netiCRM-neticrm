@@ -109,6 +109,7 @@ cj(document).ready(function($){
       }
       $active_instruments = _civicrm_instrument_prepare_active($entity_id, $entity_table);
       $all_instruments = _civicrm_instrument_prepare_all();
+      _civicrm_instrument_filter_processors($form, $form_name, $active_instruments);
       if (!empty($form->_submitValues['civicrm_instrument_id'])) {
         $default_instrument = $form->_submitValues['civicrm_instrument_id'];
       }
@@ -284,7 +285,7 @@ cj(document).ready(function($){
         if (!empty($form->_paymentProcessors)) {
           $default_instrument_id = [];
           foreach ($form->_paymentProcessors as $processor) {
-            $radios = _civicrm_instrument_radios($processor['payment_processor_type'], $all_instruments, $active_instruments);
+            $radios = _civicrm_instrument_radios($processor['payment_processor_type'], $all_instruments, $active_instruments, $processor);
             $default_instrument_id[] = key($radios);
           }
           sort($default_instrument_id);
@@ -329,7 +330,7 @@ function civicrm_instrument_civicrm_validate($form_name, &$fields, &$files, &$fo
         }
         $all_instruments = _civicrm_instrument_prepare_all();
         $active_instruments = _civicrm_instrument_prepare_active($entity_id, $entity_table);
-        $radios = _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments);
+        $radios = _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments, $form->_paymentProcessor);
         if (!isset($radios[$fields['civicrm_instrument_id_dummy']])) {
           return [
             'payment_processor' => ts('%1 is a required field.', [1 => ts('Payment Instruments')]),
@@ -581,6 +582,121 @@ function _civicrm_instrument_form_name($name) {
 }
 
 /**
+ * refs #46493, drop the payment options that have no usable instrument left.
+ *
+ * A mobile payment processor can only offer the instruments enabled on the
+ * page. When none of them is usable, e.g. the page enabled LINE Pay alone
+ * while the processor has no LINE Pay Channel settings, it has nothing to
+ * offer, so take it out of the payment option radios the form just built.
+ * Dropping the last option leaves the page with no way to pay, which is
+ * flagged the same way CRM_Contribute_Form_ContributionBase does.
+ */
+function _civicrm_instrument_filter_processors(&$form, $form_name, $active_instruments) {
+  if (!in_array($form_name, ['CRM_Contribute_Form_Contribution_Main', 'CRM_Event_Form_Registration_Register'])) {
+    return;
+  }
+  // the instrument block is requested for one processor only, nothing to filter
+  if (CRM_Utils_Array::value('snippet', $_GET) == 4) {
+    return;
+  }
+  $payment_processors = $form->get('paymentProcessors');
+  // elementExists() is isset($form->_elementIndex[...]), getElement() on a
+  // missing element raises a PEAR error and CiviCRM turns that into a fatal.
+  if (empty($payment_processors) || !$form->elementExists('payment_processor')) {
+    return;
+  }
+  // nothing to choose from: the forms fall back to a hidden payment_processor
+  $group = $form->getElement('payment_processor');
+  if (!$group instanceof HTML_QuickForm_group) {
+    return;
+  }
+
+  $mobile_instruments = _civicrm_instrument_get_mobile_instruments();
+  $removed = [];
+  foreach ($payment_processors as $pp_id => $payment_processor) {
+    // the other processor types don't depend on the instruments of this page
+    if (CRM_Utils_Array::value('payment_processor_type', $payment_processor) !== 'Mobile') {
+      continue;
+    }
+    $usable = FALSE;
+    foreach ($mobile_instruments as $name) {
+      $radio_name = _civicrm_instrument_form_name($name);
+      if (!empty($active_instruments[$radio_name])
+        && _civicrm_instrument_mobile_available($name, $payment_processor)
+      ) {
+        $usable = TRUE;
+        break;
+      }
+    }
+    if (!$usable) {
+      $removed[$pp_id] = $pp_id;
+      unset($payment_processors[$pp_id]);
+    }
+  }
+  if (empty($removed)) {
+    return;
+  }
+
+  $form->_paymentProcessors = $payment_processors;
+  $form->set('paymentProcessors', $payment_processors);
+
+  // take the dropped processors out of the radio group the form already built
+  $options = [];
+  $checked_removed = FALSE;
+  foreach ($group->getElements() as $option) {
+    if (isset($removed[$option->getValue()])) {
+      $checked_removed = $checked_removed || $option->getChecked();
+      continue;
+    }
+    $options[] = $option;
+  }
+  $group->setElements($options);
+
+  if (empty($payment_processors)) {
+    $is_pay_later = $form_name == 'CRM_Contribute_Form_Contribution_Main'
+      ? !empty($form->_values['is_pay_later'])
+      : !empty($form->_values['event']['is_pay_later']);
+    if (!$is_pay_later) {
+      $form->assign('paymentProcessorConfigError', TRUE);
+      $form->assign('isPreviewMode', $form->getVar('_action') == CRM_Core_Action::PREVIEW);
+      $form->set('paymentProcessorConfigError', TRUE);
+    }
+    return;
+  }
+
+  // the dropped processor may have been the selected one, pick again
+  if ($checked_removed || count($options) == 1) {
+    $default_id = key($payment_processors);
+    foreach ($payment_processors as $pp_id => $values) {
+      if (!empty($values['is_default'])) {
+        $default_id = $pp_id;
+        break;
+      }
+    }
+    $form->setDefaults(['payment_processor' => $default_id]);
+    $payment_processor = CRM_Core_BAO_PaymentProcessor::getPayment($default_id, $form->getVar('_mode'));
+    $form->_paymentProcessor = $payment_processor;
+    $form->set('paymentProcessor', $payment_processor);
+    $form->assign('paymentProcessor', $payment_processor);
+  }
+}
+
+/**
+ * refs #46493, whether a mobile instrument is usable with a payment processor.
+ *
+ * LINE Pay needs the Channel ID and the Channel Secret as a complete pair, so
+ * it can not be offered when only one of them is filled in the backend.
+ */
+function _civicrm_instrument_mobile_available($name, $payment_processor) {
+  if ($name === 'LinePay' && !empty($payment_processor)
+    && (empty($payment_processor['url_site']) || empty($payment_processor['url_api']))
+  ) {
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
  * refs #45587, whether a selected Mobile processor has LINE Pay 定期定額 enabled.
  *
  * The recurring flag is stored in the payment processor subject column ('1').
@@ -624,7 +740,7 @@ function civicrm_instrument_by_name($name, $field = NULL) {
 }
 
 function civicrm_instrument_attach_instrument($form, &$all_instruments, &$active_instruments, $default_instrument = 0, $js = FALSE) {
-  $radios = _civicrm_instrument_radios($form->_paymentProcessor['payment_processor_type'], $all_instruments, $active_instruments);
+  $radios = _civicrm_instrument_radios($form->_paymentProcessor['payment_processor_type'], $all_instruments, $active_instruments, $form->_paymentProcessor);
   $mobile_instruments = _civicrm_instrument_get_mobile_instruments();
 
   // we have real active instruments in radios array
@@ -725,7 +841,7 @@ function _civicrm_instrument_prepare_all() {
   }
   return $all_instruments;
 }
-function _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments) {
+function _civicrm_instrument_radios($processor_type, $all_instruments, $active_instruments, $payment_processor = NULL) {
   $radios = [];
   if (strstr($processor_type, 'ALLPAY')) {
     $enabled_instruments = CRM_Core_Payment_ALLPAY::getInstruments();
@@ -888,6 +1004,9 @@ function _civicrm_instrument_radios($processor_type, $all_instruments, $active_i
     $mobile_instruments = _civicrm_instrument_get_mobile_instruments();
     $path = \Drupal::service('extension.list.module')->getPath('civicrm_instrument').'/images/';
     foreach ($mobile_instruments as $name) {
+      if (!_civicrm_instrument_mobile_available($name, $payment_processor)) {
+        continue;
+      }
       $radio_name = _civicrm_instrument_form_name($name);
       if (!empty($active_instruments[$radio_name])) {
         $i = $all_instruments[$name];
