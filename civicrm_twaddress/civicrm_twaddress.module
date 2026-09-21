@@ -187,7 +187,9 @@ function checkForm(){
   if ($form_name == 'Dynamic') {
     $is_dynamic = TRUE;
     // Drupal 10 has no $_GET['q'], tell the two CMS pages apart by route.
-    if (\Drupal::routeMatch()->getRouteName() === 'user.register') {
+    // Both /user/register and /admin/people/create render user_register_form.
+    $route_name = \Drupal::routeMatch()->getRouteName();
+    if ($route_name === 'user.register' || $route_name === 'user.admin_create') {
       $form_name = 'user-register-form';
     }
     else {
@@ -254,11 +256,12 @@ function checkForm(){
       $js = _civicrm_twaddress_grouping_js();
     }
 
+    $is_popup = FALSE;
     if (!empty($_GET['snippet']) && $path_args[1] == 'profile' && $path_args[2] == 'create') {
       $is_popup = TRUE;
     }
 
-    if ((!empty($_GET['snippet']) && $_GET['block'] == 'Address') || $is_popup) {
+    if ((!empty($_GET['snippet']) && ($_GET['block'] ?? '') === 'Address') || $is_popup) {
       // #39697, only add js when press "add address button" on contact page
       $areaDefaultDetect = reset($override['areaName']);
       if (empty($areaDefaultDetect['default'])) {
