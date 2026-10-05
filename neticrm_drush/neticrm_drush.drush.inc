@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\neticrm_drush\MessageTemplateScanner;
+use Drupal\neticrm_drush\UFMatchRepair;
 
 function neticrm_drush_drush_command() {
   $items = [];
@@ -15,6 +16,22 @@ function neticrm_drush_drush_command() {
     ],
     'aliases' => ['neticrm:message-template-scan'],
     'callback' => 'drush_neticrm_message_template_scan',
+  ];
+  $items['neticrm-ufmatch-repair'] = [
+    'description' => 'List logged-in accounts without their own civicrm_uf_match that previously got a contact by email, with planned action and confidence; optionally apply.',
+    'examples' => [
+      'drush neticrm-ufmatch-repair' => 'List affected accounts only. Nothing is changed.',
+      'drush neticrm-ufmatch-repair --uid=795' => 'List the given accounts only.',
+      'drush neticrm-ufmatch-repair --execute' => 'Back up civicrm_uf_match, then apply rows with confidence >= 80.',
+      'drush neticrm-ufmatch-repair --execute --min-confidence=90' => 'Apply only rows with confidence >= 90.',
+    ],
+    'options' => [
+      'uid' => 'Comma separated Drupal user IDs to check.',
+      'execute' => 'Back up civicrm_uf_match and apply planned actions. Without it, only list.',
+      'min-confidence' => 'Minimum confidence (0-100) applied by --execute. Default 80.',
+    ],
+    'aliases' => ['neticrm:ufmatch-repair'],
+    'callback' => 'drush_neticrm_ufmatch_repair',
   ];
   $items['neticrm-schedule'] = [
     'description' => 'Process sending civicrm command line schedule job',
@@ -182,6 +199,73 @@ function drush_neticrm_message_template_scan() {
     return drush_set_error('NETICRM_MESSAGE_TEMPLATE_SCAN', $e->getMessage());
   }
   drush_log('CIVICRM_SECURE_MESSAGE_TEMPLATES is enabled in civicrm.settings.php for subsequent requests.', 'ok');
+}
+
+/**
+ * List, and optionally fix, accounts whose identity came from the legacy email match.
+ */
+function drush_neticrm_ufmatch_repair() {
+  _neticrm_drush_init();
+  require_once __DIR__ . '/src/UFMatchRepair.php';
+
+  $uids = array_values(array_filter(array_map('intval', explode(',', (string) drush_get_option('uid', '')))));
+  $minConfidence = (int) drush_get_option('min-confidence', UFMatchRepair::MIN_CONFIDENCE);
+  $result = UFMatchRepair::scan($uids);
+
+  $targets = [];
+  $table = [['uid', 'category', 'contact', 'planned action', 'confidence', 'conflict', 'merge/trash log']];
+  foreach ($result['rows'] as $row) {
+    $apply = $row['category'] !== UFMatchRepair::MANUAL && $row['confidence'] >= $minConfidence;
+    $table[] = [$row['uid'], $row['category'], $row['contact_id'], $row['action'], $row['confidence'] . ($apply ? ' *' : ''), $row['conflict'], $row['evidence']];
+    if ($apply) {
+      $targets[] = $row;
+    }
+  }
+  drush_print(dt('Logged-in accounts without their own civicrm_uf_match (* = applied by --execute, confidence >= @min):', ['@min' => $minConfidence]));
+  drush_print_table($table, TRUE);
+  drush_print(dt('Skipped @count account(s) that never logged in.', ['@count' => $result['never_logged_in']]));
+
+  if (!drush_get_option('execute', FALSE)) {
+    drush_log(dt('List only. Run with --execute to apply @count row(s).', ['@count' => count($targets)]), 'ok');
+    return;
+  }
+  if (!$targets) {
+    drush_log(dt('Nothing to apply.'), 'ok');
+    return;
+  }
+  if (!drush_confirm(dt('Back up civicrm_uf_match and apply @count row(s)?', ['@count' => count($targets)]))) {
+    return drush_user_abort();
+  }
+  try {
+    $backup = UFMatchRepair::backup();
+  }
+  catch (Throwable $e) {
+    return drush_set_error('NETICRM_UFMATCH_BACKUP', $e->getMessage());
+  }
+  drush_log(dt('civicrm_uf_match backed up to @table and verified.', ['@table' => $backup]), 'ok');
+
+  $undo = [];
+  foreach ($targets as $row) {
+    try {
+      $sql = UFMatchRepair::repair($row);
+    }
+    catch (Throwable $e) {
+      drush_log(dt('UID @uid: @message', ['@uid' => $row['uid'], '@message' => $e->getMessage()]), 'error');
+      continue;
+    }
+    if ($sql) {
+      $undo[] = $sql;
+      drush_log(dt('UID @uid now linked to contact @cid.', ['@uid' => $row['uid'], '@cid' => $row['contact_id']]), 'ok');
+    }
+    else {
+      drush_log(dt('UID @uid skipped: data changed since the scan.', ['@uid' => $row['uid']]), 'warning');
+    }
+  }
+  drush_log(dt('Applied @count row(s). Backup: @table', ['@count' => count($undo), '@table' => $backup]), 'ok');
+  if ($undo) {
+    drush_print(dt('To undo only these changes:'));
+    drush_print(implode("\n", $undo));
+  }
 }
 
 function drush_neticrm_schedule_job($function = NULL) {
