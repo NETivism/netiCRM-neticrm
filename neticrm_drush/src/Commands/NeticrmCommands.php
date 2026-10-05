@@ -3,7 +3,9 @@
 namespace Drupal\neticrm_drush\Commands;
 
 use Drush\Commands\DrushCommands;
+use Drush\Exceptions\UserAbortException;
 use Drupal\neticrm_drush\MessageTemplateScanner;
+use Drupal\neticrm_drush\UFMatchRepair;
 
 class NeticrmCommands extends DrushCommands {
   /**
@@ -54,6 +56,80 @@ class NeticrmCommands extends DrushCommands {
     }
     MessageTemplateScanner::enable(CIVICRM_SETTINGS_PATH);
     $this->logger()->success('CIVICRM_SECURE_MESSAGE_TEMPLATES is enabled in civicrm.settings.php for subsequent requests.');
+  }
+
+  /**
+   * List, and optionally fix, accounts whose identity came from the legacy email match.
+   *
+   * @command neticrm:ufmatch-repair
+   * @aliases neticrm-ufmatch-repair
+   * @option uid Comma separated Drupal user IDs to check.
+   * @option execute Back up civicrm_uf_match and apply planned actions. Without it, only list.
+   * @option min-confidence Minimum confidence (0-100) applied by --execute.
+   * @usage drush neticrm:ufmatch-repair
+   *   List affected accounts only. Nothing is changed.
+   * @usage drush neticrm:ufmatch-repair --uid=795
+   *   List the given accounts only.
+   * @usage drush neticrm:ufmatch-repair --execute
+   *   Back up civicrm_uf_match, then apply rows with confidence >= 80.
+   * @usage drush neticrm:ufmatch-repair --execute --min-confidence=90
+   *   Apply only rows with confidence >= 90.
+   */
+  public function ufmatchRepair($options = ['uid' => '', 'execute' => FALSE, 'min-confidence' => UFMatchRepair::MIN_CONFIDENCE]) {
+    \Drupal::service('civicrm')->initialize();
+    $uids = array_values(array_filter(array_map('intval', explode(',', (string) $options['uid']))));
+    $minConfidence = (int) $options['min-confidence'];
+    $result = UFMatchRepair::scan($uids);
+
+    $targets = [];
+    $rows = [];
+    foreach ($result['rows'] as $row) {
+      $apply = $row['category'] !== UFMatchRepair::MANUAL && $row['confidence'] >= $minConfidence;
+      $rows[] = [$row['uid'], $row['category'], $row['contact_id'], $row['action'], $row['confidence'] . ($apply ? ' *' : ''), $row['conflict'], $row['evidence']];
+      if ($apply) {
+        $targets[] = $row;
+      }
+    }
+    $this->output()->writeln(sprintf('Logged-in accounts without their own civicrm_uf_match (* = applied by --execute, confidence >= %d):', $minConfidence));
+    $this->io()->table(['uid', 'category', 'contact', 'planned action', 'confidence', 'conflict', 'merge/trash log'], $rows);
+    $this->output()->writeln(sprintf('Skipped %d account(s) that never logged in.', $result['never_logged_in']));
+
+    if (empty($options['execute'])) {
+      $this->logger()->success(sprintf('List only. Run with --execute to apply %d row(s).', count($targets)));
+      return;
+    }
+    if (!$targets) {
+      $this->logger()->success('Nothing to apply.');
+      return;
+    }
+    if (!$this->io()->confirm(sprintf('Back up civicrm_uf_match and apply %d row(s)?', count($targets)))) {
+      throw new UserAbortException();
+    }
+    $backup = UFMatchRepair::backup();
+    $this->logger()->success(sprintf('civicrm_uf_match backed up to %s and verified.', $backup));
+
+    $undo = [];
+    foreach ($targets as $row) {
+      try {
+        $sql = UFMatchRepair::repair($row);
+      }
+      catch (\Throwable $e) {
+        $this->logger()->error(sprintf('UID %d: %s', $row['uid'], $e->getMessage()));
+        continue;
+      }
+      if ($sql) {
+        $undo[] = $sql;
+        $this->logger()->success(sprintf('UID %d now linked to contact %d.', $row['uid'], $row['contact_id']));
+      }
+      else {
+        $this->logger()->warning(sprintf('UID %d skipped: data changed since the scan.', $row['uid']));
+      }
+    }
+    $this->logger()->success(sprintf('Applied %d row(s). Backup: %s', count($undo), $backup));
+    if ($undo) {
+      $this->output()->writeln('To undo only these changes:');
+      $this->output()->writeln(implode("\n", $undo));
+    }
   }
 
   /**
