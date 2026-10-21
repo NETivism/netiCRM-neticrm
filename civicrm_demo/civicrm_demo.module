@@ -14,3 +14,23 @@ function civicrm_demo_menu() {
     ]
   ];
 }
+
+/**
+ * Implementation of hook_cron().
+ *
+ * Simulate daily donations on demo site.
+ */
+function civicrm_demo_cron() {
+  if (!variable_get('civicrm_demo_sample_data', 0) || variable_get('maintenance_mode', 0)) {
+    return;
+  }
+  // only demo*.neticrm.tw, drush cron without --uri gets "default" and won't pass
+  global $base_url;
+  $host = strtolower((string) parse_url($base_url, PHP_URL_HOST));
+  if (!preg_match('/^demo[a-z0-9-]*\.neticrm\.tw$/', $host)) {
+    return;
+  }
+  civicrm_initialize();
+  module_load_include('inc', 'civicrm_demo', 'civicrm_demo.cron');
+  civicrm_demo_cron_process();
+}
