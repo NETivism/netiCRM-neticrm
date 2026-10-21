@@ -4,43 +4,52 @@ function civicrm_demo_process_contact($vars) {
 
   $limit = $vars['limit'];
   while ($limit) {
-    // 10% to generate eng name
-    $language = mt_rand(1, 50) == 1 ? 'english' : 'chinese';
-    $first_name = _civicrm_demo_rand_firstname($language);
-    $last_name = _civicrm_demo_rand_lastname($language);
-    if ($language == 'chinese') {
-      $sort_name = $last_name.$first_name;
-    }
-    $params = [
-      'version' => 3,
-      'first_name'    => _civicrm_demo_rand_firstname($language),
-      'last_name'     => _civicrm_demo_rand_lastname($language),
-      'sort_name'     => $sort_name,
-      'display_name'  => $sort_name,
-      'email'         => _civicrm_demo_rand_email(),
-      'contact_type'  => 'Individual',
-      'individual_prefix' => _civicrm_demo_rand_prefix(),
-      'gender_id' => mt_rand(1, 2),
-      'birth_date' => _civicrm_demo_rand_birth_realistic(),
-    ];
-
-    $api_phone_create_home = [
-      'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
-      'phone_type_id' => 1,
-      'location_type' => 'Home'
-    ];
-    $api_phone_create_fax = [
-      'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
-      'phone_type_id' =>  2,
-      'is_primary' => 1,
-      'location_type_id' => 2
-    ];
-    $params['api.address.create'] = _civicrm_demo_rand_addr($language);
-    $params['api.phone.create'] = [$api_phone_create_home, $api_phone_create_fax];
-    $contact = civicrm_api('Contact', 'create', $params);
-
+    _civicrm_demo_create_contact();
     $limit--;
   }
+}
+
+/**
+ * Create single random individual contact
+ *
+ * @param array $extra additional api params, eg. contact_source
+ * @return int|null contact id
+ */
+function _civicrm_demo_create_contact($extra = []) {
+  // 10% to generate eng name
+  $language = mt_rand(1, 50) == 1 ? 'english' : 'chinese';
+  $first_name = _civicrm_demo_rand_firstname($language);
+  $last_name = _civicrm_demo_rand_lastname($language);
+  $params = [
+    'version' => 3,
+    'first_name'    => $first_name,
+    'last_name'     => $last_name,
+    'email'         => _civicrm_demo_rand_email(),
+    'contact_type'  => 'Individual',
+    'individual_prefix' => _civicrm_demo_rand_prefix(),
+    'gender_id' => mt_rand(1, 2),
+    'birth_date' => _civicrm_demo_rand_birth_realistic(),
+  ];
+  if ($language == 'chinese') {
+    $params['sort_name'] = $params['display_name'] = $last_name.$first_name;
+  }
+
+  $api_phone_create_home = [
+    'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
+    'phone_type_id' => 1,
+    'location_type' => 'Home'
+  ];
+  $api_phone_create_fax = [
+    'phone' => '0'.mt_rand(2, 39).'-'.mt_rand(1111111, 9999999),
+    'phone_type_id' =>  2,
+    'is_primary' => 1,
+    'location_type_id' => 2
+  ];
+  $params['api.address.create'] = _civicrm_demo_rand_addr($language);
+  $params['api.phone.create'] = [$api_phone_create_home, $api_phone_create_fax];
+  $params = array_merge($params, $extra);
+  $contact = civicrm_api('Contact', 'create', $params);
+  return !empty($contact['id']) ? $contact['id'] : NULL;
 }
 
 function civicrm_demo_process_event($vars) {
@@ -282,8 +291,6 @@ function civicrm_demo_process_contribution_recur($vars) {
   $sql = "SELECT id FROM civicrm_contact WHERE is_deleted = 0 ORDER BY RAND() LIMIT " . (int)$recur_limit;
   $dao = CRM_Core_DAO::executeQuery($sql);
 
-  $amounts = [200, 200, 200, 300, 300, 300, 300, 500, 500, 600, 600, 600, 700, 800, 900, 1000, 1000, 3000];
-
   $now = time();
   $two_half_years_ago = strtotime('-30 months');
   $three_months_duration = 86400 * 90;
@@ -291,7 +298,7 @@ function civicrm_demo_process_contribution_recur($vars) {
   $recur_count = 0;
   while ($dao->fetch() && $recur_count < $recur_limit) {
     $contact_id = $dao->id;
-    $amount = $amounts[array_rand($amounts)];
+    $amount = _civicrm_demo_rand_recur_amount();
 
     $six_months_ago = strtotime('-6 months');
     $start_ts = mt_rand($two_half_years_ago, $six_months_ago);
@@ -898,6 +905,24 @@ function _civicrm_demo_rand_amount() {
     $pool = [20000, 30000, 50000, 100000];
     return $pool[array_rand($pool)];
   }
+}
+
+/**
+ * Generate monthly recurring donation amount
+ */
+function _civicrm_demo_rand_recur_amount() {
+  $amounts = [200, 200, 200, 300, 300, 300, 300, 500, 500, 600, 600, 600, 700, 800, 900, 1000, 1000, 3000];
+  return $amounts[array_rand($amounts)];
+}
+
+/**
+ * Generate random number of normal distribution (Box-Muller)
+ */
+function _civicrm_demo_rand_normal($mean, $std) {
+  $max = mt_getrandmax();
+  $u1 = mt_rand(1, $max) / $max;
+  $u2 = mt_rand(1, $max) / $max;
+  return $mean + $std * sqrt(-2 * log($u1)) * cos(2 * M_PI * $u2);
 }
 
 function _civicrm_demo_rand_prefix() {
