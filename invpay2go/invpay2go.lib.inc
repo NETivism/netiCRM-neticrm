@@ -302,6 +302,14 @@ class Pay2goInvoice {
     if (!empty($object['search_response']->Result)) {
       $result = (array) $object['search_response']->Result;
       $result['ItemDetail'] = json_decode($result['ItemDetail']);
+      // pay2go returns ItemName encoded with html entities (eg. &lpar;), decode it to prevent double escape in twig
+      if (is_array($result['ItemDetail'])) {
+        foreach ($result['ItemDetail'] as $item) {
+          if (isset($item->ItemName)) {
+            $item->ItemName = html_entity_decode($item->ItemName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+          }
+        }
+      }
       $info = array_merge($info, $result);
     }
     $merchant = invpay2go_merchant_load($object['pid'], ['title', 'serial']);
