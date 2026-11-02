@@ -4,26 +4,7 @@ require_once 'CRM/Core/Payment/BaseIPN.php';
 require_once "CRM/Core/DAO.php";
 
 function civicrm_neweb_ipn($instrument, $post = NULL, $get = NULL, $print = TRUE) {
-  // detect variables
-  $post = !empty($post) ? $post : $_POST;
-  $get = !empty($get) ? $get : $_GET;
-
-  require_once 'CRM/Core/BAO/PaymentProcessor.php';
-  require_once 'CRM/Contribute/DAO/Contribution.php';
-
-  // process the real contribution verify
-  require_once 'CRM/Utils/Array.php';
-  require_once 'CRM/Core/Payment/NewebIPN.php';
-  $NewebIPN = new CRM_Core_Payment_NewebIPN($post, $get);
-  if (!empty($get['module']) || $instrument == 'ezpay') {
-    $result = $NewebIPN->main($get['module'], $instrument);
-    if (!empty($result) && $print) {
-      echo $result;
-    }
-  }
-  else {
-    watchdog('neweb', "Error for doesn't retrive module from url.", [], WATCHDOG_WARNING);
-  }
+  return;
 }
 
 class CRM_Core_Payment_NewebIPN extends CRM_Core_Payment_BaseIPN {
