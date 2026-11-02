@@ -16,26 +16,6 @@ function civicrm_neweb_init() {
  */
 function civicrm_neweb_menu() {
   return [
-    'neweb/ipn' => [
-      'access callback' => TRUE,
-      'page callback' => 'civicrm_neweb_ipn',
-      'type' => MENU_CALLBACK,
-      'file' => 'civicrm_neweb.ipn.inc',
-    ],
-    'neweb/ipn/%' => [
-      'access callback' => TRUE,
-      'page callback' => 'civicrm_neweb_ipn',
-      'page arguments' => [2],
-      'type' => MENU_CALLBACK,
-      'file' => 'civicrm_neweb.ipn.inc',
-    ],
-    'civicrm/contribute/recurring_nw' => [
-      'title' => 'Neweb Recurring contribution management',
-      'access arguments' => ['edit contributions'],
-      'page callback' => 'civicrm_neweb_recurring_page',
-      'type' => MENU_CALLBACK,
-      'file' => 'civicrm_neweb.pages.inc',
-    ],
   ];
 }
 
